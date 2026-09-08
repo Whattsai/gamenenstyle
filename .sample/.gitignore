@@ -1,0 +1,36 @@
+# .gitignore
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Backend
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+.vscode/
+.idea/
+.venv/
+
+# Environment
+.env
+.env.local
+*.log
+*.log.*
+appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.code-workspace
+*.slnx.sqlite
+
+# Custom ignores
+backend/OrickLineBot.API/App_Data/

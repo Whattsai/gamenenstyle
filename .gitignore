@@ -1,0 +1,59 @@
+# .gitignore
+
+# Frontend
+node_modules/
+dist/
+.vite/
+coverage/
+
+# Backend
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+.vscode/
+.idea/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment
+.env
+.env.local
+*.log
+*.log.*
+appsettings.Development.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.code-workspace
+*.slnx.sqlite
+
+# Custom ignores
+backend/OrickLineBot.API/App_Data/
+*.txt
