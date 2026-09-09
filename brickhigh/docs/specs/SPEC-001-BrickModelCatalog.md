@@ -4,11 +4,11 @@
 **關聯需求**: [MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 **優先級**: 高
 **負責角色**: 模型資產維護者、共用模組開發者
-**狀態**: Unity 單機版 SDD 修訂完成，待細部規格確認；引擎與畫面方向已確認
+**狀態**: SDD基線與第13節補強已確認；BDD／TDD／風險回寫完成，Ready for well-done
 **最後更新**: 2026-09-09
 **建議實作順序**: 本 MVP 第 1 順位
 **前置 SPEC**: 無
-**本輪邊界**: 僅規劃本 SPEC；尚未生成 BDD／TDD、執行正式風險稽核或開始實作
+**本輪邊界**: 僅規劃本 SPEC；已生成 BDD／TDD 與實作前風險報告，尚未開始實作
 
 ## 1. 功能概述
 
@@ -17,6 +17,8 @@
 2026-09-09 使用者已同意可下載安裝、資料全在地端的 Unity／URP 單機方向。本修訂據此定義目錄判定、模型製作、Unity 匯入、本機資產包、程式內介面及安裝驗收；取代原先以網頁與本機服務為中心的草案。引擎與畫面方向無須重複確認，新的座標、套件、安裝／資料版本與測試細節在本份 SDD 供審閱。
 
 本 SPEC 只建立共用模型與最小原生預覽交付，不實作人物、庫存、建屋或賽車玩法；後續模組在同一 Unity Player 內使用本契約。
+
+2026-09-09 使用者在了解本階段包含實際安裝版畫面驗收、目前仍無可操作畫面後，回覆「好 繼續」。依此記錄本修訂 SDD 已確認；其後使用者回覆「全數同意 請繼續」，接受 Q-001～Q-003 與 GAP-001～010 的處理方向。使用者後續回覆「確認」，本補強版 SDD 已確認；具體契約已回寫原章節與第13節，BDD／TDD補強及交接已完成，不重問已同意方向。
 
 ### 1.1 來源與需求追溯
 
@@ -69,7 +71,7 @@ Unity 的 API profile 與一般 .NET runtime 並不相同，依 [Unity 6.3 相�
 
 ### 2.3 預計目錄與模組責任
 
-預計 Unity 專案位於 `brickhigh/game/`；`Assets/BrickHigh/{Domain,Application,Infrastructure,Presentation,Editor,Tests}/`、`Packages/`、`ProjectSettings/` 由開發階段建立。`tools/catalog/` 與 `blender/catalog/` 保存製作工具／來源，`artifacts/catalog/` 保存可重建產物；大量二進位來源不強制全部加入一般 Git 物件。本次只修改需求與 SPEC，不建立程式或安裝套件。
+預計 Unity 專案位於 `brickhigh/game/`；`Assets/BrickHigh/{Domain,Application,Infrastructure,Presentation,Editor,Tests}/`、`Packages/`、`ProjectSettings/` 由開發階段建立。`tools/catalog/` 與 `blender/catalog/` 保存製作工具／來源，`artifacts/catalog/` 保存可重建產物；大量二進位來源不強制全部加入一般 Git 物件。本次只修改規劃文件與決策狀態，不建立程式或安裝套件。
 
 遊戲、模型製作與發行的關係如下：
 
@@ -130,6 +132,7 @@ Rebrickable 的全量 CSV 建議、API 認證與限流見其上述官方文件�
 - 全量完成須同時滿足 `A > 0`、`U = 0`、`G = 0`、`V = A`、無映射衝突、所有品質與來源檢核通過，並有涵蓋範圍審查紀錄。
 - `V / A = 100%` 僅證明已知基準內的模型完成；只有另完成來源涵蓋審查才能宣稱符合本 MVP 的全部範圍。若不能證明完整性，保留阻斷，不以測試樣本代表全量。
 - 快照可為 `Draft`、`Frozen`、`Published`；草稿可供維護者預覽。正式 `Published` 必須符合上述全量門檻。禁止將部分完成快照發布成可供遊戲使用的正式基準。
+- 另允許第 13.1 節的 `Preview` 技術驗收包：從 Frozen 中選取已通過逐件品質及使用條件檢核的模型，明確隔離於正式 `Release`。Preview 可在全量未完成時交付，但不得切換正式 head、授予玩家道具或標記本 SPEC 全部完成。
 
 ## 4. 模型與分類契約
 
@@ -148,8 +151,10 @@ Rebrickable 的全量 CSV 建議、API 認證與限流見其上述官方文件�
   → 幾何取得或製作 → Blender 標準化與外觀修整
   → 接點／碰撞／用途與人物錨點標註
   → GLB + metadata + PNG + 來源與品質報告
-  → 全量驗證 → Unity 匯入與材質／座標／碰撞檢核
-  → 原子發布模型快照 → 建立本地資產包 → 安裝包 → 遊戲程式內取用
+  → Frozen 候選的來源驗證 → Unity staging 匯入／材質／座標／碰撞檢核
+  ├─ 已通過的代表模型 → Preview 技術驗收包（不改正式 head）
+  └─ 全量與品質皆通過 → 原子發布來源快照
+       → 核對 staging 與發布摘要完全相符 → Release 資產包／安裝包
 ```
 
 幾何優先使用有明確來源的 LDraw 官方 library 資產；匯入時解析完整依賴、顏色及面朝向。第一版需實作或整合可驗證的 LDraw→Blender 轉換器，不能假設 Blender 原生具備 LDraw 匯入。標準 primitives 可使用參數式建模；未支援的印刷、紋理、曲面或零件須以 Blender 補建，保留尺寸／圖片參考與檢核報告。
@@ -245,7 +250,7 @@ UUID 欄位以 SQLite `TEXT` 存放；時間一律 UTC ISO 8601；數量使用�
 - `runtime_models(snapshot_id, variant_id, revision_id, runtime_build_id, metadata_json, address_key)`，保存現行與相容版本的精確引用；新取得清單不因相容模型存在就出現停產／特殊款。
 - `runtime_builds(runtime_build_id PK, source_revision_id, build_target, editor_version, package_lock_digest, coordinate_profile, content_digest, validation_digest)`。
 - `runtime_files(storage_key PK, sha256, byte_length, kind)`；`runtime_profiles(snapshot_id, profile_id, definition_json)` 保存相容接點等規則。
-- `runtime_meta(key PK,value)` 保存 `packId`、`currentSnapshotId`、`schemaVersion`、`minReaderVersion`、`assetContractVersion`。來源 attribution 以必要的本機唯讀資產提供。
+- `runtime_meta(key PK,value)` 保存 `packId`、`currentSnapshotId`、`schemaVersion`、`minReaderVersion`、`assetContractVersion`，另含 `applicationId`、`packageKind`、`buildTarget`、`sourceSnapshotStatus`；完整版本引用的新增欄位及 FK 依第 13.5 節。來源 attribution 以必要的本機唯讀資產提供。
 
 來源 GLB 與 Unity bundle 是兩種不同產物；同一 ModelRevision 因 Unity／URP／平台改變會有不同 RuntimeBuild。玩家存檔引用來源 snapshot／variant／revision，不保存 Unity InstanceID 或易變 Addressables 內部路徑。精確引用由當前發行包映射至適用的 RuntimeBuild。
 
@@ -355,7 +360,9 @@ public interface ISaveCompatibilityChecker
 | `catalog build --snapshot <id> --job-key <key>` | 製作或恢復 GLB／metadata 等模型產物。 |
 | `catalog validate --snapshot <id>` | 全量來源、模型與分類檢查，輸出逐項結果。 |
 | `catalog publish --snapshot <id> --expected-head-version <n>` | 開發端發布來源模型快照，不等於玩家安裝包已完成。 |
-| Unity batchmode `BuildCatalogContent` | 讀取已發布來源，經 glTFast／URP 匯入與座標校正，建立 catalog.db、本地 Addressables、RuntimeBuild 映射與驗證結果。 |
+| Unity batchmode `BuildValidationContent` | 讀取 Frozen 的指定 snapshot version／selection digest，建立 Unity staging、逐件 RuntimeBuild 與驗證報告；不切正式 head。 |
+| Unity batchmode `BuildPreviewPlayer` | 從通過檢核的 staging 子集合建立 Preview 包，逐項列明來源狀態與缺口；不得使用 Release 身分或存檔。 |
+| Unity batchmode `BuildCatalogContent` | 僅讀 Published，核對完整 staging 輸入與工具 digest，組成正式 catalog.db／本地 Addressables；摘要改變須重驗，不盲目沿用舊結果。 |
 | Unity batchmode `BuildWindowsPlayer` | 打包 Player 與必要執行相依項目，再生成安裝交付物與 checksum。 |
 | `catalog status --job <id>` | 顯示進度／失敗，依輸入 hash 恢復。 |
 
@@ -363,13 +370,13 @@ public interface ISaveCompatibilityChecker
 
 ### 6.4 離線資產包與安裝
 
-`release-manifest.json` 至少包含 packId、appVersion、readerVersion、currentSnapshotId、catalogDbSha256、catalogSchemaVersion、assetContractVersion、buildTarget、editorVersion、packageLockDigest、compatibleSaveVersions、所有資產 bundle／local catalog 的 storage key 與 digest。manifest 在建置時生成，包內所有路徑都必須解析到本地安裝位置；禁用遠端 Addressables catalog、遠端載入路徑與啟動自動更新查詢。
+`release-manifest.json` 至少包含 packId、appVersion、readerVersion、currentSnapshotId、catalogDbSha256、catalogSchemaVersion、assetContractVersion、buildTarget、editorVersion、packageLockDigest、compatibleSaveVersions、所有資產 bundle／local catalog 的 storage key 與 digest；另依第 13.1 節包含 packageKind、applicationId、sourceSnapshotStatus、sourceSelectionDigest、previewCompleteness。manifest 在建置時生成，包內所有路徑都必須解析到本地安裝位置；禁用遠端 Addressables catalog、遠端載入路徑與啟動自動更新查詢。
 
 Unity [Addressables 建置](https://docs.unity3d.com/Packages/com.unity.addressables@2.7/manual/Builds.html) 產物與 Player 一起交付。GLB 是來源，安裝包包含預轉換的 mesh／材質／Prefab 等 runtime 資產、必要 attribution 與可讀 metadata；不要求每次開遊戲重新轉換，原始 Blender 工作檔不必隨包發行。
 
-Windows 安裝交付物包含完整 Player、Unity runtime、Mono 與 SQLite native library 等必要檔案，建立啟動入口及移除安裝入口；任何必要 redistributable 都須隨安裝包離線提供。不能只交付單一 exe、Git 專案或需要 Unity Editor 的場景。首份 SPEC 的獨立驗收包可啟動至只讀模型預覽，完整遊戲入口在最後的收藏屋 SPEC 串接。
+Windows 安裝交付物包含完整 Player、Unity runtime、Mono 與 SQLite native library 等必要檔案，建立啟動入口及移除安裝入口；任何必要 redistributable 都須隨安裝包離線提供。不能只交付單一 exe、Git 專案或需要 Unity Editor 的場景。首份 SPEC 先交付第 13.1 節的 Preview 技術驗收包，再完成全量 Release 的只讀模型預覽；完整遊戲入口仍在最後的收藏屋 SPEC 串接。
 
-啟動流程：讀本機 release manifest → 驗證 DB 與 schema → 開啟 catalog session → 初始化必要資產 → 顯示入口。對大 bundle 按需做完整性驗證並保存本機快取；安裝／更新完成時做全包 hash 檢查。玩家首次離線啟動不得依賴已存在的網頁、Unity Editor 或資產下載快取。無任何必要登入或聯網啟用步驟。
+啟動流程：讀本機 release manifest → 驗證 DB 與 schema → 開啟 catalog session → 初始化必要資產 → 顯示入口。對大 bundle 按需做完整性驗證；驗證重用與檔案替換檢查依第 13.7 節，不以檔案大小或 mtime 相同直接信任。安裝／更新完成時做全包 hash 檢查。玩家首次離線啟動不得依賴已存在的網頁、Unity Editor 或資產下載快取。無任何必要登入或聯網啟用步驟。
 
 ### 6.5 更新、版本引用與玩家資料保存
 
@@ -384,7 +391,7 @@ Unity AssetBundle 受引擎／平台版本約束，本版不承諾任意舊 bund
 
 ## 7. Unity 預覽 UI 與操作狀態
 
-Editor 製作預覽可查看 Draft／Frozen，明確標示未發布。首份 SPEC 的獨立 Windows 驗收包提供 `CatalogPreviewScene`，只讀已封裝的發布模型，標示「模型預覽」；它不是玩家收藏櫃。正式遊戲後續由入口模組決定是否保留模型瀏覽工具，不因此授予玩家全量道具。
+Editor 製作預覽可查看 Draft／Frozen，明確標示未發布。Windows 包均提供 `CatalogPreviewScene`：Release 只讀已封裝的 Published 模型，標示「模型預覽」；Preview 僅讀第 13.1 節的受控候選子集合，持續標示「技術預覽・非完整模型庫」。兩者都不是玩家收藏櫃。正式遊戲後續由入口模組決定是否保留模型瀏覽工具，不因此授予玩家全量道具。
 
 使用 uGUI 清單與 Unity Camera：左側搜尋、系列／款式／部位篩選與虛擬化分頁清單，右側單模型預覽、版本及尺寸摘要。滑鼠拖曳旋轉、滾輪縮放、按鈕重設視角；窄視窗上下排列。色彩與印刷變體是不同可選項目。文字輸入期間不得同時觸發模型旋轉或遊戲快捷鍵。
 
@@ -394,7 +401,7 @@ Editor 製作預覽可查看 Draft／Frozen，明確標示未發布。首份 SPE
 | 搜尋無結果 | 顯示無結果及清除條件，已載入畫面不假造樣本。 |
 | 快速切換零件／變體 | 新選取優先；舊載入可取消或結果被丟棄並釋放，不能蓋掉新模型。 |
 | 模型損毀／不相容 | 顯示錯誤與診斷 ID，其他可用模型仍可選擇；不自動刪模型或重設存檔。 |
-| 圖形裝置不支援 | 顯示可理解的啟動失敗原因；僅能顯示 PNG 不算 3D 驗收通過。 |
+| 圖形裝置不支援 | 由隨包 Windows 啟動器／系統通知顯示失敗原因，不假設 uGUI 已能啟動；僅能顯示 PNG 不算 3D 驗收通過，詳第 13.8 節。 |
 | 包版本更新 | 遊戲退出後安裝，新啟動才開新 session；同一 session 不被背景更新改動。 |
 | 離開預覽 | 釋放 ModelLease、預覽 instance、臨時 render texture 及可回收資源，不破壞共用 mesh／材質。 |
 
@@ -488,7 +495,7 @@ GLB 必須自含所有 buffer／紋理，不得從外部 URI 補抓；只用標�
 - Standalone 畫面／資源測試：固定 2026 件實際模型組合、指定品質設定與硬體量測；車輪接觸原型只驗證本份資產尺度／碰撞適用性，不代替 MVP-002 的操控、性能映射或三張賽道驗收。
 - 全量資料驗收另存逐件 manifest／來源證據／品質報告；fixtures 通過只證明工具行為，不能取代 `AC-017` 的真實全量交付。
 
-以上為 SDD 測試策略，不是已執行測試，也不是已生成的 BDD／TDD。取得本 SPEC 確認後，逐項生成 Scenario 與 TDD case ID，並保留本表追溯。
+以上為 SDD 測試策略，不是已執行測試。2026-09-09已保留原46場景／179測試，並依確認後第13節追加10場景／54測試；[BDD](../bdd/SPEC-001-BrickModelCatalog-BDD.md)共56場景，[TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)共233項。AC-001～036均有BDD／TDD文件追溯（36/36），實作與驗收0%。
 
 ## 10. 風險與需審閱的設計決策
 
@@ -500,21 +507,21 @@ GLB 必須自含所有 buffer／紋理，不得從外部 URI 補抓；只用標�
 | `RISK-004` | 印刷辨識或來源 ID 合併錯誤導致玩家取得錯誤外觀。 | 幾何／變體分離、衝突隔離、分類記錄及逐變體渲染驗收。 |
 | `RISK-005` | 第三方資產使用條件不清，模型包無法交付。 | 逐資產保存來源／授權／作者；資料不足列缺件，不默認可用。 |
 | `RISK-006` | 全量資產與歷史修訂超過下載、磁碟或顯存預算。 | 按需載入與內容去重；實測總量、安裝暫存及相容資產成本，不能為縮包默刪舊引用。尚無全量大小。 |
-| `RISK-007` | 引擎方向已同意，但新版介面、套件、座標、效能與更新驗收細節尚未逐份確認。 | 本 SPEC 為修訂後 SDD 待確認；尚未進入 BDD／TDD 或可開發交接。 |
+| `RISK-007` | SDD 基線確認與新增稽核風險決策須分開記錄，避免將概括同意延伸為全部風險已接受。 | 2026-09-09 修訂 SDD 已確認，BDD／TDD 已生成；Q-001～Q-003 已全數同意；具體補強契約見第 13 節，仍待修訂 SDD 確認與測試回寫後交接。 |
 | `RISK-008` | glTFast／Addressables／原生 SQLite 的特定版本在 Unity Player 不相容。 | 最先完成最小真實 Windows 封裝驗證後才鎖版；候選版本不是已驗證組合。不以 Editor 成功替代 Player。 |
 | `RISK-009` | 二次座標轉換或模型／物理尺度不一致造成鏡像、輪軸偏移與不穩定接觸。 | 非對稱座標 fixture、統一 WorldScaleProfile、簡單坡道／路肩測試；比例尚待原型決定，不保證 WheelCollider 已適合最終賽車。 |
 | `RISK-010` | Unity 升級使舊 AssetBundle 不相容，或更新中斷造成舊存檔無法載入。 | 保留 source revision，重建目前相容 RuntimeBuild；安裝 staging／回復、存檔 schema 檢查與不相容阻斷。 |
 | `RISK-011` | 2026 件與未來車輛的畫面負載未量測，1080p／60 FPS 可能需調整品質。 | 指定候選硬體與可重現場景，量測 CPU／GPU／資源再調整；不宣稱已達最低配備或最終賽車效能。 |
 
-本輪已確認的是原 MVP 規則與 Unity 單機架構方向；待審閱的是本 SPEC 細節：保留 2026-09-08 生產狀態基準及全量門檻、開發端來源管線、canonical GLB 與 Unity RuntimeBuild 分離、原生套件驗證、1080p 效能基準、安裝／存檔相容契約。上述風險未因方向確認而視為已接受，後續風險稽核仍須逐項處理。
+本 SPEC 的生產狀態基準、全量門檻、來源管線、GLB／RuntimeBuild 分離、原生套件驗證、效能及安裝／存檔契約已隨本輪 SDD 確認。實作可行性尚未實測；[風險稽核](SPEC-001-BrickModelCatalog-RiskAudit.md) 所列 10 項缺漏與 24 個測試補強方向已獲使用者全數同意；具體SDD亦已確認，10項缺漏均補至SPEC／BDD／TDD；實際測試仍未執行。
 
 ## 11. 實作順序、依賴與後續文件
 
 本 SPEC 內部建議順序：
 
-1. 建立最小 Unity Windows 封裝原型：原生 SQLite、本地 Addressables、URP 與唯讀安裝路徑，驗證套件相容後鎖版。
+1. 建立獨立 Preview 的最小 Unity Windows 封裝原型：原生 SQLite、本地 Addressables、URP、啟動錯誤通知與唯讀安裝路徑，驗證套件相容後鎖版。
 2. 領域規則、來源清單、證據與快照；同時揭露實際全量缺口。
-3. 代表模型的 Blender 轉換、座標／材質／接點驗證、2026 件效能場景與有限輪組接觸原型。
+3. 代表模型的 Blender 轉換、座標／材質／接點驗證；交付真實 Preview 包供使用者核准固定畫面基準，再批次推進外觀製作。另做 2026 件效能場景與有限輪組接觸原型，分開記錄本機與正式基準機結果。
 4. 全量建模／補件與逐項品質驗證，建置來源快照及相容 RuntimeBuild。
 5. 內部查詢介面、原生預覽整合、本地資產封裝與安裝／升級／回復驗收。
 6. 全量報告與 Windows Player 驗收。只要全量模型尚未完成，SPEC 不得標示全部完成。
@@ -530,13 +537,13 @@ GLB 必須自含所有 buffer／紋理，不得從外部 URI 補抓；只用標�
 
 [MVP-002](../requirements/MVP-002-BrickRace.md) 後續賽車規格沿用同一份模型／存檔識別、資產載入、世界比例及相容契約，再補車輛組裝、性能映射、24 個輪胎發放、展示格、三條賽道與實際操控驗收。本輪不建立 SPEC-002，也不因選引擎而更動這些需求。
 
-後續規劃文件完整名稱固定如下，目前皆尚未建立：
+本輪規劃文件已建立：
 
-- `docs/bdd/SPEC-001-BrickModelCatalog-BDD.md`
-- `docs/tdd/SPEC-001-BrickModelCatalog-TDD.md`
-- `docs/specs/SPEC-001-BrickModelCatalog-RiskAudit.md`（若採獨立報告）
+- [docs/bdd/SPEC-001-BrickModelCatalog-BDD.md](../bdd/SPEC-001-BrickModelCatalog-BDD.md)
+- [docs/tdd/SPEC-001-BrickModelCatalog-TDD.md](../tdd/SPEC-001-BrickModelCatalog-TDD.md)
+- [docs/specs/SPEC-001-BrickModelCatalog-RiskAudit.md](SPEC-001-BrickModelCatalog-RiskAudit.md)
 
-本 SPEC 確認後，由 `bdd-feature-generation` 生成 BDD／TDD，再由 `pre-implementation-risk-gap-audit` 逐項稽核。所有風險決策與補回項目完成後，才在本 SPEC 的 TDD 末尾寫入 `well-done` 交接。現在沒有 `Ready for well-done` 狀態，不開始下一份 SPEC。
+本 SPEC 及第13節已確認，已依 `bdd-feature-generation` 補齊BDD／TDD，並依 `pre-implementation-risk-gap-audit` 完成回寫核對。TDD末尾交接狀態為 `Ready for well-done`，規劃阻斷項無；套件、來源、畫面及正式效能仍須開發階段實測。本輪不開始下一份SPEC或程式實作。
 
 ## 12. 參考資料與驗證紀錄
 
@@ -552,3 +559,142 @@ GLB 必須自含所有 buffer／紋理，不得從外部 URI 補抓；只用標�
 - 規劃依據為 MVP、實際工作區與已查核官方文件；來源調查不是完成下載／建模證據。
 - 本次只修改 Markdown，交付前執行 `git diff --check`，並核對驗收編碼、來源與文件包名稱。
 - Unity 專案、程式碼、模型管線及應用測試尚未實作／執行；既有 Blender 場景檢查不代表本規格通過。
+
+## 13. 已同意風險方案的具體契約（補強版 SDD，已確認）
+
+**決策來源**：使用者回覆「全數同意 請繼續」，接受 RiskAudit 的 Q-001～Q-003。以下把 GAP-001～010 回寫為具體設計；不是已完成原型、資產或實測的聲明。本文涉及 Preview 的新契約與既有 Release 契約分開；正式全量門檻仍依第 3.4 節。
+
+### 13.1 Preview 技術驗收包與 Release 隔離（GAP-001）
+
+| 契約 | Preview | Release |
+|---|---|---|
+| `packageKind` | `Preview` | `Release` |
+| 來源資格 | 固定 Frozen version 中逐件 Ready 且 RuntimeBuild 驗證通過的明列子集合 | 完整 Published 快照與相容歷史引用 |
+| 生產狀態 | 不納入已確認 Retired；Unknown 僅供技術外觀驗證，逐件標示「生產狀態待查」，不可宣稱未停產 | 當前新取得清單僅 Active；U=0、G=0等正式門檻不變 |
+| 介面 | 固定顯示「技術預覽・非完整模型庫」，可搜尋／換件／旋轉／縮放並顯示本包清單與缺口 | 標示「模型預覽」，只讀正式模型；完整玩法由後續SPEC整合 |
+| 玩家資料 | 不開啟正式Profiles、不發放道具、不建立正式進度；僅自身設定、診斷與受控fixture | 使用正式資料根與相容存檔 |
+| 驗收結論 | 只能標記技術預覽里程碑通過，不完成AC-017 | 全量與其他全部門檻通過才可結案 |
+
+每件 Preview 資產仍須滿足來源／使用條件、幾何／材質／尺寸／接點等適用的品質檢核；不能用全量未完成作為免除逐件品質的理由。Unknown 只是不臆造生產證據，不是隱藏已知停產。
+
+Preview 首次畫面核准組合涵蓋普通磚、薄板、透明件、印刷人物組件、Technic 孔軸與 DUPLO 件，並含非對稱幾何；同一代表件可涵蓋多種特性。這不要求首次包即包含所有2026片場景，但完整SPEC效能驗收仍必須使用第8.2節的2026片／至少8類幾何。
+
+`release-manifest.json` 新增必填 `packageKind`、`applicationId`、`sourceSnapshotStatus`、`sourceSelectionDigest`、`previewCompleteness`。Preview 的 completeness 保存包內變體數、整體 C/A/R/U/G/V、涵蓋審查狀態與「非完整」標記，不能把子集合數當作全量分母。Release 的 previewCompleteness 為 null。
+
+Player 在編譯／建置設定中固定允許的 packageKind，不能用玩家設定切換。Release 收到 Preview manifest 回 `IncompatibleContent`，顯示「此資產包僅供技術預覽，不能作為正式遊戲資料。」；Preview 的查詢固定 `Purpose=Browse`，拒絕 CharacterCreation／InitialBucket。Release 不提供把 Preview profile 匯入正式存檔的功能。本版也不包含任何由 Preview 自動升格為 Release 的操作。
+
+### 13.2 先驗證、再發布的建置契約（GAP-002）
+
+1. 製作工具 freeze 候選範圍；每個 source revision 完成 GLB／metadata 等來源品質檢查才能 Ready。
+2. `BuildValidationContent` 接受 Frozen 的 `snapshotId + snapshotVersion + sourceSelectionDigest`，搭配 `buildTarget + editorVersion + packageLockDigest + coordinateProfile` 建立不可變 staging 輸入。每個 RuntimeBuild 留下實際Unity載入與品質結果。
+3. Preview 可封裝其中通過的代表子集合；無權切正式 head。即使 U/G>0，仍可做這條技術驗證路徑。
+4. 正式 `catalog publish` 另要求整個範圍符合第3.4節，且指定發行平台的全量RuntimeBuild驗證已通過；在交易內核對 expected version 與來源／選件digest後發布。
+5. `BuildCatalogContent` 接受 Published，將完全匹配的 staging 產物封裝為 Release。來源、選定revision、工具、座標或目標平台摘要不符，一律拒絕重用並重建／重驗，不能只改manifest字樣。
+6. `BuildWindowsPlayer` 與最後安裝包測試仍需執行；來源Published不代表安裝版已通過，也不省略最終Player實際載入。
+
+製作端需持久化 `validation_builds(build_id PK, snapshot_id, snapshot_version, selection_digest, toolchain_digest, target, result_digest, status)`；Published 記錄引用已核對的 build ID。實際內容在交易前寫入不可變內容庫，狀態提交失敗不切head。不得以解除門檻的方法打破循環依賴。
+
+### 13.3 固定應用身分、資料根與更新互斥（GAP-003）
+
+首版發行識別採 `CompanyName=GameNenStyle`、Release `ProductName=BrickHigh`、`applicationId=com.gamenenstyle.brickhigh`；Preview 使用 `ProductName=BrickHighPreview`、`applicationId=com.gamenenstyle.brickhigh.preview`。這些是專案本機識別，不代表註冊商標或外部帳號。首版發行後不得只因改展示名稱就改動資料根；需要遷移另立明確版本化程序。
+
+使用各自 `Application.persistentDataPath`；Preview 與 Release 的安裝位置、快捷入口、驗收fixture、設定及診斷分離。開發／測試使用隔離資料根，不操作真正玩家profile。
+
+啟動器與更新器使用依 `applicationId + canonical installRoot` 生成的同一生命週期互斥鎖。啟動器須持鎖至Player退出；更新器從預檢、staging驗證、切換到完成持鎖。拿不到鎖時顯示「遊戲或更新程序正在執行，請關閉後再試。」並退出，不強制終止遊戲、不繞過鎖。直接啟動Player仍須驗證受控啟動權與安裝版本，不能繞過更新互斥；以同使用者／同一安裝的單一Player作本版支援邊界。
+
+此鎖避免遊戲與安裝切換同時操作；不是反作弊或防惡意本機程式的安全保證。權限不足或鎖無法建立時保留原版本，禁止退回「直接覆寫」。安裝器只處理程式內容，不修改player.db。
+
+### 13.4 備份、遷移、降版與明確還原（GAP-004）
+
+`ISaveCompatibilityChecker.Check` 的成功值 `CompatibilityReport` 區分 `Compatible` 與 `MigrationRequired`；未知schema或內容不相容依既有契約返回 `Failure(UnsupportedSchema)`／`Failure(IncompatibleContent)`。能解析header不等於允許寫入，只有相容或已成功遷移才能開啟可寫資料。
+
+- 遷移前用SQLite一致備份或停止寫入並關閉連線後備份；先寫獨立暫存備份，確認可讀、schema與引用完整，再標記完整備份。中斷備份不能覆蓋最後良好備份。
+- 安裝切換失敗且新程式尚未遷移資料時，可回復舊程式內容；存檔不變。
+- 新版已遷移或已保存新進度後，不保證舊版可直接使用該資料。舊版檢查不相容時不開啟可寫連線、不重新建立空檔，保留新存檔與升級前備份。
+- 預設顯示「此存檔版本較新，已保留目前進度。請使用相容版本開啟。」。即使有舊備份，也不能自動回退新進度。
+- 要還原備份時，先顯示版本／時間與「還原將回到所選備份的進度；目前資料會另行保留。」，取得明確確認後才切換。取消、確認不存在或還原失敗均維持當前資料；被替換的新進度另留不可變保留副本，不能默刪。
+
+本份實作相容檢查、恢復政策與人工fixture驗證；真正人物／庫存／購買／房屋的migration與還原UI在各自SPEC實作。本條約束會作為後續依賴，不提前建立那些資料表。
+
+### 13.5 完整模型引用與發行資料一致性（GAP-005）
+
+玩家投影需補上以下不可分割的身分關係：
+
+| 投影 | 主鍵／約束 |
+|---|---|
+| `runtime_revisions` | `(variant_id, revision_id)` 複合主鍵；另 `UNIQUE(revision_id)`，來源revision只屬於一個變體 |
+| `runtime_models` | 加 `build_target`，主鍵為 `(snapshot_id, variant_id, revision_id, build_target)`；FK對應runtime_variants的snapshot／variant、runtime_revisions的variant／revision |
+| `runtime_builds` | 加 `variant_id`；source_revision_id／variant_id 必須對應runtime_revisions；提供可被引用的唯一 `(runtime_build_id, variant_id, source_revision_id, build_target)` |
+| 模型與建置關係 | runtime_models的runtime_build_id／variant_id／revision_id／build_target整組FK對應runtime_builds，禁止僅各欄位分別存在就視為相容 |
+
+所有相容歷史snapshot／variant列也保留在投影，故外鍵不要求它必須在目前新取得清單。包內地址鍵必須解析至同一pack所列本地bundle；同一精確引用與平台只能有一個有效映射。
+
+封裝前執行資料庫完整性與FK檢查；Player OpenAsync核對manifest和runtime_meta的packId、snapshotId、schema、applicationId、packageKind及target，並驗證依賴引用。schema未知回UnsupportedSchema；同版本結構損毀回AssetCorrupt；包身分／平台不符回IncompatibleContent；缺指定舊模型映射保持IncompatibleContent。不把任何錯誤改為最新variant的成功回應。
+
+`ModelReference` 即第6.2節的snapshot／variant／revision組合；resolver須檢查整組歸屬，不把使用者傳入的revision直接當可自由載入的全庫ID。
+
+### 13.6 輸入、session、取消與錯誤契約（GAP-006）
+
+- QueryText最多256個Unicode scalar；空字串或null QueryText代表不加文字條件，無效UTF-16輸入回InvalidQuery。Cursor最多4096個ASCII字元；null或空字串代表第一頁，非ASCII、超長、格式或綁定內容不符均回InvalidCursor。此處cursor僅需驗證結構與session綁定，不新增網路認證。
+- null query DTO、null／已Dispose／非目前catalog持有的session、非法enum、Limit不在1～100或文字超限回InvalidQuery。不默默截短搜尋文字。session由OpenAsync產生，不接受由caller自行拼造pack身分。
+- 文字搜尋保留貨號精確優先及名稱部分匹配；中文、引號、百分號與底線都是字面內容。SQL使用參數綁定，LIKE的通配符需顯式escape，不拼接輸入。
+- 任一async方法收到已取消token，優先回Cancelled且不配置DB connection／asset handle；取消不等於其他失敗已被治癒。非預先取消時，先做輸入與session驗證再進入IO。載入中的取消依第6.1節釋放已取得但未使用的資源。
+- null ModelReference／SaveHeader／requiredModels集合及非法UUID結構回InvalidQuery。requiredModels可為空集合，仍需驗證存檔header；重複引用可去重但不得漏驗。Dispose重複呼叫安全。
+- InvalidQuery文案「查詢條件無效，請調整後重試。」；InvalidCursor文案「清單位置已失效，請重新搜尋。」；Cancelled不顯示為破壞資料的錯誤視窗。其他既有錯誤文案沿第6.2／7節與BDD基線，不洩漏堆疊。
+
+### 13.7 實際路徑與驗證快取（GAP-007）
+
+來源匯入、安裝staging與資產載入均在解析最終路徑後檢查其位於各自明確根目錄內；不可只比較原始字串前綴。Windows junction／symbolic link／reparse point 若可能指向根外則拒絕；本版受控安裝內容不需要透過reparse point取得資產，可直接拒絕包內此類節點。
+
+同大小、同名稱或同mtime不足以沿用已驗證結論。驗證索引至少綁定packId、預期SHA-256、正規化實際路徑與檔案身分。程序重啟或檔案被替換後重新驗證；沒有可信檔案身分時不用跨讀取快取。
+
+以「新載入」為完整性檢查邊界：先驗證當次實際讀入的bundle bytes，再交給載入器；已在記憶體且仍持有有效lease的內容可以共用。若採直接從檔案載入，驗證到載入完成期間須維持同一檔案不可被替換／寫入的讀取保護；做不到時走驗證後的受控資料流，不依賴僅mtime檢查。驗證失敗釋放暫存資源並回AssetCorrupt，不把損毀檔案移到正式存檔位置。
+
+這是損毀與意外替換防護，hash不等於發行者簽章；不承諾抵抗同時替換程式、manifest及bundle的惡意管理者。本版不新增DRM／線上驗證。
+
+### 13.8 代表畫面核准、繁中文字型與啟動錯誤（GAP-008）
+
+Preview里程碑須交付實際安裝包、固定光照／相機下的代表模型六視圖、可操作錄影及版本資料。使用者核准「外觀與可讀性」後保存 `visualBaselineId`、pack／source revision／RuntimeBuild、camera／lighting／URP preset摘要、核准日期與意見，再推進同風格批次製作。需要改動已核准的關鍵材質或光照，須提交新對照而非直接覆蓋基準。
+
+核對項目包括形狀／倒角／接縫、顏色與印刷位置、塑膠與橡膠差異、透明可見性、文字與控制可讀性。允許不同GPU的正常像素差異，但不可接受遺失印刷、材質錯誤、鏡像、明顯穿插或過曝掩蓋細節；自動影像差異僅作提醒，不自行宣稱使用者已核准。
+
+將已確認可隨包提供的繁體中文字型與必要fallback／授權說明納入本地資產，涵蓋所有UI文案。檢測缺字方框／遺失glyph即記畫面失敗；Preview、Release與離線首次啟動都不能依賴線上字型。
+
+安裝快捷入口指向隨包 `BrickHighLauncher.exe`，處理生命週期鎖、Player啟動與必要失敗通知；其通知不依賴Unity圖形裝置。Player缺少、圖形初始化失敗或啟動崩潰時，啟動器以Windows系統通知／原生對話顯示具體可行文案及診斷位置；可辨識的不支援裝置用既有BDD文案。無法確知根因時顯示「遊戲未能完成啟動，請檢查安裝檔與顯示驅動。」而不偽裝診斷。正常狀態不額外開出命令列視窗，必要執行相依一樣離線隨包提供。
+
+### 13.9 畫面與效能量測的固定條件（GAP-009）
+
+本機已觀測的i5-13500H／Iris Xe／23.6 GiB環境，只用作操作、外觀及探索量測。正式SPEC第8.2節的GTX1660／i5-10400、16 GiB、SSD、1080p Medium門檻保留；沒有對應設備時記錄「正式基準未驗收」，不以另一台的結果代替，也不要求使用者現在購買設備。
+
+`BenchmarkProfile` 在第一次基準量測前保存：1920×1080輸出、render scale=1、動態解析度關閉、AA模式與等級、陰影解析度／距離、光照與反射設定、材質與透明件清單、相機軌跡、可見數量、UI操作序列、套件版本及其digest。AA／陰影具體值隨代表畫面核准鎖定；未鎖定前只屬探索測試，不能算Medium基準已完成。
+
+保留關VSync／幀率上限、暖機30秒、穩態60秒、平均60FPS及P95≤20ms等原門檻。若改preset、render scale、代表模型組合或硬體，產生新profile並分開記錄，不混入原基準統計。
+
+單件3秒門檻從首次Acquire請求到所需mesh／材質／紋理正確出現在實際Player畫面計時，包含本次完整性驗證；不得以占位首幀截止。報告分成：程序冷啟動、新程序首次模型載入、同程序熱快取重載。標明是否重開機／是否保留OS檔案快取；未清OS快取不得宣稱物理磁碟完全冷讀。載入畫面不混入穩態FPS，但另行報告其時間。
+
+### 13.10 輪組metadata與可判斷的原型矩陣（GAP-010）
+
+`vehicleMetadata` 有輪組幾何時，`radiusMeters`／`widthMeters` 必須有限且大於0；`axleDirection` 為canonical局部正規化方向。未知的必要輪尺寸不得用0假裝已知；該變體不進入依賴此欄位的輪組候選，但不因此默刪其外觀資產。
+
+質量欄位為 `massKg: number|null`、`massEvidence=Measured|Estimated|Unknown`、`massReason` 及可追溯來源。Measured／Estimated需有限正值與量測或估算依據，Unknown則massKg=null並附原因。不把Unknown變成預設性能數字。
+
+原型至少記錄兩種不同輪徑、兩種軸距、合法輪胎／輪圈／車軸配對及一組不相容反例。每次固定並保存WorldScaleProfile、路面尺寸、坡度、路肩高度、測試速度與物理設定；實際接點誤差沿第4.3節，單位換算後同門檻。不相容profile須拒絕裝配；合法組在靜止基準姿態下可核對輪軸與模型／碰撞對齊，動態接觸結果與可見跳動逐項留存。
+
+本份驗收幾何／metadata／配對與可重現結果，不以「有結果檔」掩飾靜態錯位，也不承諾所有路肩平順。最終車輛合法性、動力公式、操控與三賽道由MVP-002規劃。
+
+### 13.11 補強驗收與測試回寫邊界
+
+| ID | 來源 | 可測試條件 |
+|---|---|---|
+| `AC-027` | GAP-001／Q-001 | Preview在全量未完成時仍可安裝操作，顯示包類型／來源待查與缺口；Release拒絕Preview包，兩者資料隔離且不提升全量完成度。 |
+| `AC-028` | GAP-002／Q-001 | Frozen可建立staging驗證與Preview但不切正式head；Release發布及封裝必須完整核對來源／選件／工具摘要，改動後拒絕沿用舊報告。 |
+| `AC-029` | GAP-003／Q-003 | 固定應用身分保持既有profile路徑；遊戲與更新競爭時只有合法流程持鎖，更新途中重啟不造成原地覆寫或第二資料庫。 |
+| `AC-030` | GAP-004／Q-003 | 失敗備份保留最後良好版本；新版存檔降版不開可寫連線；未明確確認不還原，取消／失敗保留目前與備份資料。 |
+| `AC-031` | GAP-005／Q-003 | snapshot／variant／revision／target整組錯配與manifest／DB身分不一致均被拒絕，不載入另一零件或靜默選最新版本。 |
+| `AC-032` | GAP-006／Q-003 | null／disposed／跨pack session、字串上限、中文／引號／百分號／底線與預先取消均依第13.6節返回精確結果，取消不配置資源。 |
+| `AC-033` | GAP-007／Q-003 | 越界reparse point與同大小檔案替換不得繞過檢查；新載入驗證實際內容，損毀拒絕且不動玩家資料。 |
+| `AC-034` | GAP-008／Q-002 | 固定代表Player畫面有使用者核准紀錄；缺字／缺材質不通過，無3D裝置可取得原生失敗通知而非僅靠uGUI。 |
+| `AC-035` | GAP-009／Q-002 | 不同硬體或preset不冒充基準通過；首幀材質完成、冷暖載入與穩態資料分列，固定profile與畫面證據可重跑。 |
+| `AC-036` | GAP-010／Q-003 | 輪組單位／軸向／質量狀態明確；正反配對與不同輪徑／軸距原型可驗證，Unknown不產生虛構重量。 |
+
+舊AC-001～026保留不重編。上述10個新增AC已對應BDD SC-047～056及54個新增TDD案例（30UT＋11IT＋5CT＋8ET）；包含RiskAudit原建議24個測試名稱。共56場景／233測試，全數具追溯且未執行。規劃阻斷已解除並交接well-done，但不能以此宣稱全量來源、可操作畫面或正式效能完成。
