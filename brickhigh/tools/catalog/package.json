@@ -1,0 +1,9 @@
+{
+  "name": "brickhigh-catalog-validation",
+  "private": true,
+  "version": "0.1.0",
+  "description": "僅供製作端使用的官方 GLB 驗證器；不隨 Player 交付。",
+  "dependencies": {
+    "gltf-validator": "2.0.0-dev.3.10"
+  }
+}

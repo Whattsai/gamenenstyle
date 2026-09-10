@@ -1,0 +1,7 @@
+{
+  "name": "BrickHigh.Application",
+  "rootNamespace": "BrickHigh.Application",
+  "references": ["BrickHigh.Domain"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

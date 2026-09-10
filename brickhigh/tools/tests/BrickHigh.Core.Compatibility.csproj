@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Application/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/**/*.cs" />
+  </ItemGroup>
+</Project>

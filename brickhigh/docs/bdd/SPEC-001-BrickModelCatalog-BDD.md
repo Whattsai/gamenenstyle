@@ -4,7 +4,7 @@
 > **需求來源**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
 > **確認依據**：原 SDD「好 繼續」、風險方案「全數同意 請繼續」、補強版 SDD「確認」（2026-09-09）。
-> **狀態**：56 場景已生成並追溯；10 項風險補強已回寫，Ready for well-done；實作未開始。
+> **狀態**：56 場景已生成並追溯；well-done Phase 2 核心實作進行中（2026-09-10），場景驗收仍為 0/56、UX 0/20。測試與限制見 [TDD 本輪紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
 
 ## 📝 Feature 描述
 

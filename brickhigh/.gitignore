@@ -34,3 +34,14 @@ Thumbs.db
 
 # Custom ignores
 backend/OrickLineBot.API/App_Data/
+
+# Unity 與可重建的製作產物
+game/Library/
+game/Temp/
+game/Logs/
+game/UserSettings/
+game/Builds/
+artifacts/
+__pycache__/
+.pytest_cache/
+.coverage

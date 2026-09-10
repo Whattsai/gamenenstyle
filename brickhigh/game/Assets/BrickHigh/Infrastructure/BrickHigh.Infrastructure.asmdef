@@ -1,0 +1,9 @@
+{
+  "name": "BrickHigh.Infrastructure",
+  "rootNamespace": "BrickHigh.Infrastructure",
+  "references": ["BrickHigh.Domain"],
+  "overrideReferences": true,
+  "precompiledReferences": ["Newtonsoft.Json.dll"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

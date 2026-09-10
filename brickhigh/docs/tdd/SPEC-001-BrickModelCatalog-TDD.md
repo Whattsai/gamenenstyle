@@ -4,7 +4,7 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：⏸️ 未開始；233 項測試（179 基線＋54 補強），尚未產生測試程式或執行。
+> **狀態**：🚧 well-done Phase 2 進行中；24/233 項具完整本機單元層證據，尚未完成 Unity／Player／全量驗收。最後更新：2026-09-10。
 
 ## 🎯 開發進度總覽
 
@@ -12,32 +12,34 @@
 
 ```text
 SPEC-001-BrickModelCatalog TDD 開發
-Red-Green-Refactor：未開始
-開始時間／預計完成／負責人：尚未指定
-進度條：[░░░░░░░░░░░░░░░░░░░░] 0% (0/233)
+Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
+開始時間／預計完成／負責人：2026-09-10／尚未估算／Codex
+進度條：[██░░░░░░░░░░░░░░░░░░] 10.30% (24/233)
 ```
 
 ### 分層進度追蹤
 
 | 測試層級 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
 |---|---|---|---|---|---|
-| 1️⃣ 單元測試 | 0% | 0/168 | 0 | 168 | ⏸️ 未開始 |
-| 2️⃣ 集成測試 | 0% | 0/29 | 0 | 29 | ⏸️ 未開始 |
-| 3️⃣ 程式內 API 契約 | 0% | 0/14 | 0 | 14 | ⏸️ 未開始 |
+| 1️⃣ 單元測試 | 14.29% | 24/168 | 4 | 140 | 🚧 部分本機驗證完成 |
+| 2️⃣ 集成測試 | 0% | 0/29 | 6 | 23 | 🚧 部分矩陣有證據 |
+| 3️⃣ 程式內 API 契約 | 0% | 0/14 | 4 | 10 | 🚧 部分契約有證據 |
 | 4️⃣ E2E／安裝／畫面／效能 | 0% | 0/22 | 0 | 22 | ⏸️ 未開始 |
-| 合計 | 0% | 0/233 | 0 | 233 | ⏸️ 未開始 |
+| 合計 | 10.30% | 24/233 | 14 | 195 | 🚧 未達交付門檻 |
 
 一個 checklist ID 是一個測試案例；參數化資料列與 assertions 不重複灌入進度。BDD 56 場景各有3項單元測試，且另有真實集成／Player／E2E 覆蓋。沒有把「已生成文件」算成「測試通過」。
+
+本輪 Python 38 個 pytest cases 與 C# 33 個 NUnit cases 不等於 71 個 checklist ID。C# 目前以獨立 .NET 10 harness 執行相同核心原始碼，另以 .NET Standard 2.1 編譯；僅勾選無 Unity 依賴且斷言完整的單元規則，不計為 Unity EditMode／PlayMode／Player 驗收。UT-021、154、156、158；IT-002、008、014、021、026、027；CT-010、012、013、014 均只有部分證據，維持未勾選。
 
 ### 當前 Sprint 狀態
 
 | 項目 | 內容 |
 |---|---|
-| 當前階段 | perfect-plan Phase 5：Ready for well-done，尚未開始開發 |
-| 當前執行測試 | 無 |
-| Red-Green-Refactor | 未開始 |
-| 最後更新 | 2026-09-09 |
-| 備註 | 179基線保留；追加30單元＋24集成／契約／E2E，共233項 |
+| 當前階段 | well-done Phase 2：核心實作與工具鏈準備；尚未進入 UX／深度稽核完成關卡 |
+| 當前執行測試 | 第一輪回歸完成；下一關為 Unity 專案匯入、原生相依與 Player 原型 |
+| Red-Green-Refactor | 已保留測試先失敗、實作後通過的本輪執行結果；摘要見下方 |
+| 最後更新 | 2026-09-10 |
+| 備註 | 維持233個原始ID與名稱；未以探索 GLB、fixture 或候選套件宣稱正式完成 |
 
 ### 里程碑
 
@@ -52,20 +54,59 @@ Red-Green-Refactor：未開始
 
 | 指標 | 目標 | 目前 |
 |---|---|---|
-| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 0/233，未執行 |
+| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 24/233 本機單元層完成，其餘未完成 |
 | BDD → TDD 文件追溯 | 56/56 | 已生成映射，非測試通過 |
 | 模型正式交付 | SPEC §3.4 全量門檻與每件品質通過 | 未取得完整分母，未驗收 |
 | 原生畫面 | 可安裝、離線、可操作且材質正確 | 尚無 Player |
 | 效能 | SPEC §8.2 固定硬體／場景的目標 | 未量測 |
-| 程式碼覆蓋率 | 開發後報告；不能替代模型／Player 驗收 | 無程式碼，無數值 |
+| 程式碼覆蓋率 | 開發後報告；不能替代模型／Player 驗收 | 已有程式與測試，覆蓋率尚未量測 |
 
 ### 每日進度記錄
 
 2026-09-09：SDD 經使用者確認；生成46場景與179測試。未開始實作、未取得正式畫面截圖、未跑任何 Unity 測試。
 
+2026-09-10：新增領域規則、開發端 SQLite repository、不可變內容儲存、Windows 實際路徑／hash 防護、C# 原生 SQLite 與固定 session 讀取、存檔相容檢查。加入 Unity 專案骨架及候選套件清單；完成 LDraw 3001 幾何轉換探針，不把測試顏色選擇視為已觀測實際變體。未修改既有 `blender/brickhigh.blend`。
+
+### 本輪驗證與追溯證據（2026-09-10）
+
+以下命令工作目錄為 `brickhigh/`；`artifacts/` 保存本機可重建證據，不入版控。
+
+| 命令／證據 | 實際結果 | 不可推論的範圍 |
+|---|---|---|
+| `python -m pytest -q --junitxml=artifacts/test-results/python-20260910.xml` | 38 passed，0 skipped | 不代表 Unity 資產載入或全量來源完成 |
+| `dotnet test tools/tests/BrickHigh.Core.Tests.csproj --nologo --verbosity quiet --logger "trx;LogFileName=core-20260910.trx" --results-directory artifacts/test-results` | 33 passed，0 skipped | 非 Unity Test Runner／Player |
+| `dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet` | .NET Standard 2.1，0 warnings／0 errors | 不代表套件、shader 或 native Player 相容 |
+| `node tools/catalog/validate_glb.cjs artifacts/models/3001-red-exploratory-v1/model.glb artifacts/models/3001-red-exploratory-v1/khronos-report.json` | Khronos 2.0.0-dev.3.10：0 errors／0 warnings／0 infos／0 hints | 未完成尺寸全集、接點、來源外觀、六視圖、Unity 及使用者核准；重跑需新的報告路徑 |
+| `artifacts/models/3001-red-exploratory-v1/conversion.json` | Blender 5.2.1；3068 triangles；32 mm 寬；逐依賴作者／license／hash；`Unknown`、`qualityPassed=false` | 幾何探針，不是 Ready、Preview 安裝包或已確認未停產變體 |
+
+探索 GLB SHA-256：`a4c11b4d5c56235d8f29d60f83949a0360ae92a17e2161c7998184246216bae9`。ImportLDraw 固定 commit：`c306fb777a4e0da85492f09d65daf458767a0aa1`。匯入器未支援的 FABRIC 色表訊息保存在轉換報告；本探針只使用 BASIC 材質，透明／特殊材質仍明確拒絕，不默默變成不透明塑膠。
+
+| 已勾選 ID | 實作 | 測試證據 |
+|---|---|---|
+| UT-004～006 | `tools/catalog/policies.py::ProductionStatusPolicy` | `tools/catalog/tests/unit/test_sc_002.py` |
+| UT-007～009 | `tools/catalog/policies.py::VariantIdentityPolicy` | `tools/catalog/tests/unit/test_sc_003.py` |
+| UT-019～020 | `game/Assets/BrickHigh/Domain/Geometry.cs` | `Tests/EditMode/Unit/CoordinatePolicyTests.cs`（以下 Tests 均相對 `game/Assets/BrickHigh/`） |
+| UT-046 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs` | `Tests/EditMode/Integration/NativeSqliteTests.cs`；實際 bundled DLL、唯讀且無 sidecar |
+| UT-060、082 | `Domain/CatalogResult.cs`、`Domain/CatalogInputPolicy.cs`（Domain 相對 `game/Assets/BrickHigh/`） | `Tests/EditMode/Unit/CatalogInputPolicyTests.cs` |
+| UT-070～072 | `tools/catalog/content.py` | `tools/catalog/tests/unit/test_sc_024.py`；另有 C# Windows 保留名稱反例 |
+| UT-073～074、148 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs`、`Domain/SaveContracts.cs` | `Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs`；只讀政策，未實作正式存檔資料表 |
+| UT-079～081 | `tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/unit/test_sc_027.py` |
+| UT-085～087 | `game/Assets/BrickHigh/Domain/Geometry.cs` | `Tests/EditMode/Unit/MetadataValidationPolicyTests.cs` |
+| UT-155 | `Domain/CatalogInputPolicy.cs`、`Infrastructure/BrickCatalog.cs`（Infrastructure 相對 `game/Assets/BrickHigh/`） | `Tests/EditMode/Unit/CatalogInputPolicyTests.cs`、`Tests/EditMode/Integration/ReadContractTests.cs`；scalar／cursor 邊界與實際字面 SQL 查詢 |
+
+部分整合證據：`tools/catalog/tests/integration/test_snapshot_repository.py`（CAS、凍結／Ready 不可變、故障 rollback）；`tools/acceptance/tests/integration/test_it_026.py`／`test_it_027.py`（真實 Windows junction 及同大小／mtime 內容替換）；`Tests/EditMode/Integration/ReadContractTests.cs`（101 筆分頁、session／包身分、literal LIKE）；`tools/catalog/tests/integration/test_blender_conversion.py`（真實 Blender＋官方 LDraw 幾何）。上述尚未涵蓋各 ID 的完整 Player／工作／更新矩陣，不能勾選整個 IT／CT。
+
+### 接續實作所需條件與未完成範圍
+
+- 本機尚未取得可用的 Unity Editor，亦尚未確認可用授權。已下載並驗證官方簽署的 `6000.3.18f1` 安裝器；安裝呼叫回報「操作被使用者取消」，未重試提權或代為處理授權。需由使用者完成適用授權／安裝，或提供已可用的 Editor 路徑，才能執行下一個原生 Player 關卡。
+- `game/Packages/manifest.json` 是候選輸入，不是已通過 Player 的鎖版；尚無 Editor 產生並驗證的 `packages-lock.json`。URP／uGUI 隨 Editor 的解析亦待確認。
+- 開發 CLI／完整來源 adapter、工作恢復、涵蓋審查實證、全部分類／接點／品質閉環仍未完成。repository 的合成驗證報告僅供交易測試；目前不得拿人工旗標或 fixture 發布真實內容。
+- 精確模型 resolver、Addressables／ModelLease、uGUI／鏡頭／輸入、啟動器與離線安裝更新、備份還原 harness、完整 manifest／bundle 封裝及其故障矩陣仍需實作與實機驗證。
+- 全部 BDD 場景驗收仍為 0/56、UX 0/20；無 Player 六視圖、`visualBaselineId` 或指定 GTX 1660 基準報告。Phase 3／Phase 4 尚未完成，沒有 100% 深度稽核結論。
+
 ## 測試資料、位置與層級約定
 
-所有位置相對 `brickhigh/`，都是預計新增位置，現在不存在。Unity 測試使用與鎖定 Editor 相容的 Unity Test Framework；Domain 不引用 UnityEngine。製作工具的 Python 測試採受控來源與真實 SQLite。單元層只能隔離規則、狀態機與判定器，不能由假 render report 推論真實畫面已正確。
+所有位置相對 `brickhigh/`；已建立項目以本輪證據表為準，其餘仍是預計位置。Unity 測試須使用與鎖定 Editor 相容的 Unity Test Framework；Domain 不引用 UnityEngine。製作工具的 Python 測試採受控來源與真實 SQLite。單元層只能隔離規則、狀態機與判定器，不能由假 render report 推論真實畫面已正確。
 
 - 單元：開發端 `tools/catalog/tests/unit/`；遊戲 `game/Assets/BrickHigh/Tests/EditMode/Unit/`。
 - 集成：Python 管線、Unity EditMode／PlayMode／Player，依下表列出實際執行層。
@@ -107,13 +148,13 @@ Red-Green-Refactor：未開始
 **共同前置**：候選分別有有效生產、停產、缺貨、舊現貨、日期不明及衝突證據。
 **共同動作**：維護者計算基準日生產狀態；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-004** `ProductionStatusPolicy_DatedEvidence_ClassifiesStatus` — @critical
+- [x] **UT-004** `ProductionStatusPolicy_DatedEvidence_ClassifiesStatus` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：有效生產且無衝突判為 Active，有效停產判為 Retired。
-- [ ] **UT-005** `ProductionStatusPolicy_AmbiguousEvidence_RemainsUnknown` — @critical
+- [x] **UT-005** `ProductionStatusPolicy_AmbiguousEvidence_RemainsUnknown` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：缺貨、舊現貨、日期不明與衝突均保持 Unknown。
-- [ ] **UT-006** `ProductionStatusPolicy_RetiredColor_PreservesOtherVariant` — @critical
+- [x] **UT-006** `ProductionStatusPolicy_RetiredColor_PreservesOtherVariant` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：某顏色停產不改變另一有效 Active 變體。
 
@@ -124,13 +165,13 @@ Red-Green-Refactor：未開始
 **共同前置**：同幾何有兩顏色與兩印刷來源，另有同來源 ID 的矛盾映射。
 **共同動作**：維護者建立零件、變體與來源別名；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-007** `VariantIdentityPolicy_RealAppearance_CreatesVariant` — @critical
+- [x] **UT-007** `VariantIdentityPolicy_RealAppearance_CreatesVariant` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：只建立有證據的實際組合，不做所有顏色笛卡兒積。
-- [ ] **UT-008** `VariantIdentityPolicy_PrintedKey_PreservesIdentity` — @critical
+- [x] **UT-008** `VariantIdentityPolicy_PrintedKey_PreservesIdentity` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：印刷／材質納入 VariantKey，內部 ID 永不重新分配。
-- [ ] **UT-009** `VariantIdentityPolicy_ConflictingAlias_IsolatesMapping` — @critical
+- [x] **UT-009** `VariantIdentityPolicy_ConflictingAlias_IsolatesMapping` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：矛盾外部 ID 隔離為衝突，不能直接合併。
 
@@ -192,10 +233,10 @@ Red-Green-Refactor：未開始
 **共同前置**：非對稱模型含 LDraw 點 (20,-24,10)、方向、切線、接點及尺寸。
 **共同動作**：轉成 canonical 再匯入 Unity；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-019** `CoordinatePolicy_LDrawPoint_ConvertsMeters` — @critical
+- [x] **UT-019** `CoordinatePolicy_LDrawPoint_ConvertsMeters` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：canonical 點為 (0.008,0.0096,-0.004) 公尺，GLB root scale 為 1。
-- [ ] **UT-020** `CoordinatePolicy_CanonicalBasis_ConvertsRotation` — @critical
+- [x] **UT-020** `CoordinatePolicy_CanonicalBasis_ConvertsRotation` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：Unity 目標點為 (0.008,0.0096,0.004)，旋轉以 M R M^-1 轉換。
 - [ ] **UT-021** `CoordinatePolicy_AlreadyConvertedMesh_AvoidsSecondMirror` — @critical
@@ -345,7 +386,7 @@ Red-Green-Refactor：未開始
 **共同前置**：一般使用者安裝於唯讀目錄且有獨立 Profiles 與 Diagnostics。
 **共同動作**：啟動、查詢並寫入診斷紀錄；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-046** `LocalStoragePolicy_ReadOnlyCatalog_AvoidsSidecars` — @critical
+- [x] **UT-046** `LocalStoragePolicy_ReadOnlyCatalog_AvoidsSidecars` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：catalog.db 以唯讀開啟且不產生安裝目錄 WAL／SHM。
 - [ ] **UT-047** `LocalStoragePolicy_WritableData_UsesUserRoot` — @critical
@@ -419,7 +460,7 @@ Red-Green-Refactor：未開始
 - [ ] **UT-059** `VariantQueryValidator_ForeignCursor_ReturnsInvalidCursor` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：跨條件或快照 cursor 回 InvalidCursor，不重設到第一頁。
-- [ ] **UT-060** `VariantQueryValidator_FailureEnvelope_ExcludesSuccess` — @critical
+- [x] **UT-060** `VariantQueryValidator_FailureEnvelope_ExcludesSuccess` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：錯誤與正常值不並存，錯誤中不出現 SQL 或堆疊。
 
@@ -481,13 +522,13 @@ Red-Green-Refactor：未開始
 **共同前置**：manifest 含 ../、絕對路徑、外部 GLB URI 或遠端 Addressables；另有含憑證的 draft。
 **共同動作**：執行來源匯入與 Player 打包檢查；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-070** `ContentPathPolicy_TraversalPath_RejectsEscape` — @critical
+- [x] **UT-070** `ContentPathPolicy_TraversalPath_RejectsEscape` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：任意外部路徑與越界壓縮成員拒絕，不在目標範圍外寫入。
-- [ ] **UT-071** `ContentPathPolicy_RemoteAddress_RejectsBuild` — @critical
+- [x] **UT-071** `ContentPathPolicy_RemoteAddress_RejectsBuild` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：Player 只解析本地 address key，遠端 catalog／自動查更新使建置失敗。
-- [ ] **UT-072** `ContentPathPolicy_DeveloperArtifacts_ExcludedFromPlayer` — @critical
+- [x] **UT-072** `ContentPathPolicy_DeveloperArtifacts_ExcludedFromPlayer` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：draft、來源 adapter、維護 CLI 及來源金鑰不進入安裝包。
 
@@ -498,10 +539,10 @@ Red-Green-Refactor：未開始
 **共同前置**：SaveHeader 比 reader 新、assetContract 不符或 requiredModels 缺映射。
 **共同動作**：呼叫 ISaveCompatibilityChecker.Check；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-073** `SaveCompatibilityChecker_NewerSchema_RejectsWithoutWrite` — @critical
+- [x] **UT-073** `SaveCompatibilityChecker_NewerSchema_RejectsWithoutWrite` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：未知 schema 回 UnsupportedSchema，不覆寫存檔。
-- [ ] **UT-074** `SaveCompatibilityChecker_MissingRevision_DoesNotSubstitute` — @critical
+- [x] **UT-074** `SaveCompatibilityChecker_MissingRevision_DoesNotSubstitute` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：缺映射／不相容內容回 IncompatibleContent，不改用最新模型。
 - [ ] **UT-075** `SaveCompatibilityChecker_IncompatibleSave_ReportsPreservation` — @critical
@@ -532,13 +573,13 @@ Red-Green-Refactor：未開始
 **共同前置**：分別使用 A=0、U=1、G=1、V=A-1 或未分類一筆的資料。
 **共同動作**：計算覆蓋率並要求發布；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-079** `CatalogCoveragePolicy_ZeroActive_AvoidsFalseComplete` — @critical
+- [x] **UT-079** `CatalogCoveragePolicy_ZeroActive_AvoidsFalseComplete` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：A=0 顯示「尚無已確認基準」，不除以零或顯示 100%。
-- [ ] **UT-080** `CatalogCoveragePolicy_SingleGap_BlocksPublish` — @critical
+- [x] **UT-080** `CatalogCoveragePolicy_SingleGap_BlocksPublish` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：任一未知、缺口、缺 revision 或分類缺漏均阻止正式發布。
-- [ ] **UT-081** `CatalogCoveragePolicy_CompleteKnownSet_RequiresScopeReview` — @critical
+- [x] **UT-081** `CatalogCoveragePolicy_CompleteKnownSet_RequiresScopeReview` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：V/A=100% 但無涵蓋審查仍不是全量完成。
 
@@ -549,7 +590,7 @@ Red-Green-Refactor：未開始
 **共同前置**：同快照有 101 筆不同 variantId，篩選條件保持相同。
 **共同動作**：以預設及邊界 Limit 逐頁查詢；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-082** `VariantPagingPolicy_LimitBounds_EnforcesOneToHundred` — @critical
+- [x] **UT-082** `VariantPagingPolicy_LimitBounds_EnforcesOneToHundred` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：預設每頁 50，Limit=1 與 100 合法，0／負數／101 為 InvalidQuery。
 - [ ] **UT-083** `VariantPagingPolicy_StableCursor_CoversAllRows` — @critical
@@ -566,13 +607,13 @@ Red-Green-Refactor：未開始
 **共同前置**：資料分別在尺寸容差／接點誤差／大小上限及其相鄰兩側，另有 NaN、Infinity、負尺寸。
 **共同動作**：驗證 metadata 及輸出預算；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-085** `MetadataValidationPolicy_ToleranceBoundary_UsesInclusiveLimit` — @critical
+- [x] **UT-085** `MetadataValidationPolicy_ToleranceBoundary_UsesInclusiveLimit` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：尺寸誤差 ≤ max(0.1 mm,0.5%×參考尺寸)，接點誤差 ≤0.05 mm 才通過。
-- [ ] **UT-086** `MetadataValidationPolicy_NonFiniteMetadata_RejectsInput` — @critical
+- [x] **UT-086** `MetadataValidationPolicy_NonFiniteMetadata_RejectsInput` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：非有限數值、非正尺寸或非正 world scale 失敗，法向與切線須正規化。
-- [ ] **UT-087** `MetadataValidationPolicy_AssetBudget_EnforcesEachLimit` — @critical
+- [x] **UT-087** `MetadataValidationPolicy_AssetBudget_EnforcesEachLimit` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：GLB ≤20 MiB、紋理每邊 ≤2048、預覽 ≤256 KiB；來源壓縮大小不冒充 runtime 記憶體。
 
@@ -923,7 +964,7 @@ Red-Green-Refactor：未開始
 **共同前置**：人工F-Save含升版前完整備份、新版schema與新增進度；不使用私人正式存檔。
 **共同動作**：檢查降版相容性，注入備份中斷，再在驗收harness選擇取消或確認還原。本層只用受控輸入隔離判定；真實資料庫、程序、像素及物理行為由 CT-011、IT-023、ET-017 驗證。
 
-- [ ] **UT-148** `CheckSave_NewerSchema_BlocksWritableConnection` — @critical
+- [x] **UT-148** `CheckSave_NewerSchema_BlocksWritableConnection` — @critical
   - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
   - 預期：Compatible或MigrationRequired以CompatibilityReport回報，未知schema回UnsupportedSchema且不開可寫連線，提示「此存檔版本較新，已保留目前進度。請使用相容版本開啟。」。
 - [ ] **UT-149** `CommitBackup_InvalidTemporaryCopy_PreservesLastGood` — @critical
@@ -960,7 +1001,7 @@ Red-Green-Refactor：未開始
 - [ ] **UT-154** `ValidateInput_InvalidSessionOrDto_ReturnsInvalidQuery` — @critical
   - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
   - 預期：未取消時null DTO/session、disposed/偽造/跨包session、非法enum/UUID或Limit不在1至100回InvalidQuery；空requiredModels仍驗header、重複引用去重且逐件查核。
-- [ ] **UT-155** `ValidateText_ScalarAndCursorBounds_ReturnsSpecifiedError` — @critical
+- [x] **UT-155** `ValidateText_ScalarAndCursorBounds_ReturnsSpecifiedError` — @critical
   - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
   - 預期：QueryText null/空代表不篩選，至多256 Unicode scalar且UTF16有效；Cursor null/空為首頁、至多4096 ASCII，錯誤/跨查詢回InvalidCursor；中文、引號、%及_為參數化字面搜尋。
 - [ ] **UT-156** `CancelRequest_PreCancelledInvalidInput_ReturnsCancelled` — @critical
@@ -1774,7 +1815,9 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 
 ## 📝 稽核記錄
 
-2026-09-09：保留179基線測試，使用者已「全數同意 請繼續」風險方案並「確認」補強版SDD。10項缺漏已回寫SPEC §13／AC-027～036、BDD SC-047～056與54項TDD補強（30UT＋11IT＋5CT＋8ET）。合計168UT＋29IT＋14CT＋22ET＝233項，全部未執行；36/36 AC及56/56場景有文件追溯，非產品完成率。
+2026-09-10：Phase 2 本機回歸與進度核對完成；24 項單元 ID 有上述證據，其餘維持未勾選。不是 Phase 4 全項深度稽核，不能以此宣告 36 AC、56 BDD 或整份 SPEC 已驗收。
+
+2026-09-09（規劃時點）：保留179基線測試，使用者已「全數同意 請繼續」風險方案並「確認」補強版SDD。10項缺漏已回寫SPEC §13／AC-027～036、BDD SC-047～056與54項TDD補強（30UT＋11IT＋5CT＋8ET）。合計168UT＋29IT＋14CT＋22ET＝233項，當時全部未執行；36/36 AC及56/56場景有文件追溯，非產品完成率。
 
 文件驗證：已核對233個唯一且連續的測試ID、56個Given／When／Then場景及各至少3個UT、36個AC追溯、原179項測試ID／名稱保留、24個建議名稱全數追加、五份文件本機連結與Markdown空白。`git diff --check`通過（僅Git行尾轉換提示）；這些是文件檢查，不是Unity或遊戲測試。
 
