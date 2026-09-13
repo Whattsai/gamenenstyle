@@ -7,9 +7,9 @@
 | 路徑 | 已有內容與限制 |
 |---|---|
 | `game/Assets/BrickHigh/Domain/` | 不引用 UnityEngine 的座標、尺寸、查詢、結果、session 與存檔標頭契約 |
-| `game/Assets/BrickHigh/Application/` | 只讀存檔相容政策、最新選取／過期結果釋放狀態；不建立人物／庫存資料，不執行還原 |
+| `game/Assets/BrickHigh/Application/` | 只讀存檔相容政策、預覽搜尋／分頁／選取／錯誤狀態、單次重試與過期結果釋放；不建立人物／庫存資料，不執行還原 |
 | `game/Assets/BrickHigh/Infrastructure/` | SQLite C API、包內 bytes／manifest 索引核對、固定 session 查詢、整組歷史引用 resolver、runtime_files 投影與 Addressables 離線啟動政策 |
-| `game/Assets/BrickHigh/UnityRuntime/` | BrickAssetProvider 私有 locator／實際 bytes 雜湊與記憶體 bundle 載入、主執行緒 ModelLease、內部 Player 探針；未建立正式 UI |
+| `game/Assets/BrickHigh/UnityRuntime/` | BrickAssetProvider 私有 locator／實際 bytes 雜湊與記憶體 bundle 載入、主執行緒 ModelLease、CatalogPreviewController 本機預覽協調與內部 Player 探針；未建立正式 UI |
 | `game/Assets/BrickHigh/Editor/` | 產生獨立 Win64 Mono 工具鏈探針，真實 GLB 匯入／本地 Addressables／URP；不是 BuildPreviewPlayer 或發布工具 |
 | `game/Assets/Plugins/x86_64/` | 官方 SQLite 3.53.4 DLL、Win64 匯入設定與使用條件；已做普通磚 Player 唯讀與缺 DLL 反例 |
 | `game/Packages/`、`game/ProjectSettings/` | Unity 6000.3.18f1 與實際解析的 package lock；只通過部分工具鏈，不代表全部材質與安裝驗收 |
@@ -35,7 +35,7 @@ dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosit
 npm ci --prefix tools/catalog --ignore-scripts --no-audit --no-fund
 ```
 
-真實 Blender 探針另外需要 `blender` 在 PATH、官方 LDraw library 位於 `artifacts/sources/ldraw-release/ldraw`，以及 ImportLDraw 位於 `artifacts/toolchain/ImportLDraw`、commit 為 `c306fb777a4e0da85492f09d65daf458767a0aa1`。缺任一工具時該探針會明確 skip，不能把 skip 算完成；最近回歸為 Python 38 passed／純 C# 58 passed／Unity 專案 EditMode 63 passed，無 skipped。測試案例數不等於 TDD checklist 完成數。
+真實 Blender 探針另外需要 `blender` 在 PATH、官方 LDraw library 位於 `artifacts/sources/ldraw-release/ldraw`，以及 ImportLDraw 位於 `artifacts/toolchain/ImportLDraw`、commit 為 `c306fb777a4e0da85492f09d65daf458767a0aa1`。缺任一工具時該探針會明確 skip，不能把 skip 算完成；最近回歸為 Python 38 passed／純 C# 81 passed／Unity 專案 EditMode 86 passed，無 skipped。測試案例數不等於 TDD checklist 完成數。
 
 取得與展開 LDraw 來源後，可在**全新輸出目錄**執行幾何探針：
 
@@ -56,6 +56,12 @@ Unity EditMode 使用 `-batchmode -nographics -projectPath <game絕對路徑> -r
 內部 Player 使用 `-batchmode -projectPath <game絕對路徑> -executeMethod BrickHigh.Editor.ToolchainProbeBuild.Build -quit -logFile <新的log>`。來源固定為有紀錄 hash 的 `artifacts/models/3001-red-exploratory-v1/model.glb`；每次建立新 `artifacts/acceptance/toolchain-<id>/Player`，log 的 `BRICKHIGH_PROBE_BUILD` 列出實際路徑。從 `brickhigh/` 執行 `./tools/acceptance/verify_toolchain_player.ps1 -PlayerDirectory <該Player目錄>`；此程序會產生圖片、報告及故障複本，不碰正式 Profiles。
 
 探針只在 `UNITY_EDITOR` 或建置明確加入的 `BRICKHIGH_TOOLCHAIN_PROBE` 編譯，使用獨立 `com.gamenenstyle.brickhigh.toolchainprobe` 身分，不偽裝 Preview／Release。畫面是 Player 的 Camera RenderRequest（不是 Editor 截圖，也不是使用者桌面操作驗收）；黑圖、遺失 shader 與未釋放引用均須失敗。第一輪黑圖的歷史 `passed=true` 已在 TDD 撤銷畫面證據資格，保留原報告供追溯。
+
+**探針不能直接雙擊當瀏覽器使用**：它要求 `-probe-output <全新報告目錄>`；沒有參數會主動以 exit 2 結束，驗證完成也會退出。請透過上述驗收腳本執行；`BrickHighToolchainProbe.exe` 不是正式玩家啟動入口，也沒有持續操作模式。
+
+預覽控制層現有 `CatalogPreviewPresenter<T>`（純狀態）及 `CatalogPreviewController`（Unity 本機協調）。後者持有 session／provider／instance，提供搜尋、清除、下一頁、選取、重試與主執行緒 `Changed` 通知。畫面應只讀 `State`，透過 controller 操作，不能自行繞過狀態機釋放 ModelLease；退出時 Dispose，畫面自有 render texture 另由畫面釋放。`ReleasingModel` 保證先停用 instance，再釋放共用資產引用。這些尚未接上完整 uGUI／鍵盤／鏡頭／字型，不能當 UX 已交付。
+
+新版原生驗收另要求 `previewFlowVerified`／`previewRetryVerified`：真實 SQLite 空結果→清除→完整引用→instance→釋放，以及啟動設定暫時被占用後解除並在同一 controller 重試。舊 build 缺少這些報告欄位，不滿足新版腳本；應重新建置。provider 的暫時初始化失敗只在等待者／租約歸零後清除，重試仍重新驗檔；尚不代表所有初始化故障矩陣已完成。
 
 新版探針的人工 F-Catalog 僅測試 SQLite→固定引用→Addressables adapter，manifest 明列 `purpose=F-Catalog`／`readyAsset=false`；不得用於發布。故障複本放在 `artifacts/acceptance/fault-*` 的短路徑，原檔分別保留為 `sqlite3.dll.disabled`／`original.bundle.backup`。實測 292 字元 bundle 路徑在 Unity Mono 下回報缺檔；短路徑測試只隔離 hash 反例，未解決長路徑安裝相容性。
 

@@ -45,8 +45,9 @@ function Invoke-ProbeCase([string]$Executable, [string]$Name, [string]$Flags, [b
     if ($ExpectedPass) {
         if ($process.ExitCode -ne 0 -or $report.visibleRedPixels -lt 500 -or $report.captureMode -ne 'PlayerCameraRenderRequest' -or
             -not $report.leaseSharingVerified -or -not $report.leaseReleaseVerified -or
-            -not $report.preCancelledVerified -or -not $report.cancelledLoadVerified -or -not $report.reloadVerified) {
-            throw "$Name：缺少有效相機畫面或共用 lease／釋放證據。"
+            -not $report.preCancelledVerified -or -not $report.cancelledLoadVerified -or -not $report.reloadVerified -or
+            -not $report.previewFlowVerified -or -not $report.previewRetryVerified) {
+            throw "$Name：缺少有效相機畫面、共用 lease／釋放或預覽控制層證據。"
         }
         if (-not (Test-Path -LiteralPath (Join-Path $caseRoot 'player.png'))) { throw "$Name：沒有畫面證據。" }
     } elseif ($process.ExitCode -eq 0 -or $report.failure -notlike $ExpectedFailure) {

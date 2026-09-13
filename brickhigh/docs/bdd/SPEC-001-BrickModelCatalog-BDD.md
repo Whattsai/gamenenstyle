@@ -4,7 +4,7 @@
 > **需求來源**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
 > **確認依據**：原 SDD「好 繼續」、風險方案「全數同意 請繼續」、補強版 SDD「確認」（2026-09-09）。
-> **狀態**：56 場景已生成並追溯；well-done Phase 2 核心與內部原生探針進行中（2026-09-13），場景驗收仍為 0/56、UX 0/20。單一普通磚的 Player 相機畫面不代表可安裝 Preview、材質核准或 UX 完成。測試與限制見 [TDD 本輪紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+> **狀態**：56 場景已生成並追溯；well-done Phase 2 預覽控制層與內部原生探針進行中（2026-09-13），場景驗收仍為 0/56、UX 0/20。單一普通磚的 Player 相機畫面不代表可安裝 Preview、材質核准或 UX 完成。測試與限制見 [TDD 本輪紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
 
 ## 📝 Feature 描述
 
@@ -14,6 +14,8 @@
 
 本文件是需求與 UX checklist，不是 SpecFlow 可執行測試。保留模板結構；原網頁元件改成 Unity 場景／uGUI，網路服務失敗只屬開發端來源取得。安裝版不要求 HTTP、帳號或連線。
 正式全量發布仍受 SPEC §3.4 限制；以下受控 fixtures 僅用於測試，不能假稱已取得全部未停產零件。SPEC 第13節已確認，新增 SC-047～056 與原基線合併適用；早期 Preview 不解除正式 Release 的全量門檻。
+
+2026-09-13 接續：SC-033、034、037～040 已有 `Application/CatalogPreviewPresenter.cs`、`RetryRequestPolicy.cs` 及 `UnityRuntime/CatalogPreviewController.cs` 的狀態／本機協調實作（相對 `game/Assets/BrickHigh/`），單元規則與真實 SQLite 搜尋已測。SC-041 僅部分離開與晚到結果處理；尚無完整 uGUI、鏡頭、字型、render texture、安裝操作證據，因此不勾選場景或 UX。以下場景元件的「預計」文字為原規劃基線，現況以本段及 TDD 為準。
 
 ## 🎯 前端 UX 實作進度
 

@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using BrickHigh.Domain;
 using BrickHigh.Infrastructure;
+using BrickHigh.Application;
 
 namespace BrickHigh.Tests
 {
@@ -19,6 +20,45 @@ namespace BrickHigh.Tests
         private string variant;
         private string revision;
         private JObject manifest;
+        private sealed class PresenterLease : IDisposable { public void Dispose() { } }
+
+        [TestCase("System", BrickTier.Basic, CharacterSlot.Head, true)]
+        [TestCase("DUPLO", BrickTier.Basic, CharacterSlot.Head, false)]
+        [TestCase("System", BrickTier.Special, CharacterSlot.Head, false)]
+        [TestCase("System", BrickTier.Basic, CharacterSlot.Legs, false)]
+        [Property("TDD", "UT-100"), Property("TDD", "IT-016")]
+        public void CatalogPreviewPresenter_CombinedFilters_SelectsMatchingRows(string family, BrickTier tier, CharacterSlot slot, bool expected)
+        {
+            var catalog = new BrickCatalog(root, PackageKind.Preview);
+            using (var session = catalog.OpenAsync(CancellationToken.None).GetAwaiter().GetResult().Value)
+            using (var presenter = new CatalogPreviewPresenter<PresenterLease>(session.SnapshotId, session.PackageKind))
+            {
+                var request = presenter.BeginSearch(new VariantQuery { QueryText = "3001", Family = family, Tier = tier, Slot = slot });
+                var result = catalog.QueryAsync(session, request.Query, request.CancellationToken).GetAwaiter().GetResult();
+                Assert.That(presenter.CompleteSearch(request, result), Is.True);
+                Assert.That(presenter.Rows.Count, Is.EqualTo(expected ? 1 : 0));
+                if (expected) Assert.That(presenter.Rows[0].VariantId, Is.EqualTo(Guid.Parse(variant)));
+            }
+        }
+
+        [Test, Property("TDD", "UT-100"), Property("TDD", "IT-016")]
+        public void CatalogPreviewPresenter_PartNumber_RanksBeforePartialNames()
+        {
+            using (var db = new NativeSqlite(Path.Combine(root, "catalog.db"), false))
+                db.Execute("UPDATE runtime_variants SET display_json=json_set(display_json,'$.name','3001 候選') WHERE variant_id<>?", variant);
+            WriteManifest();
+            var catalog = new BrickCatalog(root, PackageKind.Preview);
+            using (var session = catalog.OpenAsync(CancellationToken.None).GetAwaiter().GetResult().Value)
+            using (var presenter = new CatalogPreviewPresenter<PresenterLease>(session.SnapshotId, session.PackageKind))
+            {
+                var request = presenter.BeginSearch(new VariantQuery { QueryText = "3001", Family = "System", Tier = BrickTier.Basic, Slot = CharacterSlot.Head });
+                presenter.CompleteSearch(request, catalog.QueryAsync(session, request.Query, request.CancellationToken).GetAwaiter().GetResult());
+                Assert.That(presenter.Rows.Count, Is.EqualTo(50));
+                Assert.That(presenter.Rows[0].VariantId, Is.EqualTo(Guid.Parse(variant)));
+                Assert.That(presenter.Rows.Skip(1).All(x => x.Name == "3001 候選"), Is.True);
+                Assert.That(presenter.CanNextPage, Is.True);
+            }
+        }
 
         [SetUp] public void SetUp()
         {

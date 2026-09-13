@@ -22,7 +22,7 @@ namespace BrickHigh.Editor
         /// <summary>命令列建置入口；獨立輸出且保留原專案的應用身分與渲染設定。</summary>
         public static void Build()
         {
-            if (!Application.isBatchMode) throw new InvalidOperationException("僅允許獨立 batchmode 執行。");
+            if (!UnityEngine.Application.isBatchMode) throw new InvalidOperationException("僅允許獨立 batchmode 執行。");
             string project = Path.GetFullPath("..");
             string source = Path.Combine(project, "artifacts/models/3001-red-exploratory-v1/model.glb");
             if (SafeContent.Hash(File.ReadAllBytes(source)) != "a4c11b4d5c56235d8f29d60f83949a0360ae92a17e2161c7998184246216bae9")
@@ -178,7 +178,7 @@ namespace BrickHigh.Editor
             string buildId = Guid.NewGuid().ToString();
             var manifest = new JObject {
                 ["purpose"] = "F-Catalog", ["readyAsset"] = false, ["packId"] = probe.PackId,
-                ["appVersion"] = "0.0.0-probe", ["editorVersion"] = Application.unityVersion, ["readerVersion"] = 1,
+                ["appVersion"] = "0.0.0-probe", ["editorVersion"] = UnityEngine.Application.unityVersion, ["readerVersion"] = 1,
                 ["currentSnapshotId"] = probe.SnapshotId, ["catalogSchemaVersion"] = 1, ["assetContractVersion"] = 1,
                 ["applicationId"] = "com.gamenenstyle.brickhigh.preview", ["packageKind"] = "Preview", ["buildTarget"] = "windows-x64",
                 ["sourceSnapshotStatus"] = "Frozen", ["sourceSelectionDigest"] = new string('a', 64), ["packageLockDigest"] = lockDigest,
@@ -198,7 +198,7 @@ namespace BrickHigh.Editor
                 db.Execute("INSERT INTO runtime_variants VALUES(?,?,?,?,?,?,?,?)", probe.SnapshotId, probe.VariantId, Guid.NewGuid().ToString(),
                     "Unknown", "Basic", "{\"name\":\"內部幾何探針\",\"family\":\"System\",\"partNumber\":\"3001\"}", "{}", probe.RevisionId);
                 db.Execute("INSERT INTO runtime_builds VALUES(?,?,?,?,?,?,?,?,?,?)", buildId, probe.VariantId, probe.RevisionId, "windows-x64",
-                    Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1", (string)bundle["sha256"], "internal-probe-not-quality-approved", (string)bundle["storageKey"]);
+                    UnityEngine.Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1", (string)bundle["sha256"], "internal-probe-not-quality-approved", (string)bundle["storageKey"]);
                 db.Execute("INSERT INTO runtime_models VALUES(?,?,?,?,?,?,?)", probe.SnapshotId, probe.VariantId, probe.RevisionId, "windows-x64", buildId,
                     "{\"readyAsset\":false,\"widthMeters\":0.032}", "probe/model");
                 foreach (var file in files)

@@ -128,7 +128,7 @@ namespace BrickHigh.UnityRuntime
         {
             var settings = files.SingleOrDefault(file => file.Key == "aa/settings.json" && file.Kind == "Metadata");
             if (settings == null) throw new InvalidDataException("缺少啟動設定索引。");
-            string bootstrapRoot = Application.streamingAssetsPath;
+            string bootstrapRoot = UnityEngine.Application.streamingAssetsPath;
             string runtime = Path.GetFullPath(Addressables.RuntimePath).TrimEnd(Path.DirectorySeparatorChar);
             string expected = Path.GetFullPath(Path.Combine(bootstrapRoot, "aa")).TrimEnd(Path.DirectorySeparatorChar);
             if (!string.Equals(runtime, expected, StringComparison.OrdinalIgnoreCase))
@@ -168,7 +168,7 @@ namespace BrickHigh.UnityRuntime
                     else
                     {
                         // catalog 中固定 RuntimePath 的 bundle 指向選定包的同一 storage key；不使用頂層 bundle。
-                        string bootstrap = Path.GetFullPath(Path.Combine(Application.streamingAssetsPath, "aa")) + Path.DirectorySeparatorChar;
+                        string bootstrap = Path.GetFullPath(Path.Combine(UnityEngine.Application.streamingAssetsPath, "aa")) + Path.DirectorySeparatorChar;
                         if (!path.StartsWith(bootstrap, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("資產不在固定本機位置。");
                         key = "aa/" + path.Substring(bootstrap.Length).Replace('\\', '/');
                     }
@@ -192,11 +192,17 @@ namespace BrickHigh.UnityRuntime
         }
         private void Cleanup()
         {
-            if (Volatile.Read(ref disposed) == 0 || inFlight != 0 || activeLeases != 0) return;
+            if (inFlight != 0 || activeLeases != 0) return;
+            // 所有共用等待者離開後，暫時 IO 失敗才能清除；下一次明確重試重新驗證實際檔案。
+            // 不把永久內容錯誤改為成功，也不在仍有人使用時移除 locator 或 bundle provider。
+            bool retryInitialization = initialization != null && initialization.IsFaulted
+                && Map(initialization.Exception) == CatalogErrorCode.StorageUnavailable;
+            if (Volatile.Read(ref disposed) == 0 && !retryInitialization) return;
             if (locator != null) { Addressables.RemoveResourceLocator(locator); locator = null; }
             if (catalogHandle.IsValid()) Addressables.Release(catalogHandle);
             catalogHandle = default;
             if (registered) { Addressables.ResourceManager.ResourceProviders.Remove(bundles); registered = false; }
+            initialization = null;
         }
         private static CatalogResult<ModelLease> Failure(CatalogErrorCode code) => CatalogResult<ModelLease>.Failure(code);
         private static CatalogErrorCode Map(Exception error)

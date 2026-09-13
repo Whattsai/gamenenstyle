@@ -8,7 +8,7 @@
 **最後更新**: 2026-09-13
 **建議實作順序**: 本 MVP 第 1 順位
 **前置 SPEC**: 無
-**本輪邊界**: 僅實作本 SPEC；已有核心測試與內部 Windows Player 工具鏈探針，非合格 Preview 或全量 Release。現況以 [TDD 驗證紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md) 為準；下文規劃時點的未實作敘述保留其歷史脈絡。
+**本輪邊界**: 僅實作本 SPEC；已有核心測試、預覽狀態／本機協調層與內部 Windows Player 工具鏈探針，尚無完整 uGUI，非合格 Preview 或全量 Release。現況以 [TDD 驗證紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md) 為準；下文規劃時點的未實作敘述保留其歷史脈絡。
 
 ## 1. 功能概述
 

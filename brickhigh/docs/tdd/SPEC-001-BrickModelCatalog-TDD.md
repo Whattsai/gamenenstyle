@@ -4,7 +4,7 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：🚧 well-done Phase 2 進行中；30/233 項具單元層證據，已執行真實 Unity／內部 Player 探針，尚未完成安裝／Preview／全量驗收。最後更新：2026-09-13。
+> **狀態**：🚧 well-done Phase 2 進行中；44/233 項具單元層證據，已執行真實 Unity／內部 Player 探針，尚未完成安裝／Preview／全量驗收。最後更新：2026-09-13。
 
 ## 🎯 開發進度總覽
 
@@ -14,28 +14,28 @@
 SPEC-001-BrickModelCatalog TDD 開發
 Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 開始時間／預計完成／負責人：2026-09-10／尚未估算／Codex
-進度條：[██░░░░░░░░░░░░░░░░░░] 12.88% (30/233)
+進度條：[████░░░░░░░░░░░░░░░░] 18.88% (44/233)
 ```
 
 ### 分層進度追蹤
 
 | 測試層級 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
 |---|---|---|---|---|---|
-| 1️⃣ 單元測試 | 17.86% | 30/168 | 4 | 134 | 🚧 部分本機與 Unity 驗證完成 |
-| 2️⃣ 集成測試 | 0% | 0/29 | 10 | 19 | 🚧 部分矩陣有證據 |
+| 1️⃣ 單元測試 | 26.19% | 44/168 | 7 | 117 | 🚧 部分本機與 Unity 驗證完成 |
+| 2️⃣ 集成測試 | 0% | 0/29 | 11 | 18 | 🚧 部分矩陣有證據 |
 | 3️⃣ 程式內 API 契約 | 0% | 0/14 | 5 | 9 | 🚧 部分契約有證據 |
 | 4️⃣ E2E／安裝／畫面／效能 | 0% | 0/22 | 0 | 22 | ⏸️ 未開始 |
-| 合計 | 12.88% | 30/233 | 19 | 184 | 🚧 未達交付門檻 |
+| 合計 | 18.88% | 44/233 | 23 | 166 | 🚧 未達交付門檻 |
 
 一個 checklist ID 是一個測試案例；參數化資料列與 assertions 不重複灌入進度。BDD 56 場景各有3項單元測試，且另有真實集成／Player／E2E 覆蓋。沒有把「已生成文件」算成「測試通過」。
 
-原 2026-09-10 的 Python 38 與 C# 33 個執行 cases 不等於 71 個 checklist ID。2026-09-13 已以真正 Unity EditMode 執行 63 項專案測試；其中 5 項依賴 Unity 的 lease／provider 測試不納入純 .NET harness。只勾選斷言完整的單元規則，不以執行 cases 灌入進度。UT-021、154、156、158；IT-002、008、009、012、014、015、021、024、026、027；CT-006、010、012、013、014 仍只有部分完整場景證據，維持未勾選。
+原 2026-09-10 的 Python 38 與 C# 33 個執行 cases 不等於 71 個 checklist ID。2026-09-13 預覽控制層接續後已以真正 Unity EditMode 執行 86 項專案測試；其中 5 項依賴 Unity 的 lease／provider 測試不納入純 .NET harness。只勾選斷言完整的單元規則，不以執行 cases 灌入進度。UT-021、099、121、122、154、156、158；IT-002、008、009、012、014、015、016、021、024、026、027；CT-006、010、012、013、014 仍只有部分完整場景證據，維持未勾選。
 
 ### 當前 Sprint 狀態
 
 | 項目 | 內容 |
 |---|---|
-| 當前階段 | well-done Phase 2：核心／原生工具鏈探針／引用生命週期；尚未進入 UX／深度稽核完成關卡 |
+| 當前階段 | well-done Phase 2：預覽狀態／查詢與模型協調／引用生命週期；尚未進入 UX／深度稽核完成關卡 |
 | 當前執行測試 | Unity EditMode 與內部 Player 故障矩陣；尚非可安裝 Preview |
 | Red-Green-Refactor | 已保留測試先失敗、實作後通過的本輪執行結果；摘要見下方 |
 | 最後更新 | 2026-09-13 |
@@ -54,7 +54,7 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 
 | 指標 | 目標 | 目前 |
 |---|---|---|
-| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 30/233 單元層完成，其餘未完成 |
+| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 44/233 單元層完成，其餘未完成 |
 | BDD → TDD 文件追溯 | 56/56 | 已生成映射，非測試通過 |
 | 模型正式交付 | SPEC §3.4 全量門檻與每件品質通過 | 未取得完整分母，未驗收 |
 | 原生畫面 | 可安裝、離線、可操作且材質正確 | 已有單一普通磚的內部 Player 相機畫面；無合格 Preview／安裝器／UX |
@@ -113,6 +113,21 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 - 補強矩陣 `matrix-08917646b73744948487dfdb54e96930` 六項全通過：除上述四項外，移走獨立複本的頂層 bundle 仍正常渲染／取消／重新取得；移走頂層啟動 catalog 則回 `FirstAcquire:AssetMissing`，0 bundle 讀取／0 資產 handle。移走檔案分別保留為 `unused.bundle.backup`／`bootstrap.catalog.backup`，原 Player 不變。此反例證明正常顯示不依賴頂層 bundle，也不略過啟動 catalog 的驗證。
 - 人工包短 ID 用於隔離既知 Mono 長路徑問題，這次 bundle 完整路徑 255 字元；不代表 292 字元案例已修復。建置後以已驗證範圍的 `AssetDatabase.MoveAsset` 將本次人工包及 meta 移回忽略版控的生成目錄，不留下可發行的假包；原使用者 Profiles 與 Blender 檔不變。
 - 本節只完成內部單包布局證據：尚未完成正式建置／安裝器、多包併發、歷史資產全集、品質核准、UI 或深度稽核，整體仍為 30/233。
+
+### 預覽控制層接續（2026-09-13 下午）
+
+- 根因與邊界：既有 `BrickHighToolchainProbe.exe` 是自動驗收入口，未傳 `-probe-output` 時明確 `Quit(2)`，完成後也會退出；不是可雙擊操作的模型瀏覽器。這一行為不改稱崩潰，也不把新增控制層宣稱為已交付 uGUI。
+- Red：`RetryRequestPolicyTests` 與 `CatalogPreviewPresenterTests` 分別先以 CS0246 確認缺少實作；新增釋放順序測試先以 CS1061 確認缺少 `ReleasingModel`。`preview-flow-red-20260913.log` 記錄原生探針缺 `CatalogPreviewController` 的 CS0103。新增驗收要求先跑舊 `toolchain-20260913T021909-c8fbff07/matrix-e111201c001640b187f986e1a35052f5`，因沒有 `previewFlowVerified` 被拒絕，沒有把舊成功報告當成新功能證據。
+- 實作：`Application/CatalogPreviewPresenter.cs` 固定快照、Browse 用途與有界分頁，複製條件、處理空狀態、完整變體選取、固定繁中錯誤及診斷 ID；晚到查詢不蓋新頁，晚到模型只釋放。`RetryRequestPolicy.cs` 使用不透明請求識別阻擋重複重試，換件可立即取代舊重試。兩者不開網路、不寫玩家資料。
+- `UnityRuntime/CatalogPreviewController.cs` 以既有本機 SQLite 與 `BrickAssetProvider` 串接搜尋／清除／下一頁／選取／重試，擁有 session、lease 與 instance；主執行緒先移除 instance 才釋放 lease，Dispose 後不通知舊 UI。此為可綁定 uGUI 的控制層，尚無正式畫面、字型、鏡頭操作或安裝入口。
+- Unity 初次整合在 `preview-flow-green-20260913.log` 發現 `BrickHigh.Application` 遮蔽 `UnityEngine.Application`，已改成明確限定引擎類別；沒有更動引擎或公開讀取契約。`Domain` 僅新增測試 assembly 的 friend 存取以建立不可公開偽造的 DTO fixtures。
+- Green：`preview-sqlite-core-20260913.trx` 為純 C# 81 passed；`preview-final-20260913.xml` 為 Unity 86 passed，全部 0 failed／0 skipped。`.NET Standard 2.1` build 為 0 warnings／0 errors。`ReadContractTests` 另以真實 SQLite 核對所有篩選相交、貨號精確優先於名稱部分匹配及有界下一頁；不是用 mock SQL 判搜尋通過。
+- 原生控制層：`toolchain-20260913T082541-677a5ffd/matrix-3fa960cefa6945e589d85e56d128e4b4` 六項全通過。正常及無頂層 bundle 情境的 `previewFlowVerified=true`，實際完成 SQLite 無結果→清除→同快照模型選取→建立 3068 triangles instance→Dispose，controller 的 lease／bundle 歸零。原有正常／無圖形／缺 DLL／同大小 bundle 竄改／缺啟動 catalog 反例仍維持正確結果。`bootstrap-77c26b35` 遠端設定反例仍是 0 HTTP 請求、AssetCorrupt、exit 3。此為流程 harness，沒有 UI 操作錄影，不冒稱 UX 通過。
+- 新增勾選：UT-097、098、100～102、109～114 對應 `CatalogPreviewPresenterTests.cs`（UT-100 另有 `ReadContractTests.cs`）；UT-118～120 對應 `RetryRequestPolicyTests.cs` 及 presenter 的晚到重試測試。這 14 項僅完成各自單元狀態規則，IT-016 與全部 UI／安裝 E2E 未勾選。UT-099、121、122 只有部分串接／生命週期證據，仍未完成整項。
+- 初始化重試 Red：`toolchain-20260913T083035-31914a6a/matrix-810ccd46c83f4fda9e03176cb65a0c61/normal/player-report.json` 在真實 `FileShare.None` 暫時占用頂層啟動設定後，首次正確回 StorageUnavailable；解除占用再重試卻仍回 `PreviewRetryDidNotRecover:StorageUnavailable`。原因是 provider 沿用已失敗的初始化 Task，而非檔案仍被占用。
+- 修復：`BrickAssetProvider.Cleanup` 僅於全部等待者與租約歸零、且初始化為暫時 StorageUnavailable 時清除失敗工作及其私有 handle；下一次明確重試重新讀取並驗證 bytes。永久內容錯誤不因此放行。探針在相同 controller／session 上解除檔案鎖後重試，另同時重複點擊，要求只有一次有效請求且能建立真實模型。
+- 重試 Green：`toolchain-20260913T083340-2c8fe11c/matrix-3595e6639e5f42d6b881a574efb5343c` 六項全通過，正常與無頂層 bundle 報告具有 `previewFlowVerified=true`／`previewRetryVerified=true`；最終 EditMode `preview-retry-final-20260913.xml` 仍為 86 passed／0 failed／0 skipped。`bootstrap-278d4e55` 遠端設定仍以 0 HTTP 請求拒絕，不因重試機制放寬來源政策。故障檔只在本次新複本移至 backup／disabled，原 Player、Profiles、Blender 檔不變。
+- 尚需補足：真正 uGUI 操作與可讀字型／窄視窗／鍵盤／鏡頭、啟動與查詢失敗的重試 UI、多模型與材質的真實操作驗收、instance／render texture 完整生命週期；原有來源品質、安裝更新、多包安全及效能門檻不變。重試只補真實啟動設定占用反例，尚非所有 Addressables 初始化故障／多等待者矩陣完成。
 
 ### 本輪驗證與追溯證據（2026-09-10）
 
@@ -722,10 +737,10 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：乾淨 Windows x64 無 Editor／SDK／Blender／Python／資料庫服務且已斷網。
 **共同動作**：安裝完整包並首次啟動 CatalogPreviewScene；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-097** `CatalogPreviewPresenter_OfflineStartup_ShowsPreview` — @critical
+- [x] **UT-097** `CatalogPreviewPresenter_OfflineStartup_ShowsPreview` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：顯示「模型預覽」與可用的搜尋、篩選、模型資訊，不要求登入。
-- [ ] **UT-098** `CatalogPreviewPresenter_PendingLoad_ShowsLoading` — @critical
+- [x] **UT-098** `CatalogPreviewPresenter_PendingLoad_ShowsLoading` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：載入時顯示「正在載入本機模型…」，未完成前不假報可操作成功。
 - [ ] **UT-099** `CatalogPreviewPresenter_BundledAssets_AvoidsRemoteDependency` — @critical
@@ -739,13 +754,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：已載入同快照的多系列、多款式及不同印刷變體。
 **共同動作**：輸入貨號／名稱並依系列、款式、部位篩選後選取變體；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-100** `CatalogPreviewPresenter_CombinedFilters_SelectsMatchingRows` — @critical
+- [x] **UT-100** `CatalogPreviewPresenter_CombinedFilters_SelectsMatchingRows` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：貨號精確匹配優先，名稱可部分匹配，所有篩選共同作用。
-- [ ] **UT-101** `CatalogPreviewPresenter_SelectedItem_ShowsFrozenDetails` — @critical
+- [x] **UT-101** `CatalogPreviewPresenter_SelectedItem_ShowsFrozenDetails` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：清單與詳情使用同快照，展示所選名稱、版本及尺寸。
-- [ ] **UT-102** `CatalogPreviewPresenter_AppearanceSelection_ChangesModel` — @critical
+- [x] **UT-102** `CatalogPreviewPresenter_AppearanceSelection_ChangesModel` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：切換顏色或印刷時 3D 外觀與 variantId 一致，不只改文字。
 
@@ -790,13 +805,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：目錄可用但目前篩選不符合任何變體。
 **共同動作**：搜尋完成後再按清除條件；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-109** `CatalogPreviewPresenter_NoMatches_ShowsEmptyMessage` — @critical
+- [x] **UT-109** `CatalogPreviewPresenter_NoMatches_ShowsEmptyMessage` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：空狀態顯示「找不到符合條件的模型。」而不假造模型。
-- [ ] **UT-110** `CatalogPreviewPresenter_EmptyState_KeepsClearAction` — @critical
+- [x] **UT-110** `CatalogPreviewPresenter_EmptyState_KeepsClearAction` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：保留可操作的「清除條件」入口。
-- [ ] **UT-111** `CatalogPreviewPresenter_ClearFilters_RestoresResults` — @critical
+- [x] **UT-111** `CatalogPreviewPresenter_ClearFilters_RestoresResults` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：清除後重查當前快照並回復有效清單，不變更目錄資料。
 
@@ -807,13 +822,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：一個模型損毀且另一個可正常載入。
 **共同動作**：選取損毀模型後改選正常模型；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-112** `CatalogPreviewPresenter_CorruptModel_ShowsRepairGuidance` — @critical
+- [x] **UT-112** `CatalogPreviewPresenter_CorruptModel_ShowsRepairGuidance` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：失敗顯示「此模型檔案不完整，請使用完整安裝包修復。」及診斷 ID。
-- [ ] **UT-113** `CatalogPreviewPresenter_FailureView_DoesNotFakeSuccess` — @critical
+- [x] **UT-113** `CatalogPreviewPresenter_FailureView_DoesNotFakeSuccess` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：不以占位圖示宣稱成功，也不暴露堆疊／來源金鑰。
-- [ ] **UT-114** `CatalogPreviewPresenter_OtherModel_RemainsSelectable` — @critical
+- [x] **UT-114** `CatalogPreviewPresenter_OtherModel_RemainsSelectable` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：其他可用模型仍可選取並正確呈現，既有存檔不變。
 
@@ -841,13 +856,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：可重試的暫時載入失敗已顯示「載入失敗，請重試。」。
 **共同動作**：使用者連續按重試而第一次仍處理中；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-118** `RetryRequestPolicy_PendingRetry_DisablesButton` — @critical
+- [x] **UT-118** `RetryRequestPolicy_PendingRetry_DisablesButton` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：按鈕顯示「重試中…」且同一請求未完成前禁用。
-- [ ] **UT-119** `RetryRequestPolicy_DuplicateRetry_StartsOneRequest` — @critical
+- [x] **UT-119** `RetryRequestPolicy_DuplicateRetry_StartsOneRequest` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：相同重試只啟動一次，未取消正常模型切換能力。
-- [ ] **UT-120** `RetryRequestPolicy_RetryCompletion_RestoresAction` — @critical
+- [x] **UT-120** `RetryRequestPolicy_RetryCompletion_RestoresAction` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：完成或再失敗後恢復操作；不可重試的缺檔錯誤改指向完整包修復。
 

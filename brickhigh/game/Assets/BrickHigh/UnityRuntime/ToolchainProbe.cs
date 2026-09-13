@@ -28,6 +28,8 @@ namespace BrickHigh.UnityRuntime
             public int visibleRedPixels;
             public bool leaseSharingVerified, leaseReleaseVerified;
             public bool preCancelledVerified, cancelledLoadVerified, reloadVerified;
+            public bool previewFlowVerified;
+            public bool previewRetryVerified;
             public int bundleReadCount, allocatedHandleCount, remainingLeaseCount, remainingBundleCount;
             public string captureMode = "PlayerCameraRenderRequest";
             public float widthMeters;
@@ -53,18 +55,18 @@ namespace BrickHigh.UnityRuntime
         {
             var args = Environment.GetCommandLineArgs();
             int arg = Array.IndexOf(args, "-probe-output");
-            if (arg < 0 || arg + 1 >= args.Length) { Application.Quit(2); yield break; }
+            if (arg < 0 || arg + 1 >= args.Length) { UnityEngine.Application.Quit(2); yield break; }
             output = Path.GetFullPath(args[arg + 1]);
             Directory.CreateDirectory(output);
-            Application.runInBackground = true;
-            report.unityVersion = Application.unityVersion;
+            UnityEngine.Application.runInBackground = true;
+            report.unityVersion = UnityEngine.Application.unityVersion;
             report.graphicsDevice = SystemInfo.graphicsDeviceName;
             report.renderPipeline = GraphicsSettings.currentRenderPipeline?.GetType().Name;
             try
             {
                 if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null || report.renderPipeline != "UniversalRenderPipelineAsset")
                     throw new InvalidOperationException("GraphicsPipelineUnavailable");
-                using (var db = new NativeSqlite(Path.Combine(Application.streamingAssetsPath, "ToolchainProbe", "probe.db")))
+                using (var db = new NativeSqlite(Path.Combine(UnityEngine.Application.streamingAssetsPath, "ToolchainProbe", "probe.db")))
                 {
                     report.sqliteVersion = db.Query("SELECT sqlite_version() AS version")[0]["version"];
                     if (db.Query("SELECT value FROM probe WHERE value=?", "繁體中文'100%_積木").Count != 1)
@@ -76,7 +78,7 @@ namespace BrickHigh.UnityRuntime
                 }
             }
             catch (Exception e) { Finish(e.GetType().Name + ":" + e.Message); yield break; }
-            var catalog = new BrickCatalog(Path.Combine(Application.streamingAssetsPath, "Catalog", PackId), PackageKind.Preview);
+            var catalog = new BrickCatalog(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Catalog", PackId), PackageKind.Preview);
             var opening = catalog.OpenAsync(CancellationToken.None);
             while (!opening.IsCompleted) yield return null;
             if (!opening.Result.IsSuccess) { Finish("CatalogOpen:" + opening.Result.Error.Code); yield break; }
@@ -173,6 +175,45 @@ namespace BrickHigh.UnityRuntime
             secondLease.Dispose();
             if (!report.reloadVerified || provider.ActiveLeaseCount != 0 || provider.LoadedBundleCount != 0)
             { Finish("ReloadOrDisposeLifetimeMismatch"); yield break; }
+            // 使用正式預覽控制層串接真實 SQLite 與受控 provider；仍是人工資料，不是合格 Preview。
+            var openingPreview = CatalogPreviewController.OpenAsync(catalog);
+            while (!openingPreview.IsCompleted) yield return null;
+            if (!openingPreview.Result.IsSuccess) { Finish("PreviewOpen:" + openingPreview.Result.Error.Code); yield break; }
+            using (var preview = openingPreview.Result.Value)
+            {
+                var searching = preview.SearchAsync(new VariantQuery { QueryText = "__no_fixture_matches__" });
+                while (!searching.IsCompleted) yield return null;
+                if (!searching.Result || preview.State.Rows.Count != 0 || preview.State.Message != "找不到符合條件的模型。")
+                { Finish("PreviewEmptyStateMismatch"); yield break; }
+                searching = preview.ClearFiltersAsync();
+                while (!searching.IsCompleted) yield return null;
+                if (!searching.Result || preview.State.Rows.Count != 1)
+                { Finish("PreviewClearMismatch"); yield break; }
+                // 暫時讀取鎖只限制本探針包的啟動設定，不修改 bytes；釋放後同一 provider 應可重試。
+                using (var locked = new FileStream(Path.Combine(UnityEngine.Application.streamingAssetsPath, "aa", "settings.json"),
+                    FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    var blocked = preview.SelectAsync(Guid.Parse(VariantId));
+                    while (!blocked.IsCompleted) yield return null;
+                    if (!blocked.Result || preview.State.ErrorCode != CatalogErrorCode.StorageUnavailable
+                        || !preview.State.CanRetry || preview.Instance != null || preview.State.Model != null)
+                    { Finish("PreviewTransientFailureMismatch"); yield break; }
+                }
+                var selecting = preview.RetryAsync();
+                var duplicate = preview.RetryAsync();
+                while (!selecting.IsCompleted) yield return null;
+                while (!duplicate.IsCompleted) yield return null;
+                report.previewRetryVerified = selecting.Result && !duplicate.Result && preview.State.Model != null && !preview.State.CanRetry;
+                if (!report.previewRetryVerified) { Finish("PreviewRetryDidNotRecover:" + preview.State.ErrorCode); yield break; }
+                report.previewFlowVerified = selecting.Result && preview.State.Model != null && preview.Instance != null
+                    && preview.State.SelectedDetails.Model.SnapshotId == Guid.Parse(SnapshotId)
+                    && preview.State.ProductionStatusText == "生產狀態待查"
+                    && preview.Instance.GetComponentsInChildren<MeshFilter>().Sum(x => x.sharedMesh.triangles.Length / 3) == report.triangles;
+                preview.Dispose();
+                report.previewFlowVerified &= preview.Instance == null && preview.State.Model == null && !preview.State.CanSearch
+                    && preview.RemainingLeases == 0 && preview.RemainingBundles == 0;
+                if (!report.previewFlowVerified) { Finish("PreviewFlowMismatch"); yield break; }
+            }
             Finish(null);
         }
         private void Update()
@@ -197,7 +238,7 @@ namespace BrickHigh.UnityRuntime
             {
                 using (var stream = new StreamWriter(new FileStream(Path.Combine(output, "player-report.json"), FileMode.CreateNew))) stream.Write(json);
             }
-            Application.Quit(report.passed ? 0 : 3);
+            UnityEngine.Application.Quit(report.passed ? 0 : 3);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("BrickHigh.Infrastructure")]
 [assembly: InternalsVisibleTo("BrickHigh.Application")]
+[assembly: InternalsVisibleTo("BrickHigh.Tests.EditMode")]
 
 namespace BrickHigh.Domain
 {
