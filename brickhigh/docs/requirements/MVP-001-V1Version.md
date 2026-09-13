@@ -4,7 +4,7 @@
 **優先級**: 高
 **狀態**: MVP基線已確認；第一份 SPEC 實作中，其餘模組未開始
 **最後更新**: 2026-09-13
-**本輪階段**: `well-done` Phase 2；僅處理 `SPEC-001-BrickModelCatalog`，未完成全量模型或安裝驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+**本輪階段**: `well-done` Phase 2；僅處理 `SPEC-001-BrickModelCatalog`，已接續預覽鏡頭與文字焦點隔離，未完成完整 UI、全量模型或安裝驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
 
 ## 需求概述
 

@@ -15,7 +15,7 @@
 本文件是需求與 UX checklist，不是 SpecFlow 可執行測試。保留模板結構；原網頁元件改成 Unity 場景／uGUI，網路服務失敗只屬開發端來源取得。安裝版不要求 HTTP、帳號或連線。
 正式全量發布仍受 SPEC §3.4 限制；以下受控 fixtures 僅用於測試，不能假稱已取得全部未停產零件。SPEC 第13節已確認，新增 SC-047～056 與原基線合併適用；早期 Preview 不解除正式 Release 的全量門檻。
 
-2026-09-13 接續：SC-033、034、037～040 已有 `Application/CatalogPreviewPresenter.cs`、`RetryRequestPolicy.cs` 及 `UnityRuntime/CatalogPreviewController.cs` 的狀態／本機協調實作（相對 `game/Assets/BrickHigh/`），單元規則與真實 SQLite 搜尋已測。SC-041 僅部分離開與晚到結果處理；尚無完整 uGUI、鏡頭、字型、render texture、安裝操作證據，因此不勾選場景或 UX。以下場景元件的「預計」文字為原規劃基線，現況以本段及 TDD 為準。
+2026-09-13 接續：SC-033、034、037～040 已有 `Application/CatalogPreviewPresenter.cs`、`RetryRequestPolicy.cs` 及 `UnityRuntime/CatalogPreviewController.cs` 的狀態／本機協調實作（相對 `game/Assets/BrickHigh/`），單元規則與真實 SQLite 搜尋已測。SC-035 新增 `Application/PreviewOrbitPolicy.cs` 與 `UnityRuntime/PreviewCameraController.cs`：環繞、縮放、重設、窄長寬比取景，以及所屬 EventSystem 的文字焦點隔離。SC-041 僅部分離開與晚到結果處理；尚無完整 uGUI、字型、畫面自有 render texture、安裝操作證據，因此不勾選場景或 UX。以下場景元件的「預計」文字為原規劃基線，現況以本段及 TDD 為準。
 
 ## 🎯 前端 UX 實作進度
 
@@ -23,8 +23,8 @@
 
 ```text
 SPEC-001-BrickModelCatalog 原生預覽 UX
-實作狀態：⏸️ 未開始
-開始時間／預計完成／負責人：尚未指定
+實作狀態：🚧 控制層與鏡頭輸入接點進行中；完整場景尚未驗收
+開始時間／預計完成／負責人：2026-09-13／尚未估算／Codex
 進度條：[░░░░░░░░░░░░░░░░░░░░] 0% (0/20)
 ```
 
@@ -32,7 +32,7 @@ SPEC-001-BrickModelCatalog 原生預覽 UX
 
 | 頁面／元件 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
 |---|---|---|---|---|---|
-| 模型預覽／錯誤／輸入 SC-033～SC-042 | 0% | 0/10 | 0 | 10 | ⏸️ 未開始 |
+| 模型預覽／錯誤／輸入 SC-033～SC-042 | 0% | 0/10 | 8 | 2 | 🚧 狀態／鏡頭／部分生命週期已有實作 |
 | 畫面與輪組量測 SC-043、SC-044、SC-046 | 0% | 0/3 | 0 | 3 | ⏸️ 未開始 |
 | Preview／更新／恢復harness／輸入文案／畫面基準／效能／輪組 SC-047、049、050、052、054～056 | 0% | 0/7 | 0 | 7 | ⏸️ 未開始 |
 
@@ -42,7 +42,7 @@ SPEC-001-BrickModelCatalog 原生預覽 UX
 |---|---|---|
 | 直接涉及畫面的驗收條款 | AC-005、007、016、020、021、024、025、026、027、029、030、032、034、035、036，共15項 | 已逐項對照 |
 | BDD 有對應 @frontend 場景 | 15/15（100%） | 僅文件追溯，不代表畫面完成 |
-| 前端場景 | 20 | 0項已實作 |
+| 前端場景 | 20 | 0項完整驗收、8項部分實作 |
 | 全部場景（46基線＋10補強） | 56 | 0項已驗收 |
 | 新增SPEC條款 AC-027～036 | 10/10有場景與測試 | 文件追溯完成，未執行 |
 
@@ -667,7 +667,8 @@ Scenario: SC-034 搜尋篩選與切換外觀
 
 - [ ] **Scenario: 旋轉縮放與鍵盤操作不互相干擾**
   - SPEC 對應：§7；AC-016。
-  - 涉及元件：`PreviewCameraController`（預計元件，尚未建立）。
+  - 涉及元件：`game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs`、`Application/PreviewOrbitPolicy.cs`（後者相對 `game/Assets/BrickHigh/`）。
+  - 部分證據：`PreviewCameraControllerTests.cs`／`PreviewOrbitPolicyTests.cs` 驗證取景與焦點；原生 `ToolchainProbe.VerifyPreviewCamera` 驗證實際載入模型，詳 TDD 鏡頭接續紀錄。完整鍵盤控制鏈與窄視窗 UI 重排仍未完成，SC-035／UT-105／IT-016／ET-002 不因此勾選。
   - TDD 對應：UT-103、UT-104、UT-105、IT-016、ET-002。
 
 ```gherkin

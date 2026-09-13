@@ -12,6 +12,8 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace BrickHigh.UnityRuntime
 {
@@ -30,6 +32,7 @@ namespace BrickHigh.UnityRuntime
             public bool preCancelledVerified, cancelledLoadVerified, reloadVerified;
             public bool previewFlowVerified;
             public bool previewRetryVerified;
+            public bool previewCameraVerified;
             public int bundleReadCount, allocatedHandleCount, remainingLeaseCount, remainingBundleCount;
             public string captureMode = "PlayerCameraRenderRequest";
             public float widthMeters;
@@ -209,12 +212,94 @@ namespace BrickHigh.UnityRuntime
                     && preview.State.SelectedDetails.Model.SnapshotId == Guid.Parse(SnapshotId)
                     && preview.State.ProductionStatusText == "生產狀態待查"
                     && preview.Instance.GetComponentsInChildren<MeshFilter>().Sum(x => x.sharedMesh.triangles.Length / 3) == report.triangles;
+                try { VerifyPreviewCamera(preview.Instance); report.previewCameraVerified = true; }
+                catch (Exception e) { Finish("PreviewCamera:" + e.Message); yield break; }
                 preview.Dispose();
                 report.previewFlowVerified &= preview.Instance == null && preview.State.Model == null && !preview.State.CanSearch
                     && preview.RemainingLeases == 0 && preview.RemainingBundles == 0;
                 if (!report.previewFlowVerified) { Finish("PreviewFlowMismatch"); yield break; }
             }
             Finish(null);
+        }
+        private void VerifyPreviewCamera(GameObject instance)
+        {
+            var renderers = instance.GetComponentsInChildren<Renderer>();
+            var bounds = renderers[0].bounds;
+            foreach (var renderer in renderers.Skip(1)) bounds.Encapsulate(renderer.bounds);
+            var scale = instance.transform.localScale;
+            var position = instance.transform.position;
+            var rotation = instance.transform.rotation;
+            var camera = Camera.main;
+            float aspect = camera.aspect;
+            var eventObject = new GameObject("Probe camera events", typeof(EventSystem));
+            var viewport = new GameObject("Probe camera viewport", typeof(RectTransform), typeof(PreviewCameraController));
+            var input = new GameObject("Probe search focus", typeof(RectTransform), typeof(InputField));
+            var controller = viewport.GetComponent<PreviewCameraController>();
+            try
+            {
+                controller.Bind(camera, bounds, eventObject.GetComponent<EventSystem>());
+                Vector3 original = camera.transform.position;
+                VerifyFraming(camera, bounds);
+                CapturePreviewCamera(camera, "camera-reset.png");
+                var pointer = new PointerEventData(eventObject.GetComponent<EventSystem>())
+                { pointerId = 1, button = PointerEventData.InputButton.Left, delta = new Vector2(160, 40), scrollDelta = new Vector2(0, 1) };
+                controller.OnBeginDrag(pointer); controller.OnDrag(pointer); controller.OnEndDrag(pointer);
+                if (Vector3.Distance(original, camera.transform.position) < .001f) throw new InvalidOperationException("NoOrbit");
+                float beforeZoom = Vector3.Distance(camera.transform.position, bounds.center);
+                controller.OnScroll(pointer);
+                if (Vector3.Distance(camera.transform.position, bounds.center) >= beforeZoom) throw new InvalidOperationException("NoZoom");
+                CapturePreviewCamera(camera, "camera-orbit-zoom.png");
+                Vector3 beforeFocus = camera.transform.position;
+                eventObject.GetComponent<EventSystem>().SetSelectedGameObject(input);
+                controller.OnBeginDrag(pointer); controller.OnDrag(pointer); controller.OnScroll(pointer);
+                controller.ResetView(); controller.ApplyKeyboard(Vector2.one * 20, 1, true);
+                if (camera.transform.position != beforeFocus) throw new InvalidOperationException("TextFocusMovedCamera");
+                eventObject.GetComponent<EventSystem>().SetSelectedGameObject(viewport);
+                controller.ApplyKeyboard(Vector2.one * 15, 0, false);
+                if (camera.transform.position == beforeFocus) throw new InvalidOperationException("KeyboardNoOrbit");
+                controller.ApplyKeyboard(Vector2.zero, 0, true);
+                if (Vector3.Distance(camera.transform.position, original) > 1e-6f) throw new InvalidOperationException("ResetMismatch");
+                camera.aspect = .5f; controller.RefreshProjection(); controller.ResetView(); VerifyFraming(camera, bounds);
+                CapturePreviewCamera(camera, "camera-portrait.png", 480, 960);
+                if (instance.transform.localScale != scale || instance.transform.position != position || instance.transform.rotation != rotation)
+                    throw new InvalidOperationException("ModelTransformChanged");
+                controller.Unbind();
+                Vector3 beforeUnbound = camera.transform.position;
+                controller.OnBeginDrag(pointer); controller.OnDrag(pointer); controller.OnScroll(pointer);
+                if (camera.transform.position != beforeUnbound) throw new InvalidOperationException("UnboundMovedCamera");
+            }
+            finally
+            {
+                controller.Unbind(); camera.aspect = aspect;
+                Destroy(viewport); Destroy(input); Destroy(eventObject);
+            }
+        }
+        private static void VerifyFraming(Camera camera, Bounds bounds)
+        {
+            foreach (float x in new[] { -1f, 1f }) foreach (float y in new[] { -1f, 1f }) foreach (float z in new[] { -1f, 1f })
+            {
+                var corner = camera.WorldToViewportPoint(bounds.center + Vector3.Scale(bounds.extents, new Vector3(x, y, z)));
+                if (corner.x < 0 || corner.x > 1 || corner.y < 0 || corner.y > 1 || corner.z < camera.nearClipPlane || corner.z > camera.farClipPlane)
+                    throw new InvalidOperationException("BoundsClipped");
+            }
+        }
+        private void CapturePreviewCamera(Camera camera, string filename, int width = 960, int height = 640)
+        {
+            var target = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+            var previous = RenderTexture.active;
+            var screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
+            try
+            {
+                RenderPipeline.SubmitRenderRequest(camera, new UniversalRenderPipeline.SingleCameraRequest { destination = target });
+                RenderTexture.active = target; screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0); screenshot.Apply();
+                var pixels = screenshot.GetPixels32();
+                if (pixels.Count(p => p.r > 60 && p.r > p.g * 1.5f && p.r > p.b * 1.5f) < 500
+                    || pixels.Count(p => p.r > 200 && p.b > 200 && p.g < 50) > 20)
+                    throw new InvalidOperationException("BlankOrErrorShaderCamera");
+                using (var stream = new FileStream(Path.Combine(output, filename), FileMode.CreateNew))
+                { var bytes = screenshot.EncodeToPNG(); stream.Write(bytes, 0, bytes.Length); }
+            }
+            finally { RenderTexture.active = previous; RenderTexture.ReleaseTemporary(target); Destroy(screenshot); }
         }
         private void Update()
         {

@@ -4,7 +4,7 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：🚧 well-done Phase 2 進行中；44/233 項具單元層證據，已執行真實 Unity／內部 Player 探針，尚未完成安裝／Preview／全量驗收。最後更新：2026-09-13。
+> **狀態**：🚧 well-done Phase 2 進行中；46/233 項具單元層證據，已執行真實 Unity／內部 Player 探針，尚未完成安裝／Preview／全量驗收。最後更新：2026-09-13。
 
 ## 🎯 開發進度總覽
 
@@ -14,28 +14,28 @@
 SPEC-001-BrickModelCatalog TDD 開發
 Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 開始時間／預計完成／負責人：2026-09-10／尚未估算／Codex
-進度條：[████░░░░░░░░░░░░░░░░] 18.88% (44/233)
+進度條：[████░░░░░░░░░░░░░░░░] 19.74% (46/233)
 ```
 
 ### 分層進度追蹤
 
 | 測試層級 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
 |---|---|---|---|---|---|
-| 1️⃣ 單元測試 | 26.19% | 44/168 | 7 | 117 | 🚧 部分本機與 Unity 驗證完成 |
+| 1️⃣ 單元測試 | 27.38% | 46/168 | 7 | 115 | 🚧 部分本機與 Unity 驗證完成 |
 | 2️⃣ 集成測試 | 0% | 0/29 | 11 | 18 | 🚧 部分矩陣有證據 |
 | 3️⃣ 程式內 API 契約 | 0% | 0/14 | 5 | 9 | 🚧 部分契約有證據 |
 | 4️⃣ E2E／安裝／畫面／效能 | 0% | 0/22 | 0 | 22 | ⏸️ 未開始 |
-| 合計 | 18.88% | 44/233 | 23 | 166 | 🚧 未達交付門檻 |
+| 合計 | 19.74% | 46/233 | 23 | 164 | 🚧 未達交付門檻 |
 
 一個 checklist ID 是一個測試案例；參數化資料列與 assertions 不重複灌入進度。BDD 56 場景各有3項單元測試，且另有真實集成／Player／E2E 覆蓋。沒有把「已生成文件」算成「測試通過」。
 
-原 2026-09-10 的 Python 38 與 C# 33 個執行 cases 不等於 71 個 checklist ID。2026-09-13 預覽控制層接續後已以真正 Unity EditMode 執行 86 項專案測試；其中 5 項依賴 Unity 的 lease／provider 測試不納入純 .NET harness。只勾選斷言完整的單元規則，不以執行 cases 灌入進度。UT-021、099、121、122、154、156、158；IT-002、008、009、012、014、015、016、021、024、026、027；CT-006、010、012、013、014 仍只有部分完整場景證據，維持未勾選。
+原 2026-09-10 的 Python 38 與 C# 33 個執行 cases 不等於 71 個 checklist ID。2026-09-13 鏡頭接續後已以真正 Unity EditMode 執行 99 項專案測試；其中 11 項依賴 Unity 的 lease／provider／鏡頭測試不納入純 .NET harness。只勾選斷言完整的單元規則，不以執行 cases 灌入進度。UT-021、099、121、122、154、156、158；IT-002、008、009、012、014、015、016、021、024、026、027；CT-006、010、012、013、014 仍只有部分完整場景證據，維持未勾選。
 
 ### 當前 Sprint 狀態
 
 | 項目 | 內容 |
 |---|---|
-| 當前階段 | well-done Phase 2：預覽狀態／查詢與模型協調／引用生命週期；尚未進入 UX／深度稽核完成關卡 |
+| 當前階段 | well-done Phase 2：預覽狀態／查詢與模型協調／引用生命週期／鏡頭輸入接點；已使用 UX 技能核對 SC-035，尚未完成 Phase 3／深度稽核 |
 | 當前執行測試 | Unity EditMode 與內部 Player 故障矩陣；尚非可安裝 Preview |
 | Red-Green-Refactor | 已保留測試先失敗、實作後通過的本輪執行結果；摘要見下方 |
 | 最後更新 | 2026-09-13 |
@@ -54,7 +54,7 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 
 | 指標 | 目標 | 目前 |
 |---|---|---|
-| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 44/233 單元層完成，其餘未完成 |
+| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 46/233 單元層完成，其餘未完成 |
 | BDD → TDD 文件追溯 | 56/56 | 已生成映射，非測試通過 |
 | 模型正式交付 | SPEC §3.4 全量門檻與每件品質通過 | 未取得完整分母，未驗收 |
 | 原生畫面 | 可安裝、離線、可操作且材質正確 | 已有單一普通磚的內部 Player 相機畫面；無合格 Preview／安裝器／UX |
@@ -157,6 +157,19 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 | UT-155 | `Domain/CatalogInputPolicy.cs`、`Infrastructure/BrickCatalog.cs`（Infrastructure 相對 `game/Assets/BrickHigh/`） | `Tests/EditMode/Unit/CatalogInputPolicyTests.cs`、`Tests/EditMode/Integration/ReadContractTests.cs`；scalar／cursor 邊界與實際字面 SQL 查詢 |
 
 部分整合證據：`tools/catalog/tests/integration/test_snapshot_repository.py`（CAS、凍結／Ready 不可變、故障 rollback）；`tools/acceptance/tests/integration/test_it_026.py`／`test_it_027.py`（真實 Windows junction 及同大小／mtime 內容替換）；`Tests/EditMode/Integration/ReadContractTests.cs`（101 筆分頁、session／包身分、literal LIKE）；`tools/catalog/tests/integration/test_blender_conversion.py`（真實 Blender＋官方 LDraw 幾何）。上述尚未涵蓋各 ID 的完整 Player／工作／更新矩陣，不能勾選整個 IT／CT。
+
+### 鏡頭與輸入接續（2026-09-13 晚間）
+
+- 技能與範圍：依 `tdd-development` 先測試，並使用 `bdd-frontend-ux-implementation` 核對 SPEC §7／BDD SC-035。現有 15 項畫面 AC 均有 BDD 追溯，本次沒有新增產品功能或重編 233 項；SC-035 的完整控制鏈仍未驗收。
+- Red：7 個 `PreviewOrbitPolicyTests` cases 先因缺少類別而 CS0246（終端執行紀錄）。`orbit-unity-red.log` 同樣記錄缺少 `PreviewCameraController`；原生新版腳本對舊 build `toolchain-20260913T083340-2c8fe11c/matrix-aa4f9a21b44247a9970761aeec0fdf3b` 拒絕缺少鏡頭證據的舊成功報告。
+- 實作：`Application/PreviewOrbitPolicy.cs` 以公尺外接球、垂直 FOV 與長寬比計算取景／裁切面；角度、縮放及非有限值都有界。`UnityRuntime/PreviewCameraController.cs` 只移動借用 Camera，不改模型 transform；綁定所屬 EventSystem，uGUI InputField 選取當幀就阻擋拖曳／縮放／快捷鍵，結束舊拖曳。只有選取預覽區域時才處理方向鍵／PageUp／PageDown／Home；其他控制仍保留自己的鍵盤導覽責任。
+- 測試修正而非宣稱產品故障：`orbit-unity-green.xml` 初次 98/99，`orbit-focus-diagnostic.xml` 定位 EditMode 未自動註冊 `EventSystem.current`。原測試多次動作後的重設可能掩蓋焦點錯誤，故補成每次動作都斷言不變；controller 改為明確注入畫面 EventSystem，不再依賴全域註冊時序。未放寬焦點／晚到拖曳斷言。
+- Green：`orbit-policy-green/` 的 TRX 為 7 passed；`orbit-core-final.trx` 純 C# 88 passed；`orbit-unity-green2.xml` Unity 99 passed，皆 0 failed／0 skipped。`dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet` 為 0 warnings／0 errors。
+- 原生：`orbit-player-build.log` 建置 exit 0；`toolchain-20260913T131217-e7110a88/matrix-e03da487a6eb42c19bafac96043d0e46` 六項全通過。正常及無頂層 bundle 的 `previewCameraVerified=true`，真實 SQLite／provider 載入 3068 triangles 模型後，驗證旋轉、縮放、重設、文字焦點、鍵盤鏡頭輸入、直式 bounds 取景、Unbind 及模型 transform 不變。原有暫時占用重試／取消／零殘留矩陣仍通過。
+- 畫面：正常案例新增 `camera-reset.png`、`camera-orbit-zoom.png`、`camera-portrait.png`（480×960），已目視確認是同一紅色 2×4 磚、不同視角及完整直式取景。圖像來自真實 Player Camera RenderRequest；事件由 harness 派送，沒有宣稱桌面 HID 錄影、完整 uGUI 或畫面風格核准。燈光／材質仍未核准，不能用這三張取代逐資產六視圖。
+- 離線防護回歸：同 build 的 `bootstrap-7148b9a8/bootstrap-report.json` 為 passed，0 次 HTTP 請求、`FirstAcquire:AssetCorrupt`、exit 3；由 `python tools/acceptance/verify_offline_bootstrap.py --player-directory <本次Player>` 重跑。原生矩陣則使用 `./tools/acceptance/verify_toolchain_player.ps1 -PlayerDirectory <本次Player>`，皆為開發端驗收工具。
+- 新增勾選 UT-103／104：`PreviewOrbitPolicyTests.cs` 與 `PreviewCameraControllerTests.cs`（相對 `game/Assets/BrickHigh/Tests/EditMode/Unit/`），加上述真實 Player 證據。UT-105、SC-035、IT-016、ET-002 仍缺完整搜尋／篩選／清單／按鈕鍵盤控制鏈與窄視窗 UI 重排；UT-121／122 仍缺完整畫面自有 render texture 生命週期，不勾選。
+- 邊界：沒有改 Player 的缺參數退出行為，探針仍不是可雙擊瀏覽器。沒有修改原 Blender、正式 Profiles 或留下 ProjectSettings／Addressables 設定差異；故障僅作用於新人工複本，移走的檔案仍有備份。未進行 Phase 4 全項深度稽核，19.74% 是 checklist 完成比例，不是正式模型完成率。
 
 ### 接續實作所需條件與未完成範圍
 
@@ -771,10 +784,10 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：模型預覽可操作且搜尋欄可取得焦點。
 **共同動作**：拖曳、滾輪、重設視角並使用鍵盤搜尋／篩選／選取／重試／重設；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-103** `PreviewCameraController_CameraInput_UpdatesView` — @critical
+- [x] **UT-103** `PreviewCameraController_CameraInput_UpdatesView` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：拖曳旋轉、滾輪縮放及重設可觀察真實 3D 模型。
-- [ ] **UT-104** `PreviewCameraController_TextFocus_BlocksCameraInput` — @critical
+- [x] **UT-104** `PreviewCameraController_TextFocus_BlocksCameraInput` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：文字輸入焦點阻止模型旋轉與遊戲快捷鍵被同步觸發。
 - [ ] **UT-105** `PreviewCameraController_KeyboardNavigation_ReachesControls` — @critical
