@@ -4,7 +4,10 @@
   "references": [
     "BrickHigh.Domain",
     "BrickHigh.Application",
-    "BrickHigh.Infrastructure"
+    "BrickHigh.Infrastructure",
+    "BrickHigh.UnityRuntime",
+    "Unity.Addressables",
+    "Unity.ResourceManager"
   ],
   "includePlatforms": [
     "Editor"

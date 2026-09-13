@@ -4,7 +4,7 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：🚧 well-done Phase 2 進行中；24/233 項具完整本機單元層證據，尚未完成 Unity／Player／全量驗收。最後更新：2026-09-10。
+> **狀態**：🚧 well-done Phase 2 進行中；30/233 項具單元層證據，已執行真實 Unity／內部 Player 探針，尚未完成安裝／Preview／全量驗收。最後更新：2026-09-13。
 
 ## 🎯 開發進度總覽
 
@@ -14,31 +14,31 @@
 SPEC-001-BrickModelCatalog TDD 開發
 Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 開始時間／預計完成／負責人：2026-09-10／尚未估算／Codex
-進度條：[██░░░░░░░░░░░░░░░░░░] 10.30% (24/233)
+進度條：[██░░░░░░░░░░░░░░░░░░] 12.88% (30/233)
 ```
 
 ### 分層進度追蹤
 
 | 測試層級 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
 |---|---|---|---|---|---|
-| 1️⃣ 單元測試 | 14.29% | 24/168 | 4 | 140 | 🚧 部分本機驗證完成 |
-| 2️⃣ 集成測試 | 0% | 0/29 | 6 | 23 | 🚧 部分矩陣有證據 |
-| 3️⃣ 程式內 API 契約 | 0% | 0/14 | 4 | 10 | 🚧 部分契約有證據 |
+| 1️⃣ 單元測試 | 17.86% | 30/168 | 4 | 134 | 🚧 部分本機與 Unity 驗證完成 |
+| 2️⃣ 集成測試 | 0% | 0/29 | 10 | 19 | 🚧 部分矩陣有證據 |
+| 3️⃣ 程式內 API 契約 | 0% | 0/14 | 5 | 9 | 🚧 部分契約有證據 |
 | 4️⃣ E2E／安裝／畫面／效能 | 0% | 0/22 | 0 | 22 | ⏸️ 未開始 |
-| 合計 | 10.30% | 24/233 | 14 | 195 | 🚧 未達交付門檻 |
+| 合計 | 12.88% | 30/233 | 19 | 184 | 🚧 未達交付門檻 |
 
 一個 checklist ID 是一個測試案例；參數化資料列與 assertions 不重複灌入進度。BDD 56 場景各有3項單元測試，且另有真實集成／Player／E2E 覆蓋。沒有把「已生成文件」算成「測試通過」。
 
-本輪 Python 38 個 pytest cases 與 C# 33 個 NUnit cases 不等於 71 個 checklist ID。C# 目前以獨立 .NET 10 harness 執行相同核心原始碼，另以 .NET Standard 2.1 編譯；僅勾選無 Unity 依賴且斷言完整的單元規則，不計為 Unity EditMode／PlayMode／Player 驗收。UT-021、154、156、158；IT-002、008、014、021、026、027；CT-010、012、013、014 均只有部分證據，維持未勾選。
+原 2026-09-10 的 Python 38 與 C# 33 個執行 cases 不等於 71 個 checklist ID。2026-09-13 已以真正 Unity EditMode 執行 63 項專案測試；其中 5 項依賴 Unity 的 lease／provider 測試不納入純 .NET harness。只勾選斷言完整的單元規則，不以執行 cases 灌入進度。UT-021、154、156、158；IT-002、008、009、012、014、015、021、024、026、027；CT-006、010、012、013、014 仍只有部分完整場景證據，維持未勾選。
 
 ### 當前 Sprint 狀態
 
 | 項目 | 內容 |
 |---|---|
-| 當前階段 | well-done Phase 2：核心實作與工具鏈準備；尚未進入 UX／深度稽核完成關卡 |
-| 當前執行測試 | 第一輪回歸完成；下一關為 Unity 專案匯入、原生相依與 Player 原型 |
+| 當前階段 | well-done Phase 2：核心／原生工具鏈探針／引用生命週期；尚未進入 UX／深度稽核完成關卡 |
+| 當前執行測試 | Unity EditMode 與內部 Player 故障矩陣；尚非可安裝 Preview |
 | Red-Green-Refactor | 已保留測試先失敗、實作後通過的本輪執行結果；摘要見下方 |
-| 最後更新 | 2026-09-10 |
+| 最後更新 | 2026-09-13 |
 | 備註 | 維持233個原始ID與名稱；未以探索 GLB、fixture 或候選套件宣稱正式完成 |
 
 ### 里程碑
@@ -54,10 +54,10 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 
 | 指標 | 目標 | 目前 |
 |---|---|---|
-| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 24/233 本機單元層完成，其餘未完成 |
+| 全部案例結果 | 233/233 有符合預期且可追溯的驗證證據 | 30/233 單元層完成，其餘未完成 |
 | BDD → TDD 文件追溯 | 56/56 | 已生成映射，非測試通過 |
 | 模型正式交付 | SPEC §3.4 全量門檻與每件品質通過 | 未取得完整分母，未驗收 |
-| 原生畫面 | 可安裝、離線、可操作且材質正確 | 尚無 Player |
+| 原生畫面 | 可安裝、離線、可操作且材質正確 | 已有單一普通磚的內部 Player 相機畫面；無合格 Preview／安裝器／UX |
 | 效能 | SPEC §8.2 固定硬體／場景的目標 | 未量測 |
 | 程式碼覆蓋率 | 開發後報告；不能替代模型／Player 驗收 | 已有程式與測試，覆蓋率尚未量測 |
 
@@ -66,6 +66,53 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 2026-09-09：SDD 經使用者確認；生成46場景與179測試。未開始實作、未取得正式畫面截圖、未跑任何 Unity 測試。
 
 2026-09-10：新增領域規則、開發端 SQLite repository、不可變內容儲存、Windows 實際路徑／hash 防護、C# 原生 SQLite 與固定 session 讀取、存檔相容檢查。加入 Unity 專案骨架及候選套件清單；完成 LDraw 3001 幾何轉換探針，不把測試顏色選擇視為已觀測實際變體。未修改既有 `blender/brickhigh.blend`。
+
+2026-09-11～12：發現使用者已安裝可執行的 Unity 6000.3.18f1，授權解析成功。補上 manifest／runtime_files／bundle 引用核對、整組歷史模型 resolver、最新選取狀態與主執行緒 ModelLease；實際建立 Win64 Mono Player，普通磚可由本地 Addressables 顯示，SQLite 唯讀與缺 DLL／無圖形裝置反例已執行。沒有因此改成 Ready、發布 Preview、核准外觀或清除全量缺口。
+
+### 原生探針與本輪新增證據（2026-09-11～12）
+
+- 原生環境：`C:/Program Files/Unity/Hub/Editor/6000.3.18f1/Editor/Unity.exe`；實際解析既有 `game/Packages/packages-lock.json`。候選套件已通過普通磚探針，尚未通過透明／印刷／代表件全集與安裝驗收，不能凍結為完整發行工具鏈。
+- `artifacts/test-results/manifest-red-20260911.trx`：8 個不完整索引反例在舊實作全部錯誤成功；新增 `Infrastructure/ReleaseFileIndex.cs` 後通過，另有歷史引用錯配測試。這些真實 SQLite fixture 的 bundle bytes 是測試用，不作 Unity 資產證據。
+- `artifacts/test-results/lease-bounded-20260912.xml`：只執行 `BrickHigh.Tests.EditMode`，48 passed、0 failed、0 skipped。較早的 34／43 總數各含一個 Addressables 文件範例 `TestStub.RequiredTest`，本專案當時分別為 33／42，範例不計進度。
+- `ModelLeasePolicyTests.cs` 的背景 Dispose 原先假設下一個 Test Runner tick 就完成，出現 47/48；改成最多 5 秒的主執行緒排程等待後 48/48。仍斷言引用已釋放及背景存取 Prefab 被拒絕，沒有忽略失敗或改成 skip。
+- 首次 Player（`toolchain-20260911T125107-9267fea8`）雖有載入資料，直接 framebuffer 擷取實為黑圖；其舊報告的 `passed=true` 不可採信為畫面通過。原始失敗證據保留，未覆寫。
+- 修正後 `artifacts/acceptance/toolchain-20260911T125714-066b6fbe/run-01/player.png` 為實際 Player Camera RenderRequest，已目視確認紅色 2×4 磚而非黑圖；報告為 3068 triangles、寬 0.031999998 m、URP glTF shader、17667 個紅色像素。只證明普通磚可渲染，不代表來源外觀／光照核准。
+- 同 build 的 `matrix-1b3a5c9e544a4a648460bcda1ddd0565/`：正常 exit 0；無圖形裝置 exit 3；缺 SQLite DLL 的獨立測試複本 exit 3。DLL 只是從新複本移至 `sqlite3.dll.disabled`，可恢復；原 Player、正式 Profiles 與原 Blender 工作檔不變。
+- `artifacts/acceptance/toolchain-20260912T001303-27d7c688/matrix-43a224f65077460b90eb7b88ba6334ae`：v3 直接 Addressables 與 ModelLease 的正常／無圖形／缺 DLL 三項通過，正常報告有共用及最後一次釋放證據；不等於受控 provider 驗收。
+- 探針入口：`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs::Build`；執行檢核：`tools/acceptance/verify_toolchain_player.ps1 -PlayerDirectory <本次輸出>/Player`。新版檢核另要求取消／重新載入證據，舊報告不滿足新增要求，須用新版重建。探針 runtime 只在 `UNITY_EDITOR` 或 `BRICKHIGH_TOOLCHAIN_PROBE` 編譯，不提供玩家 CLI。
+- glTFast 6.14.1 的實際匯入器翻 X；探針以 Y 軸 180° 純旋轉對齊專案翻 Z 契約，未二次翻轉 winding。完整非對稱、接點、人物錨點與碰撞整合仍未驗收。
+
+本輪新增勾選 UT-094～096、115～117：`UnityRuntime/ModelLease.cs` → `Tests/EditMode/Unit/ModelLeasePolicyTests.cs`；`Application/SelectionRequestPolicy.cs` → `Tests/EditMode/Unit/SelectionRequestPolicyTests.cs`（相對 `game/Assets/BrickHigh/`）。UT-095／096 原先保留未完成，待下方 v5 真實取消／失敗 handle 釋放與背景取得證據補齊才勾選。IT-015、024 不因局部成功整項勾選。未建立新 HTTP API，resolver 為 Infrastructure 的 internal 邊界。
+
+### 受控資產載入接續（2026-09-12）
+
+- Red：`provider-red-20260912.log`、`provider-player-red-20260912.log` 均因缺少 `BrickAssetProvider` 產生 CS0246；不是跳過原生測試。
+- Green：`provider-green-20260912.xml` 為 50 passed／0 failed／0 skipped；`provider-core-20260912.trx` 為純 C# 45 passed；`.NET Standard 2.1` build 為 0 warnings／0 errors。
+- 實作：`UnityRuntime/BrickAssetProvider.cs` 先驗完整 snapshot／variant／revision 引用與 session，再使用固定本地 catalog 的私有 locator。bundle 依 `runtime_files` 核對實際 bytes，再把同一陣列交 `AssetBundle.LoadFromMemoryAsync`；所有 Unity 操作派回主執行緒。`ModelLease` 回報獨立引用釋放，provider Dispose 不銷毀已交出的租約。
+- 原生 v4：`artifacts/acceptance/toolchain-20260912T003041-51e63fec/matrix-27b069f04cbe4540a7088f92c52fbd97/` 四項通過：正常圖形 exit 0、無圖形 exit 3、缺 DLL exit 3、同名同大小同 mtime bundle 竄改回 `FirstAcquire:AssetCorrupt`／exit 3。正常圖片已目視確認是紅色普通磚。F-Catalog／非 Ready 標記保留，沒有發布 Preview。
+- 原生 v5：`artifacts/acceptance/toolchain-20260912T003537-7305169b/matrix-a56dcfc4163d4b538aa8f13693149eb1/` 四項全通過。正常流程預先取消零 IO／handle、真實 handle 配置後取消、背景重新取得、provider Dispose 後既有 lease 仍有效；共 3 次 bundle 讀取、4 份 handle 配置，最後 lease／bundle 皆 0。損壞反例確實讀取 1 次並配置 1 份 handle，回 AssetCorrupt 且 lease／bundle 皆 0。內部 `HandleAllocated` 觀察點只用於確定取消時序，沒有替換資產 bytes 或載入結果。
+- 最終 EditMode 回歸：`provider-final-20260912.xml` 為 50 passed／0 failed／0 skipped。v5 新增生命週期斷言先對舊 v4 執行並失敗，未放寬斷言後再驗 v5 通過。
+- 首次 v4 `matrix-db72e99071f44fa8908e319416851dfa` 的 hash 反例未通過：複本 bundle 路徑達 292 字元，Mono 先回 `CatalogOpen:AssetMissing`。測試複本移到新的短路徑後才驗到預期 hash 錯誤；長路徑安裝相容性仍未解決。故障注入只改新複本，備份可恢復，原 Player 與使用者資料未刪除。
+- 目前仍缺：多 bundle／多包隔離、catalog 遠端初始化拒絕全集、重新解析與實際 Player 的並行替換矩陣、取消 UI、正式來源及安裝 UX。UT-156、IT-026／027、CT-006 保持未勾選；完整來源與品質門檻不由人工 F-Catalog 取代。
+
+### 離線啟動設定防護（2026-09-13）
+
+- 根因：Addressables 在指定 catalog 前仍先初始化 `aa/settings.json`；只驗 bundle 路徑無法阻止初始化時連線。新增 `Infrastructure/LocalAddressablesPolicy.cs` 與 13 個 `LocalAddressablesPolicyTests.cs` cases（追溯 UT-071），檢查固定 Win64／本機 catalog、停用更新、空額外初始化與 certificate handler、禁止遠端／越界／自訂 provider／hash 相依／序列化 payload。
+- Red：新 C# 測試先因缺少政策類別編譯失敗。`tools/acceptance/verify_offline_bootstrap.py` 在短路徑的新人工 F-Catalog 複本注入回環 HTTP catalog，並同步測試 DB／manifest hash，避免以 hash 不符掩蓋政策缺口。舊 Player 的 `toolchain-20260912T004030-6f56e031/bootstrap-13bd7ed0/bootstrap-report.json` 記錄 1 次 `/catalog.bin` 請求、Addressables 例外與 `ProbeTimeout`；此為有效紅燈。較早 `bootstrap-98fd387a` 因測試端 SQLite connection 尚未關閉而回 StorageUnavailable，不能作為此政策的證據，已修正測試端關閉順序。
+- Green：`toolchain-20260913T020817-cc74a123/bootstrap-3274468b/bootstrap-report.json` 為 passed，0 次 HTTP 請求、`FirstAcquire:AssetCorrupt`、exit 3，0 bundle 讀取／0 資產 handle。provider 在 Addressables 初始化前驗 settings 的實際 bytes 與政策，且持有不可寫換的檔案直到 catalog 初始化完成；建置探針也執行同一政策。
+- 同 build 的 `matrix-bc8c87464cf7467cab4d8e9cc9ee2e42/` 正常／無圖形／缺 DLL／同大小竄改四項全通過；正常仍含預先取消、已配置 handle 後取消、背景重新取得及零殘留證據。
+- 本輪回歸：`bootstrap-green-20260913.trx` 純 C# 58 passed；`bootstrap-green-20260913.xml` Unity 63 passed；`python-20260913.xml` Python 38 passed，全部 0 skipped；.NET Standard 2.1 build 0 warnings／0 errors。參數化 cases 不增加原始 233 checklist ID。
+- 建置副作用修復：原本 setter 會把 `overrideDefaultApplicationIdentifier` 留為 1；`provider-identity-build-20260912.log` 的重建後已驗回 0，company／product 為原本 DefaultCompany／game。URP 自動產生的設定與明確化的預設值仍在 worktree，不包含正式 profile 修改。
+- 此階段限制：當時 fixture 尚未移到 `StreamingAssets/Catalog/<packId>`，接續驗證見下節。多包隔離、全部 catalog 相依安全矩陣與乾淨離線安裝仍未完成。IT-012 僅增加遠端初始化反例證據，未勾選。Python 只在開發端做故障注入，Player 沒有新增 Python 相依。
+
+### 包內布局接續（2026-09-13）
+
+- Red：建置器把人工 DB／manifest／catalog／bundle 改放 `StreamingAssets/Catalog/<packId>`；`toolchain-20260913T021556-36a53a98/matrix-87da3c2391ae4beca9453452ca49b1ee` 正常情境回 `FirstAcquire:AssetCorrupt`，0 bundle 讀取／0 資產 handle，證明舊 provider 綁定頂層路徑而不支援規格布局。
+- 實作：`BrickAssetProvider` 分開驗證 Player 固定 `StreamingAssets/aa` 啟動 settings／catalog 與選定包的私有 catalog。啟動檔案的實際 hash 必須等於包內索引且持續拒絕寫換；catalog 的固定 RuntimePath bundle 僅轉為該包的同一 storage key，驗證後將包內 bytes 交給 Unity，不載入頂層 bundle。其他外部路徑仍拒絕。
+- Green：`toolchain-20260913T021909-c8fbff07` 的人工包為 `p25e70ae7`；`matrix-bb9f9b596da747f8894205c6b2892183` 四項全通過，包內 bundle 損壞即回 AssetCorrupt；正常圖片已目視確認普通紅磚。`bootstrap-e3828abd` 仍為 0 HTTP 請求／0 資產 handle，遠端設定被拒絕。`pack-final-20260913.xml` 為 Unity 63 passed／0 failed／0 skipped。
+- 補強矩陣 `matrix-08917646b73744948487dfdb54e96930` 六項全通過：除上述四項外，移走獨立複本的頂層 bundle 仍正常渲染／取消／重新取得；移走頂層啟動 catalog 則回 `FirstAcquire:AssetMissing`，0 bundle 讀取／0 資產 handle。移走檔案分別保留為 `unused.bundle.backup`／`bootstrap.catalog.backup`，原 Player 不變。此反例證明正常顯示不依賴頂層 bundle，也不略過啟動 catalog 的驗證。
+- 人工包短 ID 用於隔離既知 Mono 長路徑問題，這次 bundle 完整路徑 255 字元；不代表 292 字元案例已修復。建置後以已驗證範圍的 `AssetDatabase.MoveAsset` 將本次人工包及 meta 移回忽略版控的生成目錄，不留下可發行的假包；原使用者 Profiles 與 Blender 檔不變。
+- 本節只完成內部單包布局證據：尚未完成正式建置／安裝器、多包併發、歷史資產全集、品質核准、UI 或深度稽核，整體仍為 30/233。
 
 ### 本輪驗證與追溯證據（2026-09-10）
 
@@ -98,10 +145,10 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 
 ### 接續實作所需條件與未完成範圍
 
-- 本機尚未取得可用的 Unity Editor，亦尚未確認可用授權。已下載並驗證官方簽署的 `6000.3.18f1` 安裝器；安裝呼叫回報「操作被使用者取消」，未重試提權或代為處理授權。需由使用者完成適用授權／安裝，或提供已可用的 Editor 路徑，才能執行下一個原生 Player 關卡。
-- `game/Packages/manifest.json` 是候選輸入，不是已通過 Player 的鎖版；尚無 Editor 產生並驗證的 `packages-lock.json`。URP／uGUI 隨 Editor 的解析亦待確認。
+- 先前 Unity 安裝條件已解除，未重試提權或代為啟用授權；使用者安裝的 Editor 已能執行。剩餘關卡是合格代表資產、可操作 Preview、原生啟動器、乾淨 Windows 安裝與真正離線驗收。
+- `packages-lock.json` 已存在並經 Editor 解析；普通磚 Player 探針通過不代表全部材質／平台及安裝相依驗證完成。
 - 開發 CLI／完整來源 adapter、工作恢復、涵蓋審查實證、全部分類／接點／品質閉環仍未完成。repository 的合成驗證報告僅供交易測試；目前不得拿人工旗標或 fixture 發布真實內容。
-- 精確模型 resolver、Addressables／ModelLease、uGUI／鏡頭／輸入、啟動器與離線安裝更新、備份還原 harness、完整 manifest／bundle 封裝及其故障矩陣仍需實作與實機驗證。
+- 精確模型 resolver、ModelLease 與最新選取已有實作；完整受控 Addressables provider、uGUI／鏡頭／輸入、啟動器與離線安裝更新、備份還原 harness、完整 manifest／bundle 封裝及其故障矩陣仍需實作與實機驗證。
 - 全部 BDD 場景驗收仍為 0/56、UX 0/20；無 Player 六視圖、`visualBaselineId` 或指定 GTX 1660 基準報告。Phase 3／Phase 4 尚未完成，沒有 100% 深度稽核結論。
 
 ## 測試資料、位置與層級約定
@@ -658,13 +705,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：兩個使用者共用 mesh／材質，載入可能成功、失敗或取消。
 **共同動作**：AcquireAsync 後以不同順序 Dispose，包括重複 Dispose；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-094** `ModelLeasePolicy_DoubleDispose_ReleasesOnce` — @critical
+- [x] **UT-094** `ModelLeasePolicy_DoubleDispose_ReleasesOnce` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：每份 lease 只釋放自己的 reference，重複 Dispose 安全。
-- [ ] **UT-095** `ModelLeasePolicy_SharedActiveHandle_RemainsAlive` — @critical
+- [x] **UT-095** `ModelLeasePolicy_SharedActiveHandle_RemainsAlive` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：取消／失敗後已建立而未使用的 handle 均釋放，不提前釋放另一份仍使用資產。
-- [ ] **UT-096** `ModelLeasePolicy_UnityOperation_RequiresMainThread` — @critical
+- [x] **UT-096** `ModelLeasePolicy_UnityOperation_RequiresMainThread` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：Unity 物件建立／操作／銷毀只在主執行緒，背景僅處理資料與 IO。
 
@@ -777,13 +824,13 @@ Red-Green-Refactor：已執行核心規則、SQLite 與來源轉換的第一輪
 **共同前置**：A 載入慢、B 載入快。
 **共同動作**：先選 A 隨即選 B，並令 A 最後才完成；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-115** `SelectionRequestPolicy_LateResult_DoesNotOverrideSelection` — @critical
+- [x] **UT-115** `SelectionRequestPolicy_LateResult_DoesNotOverrideSelection` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：最後畫面僅呈現 B，A 不覆蓋 B 的模型或詳情。
-- [ ] **UT-116** `SelectionRequestPolicy_DiscardedResult_ReleasesHandle` — @critical
+- [x] **UT-116** `SelectionRequestPolicy_DiscardedResult_ReleasesHandle` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：A 可取消或丟棄結果，但其多餘 handle 必須釋放。
-- [ ] **UT-117** `SelectionRequestPolicy_RequestVersion_KeepsLoadingAccurate` — @critical
+- [x] **UT-117** `SelectionRequestPolicy_RequestVersion_KeepsLoadingAccurate` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：快速反覆切換後 loading 狀態對應目前請求，不被舊結果關閉或卡住。
 

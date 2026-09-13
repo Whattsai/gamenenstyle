@@ -4,11 +4,11 @@
 **關聯需求**: [MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 **優先級**: 高
 **負責角色**: 模型資產維護者、共用模組開發者
-**狀態**: SDD基線與第13節補強已確認；BDD／TDD／風險回寫完成，Ready for well-done
-**最後更新**: 2026-09-09
+**狀態**: SDD基線與第13節補強已確認；well-done Phase 2 實作中，尚未通過完整驗收
+**最後更新**: 2026-09-13
 **建議實作順序**: 本 MVP 第 1 順位
 **前置 SPEC**: 無
-**本輪邊界**: 僅規劃本 SPEC；已生成 BDD／TDD 與實作前風險報告，尚未開始實作
+**本輪邊界**: 僅實作本 SPEC；已有核心測試與內部 Windows Player 工具鏈探針，非合格 Preview 或全量 Release。現況以 [TDD 驗證紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md) 為準；下文規劃時點的未實作敘述保留其歷史脈絡。
 
 ## 1. 功能概述
 

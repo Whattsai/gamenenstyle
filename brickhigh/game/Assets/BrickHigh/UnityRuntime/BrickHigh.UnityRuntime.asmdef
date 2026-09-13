@@ -1,0 +1,4 @@
+{
+  "name": "BrickHigh.UnityRuntime",
+  "references": ["BrickHigh.Domain", "BrickHigh.Infrastructure", "Unity.Addressables", "Unity.ResourceManager", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]
+}

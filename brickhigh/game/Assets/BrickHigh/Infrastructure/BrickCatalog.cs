@@ -42,7 +42,9 @@ namespace BrickHigh.Infrastructure
                 cancellationToken.ThrowIfCancellationRequested();
                 JObject manifest;
                 using (var stream = SafeContent.OpenRead(root, "release-manifest.json"))
-                using (var reader = new StreamReader(stream, new UTF8Encoding(false, true))) manifest = JObject.Parse(reader.ReadToEnd());
+                using (var reader = new StreamReader(stream, new UTF8Encoding(false, true))) manifest = JObject.Parse(reader.ReadToEnd(),
+                    new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                ReleaseFileIndex.ValidateHeader(manifest);
                 if ((int?)manifest["catalogSchemaVersion"] != 1 || (int?)manifest["assetContractVersion"] != 1)
                     return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.UnsupportedSchema);
                 if ((string)manifest["packageKind"] != kind.ToString())
@@ -82,6 +84,8 @@ namespace BrickHigh.Infrastructure
                             ON v.snapshot_id=m.snapshot_id AND v.variant_id=m.variant_id AND v.selected_revision_id=m.revision_id
                             AND m.build_target=? WHERE m.runtime_build_id IS NULL LIMIT 1", Target).Count != 0)
                             throw new InvalidDataException();
+                        if (!ReleaseFileIndex.ValidateFiles(root, manifest, db))
+                            return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.AssetMissing);
                     }
                     cancellationToken.ThrowIfCancellationRequested();
                     var session = new CatalogSession(owner, (string)manifest["packId"], snapshot, 1, kind, guard);
@@ -183,6 +187,32 @@ namespace BrickHigh.Infrastructure
         });
 
         private bool Valid(CatalogSession session) => session != null && !session.IsDisposed && ReferenceEquals(session.Owner, owner);
+
+        /// <summary>歷史讀取不經新取得篩選；必須整組引用與當前平台一致，禁止回退最新版。</summary>
+        internal Task<CatalogResult<ResolvedModel>> ResolveModelAsync(CatalogSession session, ModelReference model, CancellationToken token)
+        {
+            if (token.IsCancellationRequested) return Cancelled<ResolvedModel>();
+            if (model == null || !model.IsValid) return Task.FromResult(CatalogResult<ResolvedModel>.Failure(CatalogErrorCode.InvalidQuery));
+            return Read(session, token, db =>
+            {
+                var rows = db.Query(@"SELECT m.address_key,m.runtime_build_id,b.bundle_key,f.sha256
+                    FROM runtime_models m JOIN runtime_builds b ON b.runtime_build_id=m.runtime_build_id
+                    AND b.variant_id=m.variant_id AND b.source_revision_id=m.revision_id AND b.build_target=m.build_target
+                    JOIN runtime_files f ON f.storage_key=b.bundle_key AND f.kind='AssetBundle'
+                    WHERE m.snapshot_id=? AND m.variant_id=? AND m.revision_id=? AND m.build_target=?",
+                    model.SnapshotId.ToString(), model.VariantId.ToString(), model.RevisionId.ToString(), Target);
+                if (rows.Count != 1) return CatalogResult<ResolvedModel>.Failure(CatalogErrorCode.IncompatibleContent);
+                var row = rows[0];
+                if (string.IsNullOrWhiteSpace(row["address_key"])) throw new InvalidDataException();
+                SafeContent.Resolve(root, row["bundle_key"]);
+                return CatalogResult<ResolvedModel>.Success(new ResolvedModel(root, row["address_key"], row["runtime_build_id"], row["bundle_key"], row["sha256"]));
+            });
+        }
+
+        internal Task<CatalogResult<RuntimeFile[]>> GetRuntimeFilesAsync(CatalogSession session, CancellationToken token) =>
+            Read(session, token, db => CatalogResult<RuntimeFile[]>.Success(db.Query("SELECT storage_key,sha256,kind,byte_length FROM runtime_files")
+                .Select(row => new RuntimeFile(root, row["storage_key"], row["sha256"], row["kind"], long.Parse(row["byte_length"]))).ToArray()));
+
         private Task<CatalogResult<T>> Read<T>(CatalogSession session, CancellationToken token, Func<NativeSqlite, CatalogResult<T>> read)
         {
             if (token.IsCancellationRequested) return Cancelled<T>();
@@ -211,7 +241,7 @@ namespace BrickHigh.Infrastructure
             catch (FileNotFoundException) { return CatalogResult<T>.Failure(opening ? CatalogErrorCode.CatalogNotInstalled : CatalogErrorCode.AssetMissing); }
             catch (DirectoryNotFoundException) { return CatalogResult<T>.Failure(CatalogErrorCode.CatalogNotInstalled); }
             catch (Exception e) when (e is InvalidDataException || e is JsonException || e is FormatException || e is KeyNotFoundException
-                                      || e is InvalidCastException || e is SqliteFailure || e is InvalidOperationException || e is ArgumentException)
+                                      || e is InvalidCastException || e is SqliteFailure || e is InvalidOperationException || e is ArgumentException || e is OverflowException)
             { return CatalogResult<T>.Failure(CatalogErrorCode.AssetCorrupt); }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             { return CatalogResult<T>.Failure(CatalogErrorCode.StorageUnavailable); }

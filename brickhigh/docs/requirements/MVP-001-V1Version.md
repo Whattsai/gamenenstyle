@@ -2,9 +2,9 @@
 
 **功能 ID**: `MVP-001`
 **優先級**: 高
-**狀態**: MVP基線已確認；第一份SPEC規劃交接完成，實作未開始
-**最後更新**: 2026-09-09
-**本輪階段**: `perfect-plan` Phase 5完成：Ready for well-done；僅處理 `SPEC-001-BrickModelCatalog`
+**狀態**: MVP基線已確認；第一份 SPEC 實作中，其餘模組未開始
+**最後更新**: 2026-09-12
+**本輪階段**: `well-done` Phase 2；僅處理 `SPEC-001-BrickModelCatalog`，未完成全量模型或安裝驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
 
 ## 需求概述
 
