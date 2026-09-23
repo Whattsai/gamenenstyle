@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mighty PM"
+  short_description: "Coordinate any skill or task through delivery"
+  default_prompt: "Use $mighty-pm to coordinate well-done for the supplied TDD document."
+
+policy:
+  allow_implicit_invocation: false
