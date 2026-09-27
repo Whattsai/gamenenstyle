@@ -12,6 +12,7 @@ sys.path.insert(0, str(WORKSPACE))
 
 from tools.catalog.content import ContentPathPolicy
 from tools.catalog.glb import inspect_glb
+from tools.catalog.materials import describe_ldraw_material, ldraw_colour_code_from_material_name
 from tools.catalog.policies import CatalogError
 from tools.catalog.sources import inspect_ldraw
 
@@ -78,22 +79,24 @@ def convert(args):
 
     comparisons = []
     for material in {m for obj in meshes for m in obj.data.materials if m is not None}:
-        code = material.name.removeprefix('Material_').removesuffix('_c')
+        code = ldraw_colour_code_from_material_name(material.name)
         colour = loadldraw.LegoColours.colours.get(code)
         if colour is None:
             colour = loadldraw.LegoColours.colours.get(int(code)) if code.isdigit() else None
-        if colour is None or colour['alpha'] < 1 or colour['material'] not in ('BASIC', 'RUBBER') or colour['luminance']:
-            raise CatalogError('此來源材質尚需獨立轉換對照，不能直接降級為不透明塑膠。')
-        rgba = list(colour['colour'][:3]) + [1.0]
-        roughness = .68 if colour['material'] == 'RUBBER' else .28
-        comparisons.append({'material': material.name, 'ldrawColour': code, 'source': colour,
-                            'target': {'baseColorLinear': rgba, 'metallic': 0, 'roughness': roughness},
-                            'appearanceApproved': False})
+        if colour is None:
+            raise CatalogError('找不到此模型引用的 LDraw 顏色。')
+        comparison = describe_ldraw_material(code, colour)
+        comparison['material'] = material.name
+        rgba = comparison['target']['baseColorLinear']
+        comparisons.append(comparison)
         material.node_tree.nodes.clear()
         shader = material.node_tree.nodes.new('ShaderNodeBsdfPrincipled')
         shader.inputs['Base Color'].default_value = rgba
+        shader.inputs['Alpha'].default_value = rgba[3]
         shader.inputs['Metallic'].default_value = 0
-        shader.inputs['Roughness'].default_value = roughness
+        shader.inputs['Roughness'].default_value = comparison['target']['roughness']
+        if comparison['target']['alphaMode'] == 'BLEND':
+            material.surface_render_method = 'BLENDED'
         destination = material.node_tree.nodes.new('ShaderNodeOutputMaterial')
         material.node_tree.links.new(shader.outputs['BSDF'], destination.inputs['Surface'])
         material.diffuse_color = rgba

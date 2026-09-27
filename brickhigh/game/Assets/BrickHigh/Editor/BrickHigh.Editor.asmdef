@@ -1,5 +1,5 @@
 {
   "name": "BrickHigh.Editor",
   "includePlatforms": ["Editor"],
-  "references": ["BrickHigh.Domain", "BrickHigh.Infrastructure", "BrickHigh.UnityRuntime", "Unity.Addressables", "Unity.Addressables.Editor", "Unity.ResourceManager", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]
+  "references": ["BrickHigh.Domain", "BrickHigh.Infrastructure", "BrickHigh.UnityRuntime", "BrickHigh.PreviewEntry", "Unity.Addressables", "Unity.Addressables.Editor", "Unity.ResourceManager", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]
 }

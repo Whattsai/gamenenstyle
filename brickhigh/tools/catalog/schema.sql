@@ -64,7 +64,27 @@ CREATE TABLE IF NOT EXISTS job_items (
     result_json TEXT NOT NULL DEFAULT '{}', PRIMARY KEY(job_id,input_digest));
 CREATE INDEX IF NOT EXISTS ix_entries_status ON snapshot_entries(snapshot_id,production_status,variant_id);
 
+-- 原始附件與判定只能追加；後繼草稿亦不可改寫舊快照引用的證據。
+CREATE TRIGGER IF NOT EXISTS source_artifacts_immutable_update BEFORE UPDATE ON source_artifacts
+BEGIN SELECT RAISE(ABORT, '來源附件不可覆寫。'); END;
+CREATE TRIGGER IF NOT EXISTS source_artifacts_immutable_delete BEFORE DELETE ON source_artifacts
+BEGIN SELECT RAISE(ABORT, '來源附件不可刪除。'); END;
+CREATE TRIGGER IF NOT EXISTS evidence_immutable_update BEFORE UPDATE ON evidence
+BEGIN SELECT RAISE(ABORT, '判定證據不可覆寫。'); END;
+CREATE TRIGGER IF NOT EXISTS evidence_immutable_delete BEFORE DELETE ON evidence
+BEGIN SELECT RAISE(ABORT, '判定證據不可刪除。'); END;
+
 -- 凍結約束置於資料庫邊界；後繼草稿才可改變來源範圍及判定。
+CREATE TRIGGER IF NOT EXISTS coverage_gaps_frozen_insert BEFORE INSERT ON coverage_gaps
+WHEN (SELECT status FROM snapshots WHERE snapshot_id=NEW.snapshot_id) <> 'Draft'
+BEGIN SELECT RAISE(ABORT, '凍結涵蓋缺口不可新增。'); END;
+CREATE TRIGGER IF NOT EXISTS coverage_gaps_frozen_update BEFORE UPDATE ON coverage_gaps
+WHEN (SELECT status FROM snapshots WHERE snapshot_id=OLD.snapshot_id) <> 'Draft'
+    OR (SELECT status FROM snapshots WHERE snapshot_id=NEW.snapshot_id) <> 'Draft'
+BEGIN SELECT RAISE(ABORT, '凍結涵蓋缺口不可變更，請建立後繼草稿。'); END;
+CREATE TRIGGER IF NOT EXISTS coverage_gaps_frozen_delete BEFORE DELETE ON coverage_gaps
+WHEN (SELECT status FROM snapshots WHERE snapshot_id=OLD.snapshot_id) <> 'Draft'
+BEGIN SELECT RAISE(ABORT, '凍結涵蓋缺口不可刪除。'); END;
 CREATE TRIGGER IF NOT EXISTS snapshots_frozen_update BEFORE UPDATE ON snapshots
 WHEN OLD.status <> 'Draft' AND (
     OLD.status = 'Published' OR NEW.status NOT IN ('Frozen','Published')

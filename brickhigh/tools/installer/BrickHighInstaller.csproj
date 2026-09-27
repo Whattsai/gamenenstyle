@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>BrickHighInstaller</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="InstallerCore.cs" />
+    <Compile Include="ShortcutPolicy.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/SafeContent.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs" />
+  </ItemGroup>
+</Project>

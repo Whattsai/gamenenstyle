@@ -1,0 +1,6 @@
+{
+  "name": "BrickHigh.Presentation",
+  "rootNamespace": "BrickHigh.Presentation",
+  "references": ["BrickHigh.Domain", "BrickHigh.Application", "BrickHigh.UnityRuntime", "Unity.ugui", "Unity.InputSystem"],
+  "autoReferenced": true
+}

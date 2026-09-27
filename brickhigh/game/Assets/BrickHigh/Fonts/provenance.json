@@ -1,0 +1,10 @@
+{
+  "family": "Noto Sans CJK TC",
+  "version": "Sans2.004",
+  "fontUrl": "https://raw.githubusercontent.com/notofonts/noto-cjk/Sans2.004/Sans/OTF/TraditionalChinese/NotoSansCJKtc-Regular.otf",
+  "fontSha256": "dce08bd4fd91aa8aa76ed8fea4b694c2dfb8550f67871e326843212ddbeb88b4",
+  "license": "SIL Open Font License 1.1",
+  "licenseUrl": "https://raw.githubusercontent.com/notofonts/noto-cjk/Sans2.004/LICENSE",
+  "licenseSha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+  "offlineEmbedded": true
+}

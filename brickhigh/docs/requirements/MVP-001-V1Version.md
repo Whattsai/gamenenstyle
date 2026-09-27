@@ -2,9 +2,16 @@
 
 **功能 ID**: `MVP-001`
 **優先級**: 高
-**狀態**: MVP基線已確認；第一份 SPEC 實作中，其餘模組未開始
-**最後更新**: 2026-09-13
-**本輪階段**: `well-done` Phase 2；僅處理 `SPEC-001-BrickModelCatalog`，已接續預覽鏡頭與文字焦點隔離，未完成完整 UI、全量模型或安裝驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+**狀態**: MVP基線已確認；第一份SPEC階段成果已收尾，依使用者要求停下待視覺驗收，其餘模組未開始
+**最後更新**: 2026-09-27
+**本輪階段**: `well-done` Phase 4全項現況稽核完成；僅處理 `SPEC-001-BrickModelCatalog`。已有來源匯入／判定、可恢復模型建置、來源與六視圖封存，以及可安裝操作的8樣本Unity預覽。尚未完成合格Preview、全量模型或完整驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+
+### 目前實作與驗收進度（2026-09-27）
+
+- 第一份SPEC經全項稽核後：TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。這不是整個MVP的完成率；其他模組未開始。逐項判定與補測清單見TDD，完整AC判定見SPEC第14節。
+- 最新Python回歸173項、Unity EditMode 129項通過。內部Player版本`20260926T025815-ef8f8371`已經原生安裝器／啟動器實際驗證，8樣本、154張畫面，並通過鍵盤導覽／提交／旋轉／重設、搜尋清除及直式重排。證據位於`artifacts/test-results/wd-20260926-stage-final.xml`、`wd-20260926-ui-verified.xml`與`artifacts/acceptance/wd-20260926-interactive-c/run.json`（相對brickhigh）。
+- 可人工視覺驗收：`C:/bh-qa-wd/20260926-c/BrickHighLauncher.exe`。此為F-Catalog內部幾何樣本，尚無使用者外觀核准；正式來源全量、逐資產品質、完整故障／效能／輪組矩陣仍未完成；本次全項現況深度稽核已完成，缺漏尚未修復。人物、庫存、購買與收藏屋不因模型預覽可操作而視為完成。
+- 使用者要求本階段完成後停下，待視覺驗收回饋再繼續；本次全項稽核及文件同步完成，不恢復功能開發。22項補記、2項撤回，變動均來自既有證據重新判定。
 
 ## 需求概述
 
@@ -333,7 +340,7 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 - 互動介面：人物建立／選擇／編輯、進階款與人物資格購買、初始提桶、收藏屋建造／修改及存放櫃。
 - 遊戲邊界：提供入口條件及人物／道具存取，後續遊戲依賴此成果；本 MVP 不實作賽車、賽道、車輛效能或其他遊戲玩法。
 - 現況查核（2026-09-08）：Phase 2 開始前 `docs/specs/`、`docs/bdd/`、`docs/tdd/`、`docs/alldonejobs/` 無文件包；本輪新增第一份模型 SPEC。`overview/` 目前只有目錄指引。已使用本機 `Blender 5.2.1 LTS` 在停用自動腳本的背景程序唯讀檢查 `blender/brickhigh.blend`，其物件只有 `Camera`、`Cube`（8 個頂點）與 `Light`；尚無可驗收的積木模型庫。`bootstrap_blender_mcp.py` 僅負責初始場景與 MCP 啟用。
-- 現有 `Dockerfile` 引用 `OrickLineBot` 與尚不存在的前後端路徑，無法作為 BrickHigh 已有可執行架構的證據。2026-09-09 已依 `DEC-003`～`DEC-006` 選定 Unity 單機方向，舊模板不再作玩家安裝方案；引擎與工具尚未實作。
+- 現有 `Dockerfile` 引用 `OrickLineBot` 與尚不存在的前後端路徑，無法作為 BrickHigh 已有可執行架構的證據。2026-09-09 已依 `DEC-003`～`DEC-006` 選定 Unity 單機方向，舊模板不再作玩家安裝方案；「引擎與工具尚未實作」為當時規劃紀錄，目前Unity／製作工具與內部安裝包現況見文件開頭。
 - 玩家資料採本機 SQLite／設定檔與版本化存檔，放在 `Application.persistentDataPath` 對應的使用者資料目錄；模型目錄／模型包為唯讀發行內容。玩家資料表由後續 SPEC 定義，本份模型 SPEC 先完成本機資產讀取與相容性契約。
 - [MVP-002-BrickRace](MVP-002-BrickRace.md) 已納入引擎與共用模型的設計考量；輪組、車輛配置、質量來源及物理尺度須能擴充。三張賽道、24 顆初始輪子、性能計算、車輛展示與駕駛玩法仍由 MVP-002 規劃。
 
@@ -364,7 +371,7 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 - 已保留原始需求並將三項使用者確認補入驗收條件；依此規劃基線接續 SDD。
 - 2026-09-09 使用者在釐清可安裝原生畫面驗收範圍後回覆「好 繼續」，確認 [SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md) 修訂版並接續 BDD／TDD 與風險稽核。
-- 已生成 [BDD：56個場景](../bdd/SPEC-001-BrickModelCatalog-BDD.md) 與 [TDD：233項測試](../tdd/SPEC-001-BrickModelCatalog-TDD.md)，保留46場景／179測試基線，追加10場景／54測試；實作及測試進度均為0%。
+- 已生成 [BDD：56個場景](../bdd/SPEC-001-BrickModelCatalog-BDD.md) 與 [TDD：233項測試](../tdd/SPEC-001-BrickModelCatalog-TDD.md)，保留46場景／179測試基線，追加10場景／54測試；規劃交接當時為0%，目前進度以本文件開頭2026-09-27紀錄及TDD為準。
 - [實作前風險報告](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md)的三項處理方向與10項缺漏補強已全數同意；使用者亦回覆「確認」補強SDD。SPEC第13節／AC-027～036、BDD及TDD已同步，36/36條款有追溯，TDD末尾已寫入 `Ready for well-done` 交接紀錄。規劃阻斷項無；原型畫面核准、全量來源與模型及正式硬體效能仍是開發驗收門檻，並非已完成。本輪依perfect-plan停止，下一步由well-done實作本份，不自行規劃下一份SPEC。
 
 ## 建議 SPEC 切分

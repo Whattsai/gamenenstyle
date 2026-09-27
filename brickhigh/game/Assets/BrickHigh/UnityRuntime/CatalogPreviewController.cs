@@ -62,6 +62,10 @@ namespace BrickHigh.UnityRuntime
         public Task<bool> ClearFiltersAsync(CancellationToken cancellationToken = default) => QueryAsync(State.ClearFilters, cancellationToken);
         /// <summary>下一頁仍沿用同一 session 與條件；等待中不重複啟動。</summary>
         public Task<bool> NextPageAsync(CancellationToken cancellationToken = default) => QueryAsync(State.BeginNextPage, cancellationToken);
+        /// <summary>從本控制器持有的同包、同快照 session 取得來源覆蓋資訊。</summary>
+        public Task<CatalogResult<CatalogCoverage>> GetCoverageAsync(CancellationToken cancellationToken = default)
+            => disposed ? Task.FromResult(CatalogResult<CatalogCoverage>.Failure(CatalogErrorCode.InvalidQuery))
+                : catalog.GetCoverageAsync(session, cancellationToken);
         private Task<bool> QueryAsync(Func<CatalogPreviewPresenter<ModelLease>.SearchRequest> begin, CancellationToken cancellationToken)
             => UnityThread.InvokeAsync(async () =>
             {

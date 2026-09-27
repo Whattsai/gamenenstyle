@@ -4,7 +4,7 @@
 > **需求來源**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
 > **確認依據**：原 SDD「好 繼續」、風險方案「全數同意 請繼續」、補強版 SDD「確認」（2026-09-09）。
-> **狀態**：56 場景已生成並追溯；well-done Phase 2 預覽控制層與內部原生探針進行中（2026-09-13），場景驗收仍為 0/56、UX 0/20。單一普通磚的 Player 相機畫面不代表可安裝 Preview、材質核准或 UX 完成。測試與限制見 [TDD 本輪紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+> **狀態**：2026-09-27全56場景稽核完成；5/56（8.9%）已符合，46項部分符合、5項未符合。UX 1/20（5.0%），只有SC-037完整符合；功能開發保持停止。
 
 ## 📝 Feature 描述
 
@@ -15,26 +15,35 @@
 本文件是需求與 UX checklist，不是 SpecFlow 可執行測試。保留模板結構；原網頁元件改成 Unity 場景／uGUI，網路服務失敗只屬開發端來源取得。安裝版不要求 HTTP、帳號或連線。
 正式全量發布仍受 SPEC §3.4 限制；以下受控 fixtures 僅用於測試，不能假稱已取得全部未停產零件。SPEC 第13節已確認，新增 SC-047～056 與原基線合併適用；早期 Preview 不解除正式 Release 的全量門檻。
 
-2026-09-13 接續：SC-033、034、037～040 已有 `Application/CatalogPreviewPresenter.cs`、`RetryRequestPolicy.cs` 及 `UnityRuntime/CatalogPreviewController.cs` 的狀態／本機協調實作（相對 `game/Assets/BrickHigh/`），單元規則與真實 SQLite 搜尋已測。SC-035 新增 `Application/PreviewOrbitPolicy.cs` 與 `UnityRuntime/PreviewCameraController.cs`：環繞、縮放、重設、窄長寬比取景，以及所屬 EventSystem 的文字焦點隔離。SC-041 僅部分離開與晚到結果處理；尚無完整 uGUI、字型、畫面自有 render texture、安裝操作證據，因此不勾選場景或 UX。以下場景元件的「預計」文字為原規劃基線，現況以本段及 TDD 為準。
+2026-09-13歷史紀錄（不作目前狀態）：SC-033、034、037～040 已有 `Application/CatalogPreviewPresenter.cs`、`RetryRequestPolicy.cs` 及 `UnityRuntime/CatalogPreviewController.cs` 的狀態／本機協調實作（相對 `game/Assets/BrickHigh/`），單元規則與真實 SQLite 搜尋已測。SC-035 新增 `Application/PreviewOrbitPolicy.cs` 與 `UnityRuntime/PreviewCameraController.cs`：環繞、縮放、重設、窄長寬比取景，以及所屬 EventSystem 的文字焦點隔離。SC-041 僅部分離開與晚到結果處理；尚無完整 uGUI、字型、畫面自有 render texture、安裝操作證據，因此不勾選場景或 UX。以下場景元件的「預計」文字為原規劃基線，現況以2026-09-27矩陣及 TDD 為準。
 
 ## 🎯 前端 UX 實作進度
 
+2026-09-25歷史紀錄：SC-001～003依原Given的受控來源／SQLite完成，`artifacts/test-results/wd-20260925-it001-final.xml` 50 passed。實作 `tools/catalog/importing.py:210`、`resolving.py:77`；測試 `tools/catalog/tests/unit/test_sc_001.py`～`test_sc_003.py`、`tests/integration/test_source_import.py`與`test_catalog_resolve.py:178`（tests相對tools/catalog）。涵蓋系列展開／排除、缺頁、跨來源alias、各變體三態、日期及反例交易；不代表真實全球來源已取得。
+
+2026-09-25歷史紀錄（續）：SC-033～042／047的畫面已有`Presentation/CatalogPreviewView.cs`及內部入口。本輪修正直式來源狀態順序與1080p清單列池不足，`wd-20260925-ui-final.xml`為126 passed。新build `20260925T102722-7366c2b9`經原生安裝器及launcher成功啟動，`artifacts/acceptance/wd-20260925-interactive-c/run.json`保留8模型操作與154張Player畫面；`PlayerEvidence/frames/frame00153.png`已檢視直式狀態與文字。這是F-Catalog內部幾何證據，readyAsset=false、visualApproved=false；完整鍵盤／錯誤矩陣、逐資產品質及使用者畫面核准仍未完成，因此不勾選完整UX場景。
+
 ### 整體進度
+
+本次已逐項核對36個AC、56個BDD場景與233個TDD項目；稽核完成不等於缺漏修復完成。功能開發依使用者要求保持停止，待視覺驗收回饋。
+
+目前SC-001、002、003、021、037完整符合，5/56（8.9%）。UX僅SC-037空搜尋與清除恢復符合原場景，1/20（5.0%）。其餘畫面局部成果不等於整場景完成，也不表示visualApproved。
 
 ```text
 SPEC-001-BrickModelCatalog 原生預覽 UX
-實作狀態：🚧 控制層與鏡頭輸入接點進行中；完整場景尚未驗收
-開始時間／預計完成／負責人：2026-09-13／尚未估算／Codex
-進度條：[░░░░░░░░░░░░░░░░░░░░] 0% (0/20)
+進度條：[█░░░░░░░░░░░░░░░░░░░] 5.0% (1/20)
+狀態：完整現況稽核已完成，功能開發保持停止
+最後更新：2026-09-27
 ```
 
 ### 分頁面／元件進度
 
-| 頁面／元件 | 進度 | 已完成 | 進行中 | 待開始 | 狀態 |
-|---|---|---|---|---|---|
-| 模型預覽／錯誤／輸入 SC-033～SC-042 | 0% | 0/10 | 8 | 2 | 🚧 狀態／鏡頭／部分生命週期已有實作 |
-| 畫面與輪組量測 SC-043、SC-044、SC-046 | 0% | 0/3 | 0 | 3 | ⏸️ 未開始 |
-| Preview／更新／恢復harness／輸入文案／畫面基準／效能／輪組 SC-047、049、050、052、054～056 | 0% | 0/7 | 0 | 7 | ⏸️ 未開始 |
+| 頁面／元件 | 進度 | 已符合 | 部分符合 | 未符合 |
+|---|---|---|---|---|
+| SC-033～042 模型預覽／錯誤／輸入 | 10.0% | 1/10 | 9 | 0 |
+| SC-043、044、046 畫面與輪組量測 | 0.0% | 0/3 | 1 | 2 |
+| SC-047、049、050、052、054～056 補強UX | 0.0% | 0/7 | 6 | 1 |
+| 合計 | 5.0% | 1/20 | 16 | 3 |
 
 ### SPEC 前端覆蓋率
 
@@ -42,9 +51,9 @@ SPEC-001-BrickModelCatalog 原生預覽 UX
 |---|---|---|
 | 直接涉及畫面的驗收條款 | AC-005、007、016、020、021、024、025、026、027、029、030、032、034、035、036，共15項 | 已逐項對照 |
 | BDD 有對應 @frontend 場景 | 15/15（100%） | 僅文件追溯，不代表畫面完成 |
-| 前端場景 | 20 | 0項完整驗收、8項部分實作 |
-| 全部場景（46基線＋10補強） | 56 | 0項已驗收 |
-| 新增SPEC條款 AC-027～036 | 10/10有場景與測試 | 文件追溯完成，未執行 |
+| 前端場景 | 20 | 1已符合、16部分符合、3未符合 |
+| 全部場景（46基線＋10補強） | 56 | 5已符合、46部分符合、5未符合 |
+| 新增SPEC條款 AC-027～036 | 10/10有場景與測試規劃 | 已逐項稽核，均未完整驗收 |
 
 AC-015／018／019／022／023 另由操作、錯誤與安裝測試交叉涵蓋；不把其他 MVP 的人物／建屋 UI 算成本文件已覆蓋。
 
@@ -79,9 +88,9 @@ Feature: 本機積木目錄與真實三維預覽
 
 ### SC-001 @happy-path @critical
 
-- [ ] **Scenario: 保存跨來源基準及涵蓋證據**
+- [x] **Scenario: 保存跨來源基準及涵蓋證據**
   - SPEC 對應：§3.1–3.4；AC-001、AC-004。
-  - 涉及元件：`CatalogCoveragePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogCoveragePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-001、UT-002、UT-003、IT-001。
 
 ```gherkin
@@ -96,9 +105,9 @@ Scenario: SC-001 保存跨來源基準及涵蓋證據
 
 ### SC-002 @happy-path @critical
 
-- [ ] **Scenario: 逐變體判定生產三態**
+- [x] **Scenario: 逐變體判定生產三態**
   - SPEC 對應：§3.3；AC-002。
-  - 涉及元件：`ProductionStatusPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ProductionStatusPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-004、UT-005、UT-006、IT-001。
 
 ```gherkin
@@ -113,9 +122,9 @@ Scenario: SC-002 逐變體判定生產三態
 
 ### SC-003 @happy-path @critical
 
-- [ ] **Scenario: 保留實際外觀變體及穩定識別**
+- [x] **Scenario: 保留實際外觀變體及穩定識別**
   - SPEC 對應：§4.1、5.2；AC-003。
-  - 涉及元件：`VariantIdentityPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`VariantIdentityPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-007、UT-008、UT-009、IT-001。
 
 ```gherkin
@@ -132,7 +141,7 @@ Scenario: SC-003 保留實際外觀變體及穩定識別
 
 - [ ] **Scenario: 凍結分母與狀態生命週期**
   - SPEC 對應：§3.4、4.2、5.2；AC-004、AC-009、AC-010。
-  - 涉及元件：`SnapshotLifecycle`（預計元件，尚未建立）。
+  - 涉及元件：`SnapshotLifecycle`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-010、UT-011、UT-012、IT-002。
 
 ```gherkin
@@ -149,7 +158,7 @@ Scenario: SC-004 凍結分母與狀態生命週期
 
 - [ ] **Scenario: 全量發布與逐項完成證據**
   - SPEC 對應：§3.4、8.1；AC-009、AC-017。
-  - 涉及元件：`CatalogCoveragePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogCoveragePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-013、UT-014、UT-015、IT-002、CT-005、ET-009。
 
 ```gherkin
@@ -166,7 +175,7 @@ Scenario: SC-005 全量發布與逐項完成證據
 
 - [ ] **Scenario: 驗證真實 GLB 與 Unity 產物**
   - SPEC 對應：§4.2、8.1；AC-005、AC-007、AC-025。
-  - 涉及元件：`ModelValidationService`（預計元件，尚未建立）。
+  - 涉及元件：`ModelValidationService`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-016、UT-017、UT-018、IT-003、ET-008。
 
 ```gherkin
@@ -183,7 +192,7 @@ Scenario: SC-006 驗證真實 GLB 與 Unity 產物
 
 - [ ] **Scenario: 保持來源尺寸與非對稱方向**
   - SPEC 對應：§4.3；AC-006、AC-024。
-  - 涉及元件：`CoordinatePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CoordinatePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-019、UT-020、UT-021、IT-004、ET-008。
 
 ```gherkin
@@ -200,7 +209,7 @@ Scenario: SC-007 保持來源尺寸與非對稱方向
 
 - [ ] **Scenario: 接點配對與碰撞空腔**
   - SPEC 對應：§4.3；AC-008、AC-014。
-  - 涉及元件：`ConnectorCompatibility`（預計元件，尚未建立）。
+  - 涉及元件：`ConnectorCompatibility`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-022、UT-023、UT-024、IT-004、CT-004。
 
 ```gherkin
@@ -217,7 +226,7 @@ Scenario: SC-008 接點配對與碰撞空腔
 
 - [ ] **Scenario: 人物與建屋候選資料可供後續使用**
   - SPEC 對應：§4.4；AC-012、AC-014。
-  - 涉及元件：`UsageClassification`（預計元件，尚未建立）。
+  - 涉及元件：`UsageClassification`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-025、UT-026、UT-027、IT-005。
 
 ```gherkin
@@ -234,7 +243,7 @@ Scenario: SC-009 人物與建屋候選資料可供後續使用
 
 - [ ] **Scenario: 每個外觀版本保留品質與來源記錄**
   - SPEC 對應：§4.2、5.4、8.1；AC-007。
-  - 涉及元件：`RevisionManifestPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`RevisionManifestPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-028、UT-029、UT-030、IT-003、ET-008。
 
 ```gherkin
@@ -251,7 +260,7 @@ Scenario: SC-010 每個外觀版本保留品質與來源記錄
 
 - [ ] **Scenario: 單一 session 的共用查詢契約**
   - SPEC 對應：§6.1–6.2；AC-015、AC-019。
-  - 涉及元件：`BrickCatalog`（預計元件，尚未建立）。
+  - 涉及元件：`BrickCatalog`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-043、UT-044、UT-045、IT-008、CT-001、CT-002、CT-003、CT-004、CT-005。
 
 ```gherkin
@@ -270,7 +279,7 @@ Scenario: SC-015 單一 session 的共用查詢契約
 
 - [ ] **Scenario: 新增貨號及冪等重建**
   - SPEC 對應：§4.2、5.2、6.3；AC-010。
-  - 涉及元件：`RevisionBuildPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`RevisionBuildPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-031、UT-032、UT-033、IT-006。
 
 ```gherkin
@@ -287,7 +296,7 @@ Scenario: SC-011 新增貨號及冪等重建
 
 - [ ] **Scenario: 更新後仍能讀取舊模型引用**
   - SPEC 對應：§5.3、6.5；AC-011、AC-023。
-  - 涉及元件：`ModelReferenceResolver`（預計元件，尚未建立）。
+  - 涉及元件：`ModelReferenceResolver`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-034、UT-035、UT-036、IT-007、CT-003、CT-006、ET-010。
 
 ```gherkin
@@ -304,7 +313,7 @@ Scenario: SC-012 更新後仍能讀取舊模型引用
 
 - [ ] **Scenario: 來源缺件時補建而不以占位品交付**
   - SPEC 對應：§4.2、8.3；AC-005、AC-007、AC-018。
-  - 涉及元件：`ModelBuildPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ModelBuildPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-037、UT-038、UT-039、IT-003、ET-008。
 
 ```gherkin
@@ -321,7 +330,7 @@ Scenario: SC-013 來源缺件時補建而不以占位品交付
 
 - [ ] **Scenario: 引擎升版重建執行期資產**
   - SPEC 對應：§5.3、6.5；AC-011、AC-025。
-  - 涉及元件：`RuntimeBuildPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`RuntimeBuildPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-040、UT-041、UT-042、IT-007、ET-010。
 
 ```gherkin
@@ -338,7 +347,7 @@ Scenario: SC-014 引擎升版重建執行期資產
 
 - [ ] **Scenario: 唯讀安裝與本機資料分離**
   - SPEC 對應：§5.3、6.4；AC-022、AC-025。
-  - 涉及元件：`LocalStoragePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`LocalStoragePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-046、UT-047、UT-048、IT-009、ET-006。
 
 ```gherkin
@@ -355,7 +364,7 @@ Scenario: SC-016 唯讀安裝與本機資料分離
 
 - [ ] **Scenario: 離線升級成功及解除安裝保留資料**
   - SPEC 對應：§6.5；AC-022、AC-023。
-  - 涉及元件：`InstallUpdatePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`InstallUpdatePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-049、UT-050、UT-051、IT-010、ET-006。
 
 ```gherkin
@@ -372,7 +381,7 @@ Scenario: SC-017 離線升級成功及解除安裝保留資料
 
 - [ ] **Scenario: 一致備份與失敗交易恢復**
   - SPEC 對應：§6.5；AC-022、AC-023。
-  - 涉及元件：`SaveTransactionPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`SaveTransactionPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-052、UT-053、UT-054、IT-011、CT-007。
 
 ```gherkin
@@ -391,7 +400,7 @@ Scenario: SC-018 一致備份與失敗交易恢復
 
 - [ ] **Scenario: 缺漏或損毀安裝包不假裝成功**
   - SPEC 對應：§6.2、6.4、8.3；AC-018、AC-019、AC-021、AC-025。
-  - 涉及元件：`CatalogStartup`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogStartup`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-055、UT-056、UT-057、IT-012、CT-001、CT-006、CT-009、ET-005。
 
 ```gherkin
@@ -408,7 +417,7 @@ Scenario: SC-019 缺漏或損毀安裝包不假裝成功
 
 - [ ] **Scenario: 非法查詢與不存在變體有明確結果**
   - SPEC 對應：§6.1–6.2；AC-015、AC-019。
-  - 涉及元件：`VariantQueryValidator`（預計元件，尚未建立）。
+  - 涉及元件：`VariantQueryValidator`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-058、UT-059、UT-060、CT-002、CT-003、CT-009。
 
 ```gherkin
@@ -423,9 +432,9 @@ Scenario: SC-020 非法查詢與不存在變體有明確結果
 
 ### SC-021 @error-handling @critical
 
-- [ ] **Scenario: 來源中斷與限流保留進度**
+- [x] **Scenario: 來源中斷與限流保留進度**
   - SPEC 對應：§6.3、8.3；AC-001、AC-018。
-  - 涉及元件：`SourceRetryPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`SourceRetryPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-061、UT-062、UT-063、IT-013。
 
 ```gherkin
@@ -442,7 +451,7 @@ Scenario: SC-021 來源中斷與限流保留進度
 
 - [ ] **Scenario: 建模工作當機與重複工作鍵**
   - SPEC 對應：§6.3、8.3；AC-010、AC-018。
-  - 涉及元件：`CatalogJobPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogJobPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-064、UT-065、UT-066、IT-006。
 
 ```gherkin
@@ -459,7 +468,7 @@ Scenario: SC-022 建模工作當機與重複工作鍵
 
 - [ ] **Scenario: 發布及安裝切換失敗保留舊版本**
   - SPEC 對應：§5.4、6.5；AC-009、AC-018、AC-023。
-  - 涉及元件：`AtomicPublishPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`AtomicPublishPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-067、UT-068、UT-069、IT-010、ET-007。
 
 ```gherkin
@@ -476,7 +485,7 @@ Scenario: SC-023 發布及安裝切換失敗保留舊版本
 
 - [ ] **Scenario: 拒絕越界內容與不應隨包的工具**
   - SPEC 對應：§5.4、6.3–6.4、8.3；AC-019、AC-025。
-  - 涉及元件：`ContentPathPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ContentPathPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-070、UT-071、UT-072、IT-012、CT-006。
 
 ```gherkin
@@ -493,7 +502,7 @@ Scenario: SC-024 拒絕越界內容與不應隨包的工具
 
 - [ ] **Scenario: 未知存檔版本與缺舊映射保留原檔**
   - SPEC 對應：§6.2、6.5；AC-011、AC-023。
-  - 涉及元件：`SaveCompatibilityChecker`（預計元件，尚未建立）。
+  - 涉及元件：`SaveCompatibilityChecker`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-073、UT-074、UT-075、IT-011、CT-007、CT-009、ET-007。
 
 ```gherkin
@@ -510,7 +519,7 @@ Scenario: SC-025 未知存檔版本與缺舊映射保留原檔
 
 - [ ] **Scenario: 原生相依或寫入權限失敗可定位**
   - SPEC 對應：§2.2、8.3；AC-018、AC-021、AC-025。
-  - 涉及元件：`NativeDependencyPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`NativeDependencyPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-076、UT-077、UT-078、IT-009、CT-001、CT-009、ET-005。
 
 ```gherkin
@@ -529,7 +538,7 @@ Scenario: SC-026 原生相依或寫入權限失敗可定位
 
 - [ ] **Scenario: 空目錄與單一未解決項目不能全量發布**
   - SPEC 對應：§3.4；AC-004、AC-009、AC-017。
-  - 涉及元件：`CatalogCoveragePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogCoveragePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-079、UT-080、UT-081、IT-002、CT-005、ET-009。
 
 ```gherkin
@@ -546,7 +555,7 @@ Scenario: SC-027 空目錄與單一未解決項目不能全量發布
 
 - [ ] **Scenario: 分頁邊界與固定排序**
   - SPEC 對應：§6.1；AC-015、AC-019。
-  - 涉及元件：`VariantPagingPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`VariantPagingPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-082、UT-083、UT-084、IT-008、CT-002。
 
 ```gherkin
@@ -563,7 +572,7 @@ Scenario: SC-028 分頁邊界與固定排序
 
 - [ ] **Scenario: 尺寸、接點與資產預算門檻**
   - SPEC 對應：§4.3、8.2；AC-006、AC-008、AC-020、AC-024。
-  - 涉及元件：`MetadataValidationPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`MetadataValidationPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-085、UT-086、UT-087、IT-004。
 
 ```gherkin
@@ -580,7 +589,7 @@ Scenario: SC-029 尺寸、接點與資產預算門檻
 
 - [ ] **Scenario: 同時發布及歷史內容一致性**
   - SPEC 對應：§5.2、5.4；AC-009、AC-010、AC-018。
-  - 涉及元件：`PublishConcurrencyPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`PublishConcurrencyPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-088、UT-089、UT-090、IT-014。
 
 ```gherkin
@@ -597,7 +606,7 @@ Scenario: SC-030 同時發布及歷史內容一致性
 
 - [ ] **Scenario: 特殊款不能透過直接查詢取得權益**
   - SPEC 對應：§4.4、6.1；AC-013、AC-014、AC-015。
-  - 涉及元件：`AcquisitionEligibility`（預計元件，尚未建立）。
+  - 涉及元件：`AcquisitionEligibility`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-091、UT-092、UT-093、IT-005、CT-002。
 
 ```gherkin
@@ -614,7 +623,7 @@ Scenario: SC-031 特殊款不能透過直接查詢取得權益
 
 - [ ] **Scenario: 資產引用生命週期與主執行緒**
   - SPEC 對應：§6.1、7；AC-026。
-  - 涉及元件：`ModelLeasePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ModelLeasePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-094、UT-095、UT-096、IT-015、CT-006、CT-008。
 
 ```gherkin
@@ -633,7 +642,7 @@ Scenario: SC-032 資產引用生命週期與主執行緒
 
 - [ ] **Scenario: 斷網安裝後首次進入模型預覽**
   - SPEC 對應：§6.4、7；AC-016、AC-021、AC-025。
-  - 涉及元件：`CatalogPreviewPresenter`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogPreviewPresenter`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-097、UT-098、UT-099、IT-016、ET-001。
 
 ```gherkin
@@ -650,7 +659,7 @@ Scenario: SC-033 斷網安裝後首次進入模型預覽
 
 - [ ] **Scenario: 搜尋篩選與切換外觀**
   - SPEC 對應：§6.1、7；AC-015、AC-016。
-  - 涉及元件：`CatalogPreviewPresenter`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogPreviewPresenter`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-100、UT-101、UT-102、IT-016、ET-002。
 
 ```gherkin
@@ -685,7 +694,7 @@ Scenario: SC-035 旋轉縮放與鍵盤操作不互相干擾
 
 - [ ] **Scenario: 玩具材質、印刷與透明外觀核對**
   - SPEC 對應：§7、8.1；AC-005、AC-007、AC-025。
-  - 涉及元件：`MaterialPreviewPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`MaterialPreviewPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-106、UT-107、UT-108、IT-017、ET-003。
 
 ```gherkin
@@ -700,9 +709,9 @@ Scenario: SC-036 玩具材質、印刷與透明外觀核對
 
 ### SC-037 @happy-path @critical @frontend
 
-- [ ] **Scenario: 搜尋空狀態可以清除條件恢復**
+- [x] **Scenario: 搜尋空狀態可以清除條件恢復**
   - SPEC 對應：§7；AC-015、AC-016。
-  - 涉及元件：`CatalogPreviewPresenter`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogPreviewPresenter`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-109、UT-110、UT-111、IT-016、ET-002。
 
 ```gherkin
@@ -719,7 +728,7 @@ Scenario: SC-037 搜尋空狀態可以清除條件恢復
 
 - [ ] **Scenario: 模型錯誤不阻止選擇其他可用模型**
   - SPEC 對應：§6.2、7；AC-016、AC-018、AC-025。
-  - 涉及元件：`CatalogPreviewPresenter`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogPreviewPresenter`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-112、UT-113、UT-114、IT-016、ET-004。
 
 ```gherkin
@@ -736,7 +745,7 @@ Scenario: SC-038 模型錯誤不阻止選擇其他可用模型
 
 - [ ] **Scenario: 快速換件僅呈現最新選擇**
   - SPEC 對應：§6.1、7；AC-016、AC-026。
-  - 涉及元件：`SelectionRequestPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`SelectionRequestPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-115、UT-116、UT-117、IT-015、ET-004。
 
 ```gherkin
@@ -753,7 +762,7 @@ Scenario: SC-039 快速換件僅呈現最新選擇
 
 - [ ] **Scenario: 重試等待期間防止重複啟動**
   - SPEC 對應：§7；AC-016、AC-026。
-  - 涉及元件：`RetryRequestPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`RetryRequestPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-118、UT-119、UT-120、IT-016、ET-004。
 
 ```gherkin
@@ -770,7 +779,7 @@ Scenario: SC-040 重試等待期間防止重複啟動
 
 - [ ] **Scenario: 離開預覽釋放資源並可再進入**
   - SPEC 對應：§6.1、7；AC-016、AC-026。
-  - 涉及元件：`PreviewLifecycle`（預計元件，尚未建立）。
+  - 涉及元件：`PreviewLifecycle`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-121、UT-122、UT-123、IT-015、CT-008、ET-004。
 
 ```gherkin
@@ -787,7 +796,7 @@ Scenario: SC-041 離開預覽釋放資源並可再進入
 
 - [ ] **Scenario: 圖形裝置不支援時回報啟動失敗**
   - SPEC 對應：§7；AC-016、AC-021。
-  - 涉及元件：`GraphicsCapabilityPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`GraphicsCapabilityPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-124、UT-125、UT-126、IT-016、ET-005。
 
 ```gherkin
@@ -806,7 +815,7 @@ Scenario: SC-042 圖形裝置不支援時回報啟動失敗
 
 - [ ] **Scenario: 本地查詢與單件冷載入時間**
   - SPEC 對應：§8.2；AC-020。
-  - 涉及元件：`PerformanceGate`（預計元件，尚未建立）。
+  - 涉及元件：`PerformanceGate`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-127、UT-128、UT-129、IT-018、ET-011。
 
 ```gherkin
@@ -823,7 +832,7 @@ Scenario: SC-043 本地查詢與單件冷載入時間
 
 - [ ] **Scenario: 2026 片畫面與實際 Player 流暢度**
   - SPEC 對應：§8.2；AC-020、AC-025。
-  - 涉及元件：`FramePerformanceGate`（預計元件，尚未建立）。
+  - 涉及元件：`FramePerformanceGate`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-130、UT-131、UT-132、IT-018、ET-012。
 
 ```gherkin
@@ -840,7 +849,7 @@ Scenario: SC-044 2026 片畫面與實際 Player 流暢度
 
 - [ ] **Scenario: 多輪切換的記憶體與快取上限**
   - SPEC 對應：§8.2；AC-020、AC-026。
-  - 涉及元件：`ResourceCachePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ResourceCachePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-133、UT-134、UT-135、IT-018、ET-013。
 
 ```gherkin
@@ -857,7 +866,7 @@ Scenario: SC-045 多輪切換的記憶體與快取上限
 
 - [ ] **Scenario: 輪組尺度與有限接觸原型**
   - SPEC 對應：§2.4、4.3、8.2；AC-008、AC-024。
-  - 涉及元件：`VehicleMetadataPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`VehicleMetadataPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-136、UT-137、UT-138、IT-018、ET-014。
 
 ```gherkin
@@ -879,7 +888,7 @@ Scenario: SC-046 輪組尺度與有限接觸原型
 
 - [ ] **Scenario: 隔離技術預覽與正式全量交付**
   - SPEC 對應：§13.1；AC-027；GAP-001。
-  - 涉及元件：`PreviewPackagePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`PreviewPackagePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-139、UT-140、UT-141、IT-019、CT-010、ET-015。
 
 ```gherkin
@@ -896,7 +905,7 @@ Scenario: SC-047 隔離技術預覽與正式全量交付
 
 - [ ] **Scenario: 先驗證Frozen候選再發布已驗證內容**
   - SPEC 對應：§13.2；AC-028；GAP-002。
-  - 涉及元件：`ValidationPromotionPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`ValidationPromotionPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-142、UT-143、UT-144、IT-020、IT-021。
 
 ```gherkin
@@ -913,7 +922,7 @@ Scenario: SC-048 先驗證Frozen候選再發布已驗證內容
 
 - [ ] **Scenario: 更新與啟動共用互斥且身分穩定**
   - SPEC 對應：§13.3；AC-029；GAP-003。
-  - 涉及元件：`InstallLifecyclePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`InstallLifecyclePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-145、UT-146、UT-147、IT-022、ET-016。
 
 ```gherkin
@@ -930,7 +939,7 @@ Scenario: SC-049 更新與啟動共用互斥且身分穩定
 
 - [ ] **Scenario: 降版及備份失敗不擅自回退進度**
   - SPEC 對應：§13.4；AC-030；GAP-004。
-  - 涉及元件：`SaveRecoveryPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`SaveRecoveryPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-148、UT-149、UT-150、CT-011、IT-023、ET-017。
 
 ```gherkin
@@ -947,7 +956,7 @@ Scenario: SC-050 降版及備份失敗不擅自回退進度
 
 - [ ] **Scenario: 完整模型引用與包身分必須一致**
   - SPEC 對應：§13.5；AC-031；GAP-005。
-  - 涉及元件：`RuntimeReferencePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`RuntimeReferencePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-151、UT-152、UT-153、IT-024、CT-012。
 
 ```gherkin
@@ -964,7 +973,7 @@ Scenario: SC-051 完整模型引用與包身分必須一致
 
 - [ ] **Scenario: 輸入邊界與取消順序具有精確契約**
   - SPEC 對應：§13.6；AC-032；GAP-006。
-  - 涉及元件：`CatalogInputPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`CatalogInputPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-154、UT-155、UT-156、CT-013、CT-014、IT-025。
 
 ```gherkin
@@ -981,7 +990,7 @@ Scenario: SC-052 輸入邊界與取消順序具有精確契約
 
 - [ ] **Scenario: 實際檔案目標與新載入內容不可繞過驗證**
   - SPEC 對應：§13.7；AC-033；GAP-007。
-  - 涉及元件：`AssetIntegrityPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`AssetIntegrityPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-157、UT-158、UT-159、IT-026、IT-027。
 
 ```gherkin
@@ -998,7 +1007,7 @@ Scenario: SC-053 實際檔案目標與新載入內容不可繞過驗證
 
 - [ ] **Scenario: 真實畫面基準、繁中字型與原生失敗通知**
   - SPEC 對應：§13.8；AC-034；GAP-008。
-  - 涉及元件：`VisualAcceptancePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`VisualAcceptancePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-160、UT-161、UT-162、ET-018、ET-019、ET-020。
 
 ```gherkin
@@ -1015,7 +1024,7 @@ Scenario: SC-054 真實畫面基準、繁中字型與原生失敗通知
 
 - [ ] **Scenario: 不同硬體及品質設定不可冒充基準效能**
   - SPEC 對應：§13.9；AC-035；GAP-009。
-  - 涉及元件：`BenchmarkEvidencePolicy`（預計元件，尚未建立）。
+  - 涉及元件：`BenchmarkEvidencePolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-163、UT-164、UT-165、ET-021、ET-022。
 
 ```gherkin
@@ -1032,7 +1041,7 @@ Scenario: SC-055 不同硬體及品質設定不可冒充基準效能
 
 - [ ] **Scenario: 輪組單位、未知質量與配對原型可核對**
   - SPEC 對應：§13.10；AC-036；GAP-010。
-  - 涉及元件：`WheelMetadataPolicy`（預計元件，尚未建立）。
+  - 涉及元件：`WheelMetadataPolicy`（規劃名稱；實際對應檔案與狀態見2026-09-27矩陣）。
   - TDD 對應：UT-166、UT-167、UT-168、IT-028、IT-029。
 
 ```gherkin
@@ -1102,3 +1111,66 @@ AC-001～036 均有場景及 TDD 追溯（36/36）。本輪未發現尚未回寫
 **生成者**：AI
 **最後更新**：2026-09-09
 **狀態**：Ready for well-done；56 場景、20 個 @frontend 場景均未實作。
+
+## 2026-09-27 全56場景實作稽核
+
+逐項核對原Given／When／Then；路徑相對brickhigh，行號為稽核時點。部分單測完整不自動提升場景。N列的檔案是最接近的既有邊界，尚無該場景實作／完整測試。缺漏與補測名稱詳TDD同SC的三個UT及IT／CT／ET列。
+
+| 場景 | 狀態 | 實作證據 | 斷言／執行證據 | 判定／剩餘工作 |
+|---|---|---|---|---|
+| SC-001 | ✅ 已符合 | `tools/catalog/importing.py:210` | `tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126` | 來源附件、hash與UTC觀測／有效日期均有回讀斷言。；五類系列、套裝／人物展開與排除理由逐項比對。；缺頁及缺系列各產生未解G，發布被拒絕。真CLI／SQLite的IT-001補足跨邊界證據。 |
+| SC-002 | ✅ 已符合 | `tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77` | `tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80` | 有效日期內Producing／Discontinued分成Active／Retired。；缺貨、現貨、缺日期、相反與範圍外日期保持Unknown。；兩個變體獨立分類；CLI回讀A=1、R=1。真CLI／SQLite的IT-001補足跨邊界證據。 |
+| SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 只保存觀測組合，重複去重且不生成笛卡兒積。；印刷與材質改變key，重試保留UUID。；矛盾alias拒絕合併並保留原候選／缺口。真CLI／SQLite的IT-001補足跨邊界證據。 |
+| SC-004 | ⚠️ 部分符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67` | 真SQLite保護已驗；Ready實際品質報告仍缺。 |
+| SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | 全量實際來源與可成功發布的品質閉環尚缺。 |
+| SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 缺全代表件品質反例及完整RuntimeBuild載入。 |
+| SC-007 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 缺真匯入mesh／normal／metadata整組基底一致性。 |
+| SC-008 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:58` | `tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 缺接點配對／空腔碰撞；欄位檢查不能替代。 |
+| SC-009 | ⚠️ 部分符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 缺六部位與同系統建材候選。 |
+| SC-010 | ⚠️ 部分符合 | `tools/catalog/building.py:114`；`tools/catalog/render_views.py:15` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12` | 來源／六視圖已封存；缺每變體外觀及正式RuntimeBuild證據。 |
+| SC-011 | ⚠️ 部分符合 | `tools/catalog/jobs.py:158`；`tools/catalog/building.py:167`；`tools/catalog/repository.py:105` | `tools/catalog/tests/integration/test_catalog_build.py:57`；`tools/catalog/tests/integration/test_catalog_cli.py:153`；`tools/catalog/tests/integration/test_catalog_build.py:113` | 缺Published後新貨號與三類輸入變更完整重建。 |
+| SC-012 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 精確resolver已有測試；缺新Retired及歷史投影差異的實際載入。 |
+| SC-013 | ⚠️ 部分符合 | `tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 缺補模來源歸檔與修補後Ready正例。 |
+| SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 沒有跨引擎舊revision重建矩陣。 |
+| SC-015 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | 查詢有真SQLite證據；缺完整Release／錨點／車輛／profile投影。 |
+| SC-016 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35` | 唯讀DB已驗，缺一般帳號ACL／全部診斷去敏。 |
+| SC-017 | ⚠️ 部分符合 | `tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | 安裝器已有staging及profile保留測試，缺新session映射舊模型。 |
+| SC-018 | ❌ 未符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:50` | 沒有存檔一致備份／migration／組裝檔引用流程。 |
+| SC-019 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160` | 缺完整安裝錯誤與可定位診斷／存檔保留矩陣。 |
+| SC-020 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236` | 缺非法enum／UUID及未知有效UUID完整查詢矩陣。 |
+| SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 本機HTTP stub與工作DB核對429／timeout、重試上限、候選保留及憑證header。 |
+| SC-022 | ⚠️ 部分符合 | `tools/catalog/jobs.py:178`；`tools/catalog/jobs.py:261` | `tools/catalog/tests/unit/test_sc_022.py:18`；`tools/catalog/tests/integration/test_catalog_jobs.py:42` | 工作規則已驗，缺真Blender當機／10分鐘timeout的完整恢復鏈。 |
+| SC-023 | ⚠️ 部分符合 | `tools/catalog/repository.py:190`；`tools/installer/InstallerCore.cs:53` | `tools/catalog/tests/integration/test_snapshot_repository.py:88`；`tools/acceptance/tests/integration/test_install_update.py:118` | 缺發布實體檔案與所有更新中斷／空間不足矩陣。 |
+| SC-024 | ⚠️ 部分符合 | `tools/catalog/content.py:14`；`game/Assets/BrickHigh/Infrastructure/LocalAddressablesPolicy.cs:11` | `tools/catalog/tests/unit/test_sc_024.py:9`；`tools/catalog/tests/unit/test_ldraw_sources.py:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/LocalAddressablesPolicyTests.cs:42` | 政策與內部遠端拒絕已驗；正式包掃描全矩陣不齊。 |
+| SC-025 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54` | checker已有schema與引用規則；缺實際存檔保存與可定位診斷。 |
+| SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 缺乾淨Player缺DLL／不可寫資料根及原生通知全矩陣。 |
+| SC-027 | ⚠️ 部分符合 | `tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | 單元門檻完整，真CLI逐項缺一與完整正例矩陣未齊。 |
+| SC-028 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:30` | 101筆分頁已驗；公開QueryAsync的Limit邊界全矩陣未齊。 |
+| SC-029 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:50` | `game/Assets/BrickHigh/Tests/EditMode/Unit/MetadataValidationPolicyTests.cs:9` | 單元數值／預算規則已驗，實際metadata→輸出→Player完整邊界驗收不足。 |
+| SC-030 | ⚠️ 部分符合 | `tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_snapshot_repository.py:67` | CAS一勝一敗已驗，缺舊session及實體資產不變。 |
+| SC-031 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105`；`tools/catalog/resolving.py:24` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`tools/catalog/tests/integration/test_catalog_resolve.py:104` | Release人物／初始桶／Browse用途矩陣尚缺。 |
+| SC-032 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159` | lease共享與主執行緒已驗，失敗Acquire／實際共用資源整組不足。 |
+| SC-033 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:31`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:118` | 內部包可啟動，未完成乾淨斷網Windows完整安裝驗收。 |
+| SC-034 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:81`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:45` | 搜尋／詳細／lease單測已驗；多系列多款式與印刷的實際操作矩陣不足。 |
+| SC-035 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57` | 鏡頭與部分Player鍵盤操作已驗，缺鍵盤篩選／翻頁／重試全鏈。 |
+| SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | 有Player畫面，缺來源外觀比對及逐變體品質核准。 |
+| SC-037 | ✅ 已符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:150`；`artifacts/acceptance/wd-20260926-interactive-c/PlayerEvidence/result.json:1` | 真Player空搜尋→清除→恢復8筆與重新載入成功；單測確認清除按鈕及同snapshot，無目錄寫入。 |
+| SC-038 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160` | presenter可從壞模型切正常，真安裝版故障及存檔不變尚未全驗。 |
+| SC-039 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SelectionRequestPolicy.cs:8` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SelectionRequestPolicyTests.cs:17`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:247` | 過期結果規則完整；真安裝版慢A／快B及handles矩陣不足。 |
+| SC-040 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/RetryRequestPolicy.cs:6` | `game/Assets/BrickHigh/Tests/EditMode/Unit/RetryRequestPolicyTests.cs:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:209` | 重試政策及探針局部通過，真uGUI連點／再次失敗／換件矩陣不足。 |
+| SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | 資源局部測試已做，缺實際退出重入且仍保留他人資產。 |
+| SC-042 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:88`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 訊息政策與native launcher存在，實際無3D故障通知矩陣未完成。 |
+| SC-043 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無指定硬體查詢P95與單件正確首幀量測。 |
+| SC-044 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無2026片／8類幾何基準場景與穩態量測。 |
+| SC-045 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無20件5輪快取／LRU／記憶體量測。 |
+| SC-046 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `tools/catalog/tests/unit/test_metadata_quality.py:75` | 有mass欄位檢查，沒有輪組同尺度接觸原型。 |
+| SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 內部包不是Ready且使用條件驗證通過的正式Preview子集。 |
+| SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | helper資料表及CAS存在，真Unity驗證→發布→精確封裝未完成。 |
+| SC-049 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:11`；`tools/installer/InstallerCore.cs:53`；`tools/launcher/Program.cs:14` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:17`；`tools/acceptance/tests/integration/test_install_update.py:184`；`tools/acceptance/tests/integration/test_install_update.py:118` | 身份／互斥政策與真程序競爭已驗，缺真ACL與兩代Release/Preview完整矩陣。 |
+| SC-050 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:15` | schema政策已驗；一致備份及明確還原harness未做。 |
+| SC-051 | ⚠️ 部分符合 | `tools/catalog/runtime_schema.sql:3`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:270` | resolver有局部證據；所有FK／target／manifest逐欄矩陣不齊。 |
+| SC-052 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:19`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/AssetProviderInputTests.cs:16` | 輸入／字面搜尋已有測試，全部方法與取消UI矩陣不齊。 |
+| SC-053 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/SafeContent.cs:11`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:243` | `tools/acceptance/tests/integration/test_it_026.py:10`；`tools/acceptance/tests/integration/test_it_027.py:12`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:32` | Python安全探針及verified bytes已做，真Player替換／barrier／新程序矩陣不足。 |
+| SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 繁中字型／154畫面與launcher存在；外觀未核准、缺陷反例不齊。 |
+| SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 沒有凍結profile與正式基準資料，不能以Iris Xe代替。 |
+| SC-056 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:90` | `tools/catalog/tests/unit/test_metadata_quality.py:61`；`tools/catalog/tests/unit/test_metadata_quality.py:75` | 來源輪組／mass規則已有單測，跨runtime及靜動態配對原型未做。 |

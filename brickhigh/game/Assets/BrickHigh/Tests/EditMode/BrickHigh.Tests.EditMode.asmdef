@@ -6,6 +6,7 @@
     "BrickHigh.Application",
     "BrickHigh.Infrastructure",
     "BrickHigh.UnityRuntime",
+    "BrickHigh.Presentation",
     "Unity.ugui",
     "Unity.Addressables",
     "Unity.ResourceManager"

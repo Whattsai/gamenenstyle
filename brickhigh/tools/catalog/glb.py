@@ -8,6 +8,23 @@ import struct
 from .policies import CatalogError
 
 
+def verify_validator_report(report, geometry):
+    """核對固定版本Khronos報告及實際GLB身分；未處理警告不得放行。"""
+    if (not isinstance(report, dict) or report.get('modelSha256') != geometry['sha256']
+            or type(report.get('modelByteLength')) is not int or report['modelByteLength'] != geometry['bytes']
+            or report.get('validatorVersion') != '2.0.0-dev.3.10'
+            or report.get('mimeType') != 'model/gltf-binary'):
+        raise CatalogError('Khronos報告與模型或驗證器版本不符。')
+    issues = report.get('issues')
+    if (not isinstance(issues, dict) or issues.get('truncated') is not False
+            or any(type(issues.get(key)) is not int or issues[key] != 0 for key in ('numErrors', 'numWarnings'))
+            or not isinstance(issues.get('messages'), list)):
+        raise CatalogError('Khronos報告含錯誤、未處理警告或不完整結果。')
+    if any(not isinstance(message, dict) or type(message.get('severity')) is not int
+           or message['severity'] not in (2, 3) for message in issues['messages']):
+        raise CatalogError('Khronos問題清單與成功計數不符。')
+
+
 def inspect_glb(data):
     """只接受自含、靜態、已烘焙單位變換的三角網格。"""
     try:

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>BrickHighLauncher</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PackageKind Condition="'$(PackageKind)' == ''">Preview</PackageKind>
+    <DefineConstants Condition="'$(PackageKind)' == 'Preview'">$(DefineConstants);BRICKHIGH_PREVIEW</DefineConstants>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/SafeContent.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/ControlledLaunch.cs" />
+  </ItemGroup>
+</Project>

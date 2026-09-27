@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>BrickHigh.InstallerHarness</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="InstallerHarness.cs" />
+    <Compile Include="InstallerCore.cs" />
+    <Compile Include="ShortcutPolicy.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/SafeContent.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs" />
+  </ItemGroup>
+</Project>

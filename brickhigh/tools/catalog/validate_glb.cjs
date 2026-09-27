@@ -1,6 +1,7 @@
 // 離線執行官方 Khronos 驗證器；保存原始報告，不忽略警告。
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const validator = require('gltf-validator');
 
 async function main() {
@@ -15,6 +16,8 @@ async function main() {
     uri: path.basename(source), format: 'glb', maxIssues: 0,
     externalResourceFunction: () => Promise.reject(new Error('包內模型不得讀取外部資源。')),
   });
+  report.modelSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  report.modelByteLength = bytes.length;
   fs.writeFileSync(destination, JSON.stringify(report, null, 2), { encoding: 'utf8', flag: 'wx' });
   process.stdout.write(JSON.stringify({ validatorVersion: validator.version(), issues: report.issues }) + '\n');
   // 警告尚未逐類處理時不得把此結果當完整品質通過。

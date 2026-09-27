@@ -126,6 +126,31 @@ def test_frozen_snapshot_rejects_direct_sql_mutation(repo, statement):
         repo.connection.execute(statement, (snapshot,))
 
 
+@pytest.mark.parametrize('statement', [
+    "UPDATE coverage_gaps SET resolution_evidence_id='fabricated' WHERE snapshot_id=?",
+    "DELETE FROM coverage_gaps WHERE snapshot_id=?",
+    "INSERT INTO coverage_gaps VALUES('new-gap',?,'source','family','MissingPage',NULL)",
+])
+def test_frozen_coverage_gaps_cannot_change_release_denominator(repo, statement):
+    snapshot, _ = draft(repo)
+    repo.connection.execute("INSERT INTO coverage_gaps VALUES('original-gap',?,'source','family','MissingPage',NULL)", (snapshot,))
+    repo.freeze(snapshot, repo.snapshot(snapshot)['version'])
+    with pytest.raises(sqlite3.IntegrityError):
+        repo.connection.execute(statement, (snapshot,))
+    successor = repo.fork(snapshot, '2026-09-09T15:59:59Z')
+    repo.connection.execute("UPDATE coverage_gaps SET resolution_evidence_id='new-evidence' WHERE snapshot_id=?", (successor,))
+    assert repo.connection.execute("SELECT resolution_evidence_id FROM coverage_gaps WHERE snapshot_id=?", (snapshot,)).fetchone()[0] is None
+
+
+def test_draft_gap_cannot_move_into_frozen_snapshot(repo):
+    frozen, _ = draft(repo)
+    successor = repo.fork(frozen, '2026-09-09T15:59:59Z')
+    repo.connection.execute("INSERT INTO coverage_gaps VALUES('movable',?,'source','family','MissingPage',NULL)", (successor,))
+    repo.freeze(frozen, repo.snapshot(frozen)['version'])
+    with pytest.raises(sqlite3.IntegrityError):
+        repo.connection.execute("UPDATE coverage_gaps SET snapshot_id=? WHERE gap_id='movable'", (frozen,))
+
+
 def test_ready_revision_and_validation_evidence_are_immutable(repo):
     snapshot, variant, revision, build = validated(repo)
     with pytest.raises(sqlite3.IntegrityError):

@@ -1,5 +1,7 @@
 # SPEC-001-BrickModelCatalog — 實作前風險與缺漏稽核報告
 
+> **2026-09-27現況補記**：本文件原有0%／未執行描述屬2026-09-09實作前規劃基線。現在已完成36AC／56BDD／233TDD逐項現況稽核；TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。實作缺漏及證據以[TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)與[SPEC第14節](SPEC-001-BrickModelCatalog.md#14-2026-09-27-全項現況稽核)為準，規劃Ready不等於交付完成。
+
 **來源 MVP**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 **來源 SPEC**：[SPEC-001-BrickModelCatalog](SPEC-001-BrickModelCatalog.md)
 **BDD**：[SPEC-001-BrickModelCatalog-BDD](../bdd/SPEC-001-BrickModelCatalog-BDD.md)
