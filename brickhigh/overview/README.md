@@ -73,7 +73,7 @@ node tools/catalog/validate_glb.cjs artifacts/models/3001-red-new-probe/model.gl
 
 ## 下一個驗收關卡
 
-`well-done`已完成本次Phase 4現況稽核；TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。已有8模型內部Player、uGUI、原生launcher及安裝更新局部證據。下一關仍為合格Ready Preview、使用者畫面核准、完整故障／跨版本矩陣及正式效能／全量。功能開發按使用者要求保持停止。
+`well-done`已依使用者要求重新啟動，並固定本階段20件模型的逐件驗證。TDD 76/233（32.6%；71 UT、2 IT、2 CT、1 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。原8件加新12件均通過 GLB／來源雜湊與安裝版逐件載入操作，382張 Player 畫面可在 `artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html` 檢視，安裝入口為 `C:/bh-qa-wd/20260928-20-a/BrickHighLauncher.exe`。使用者只自行確認外觀；尺寸、接點／碰撞、生產狀態與正式 Ready 門檻由主代理記錄及後續處理，目前均未達 Ready。下一關仍為逐件合格品質、完整故障／跨版本矩陣及正式效能／全量。
 
 Unity EditMode 使用 `-batchmode -nographics -projectPath <game絕對路徑> -runTests -testPlatform EditMode -assemblyNames BrickHigh.Tests.EditMode -testResults <新的xml> -logFile <新的log>`。不加 `-quit`，由 Test Runner 結束；只計專案 assembly，不把 Addressables 文件範例測試算進完成度。
 

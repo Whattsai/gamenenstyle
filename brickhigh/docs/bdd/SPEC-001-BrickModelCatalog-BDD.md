@@ -4,7 +4,7 @@
 > **需求來源**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
 > **確認依據**：原 SDD「好 繼續」、風險方案「全數同意 請繼續」、補強版 SDD「確認」（2026-09-09）。
-> **狀態**：2026-09-27全56場景稽核完成；5/56（8.9%）已符合，46項部分符合、5項未符合。UX 1/20（5.0%），只有SC-037完整符合；功能開發保持停止。
+> **狀態**：2026-09-27 `$mighty-pm $well-done` 續作後核對全 56 場景；5/56（8.9%）已符合，46項部分符合、5項未符合。UX 1/20（5.0%），只有 SC-037 完整符合；其餘仍需正式來源、逐件品質或端到端證據。
 
 ## 📝 Feature 描述
 
@@ -25,14 +25,14 @@
 
 ### 整體進度
 
-本次已逐項核對36個AC、56個BDD場景與233個TDD項目；稽核完成不等於缺漏修復完成。功能開發依使用者要求保持停止，待視覺驗收回饋。
+本輪依 TDD 完成五項清單及全套回歸，再逐項比對 36 個 AC、56 個 BDD 場景與 20 個 UX 項目；場景的完整 Given／When／Then 仍未因局部合約測試自動達標。使用者已接受原八件內部預覽的畫面方向；2026-09-28 新20件安裝版完成 20/20 非外觀機械驗證，382張 Player 畫面交由使用者自行判斷外觀，尚未核准正式 Ready 視覺基準。新隔離 Player 安裝與操作證據見 [TDD 本輪紀錄](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
 
 目前SC-001、002、003、021、037完整符合，5/56（8.9%）。UX僅SC-037空搜尋與清除恢復符合原場景，1/20（5.0%）。其餘畫面局部成果不等於整場景完成，也不表示visualApproved。
 
 ```text
 SPEC-001-BrickModelCatalog 原生預覽 UX
 進度條：[█░░░░░░░░░░░░░░░░░░░] 5.0% (1/20)
-狀態：完整現況稽核已完成，功能開發保持停止
+狀態：本輪增量稽核完成；逐件 Ready 與正式來源待補
 最後更新：2026-09-27
 ```
 
@@ -1121,7 +1121,7 @@ AC-001～036 均有場景及 TDD 追溯（36/36）。本輪未發現尚未回寫
 | SC-001 | ✅ 已符合 | `tools/catalog/importing.py:210` | `tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126` | 來源附件、hash與UTC觀測／有效日期均有回讀斷言。；五類系列、套裝／人物展開與排除理由逐項比對。；缺頁及缺系列各產生未解G，發布被拒絕。真CLI／SQLite的IT-001補足跨邊界證據。 |
 | SC-002 | ✅ 已符合 | `tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77` | `tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80` | 有效日期內Producing／Discontinued分成Active／Retired。；缺貨、現貨、缺日期、相反與範圍外日期保持Unknown。；兩個變體獨立分類；CLI回讀A=1、R=1。真CLI／SQLite的IT-001補足跨邊界證據。 |
 | SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 只保存觀測組合，重複去重且不生成笛卡兒積。；印刷與材質改變key，重試保留UUID。；矛盾alias拒絕合併並保留原候選／缺口。真CLI／SQLite的IT-001補足跨邊界證據。 |
-| SC-004 | ⚠️ 部分符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67` | 真SQLite保護已驗；Ready實際品質報告仍缺。 |
+| SC-004 | ⚠️ 部分符合 | `tools/catalog/repository.py:131`；`tools/catalog/quality.py:321` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_snapshot_repository.py:123` | 真 SQLite 保護及逐 bytes Ready 品質報告門檻已有合成正反例；真實全量來源及每件人工覆核未完成。 |
 | SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | 全量實際來源與可成功發布的品質閉環尚缺。 |
 | SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 缺全代表件品質反例及完整RuntimeBuild載入。 |
 | SC-007 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 缺真匯入mesh／normal／metadata整組基底一致性。 |
@@ -1167,10 +1167,10 @@ AC-001～036 均有場景及 TDD 追溯（36/36）。本輪未發現尚未回寫
 | SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 內部包不是Ready且使用條件驗證通過的正式Preview子集。 |
 | SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | helper資料表及CAS存在，真Unity驗證→發布→精確封裝未完成。 |
 | SC-049 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:11`；`tools/installer/InstallerCore.cs:53`；`tools/launcher/Program.cs:14` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:17`；`tools/acceptance/tests/integration/test_install_update.py:184`；`tools/acceptance/tests/integration/test_install_update.py:118` | 身份／互斥政策與真程序競爭已驗，缺真ACL與兩代Release/Preview完整矩陣。 |
-| SC-050 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:15` | schema政策已驗；一致備份及明確還原harness未做。 |
+| SC-050 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveOpenCoordinator.cs:38`；`tools/acceptance/save_fixture_recovery.py:69` | `game/Assets/BrickHigh/Tests/EditMode/Contract/CT011RiskContractTests.cs:166`；`tools/acceptance/tests/integration/test_save_fixture_recovery.py` | F-Save 真 SQLite 降版與備份／還原選擇矩陣已驗；正式玩家存檔 schema 及 UI 尚未整合。 |
 | SC-051 | ⚠️ 部分符合 | `tools/catalog/runtime_schema.sql:3`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:270` | resolver有局部證據；所有FK／target／manifest逐欄矩陣不齊。 |
 | SC-052 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:19`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/AssetProviderInputTests.cs:16` | 輸入／字面搜尋已有測試，全部方法與取消UI矩陣不齊。 |
 | SC-053 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/SafeContent.cs:11`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:243` | `tools/acceptance/tests/integration/test_it_026.py:10`；`tools/acceptance/tests/integration/test_it_027.py:12`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:32` | Python安全探針及verified bytes已做，真Player替換／barrier／新程序矩陣不足。 |
-| SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 繁中字型／154畫面與launcher存在；外觀未核准、缺陷反例不齊。 |
+| SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:480`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:257`；`artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html` | 缺字警示、真 Player／382 畫面及原生 launcher 已驗；20件外觀待使用者確認，正式逐件基準和缺陷反例未齊。 |
 | SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 沒有凍結profile與正式基準資料，不能以Iris Xe代替。 |
 | SC-056 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:90` | `tools/catalog/tests/unit/test_metadata_quality.py:61`；`tools/catalog/tests/unit/test_metadata_quality.py:75` | 來源輪組／mass規則已有單測，跨runtime及靜動態配對原型未做。 |

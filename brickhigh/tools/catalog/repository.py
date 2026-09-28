@@ -13,8 +13,9 @@ from .policies import (CatalogConflict, CatalogCoveragePolicy, CatalogError, Gat
 class CatalogRepository:
     """管理來源快照；不讀取或建立任何玩家資料庫。"""
 
-    def __init__(self, path):
+    def __init__(self, path, workspace=None):
         self.path = Path(path).absolute()
+        self.workspace = Path(workspace).absolute() if workspace is not None else self.path.parent
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(self.path, timeout=10, isolation_level=None)
         self.connection.row_factory = sqlite3.Row
@@ -90,8 +91,9 @@ class CatalogRepository:
                                     (canonical_json(review), snapshot))
 
     def entries(self, snapshot):
-        return [dict(row) for row in self.connection.execute("""SELECT e.*,v.part_id,r.status AS revision_status,
-            r.validation_json FROM snapshot_entries e JOIN variants v ON v.variant_id=e.variant_id
+        return [dict(row) for row in self.connection.execute("""SELECT e.*,v.part_id,r.revision_id,r.input_digest,
+            r.status AS revision_status,r.status AS status,r.validation_json,r.manifest_json
+            FROM snapshot_entries e JOIN variants v ON v.variant_id=e.variant_id
             LEFT JOIN model_revisions r ON r.revision_id=e.selected_revision_id
             WHERE e.snapshot_id=? ORDER BY e.variant_id""", (snapshot,))]
 
@@ -133,11 +135,12 @@ class CatalogRepository:
                        "Validating": {"Ready", "Failed"}, "Failed": {"Building"}, "Ready": set()}
             if row is None or target not in allowed[row["status"]]:
                 raise GateNotMet("模型必須依序建置與驗證。")
-            if target == "Ready" and (not report or report.get("quality_passed") is not True
-                                      or report.get("provenance_passed") is not True or not report.get("evidence_digest")):
-                raise GateNotMet("模型尚無完整品質及來源報告。")
+            manifest = manifest or {}
+            if target == "Ready":
+                from .quality import verify_quality_bundle
+                verify_quality_bundle(self.workspace, dict(row), manifest, report or {})
             self.connection.execute("UPDATE model_revisions SET status=?,validation_json=?,manifest_json=? WHERE revision_id=?",
-                                    (target, canonical_json(report or {}), canonical_json(manifest or {}), revision))
+                                    (target, canonical_json(report or {}), canonical_json(manifest), revision))
 
     def select_revision(self, snapshot, variant, revision):
         with self.transaction():
@@ -145,6 +148,9 @@ class CatalogRepository:
             row = self.connection.execute("SELECT * FROM model_revisions WHERE revision_id=? AND variant_id=?", (revision, variant)).fetchone()
             if row is None or row["status"] != "Ready":
                 raise GateNotMet("所選版本不屬於此變體或尚未通過驗證。")
+            from .quality import verify_persisted_quality
+            if not verify_persisted_quality(self.workspace, dict(row)):
+                raise GateNotMet("所選模型缺少有效且可重算的品質報告。")
             changed = self.connection.execute("UPDATE snapshot_entries SET selected_revision_id=? WHERE snapshot_id=? AND variant_id=?",
                                               (revision, snapshot, variant)).rowcount
             if changed != 1:
@@ -158,9 +164,17 @@ class CatalogRepository:
                        "entries": self.entries(snapshot)})
 
     def record_validation(self, snapshot, target, toolchain_digest, result_digest, revisions):
+        from .quality import verify_persisted_quality
         with self.transaction():
             row = self._require(snapshot, {"Frozen"})
-            selected = {entry["selected_revision_id"] for entry in self.entries(snapshot) if entry["revision_status"] == "Ready"}
+            selected = set()
+            for entry in self.entries(snapshot):
+                if entry["revision_status"] != "Ready":
+                    continue
+                revision = self.connection.execute("SELECT * FROM model_revisions WHERE revision_id=?",
+                                                   (entry["selected_revision_id"],)).fetchone()
+                if revision is not None and verify_persisted_quality(self.workspace, dict(revision)):
+                    selected.add(entry["selected_revision_id"])
             if not revisions or not set(revisions).issubset(selected):
                 raise GateNotMet("驗證結果包含未選定或未完成版本。")
             identity = (snapshot, row["version"], self.selection_digest(snapshot), toolchain_digest, target, result_digest)
@@ -173,13 +187,14 @@ class CatalogRepository:
     def coverage(self, snapshot):
         rows = []
         for entry in self.entries(snapshot):
-            validation = json.loads(entry["validation_json"] or "{}")
+            from .quality import verify_persisted_quality
+            quality_verified = verify_persisted_quality(self.workspace, entry)
             classification = json.loads(entry["classification_json"])
             projection = json.loads(entry["display_projection_json"])
             rows.append(dict(entry, ready=entry["revision_status"] == "Ready",
                              classified=classification.get("tier") in {"Basic", "Advanced", "Special"} and bool(classification.get("reason")),
-                             quality_passed=validation.get("quality_passed", False),
-                             provenance_passed=validation.get("provenance_passed", False), fixture=projection.get("fixture", False)))
+                             quality_passed=quality_verified,
+                             provenance_passed=quality_verified, fixture=projection.get("fixture", False)))
         gaps = [dict(row) for row in self.connection.execute("SELECT * FROM coverage_gaps WHERE snapshot_id=? AND resolution_evidence_id IS NULL", (snapshot,))]
         review = json.loads(self.snapshot(snapshot)["coverage_review_json"])
         return CatalogCoveragePolicy.evaluate(rows, gaps, bool(review.get("reviewer") and review.get("artifact")))

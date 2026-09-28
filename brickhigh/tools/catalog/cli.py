@@ -13,6 +13,7 @@ from .importing import import_catalog
 from .resolving import resolve_catalog, verified_claims
 from .building import build_catalog
 from .policies import CatalogConflict, CatalogError, GateNotMet, ProductionStatusPolicy, utc_time
+from .quality import complete_revision_quality, quality_review_template, verify_persisted_quality
 from .repository import CatalogRepository
 
 
@@ -49,6 +50,11 @@ def parser():
     publish.add_argument("--build")
     publish.add_argument("--target")
     publish.add_argument("--toolchain-digest")
+    quality_template = actions.add_parser("quality-template")
+    quality_template.add_argument("--revision", required=True)
+    quality_review = actions.add_parser("quality-review")
+    quality_review.add_argument("--revision", required=True)
+    quality_review.add_argument("--report", required=True)
     status = actions.add_parser("status")
     status.add_argument("--job", required=True)
     return command
@@ -130,8 +136,7 @@ def _validation(repo, workspace, snapshot_id):
                 issues.append("fixture-content")
             if not entry["selected_revision_id"] or entry["revision_status"] != "Ready":
                 issues.append("missing-selected-revision")
-            else:
-                # validation_json 僅有布林旗標與 digest，無可核對的品質報告 bytes／schema。
+            elif not verify_persisted_quality(workspace, entry):
                 issues.append("unverifiable-quality-report")
         variants.append({"variantId": entry["variant_id"], "issues": issues})
 
@@ -177,7 +182,7 @@ def _execute(args, workspace, database):
                                args.plan or "build-plans/" + snapshot + ".json")
         return result["exitCode"], result
     if args.action == "import":
-        with CatalogRepository(database) as repo:
+        with CatalogRepository(database, workspace=workspace) as repo:
             result = import_catalog(repo, workspace, args.manifest, args.job_key)
             return 0, {"snapshotId": result.snapshot_id, "inputDigest": result.input_digest,
                        "coverage": result.coverage}
@@ -185,8 +190,19 @@ def _execute(args, workspace, database):
         with CatalogJobs(database) as jobs:
             result = jobs.status(_uuid(args.job))
             return result["exit_code"], result
+    if args.action in {"quality-template", "quality-review"}:
+        revision_id = _uuid(args.revision)
+        with CatalogRepository(database, workspace=workspace) as repo:
+            row = repo.connection.execute("SELECT * FROM model_revisions WHERE revision_id=?", (revision_id,)).fetchone()
+            if row is None:
+                raise CatalogError("找不到指定模型版本。")
+            if args.action == "quality-template":
+                if row["status"] != "Validating":
+                    raise GateNotMet("只有Validating revision可建立品質覆核模板。")
+                return 0, quality_review_template(workspace, dict(row), json.loads(row["manifest_json"]))
+            return 0, complete_revision_quality(repo, workspace, revision_id, args.report)
     snapshot_id = _uuid(args.snapshot)
-    with CatalogRepository(database) as repo:
+    with CatalogRepository(database, workspace=workspace) as repo:
         if args.action == "resolve":
             return 0, resolve_catalog(repo, workspace, snapshot_id, args.decisions)
         if args.action == "freeze":

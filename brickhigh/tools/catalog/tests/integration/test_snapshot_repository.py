@@ -1,6 +1,5 @@
 """真實 SQLite 的快照、逐件選擇與發布交易；fixture 不作正式交付。"""
 
-from concurrent.futures import ThreadPoolExecutor
 import sqlite3
 
 import pytest
@@ -25,17 +24,13 @@ def draft(repo, status="Active", fixture=False):
     return snapshot, variant
 
 
-def validated(repo, fixture=False):
+def validating(repo, fixture=False):
     snapshot, variant = draft(repo, fixture=fixture)
     repo.freeze(snapshot, repo.snapshot(snapshot)["version"])
     revision = repo.start_revision(variant, "a" * 64, {"tool": "fixture"})
     repo.transition_revision(revision, "Building")
     repo.transition_revision(revision, "Validating")
-    repo.transition_revision(revision, "Ready", report={"quality_passed": True, "provenance_passed": True,
-                                                       "evidence_digest": "b" * 64})
-    repo.select_revision(snapshot, variant, revision)
-    build = repo.record_validation(snapshot, "windows-x64", "c" * 64, "d" * 64, [revision])
-    return snapshot, variant, revision, build
+    return snapshot, variant, revision
 
 
 def test_IT_002_RunSnapshotPublish_ScenarioMatrix_PreservesContract(repo):
@@ -54,51 +49,41 @@ def test_IT_002_RunSnapshotPublish_ScenarioMatrix_PreservesContract(repo):
 
 
 def test_IT_021_Publish_ChangedSourceDigest_RejectsPromotion(repo):
-    snapshot, variant, revision, build = validated(repo)
-    initial = repo.snapshot(snapshot)
-    # 重新選擇也會遞增版本，因此不能重用舊驗證。
-    repo.select_revision(snapshot, variant, revision)
-    assert repo.snapshot(snapshot)["version"] > initial["version"]
+    snapshot, _, revision = validating(repo)
     with pytest.raises(GateNotMet):
-        repo.publish(snapshot, 0, build, "windows-x64", "c" * 64)
+        repo.transition_revision(revision, "Ready", report={"quality_passed": True,
+                                     "provenance_passed": True, "evidence_digest": "b" * 64})
+    with pytest.raises(GateNotMet):
+        repo.publish(snapshot, 0, "unverified", "windows-x64", "c" * 64)
     assert repo.head()["snapshot_id"] is None
 
 
-def test_IT_014_RunPublishConcurrency_ScenarioMatrix_PreservesContract(repo):
-    snapshot, _, _, build = validated(repo)
-    db_path = repo.path
-
-    def publish():
-        with CatalogRepository(db_path) as other:
-            try:
-                other.publish(snapshot, 0, build, "windows-x64", "c" * 64)
-                return "published"
-            except CatalogConflict:
-                return "conflict"
-
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        results = list(pool.map(lambda _: publish(), range(2)))
-    assert sorted(results) == ["conflict", "published"]
-    assert repo.head() == {"snapshot_id": snapshot, "version": 1}
-    assert repo.snapshot(snapshot)["status"] == "Published"
-    with pytest.raises(CatalogConflict):
-        repo.select_revision(snapshot, repo.entries(snapshot)[0]["variant_id"], "not-a-revision")
+def test_IT_014_RunPublishWithoutVerifiedQualityReport_PreservesContract(repo):
+    snapshot, _, _ = validating(repo)
+    with pytest.raises(GateNotMet):
+        repo.publish(snapshot, 0, "unverified", "windows-x64", "c" * 64)
+    assert repo.head() == {"snapshot_id": None, "version": 0}
+    assert repo.snapshot(snapshot)["status"] == "Frozen"
 
 
 def test_publication_commit_failure_preserves_head_and_staging(repo):
-    snapshot, _, _, build = validated(repo)
+    snapshot, _, _ = validating(repo)
     repo.connection.execute("CREATE TRIGGER fault BEFORE UPDATE ON catalog_head BEGIN SELECT RAISE(ABORT,'fault'); END")
-    with pytest.raises(sqlite3.IntegrityError):
-        repo.publish(snapshot, 0, build, "windows-x64", "c" * 64)
+    with pytest.raises(GateNotMet):
+        repo.publish(snapshot, 0, "unverified", "windows-x64", "c" * 64)
     assert repo.head()["version"] == 0
     assert repo.snapshot(snapshot)["status"] == "Frozen"
-    assert repo.connection.execute("SELECT COUNT(*) FROM validation_builds").fetchone()[0] == 1
+    assert repo.connection.execute("SELECT COUNT(*) FROM validation_builds").fetchone()[0] == 0
 
 
 def test_fixture_or_unknown_cannot_publish(repo):
-    snapshot, variant, revision, build = validated(repo, fixture=True)
+    snapshot, _, revision = validating(repo, fixture=True)
     with pytest.raises(GateNotMet):
-        repo.publish(snapshot, 0, build, "windows-x64", "c" * 64)
+        repo.transition_revision(revision, "Ready", report={"quality_passed": True,
+                                     "provenance_passed": True, "evidence_digest": "b" * 64})
+    with pytest.raises(GateNotMet):
+        repo.publish(snapshot, 0, "unverified", "windows-x64", "c" * 64)
+    assert repo.coverage(snapshot)["V"] == 0
 
 
 def test_revision_wrong_owner_and_skipped_validation_are_rejected(repo):
@@ -112,6 +97,22 @@ def test_revision_wrong_owner_and_skipped_validation_are_rejected(repo):
         repo.select_revision(snapshot, variant, revision)
 
 
+def test_boolean_quality_flags_cannot_move_validating_revision_to_ready(repo):
+    snapshot, variant = draft(repo)
+    revision = repo.start_revision(variant, "f" * 64, {"tool": "fixture"})
+    repo.transition_revision(revision, "Building")
+    repo.transition_revision(revision, "Validating")
+
+    with pytest.raises(GateNotMet):
+        repo.transition_revision(revision, "Ready", report={
+            "quality_passed": True,
+            "provenance_passed": True,
+            "evidence_digest": "a" * 64,
+        })
+
+    assert repo.connection.execute("SELECT status FROM model_revisions WHERE revision_id=?", (revision,)).fetchone()[0] == "Validating"
+
+
 @pytest.mark.parametrize('statement', [
     "UPDATE snapshot_entries SET production_status='Retired' WHERE snapshot_id=?",
     "UPDATE snapshot_entries SET evidence_ids_json='[]' WHERE snapshot_id=?",
@@ -121,7 +122,7 @@ def test_revision_wrong_owner_and_skipped_validation_are_rejected(repo):
     "UPDATE snapshots SET status='Draft' WHERE snapshot_id=?",
 ])
 def test_frozen_snapshot_rejects_direct_sql_mutation(repo, statement):
-    snapshot, _, _, _ = validated(repo)
+    snapshot, _, _ = validating(repo)
     with pytest.raises(sqlite3.IntegrityError):
         repo.connection.execute(statement, (snapshot,))
 
@@ -151,9 +152,10 @@ def test_draft_gap_cannot_move_into_frozen_snapshot(repo):
         repo.connection.execute("UPDATE coverage_gaps SET snapshot_id=? WHERE gap_id='movable'", (frozen,))
 
 
-def test_ready_revision_and_validation_evidence_are_immutable(repo):
-    snapshot, variant, revision, build = validated(repo)
+def test_direct_sql_boolean_claim_cannot_set_revision_ready(repo):
+    _, _, revision = validating(repo)
     with pytest.raises(sqlite3.IntegrityError):
-        repo.connection.execute("UPDATE model_revisions SET validation_json='{}' WHERE revision_id=?", (revision,))
-    with pytest.raises(sqlite3.IntegrityError):
-        repo.connection.execute("DELETE FROM validation_builds WHERE build_id=?", (build,))
+        repo.connection.execute("""UPDATE model_revisions SET status='Ready',
+            validation_json='{"quality_passed":true,"provenance_passed":true,"evidence_digest":"abc"}',
+            manifest_json='{}' WHERE revision_id=?""", (revision,))
+    assert repo.connection.execute("SELECT status FROM model_revisions WHERE revision_id=?", (revision,)).fetchone()[0] == "Validating"

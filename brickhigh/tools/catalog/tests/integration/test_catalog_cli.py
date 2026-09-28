@@ -6,8 +6,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from tools.catalog.jobs import CatalogJobs
 from tools.catalog.content import ObjectStore
+from tools.catalog.policies import GateNotMet
 from tools.catalog.repository import CatalogRepository
 
 
@@ -78,11 +81,11 @@ def test_validate_lists_real_item_gaps_and_publish_preserves_head(tmp_path):
         assert repo.snapshot(snapshot)["status"] == "Frozen"
 
 
-def test_boolean_ready_and_build_digest_cannot_be_promoted_without_quality_bytes(tmp_path):
+def test_boolean_ready_claim_is_rejected_without_quality_report_bytes(tmp_path):
     workspace = tmp_path / "workspace"
     snapshot, variant, _ = draft(workspace)
     source = ObjectStore(workspace).put(b"source bytes")
-    with CatalogRepository(workspace / "catalog.sqlite") as repo:
+    with CatalogRepository(workspace / "catalog.sqlite", workspace=workspace) as repo:
         repo.connection.execute("""INSERT INTO source_artifacts VALUES(?,?,?,?,?,?,?,?)""",
                                 ("source-a", "offline-source", "2026-09-08T00:00:00Z", None,
                                  source["sha256"], source["storage_key"], "{}", "{}"))
@@ -95,16 +98,16 @@ def test_boolean_ready_and_build_digest_cannot_be_promoted_without_quality_bytes
         revision = repo.start_revision(variant, "a" * 64, {"tool": "fixture"})
         for state in ("Building", "Validating"):
             repo.transition_revision(revision, state)
-        repo.transition_revision(revision, "Ready", report={"quality_passed": True,
-                             "provenance_passed": True, "evidence_digest": hashlib.sha256(b"unavailable").hexdigest()})
-        repo.select_revision(snapshot, variant, revision)
-        repo.record_validation(snapshot, "windows-x64", "b" * 64, "c" * 64, [revision])
-        assert repo.coverage(snapshot)["release_allowed"] is True
+        with pytest.raises(GateNotMet):
+            repo.transition_revision(revision, "Ready", report={"quality_passed": True,
+                                 "provenance_passed": True,
+                                 "evidence_digest": hashlib.sha256(b"unavailable").hexdigest()})
+        assert repo.coverage(snapshot)["V"] == 0
     code, stdout, _ = invoke(workspace, "validate", "--snapshot", snapshot)
     assert code == 3
     report = json.loads(stdout)
     assert "unverified-production-claim" in report["variants"][0]["issues"]
-    assert "unverifiable-quality-report" in report["variants"][0]["issues"]
+    assert "missing-selected-revision" in report["variants"][0]["issues"]
     assert invoke(workspace, "publish", "--snapshot", snapshot, "--expected-head-version", 0)[0] == 3
     with CatalogRepository(workspace / "catalog.sqlite") as repo:
         assert repo.head()["snapshot_id"] is None
@@ -196,14 +199,14 @@ def test_import_bootstraps_database_in_new_workspace(tmp_path):
 def test_validation_does_not_count_boolean_ready_as_verified_delivery(tmp_path):
     workspace = tmp_path / "workspace"
     snapshot, variant, version = draft(workspace)
-    with CatalogRepository(workspace / "catalog.sqlite") as repo:
+    with CatalogRepository(workspace / "catalog.sqlite", workspace=workspace) as repo:
         repo.freeze(snapshot, version)
         revision = repo.start_revision(variant, "a" * 64, {"tool": "fixture"})
         for state in ("Building", "Validating"):
             repo.transition_revision(revision, state)
-        repo.transition_revision(revision, "Ready", report={"quality_passed": True,
-                                  "provenance_passed": True, "evidence_digest": "b" * 64})
-        repo.select_revision(snapshot, variant, revision)
+        with pytest.raises(GateNotMet):
+            repo.transition_revision(revision, "Ready", report={"quality_passed": True,
+                                      "provenance_passed": True, "evidence_digest": "b" * 64})
     code, stdout, _ = invoke(workspace, "validate", "--snapshot", snapshot)
     assert code == 3
     assert json.loads(stdout)["counts"]["V"] == 0

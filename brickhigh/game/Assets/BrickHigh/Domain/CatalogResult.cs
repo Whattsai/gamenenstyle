@@ -23,9 +23,18 @@ namespace BrickHigh.Domain
         internal CatalogError(CatalogErrorCode code, string message = null)
         {
             Code = code;
-            Message = message ?? Describe(code);
+            // 僅允許已審核的固定玩家文案覆寫預設訊息。
+            Message = ApprovedMessage(code, message);
             Retryable = code == CatalogErrorCode.StorageUnavailable;
             DiagnosticId = Guid.NewGuid().ToString("N");
+        }
+        private static string ApprovedMessage(CatalogErrorCode code, string message)
+        {
+            if (code == CatalogErrorCode.AssetMissing
+                && message == "必要執行檔不完整，請使用完整安裝包修復。") return message;
+            if (code == CatalogErrorCode.IncompatibleContent
+                && message == "此資產包僅供技術預覽，不能作為正式遊戲資料。") return message;
+            return Describe(code);
         }
         /// <summary>將錯誤碼轉為固定玩家文案。</summary>
         public static string Describe(CatalogErrorCode code)

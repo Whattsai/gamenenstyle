@@ -35,7 +35,13 @@ namespace BrickHigh.Editor
                 throw new InvalidDataException("來源不是已記錄的幾何探針。");
             var modelFolders = interactive ? new[] { "3001-red-exploratory-v1", "pm-20260923-plate-3020", "pm-20260923-transparent-color47",
                 "pm-20260923-printed-torso-973p06-color4", "pm-20260923-technic-pin-2780", "pm-20260923-technic-axle-3705", "pm-20260923-duplo-3437",
-                "pm-20260923-asymmetric-slope-3298-materials-v2" }
+                "pm-20260923-asymmetric-slope-3298-materials-v2",
+                "pm-20260927-expansion-v1/3700-colour7", "pm-20260927-expansion-v1/4032a-colour4",
+                "pm-20260927-expansion-v1/3069b-colour14", "pm-20260927-expansion-v1/4085c-colour7",
+                "pm-20260927-expansion-v1/30374-colour4", "pm-20260927-expansion-v1/14417-colour7",
+                "pm-20260927-expansion-v1/14418-colour7", "pm-20260927-expansion-v1/11211-colour4",
+                "pm-20260927-expansion-v1/2456-colour14", "pm-20260927-expansion-v1/6060-colour4",
+                "pm-20260927-expansion-v1/3005-colour14", "pm-20260927-expansion-v1/6141-colour4" }
                 : new[] { "3001-red-exploratory-v1" };
             var modelSources = modelFolders.Select(folder => Path.Combine(project, "artifacts/models", folder)).ToArray();
             string id = DateTime.UtcNow.ToString("yyyyMMddTHHmmss") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -241,7 +247,7 @@ namespace BrickHigh.Editor
                 db.Execute("INSERT INTO runtime_revisions VALUES(?,?)", variant, revision);
                 db.Execute("INSERT INTO runtime_variants VALUES(?,?,?,?,?,?,?,?)", probe.SnapshotId, variant, Guid.NewGuid().ToString(),
                     "Unknown", "Basic", new JObject { ["name"] = "內部幾何 " + part + (modelSources[i].Contains("transparent") ? " 透明" : ""),
-                        ["family"] = part == "3437.dat" ? "DUPLO" : part == "2780.dat" || part == "3705.dat" ? "Technic" : "System",
+                        ["family"] = part == "3437.dat" ? "DUPLO" : part == "2780.dat" || part == "3705.dat" || part == "3700.dat" ? "Technic" : "System",
                         ["partNumber"] = Path.GetFileNameWithoutExtension(part) }.ToString(), "{}", revision);
                 db.Execute("INSERT INTO runtime_builds VALUES(?,?,?,?,?,?,?,?,?,?)", runtime, variant, revision, "windows-x64",
                     UnityEngine.Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1", (string)bundle["sha256"], "internal-probe-not-quality-approved", (string)bundle["storageKey"]);

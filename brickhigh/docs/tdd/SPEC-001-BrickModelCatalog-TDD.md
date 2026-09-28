@@ -4,13 +4,95 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：2026-09-27全項現況稽核與文件同步完成；TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。尚未完成合格Preview或全量Release；功能開發保持停止。
+> **狀態**：2026-09-28 `$mighty-pm $well-done` 續作中；本階段20件模型的內部安裝與非外觀機械驗證完成，待使用者親自確認外觀。本輪目前逐項重算：TDD 76/233（32.6%；71 UT、2 IT、2 CT、1 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。合格 Preview 與全量 Release 尚未完成。
+
+### 2026-09-27 Mighty PM 續作紀錄（完成契約 v1）
+
+本次使用者以 `$mighty-pm $well-done` 明確重新啟動 `SPEC-001` 開發，取代上方歷史階段停止指示；70/233、5/56、1/20、2/36仍是本輪開始前的逐項稽核基線，不因啟動而增加。交接狀態為 `Ready for well-done`，五份文件可讀且既有風險方案已確認。起始工作樹乾淨。其他 SPEC、正式人物／庫存／房屋／賽車玩法不在本輪範圍。
+
+使用者已實際檢視 `C:/bh-qa-wd/20260926-c/BrickHighLauncher.exe` 的八件內部預覽，回覆「方向可接受，繼續逐件驗證」。此回覆確認目前模型外觀、材質、光照與繁中畫面的**方向**，授權繼續逐資產檢查；八件仍為 F-Catalog 探索樣本。尚未形成綁定正式 Ready 資產版本、RuntimeBuild、六視圖與逐件審核的 `visualBaselineId`，故 ET-020／SC-054 仍待正式驗收。
+
+| ID | 來源與交付／完成條件 | 負責人與寫入範圍 | 依賴／狀態 | 驗證與風險處置 |
+|---|---|---|---|---|
+| P0 | Phase 1；核對交接、36 AC、56 BDD、233 TDD 與工作樹 | 主代理；本文件與整合文件 | 無／完成 | 交接狀態與五份文件核對，逐項引用既有矩陣；本輪重新驗證另列 |
+| P1 | 模型來源與品質證據路徑；確認合格 Ready Preview／全量缺口 | source_model，GPT-6-Astra medium；主代理整合 | P0／來源盤點完成 | 原八件仍是 F-Catalog；新增官方 Rebrickable CDN 12 份 CSV 候選來源及 SHA manifest，`parts` 64,675 列、`inventory_parts` 1,558,301 列；CSV 不證明生產 Active，完整 Ready／指定硬體仍缺 |
+| P2-M | 使用者補充優先目標：增加實體積木模型數量並逐件驗證 | source_model，GPT-6-Astra medium；`artifacts/models/pm-20260927-expansion-v1/`；主代理 Player 整合 | P1／20 件內部驗證完成、Ready 仍有缺口 | 新 12 件及原 8 件共 20 件，Khronos 0 error／0 warning；Player 20/20 載入與操作、382 張畫面，逐件稽核 `machine-audit.json` 無機械驗證錯誤；仍 `Unknown`／非 Ready |
+| P2-C | Phase 2 目錄品質、Ready／發布門檻的可測實作 | catalog_quality，GPT-6-Luna max；`tools/catalog/**` | P0／寫入完成、全回歸與稽核中 | 報告逐 bytes 驗證；聚焦 44 passed，合成 Ready 正例仍 `fixture-content`、V=0、releaseAllowed=false；全 Python 由主代理執行 |
+| P2-U | Phase 2–3 既有預覽 UI 的可測缺口 | ui_ux，GPT-6-Luna max；`Presentation/**` 與 `CatalogPreviewViewTests.cs` | P0／整合驗證完成、UX 稽核中 | 缺字警示、錯誤畫面／鍵盤離開／查詢映射；焦點矩陣聚焦 21/21，全 EditMode 163/163；UT-105 仍部分符合 |
+| P2-S | Phase 2 存檔備份、遷移與明確還原人工 fixture | 主代理 `tools/acceptance/save_fixture_recovery.py`、`verify_save_fixture_recovery.py`及其測試；save_policy，GPT-6-Luna max，專屬 C# 政策／測試 | P0／整合驗證完成、契約稽核中 | 真 SQLite/WAL、故障／選擇矩陣14項通過；獨立 CLI 四種選擇報告於 `artifacts/acceptance/pm-20260927-save/`；完整 .NET 131/131、相容性建置 0 警告錯誤、Unity 163/163 |
+| P3 | Phase 2–3 封裝、離線 Player、效能與正式來源驗收 | 主代理；安裝／驗收工具 | 20 件內部包重驗完成、正式門檻待補 | `pm-20260928-player20-build.log` 成功；全新隔離安裝 `C:/bh-qa-wd/20260928-20-a`、launcher exit 0、382 張真實 Player 圖及 20/20 操作探針 success 見 `artifacts/acceptance/pm-20260928-interactive-20-a/run.json`；仍為 F-Catalog，指定硬體與全量資產待補 |
+| P4 | Phase 4–5；逐項深度稽核、缺漏回寫、補實作與重驗直到符合 | 主代理整合，可再派不重疊工作 | P1–P3／進行中 | 基線 36 AC／56 SC／233 TDD 已逐項核對；本輪目錄、UX、存檔增量分別唯讀稽核，主代理整合重算；缺正式來源／硬體者保留未完成 |
+| P5 | Phase 6；完成契約逐項驗收與最終交付 | 主代理；TDD／BDD／overview | P4／待開始 | 僅可驗證項目標為完成；未驗收保留精確缺口與下一步 |
+
+### 八件內部樣本逐件證據（2026-09-27）
+
+對 `artifacts/acceptance/wd-20260926-interactive-c/PlayerEvidence/frames/` 的八件、共 48 張六方向 Player PNG 逐張目視核對；模型均有對應輪廓，斜磚左右斜面方向不同、torso 正面印刷及側孔、透明件前後／底面結構、axle 十字端面均可辨。這只是在現有顯示大小下排除明顯空白或缺件，不能取代來源參考圖逐像素／尺寸／材質對照。八件 `model.glb` 重新以 `node tools/catalog/validate_glb.cjs` 驗證，報告各有 `modelSha256`／`modelByteLength`，皆為 0 error／0 warning，保存於 `artifacts/acceptance/pm-20260927-eight-glb/<樣本>/khronos-report.json`。這證明現有 GLB bytes 可通過結構驗證，尚不證明接點、物理、來源授權及正式 Ready。
+
+| 樣本來源 | Player front／bottom 畫面 | 本輪目視與下一個逐件門檻 |
+|---|---|---|
+| 普通磚 `3001.dat` | `frame00058`／`frame00063` | 四顆正面可見 stud、底部三個管位；待接點座標、碰撞與來源顏色比對 |
+| 薄板 `3020.dat` | `frame00134`／`frame00139` | 薄板高度與底部管位可見；待板高 reference 與上下配對測試 |
+| 透明磚 `3001.dat` 色47 | `frame00001`／`frame00006` | 透明正背面與底部結構可見；待色47材質與遮擋、缺材質反例 |
+| 印刷 torso `973p06.dat` | `frame00020`／`frame00025` | 正面衣紋、頸部與底部輪廓可見；待印刷來源比對及頭／臂／腰錨點 |
+| Technic pin `2780.dat` | `frame00115`／`frame00120` | 中央環與軸向空隙可見；待接收孔配對、插入深度與自由度 |
+| Technic axle `3705.dat` | `frame00077`／`frame00082` | 軸外形可見；待十字截面／方向、接收件與非法 profile 反例 |
+| DUPLO `3437.dat` | `frame00096`／`frame00101` | 正面雙 stud 與底部腔體可見；待 DUPLO 接點尺度及跨系列拒絕 |
+| 非對稱斜磚 `3298.dat` | `frame00039`／`frame00044` | 正面斜面與底部管位可見；待非鏡像方向、面法向／繞序及碰撞 |
+
+來源模型資料夾仍缺逐件 `metadata.json`、獨立尺寸 reference、canonical profile、connectors、collisionProxy、characterAttachments 與 attribution；安裝版 DB 的 `readyAsset=false` 保持不變。舊 Player 報告 `visualApproved=false` 不覆寫；使用者本輪只批准視覺方向。
+
+使用者補充無本機 CSV，並明確要求工作目的包含持續增加建模數量。主代理已直接從 Rebrickable 官方 CDN 取得 12 份 bulk CSV，`artifacts/sources/rebrickable-20260927/download-manifest.json` 保存來源 URL、欄位、列數、byteLength 與 SHA-256；`model-candidate-crosswalk.json` 對新增批次 12 個 part_num 全部精確匹配 `parts.csv.gz`，另列套裝年份與顏色作候選旁證。`4085c` 最新套裝年份為 2019，特別保留停產待查；任何套裝年份或 CSV 行都不自動給 `Active`。新批次仍需外觀、尺寸、接點、來源授權和生產狀態逐件確認。
+
+### 新增十二件逐件幾何證據（2026-09-27）
+
+批次索引 `artifacts/models/pm-20260927-expansion-v1/handoff-manifest.json` 記錄每件來源、GLB／metadata／verification／CSV 對照 SHA-256；逐件重新核對 12/12 檔案及 hash 無誤。每件都有來源依賴與署名、`model.glb`、`conversion.json`、`metadata.json`、`khronos-report.json`、`verification.json`、六方向 PNG 與 preview。Blender 轉換及 Khronos 結果為 12/12 成功、0 error／0 warning，共 72 張六視圖及 12 張 preview；已逐件目視 preview，其中 `6060` 再看六視圖確認完整拱形、兩個 stud 與底部腔體。這些證據只支持可辨識幾何；`readyAsset=false`、`productionStatus=Unknown` 保持不變。
+
+| 零件／顏色資料夾 | 可辨識的幾何 | 下一個逐件門檻 |
+|---|---|---|
+| `3700-colour7` | Technic 側孔磚 | 孔徑、軸／pin 配對、接點及碰撞 |
+| `4032a-colour4` | 圓板與中央十字孔 | 孔形、四 stud 與上下插接尺寸 |
+| `3069b-colour14` | 平面 1×2 tile | 厚度、底部腔體與來源顏色 |
+| `4085c-colour7` | 1×1 直立夾件 | 來源生產狀態先確認；夾口配對與彈性空間 |
+| `30374-colour4` | 細長圓 bar | 直徑、長度、夾件相容及碰撞 |
+| `14417-colour7` | 側向球頭板 | 球徑、球心座標與球窩配對 |
+| `14418-colour7` | 側向球窩板 | 開口／腔體及球頭旋轉自由度 |
+| `11211-colour4` | 側向雙 stud 磚 | 側向接點、垂直方向與底部結構 |
+| `2456-colour14` | 2×6 普通磚 | 12 stud 位置、底部管位及接點矩陣 |
+| `6060-colour4` | 曲線拱件 | 獨立尺寸、拱內碰撞空間與兩端支撐 |
+| `3005-colour14` | 1×1 普通磚 | 單 stud／底部空腔及上下配對 |
+| `6141-colour4` | 1×1 圓板 | 圓形接點、厚度及底部管位 |
+
+上述各件的 `metadata.json` 明列獨立尺寸、接點／碰撞、來源顏色與 Unity Runtime 驗證待補；CSV 精確貨號對照不證明所選 LDraw 顏色等同 Rebrickable 顏色，也不證明仍在生產。
+
+### 二十件內部 Player 與非外觀逐件稽核（2026-09-28）
+
+使用者補充本階段只親自確認**外觀品質**，其餘驗證由主代理負責；第二批增量建模已停止，範圍固定為原 8 件加新增 12 件。全新 Win64 安裝包 `artifacts/acceptance/toolchain-20260928T051404-cd46ec63/Package/` 經原生安裝器裝於 `C:/bh-qa-wd/20260928-20-a`，`BrickHighLauncher.exe` 啟動成功。`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` 記錄安裝與 launcher exit 0；`PlayerEvidence/result.json` 為 success=true、20/20 載入、各件六方向與 12 步旋轉縮放重設、382 張 PNG，含鍵盤、空搜尋與直式重排。Player 於 Intel Iris Xe／Direct3D11／Linear 色彩空間執行，這不是 SPEC 指定效能設備。
+
+`python -m tools.acceptance.audit_internal_model_set` 依包內 `SourceEvidence/<index>.json` 與 Runtime SQLite 對 20 件逐一核對：來源依賴及授權標頭 hash、GLB 與 conversion／包內來源證據 hash、非空 mesh／三角形／材質、重新執行 Khronos 0 error／0 warning、六方向 Player PNG、操作與 runtime 貨號／`Unknown`／非 Ready。新增 12 件來源六視圖 hash 也核對。結果 `artifacts/acceptance/pm-20260928-interactive-20-a/machine-audit.json` 為 **20/20 mechanicalPass**；封裝 `package-integrity.json` 為 222/222 package 檔、216/216 安裝 Player 檔 hash 相符。`manual-visual-review.html` 提供每件七張實際 Player 畫面，外觀結果由使用者填判，報告保留 `visualApproved=false`。
+
+此處的 mechanicalPass 不等於 Ready。主代理依 `inspect_metadata` 確認原 8 件缺模型品質 metadata；新增 12 件皆缺獨立 reference dimensions 與必要 connectors；20 件皆無已驗證的 collisionProxy 與生產 Active 證據，包內 coverage 為 C=20、A=0、U=20、G=20、V=0，`scope_reviewed=false`。這些是主代理後續要補的非外觀門檻，不轉交使用者視覺判定，也不把人工外觀回覆當作它們的通過證據。
+
+### 本輪整合測試與驗收證據
+
+- `dotnet test tools/tests/BrickHigh.Core.Tests.csproj --nologo --verbosity quiet`：最終重跑 131 passed；`dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet`：0 warning、0 error。
+- Unity `-runTests -testPlatform EditMode -assemblyNames BrickHigh.Tests.EditMode`：首輪 `artifacts/test-results/pm-20260927-unity-integrated.xml` 157/159，修正輸入缺字即時檢查及 EditMode 按鈕銷毀時序後 159/159；新增 UT-105 焦點矩陣後 `pm-20260927-unity-final.xml` **163/163**。
+- `python -m pytest -q --junitxml=artifacts/test-results/pm-20260927-python-final.xml`：最終重跑 **192 passed**；其中真 SQLite F-Save 備份、遷移與還原 14 項。四種無選擇／取消／注入失敗／明確確認的 CLI 原始報告在 `artifacts/acceptance/pm-20260927-save/`。
+- 新 Win64 20 件內部包 `artifacts/acceptance/toolchain-20260928T051404-cd46ec63/` 建置成功；`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` 記錄全新隔離安裝、launcher exit 0、Player 操作探針 success 與 382 張真實畫面。這仍為 F-Catalog，`readyAsset=false`／`visualApproved=false`。
+- `git diff --check` 無空白錯誤，只有工作樹既有 LF／CRLF 轉換提示。
+
+### 本輪 Phase 4–5 逐項稽核與進度重算
+
+以 2026-09-27 原 233 項逐項矩陣為基線，重新核對本輪改動所涉及的目錄、錯誤結果、存檔、UI 與 Player 項目；未改動項保留既有逐項證據及缺口。嚴格升格六項：`UT-011`、`UT-058`、`UT-060`、`CT-009`、`CT-011`、`ET-017`；其餘本輪新增測試改善部分證據，但不滿足對應項完整預期，仍保持原狀。結果為 **76/233（32.6%）**，其中 76 符合、123 部分符合、34 未符合；分類為 71 UT、2 IT、2 CT、1 ET。BDD 仍 **5/56（8.9%）**，UX **1/20（5.0%）**，SPEC 完整驗收條款 **2/36（5.6%）**。報告型品質門檻有本機合成正例，但沒有真實 Ready 模型；不能因此提升 SC-004、SC-054 或正式 Preview／Release。使用者接受方向不能替代 ET-020 所需 `visualBaselineId`。
+
+開發與稽核的剩餘主路徑：取得具完整範圍與生產狀態的來源資料 → 為各來源變體建立可追溯模型、reference dimensions、接點／碰撞及外觀／授權覆核 → 逐件 Ready 與正式六視圖基準 → Frozen staging／RuntimeBuild → 合格 Preview／全量 Release → 指定 GTX 1660／i5-10400／16GB／SSD 與故障情境重驗。現有主機為 Intel Iris Xe／i5-13500H／約24GB，僅有本機替代證據。缺少的來源與硬體不以 F-Catalog 或本機 FPS 推定。
+
+關鍵路徑：交接核對 → 可驗證品質與預覽／存檔實作 → 真實 Player／安裝與來源、硬體驗收 → 全項稽核／返工 → PM 接受。共享 Unity 專案、文件與執行環境由主代理排程。主要風險為缺全量來源、逐資產外觀核准、指定效能基準機；觸發時由主代理保留原門檻、記錄本機替代證據和恢復條件，不偽稱達標。
 
 ## 🎯 開發進度總覽
 
-### 2026-09-27 全項稽核結論（目前有效）
+### 2026-09-27 續作前全項稽核基線
 
-本次已逐項核對36個AC、56個BDD場景與233個TDD項目；稽核完成不等於缺漏修復完成。功能開發依使用者要求保持停止，待視覺驗收回饋。
+本次已逐項核對36個AC、56個BDD場景與233個TDD項目；稽核完成不等於缺漏修復完成。下列數值是本輪續作前基線，後續實作與驗證完成後逐項重算。使用者已回覆視覺方向可接受並要求繼續逐件驗證。
 
 TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。這是驗收項目完成率，不是整個MVP或模型資產的完成率。233項中70項已符合、128項部分符合、35項未符合；部分符合不給半分。每列的實作、斷言位置、缺漏、優先級及補測名稱見本文件末尾「2026-09-27 逐項證據矩陣」。
 
@@ -123,20 +205,20 @@ Tab／Shift+Tab新增固定控制順序、跳過不可用項目與清單單一Ta
 
 ```text
 SPEC-001-BrickModelCatalog TDD 開發
-目前工作：全項稽核與文件同步完成；功能開發保持停止
+目前工作：20 件內部 Player 與非外觀驗證完成；Ready 缺口逐件記錄，待使用者外觀檢視
 開始時間／最後稽核／負責人：2026-09-10／2026-09-27／Codex
-進度條：[██████░░░░░░░░░░░░░░] 30.0% (70/233)
+進度條：[███████░░░░░░░░░░░░░] 32.6% (76/233)
 ```
 
 ### 分層進度追蹤
 
 | 測試層級 | 進度 | 已符合 | 部分符合 | 未符合 | 狀態 |
 |---|---|---|---|---|---|
-| 單元測試 | 40.5% | 68/168 | 76 | 24 | 尚有品質與矩陣缺漏 |
+| 單元測試 | 42.3% | 71/168 | 73 | 24 | 尚有品質與矩陣缺漏 |
 | 集成測試 | 6.9% | 2/29 | 24 | 3 | IT-001、IT-013完整符合 |
-| 程式內API契約 | 0.0% | 0/14 | 14 | 0 | 各有部分證據，完整契約未驗收 |
-| E2E／安裝／畫面／效能 | 0.0% | 0/22 | 14 | 8 | 內部Player可操作，正式驗收未完成 |
-| 合計 | 30.0% | 70/233 | 128 | 35 | 163項尚未完整符合 |
+| 程式內API契約 | 14.3% | 2/14 | 12 | 0 | CT-009、CT-011 符合；其餘部分證據 |
+| E2E／安裝／畫面／效能 | 4.5% | 1/22 | 14 | 7 | ET-017 F-Save harness 符合；正式 Player 尚未驗收 |
+| 合計 | 32.6% | 76/233 | 123 | 34 | 157項尚未完整符合 |
 
 一個原始checklist ID只計一次；參數化cases、assertions、文件追溯及部分實作不加分。四層百分比與總百分比四捨五入至小數一位。全項逐列判定見末尾矩陣；既有回歸全綠不等於233項全數通過。
 
@@ -144,9 +226,9 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 | 項目 | 內容 |
 |---|---|
-| 當前階段 | Phase 4現況全項稽核完成；缺漏已回寫，尚未修復結案 |
-| 當前工作 | 本輪只修改文件；功能開發保持停止，待使用者視覺驗收回饋 |
-| 已核對證據 | 9/26 Python173、Unity129及內部8模型Player；未在本輪重跑產品測試 |
+| 當前階段 | 依逐項稽核缺漏續作，增加模型數量並逐件驗證 |
+| 當前工作 | 20 件內部 Player 與機械驗證完成；外觀交使用者判定，非外觀 Ready 缺口由主代理追補 |
+| 已核對證據 | Python192、.NET131、Unity163；20/20 Player 操作、382 張畫面、20/20 模型逐件機械稽核 |
 | 最後更新 | 2026-09-27 |
 | 邊界 | 保留233個原始ID與名稱，不降低完整Preview／Release及實機驗收要求 |
 
@@ -163,11 +245,11 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 | 指標 | 目標 | 目前 |
 |---|---|---|
-| TDD驗收 | 233/233有完整對應證據 | 70/233（30.0%），128部分／35未符合 |
+| TDD驗收 | 233/233有完整對應證據 | 76/233（32.6%），123部分／34未符合 |
 | AC／BDD／TDD逐項現況核對 | 36／56／233全部過表 | 36／56／233已過表；不是全部通過 |
 | 完整AC／BDD／UX | 36／56／20 | 2／5／1；詳SPEC及BDD矩陣 |
 | 全量模型 | A>0、U=0、G=0、V=A及逐件品質 | 未取得完整來源分母與Ready品質閉環 |
-| 原生畫面 | 合格Preview與核准基準 | 8模型內部Player可安裝操作；尚未核准外觀 |
+| 原生畫面 | 合格Preview與核准基準 | 20模型內部Player可安裝操作，提供人工外觀檢視頁；尚未有正式逐件核准 |
 | 效能 | 固定硬體／profile／場景實測 | 正式基準未驗收 |
 | 程式碼覆蓋率 | 實際報告，不能替代驗收 | 未量測 |
 
@@ -370,7 +452,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 - [x] **UT-010** `SnapshotLifecycle_FrozenScope_RejectsMutation` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：Frozen 不允許改分母／證據／分類，修正須新 Draft。
-- [ ] **UT-011** `SnapshotLifecycle_RevisionFlow_RequiresValidation` — @critical
+- [x] **UT-011** `SnapshotLifecycle_RevisionFlow_RequiresValidation` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：建模依 Pending、Building、Validating、Ready 流轉，失敗成 Failed。
 - [x] **UT-012** `SnapshotLifecycle_PublishedContent_IsImmutable` — @critical
@@ -639,13 +721,13 @@ SPEC-001-BrickModelCatalog TDD 開發
 **共同前置**：含非法 enum、無效 UUID、未知有效 UUID 或跨條件 cursor 的查詢。
 **共同動作**：呼叫共用查詢契約；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-058** `VariantQueryValidator_InvalidFilter_ReturnsInvalidQuery` — @critical
+- [x] **UT-058** `VariantQueryValidator_InvalidFilter_ReturnsInvalidQuery` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：非法查詢回 InvalidQuery，找不到的有效 ID 回 VariantNotFound。
 - [x] **UT-059** `VariantQueryValidator_ForeignCursor_ReturnsInvalidCursor` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：跨條件或快照 cursor 回 InvalidCursor，不重設到第一頁。
-- [ ] **UT-060** `VariantQueryValidator_FailureEnvelope_ExcludesSuccess` — @critical
+- [x] **UT-060** `VariantQueryValidator_FailureEnvelope_ExcludesSuccess` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：錯誤與正常值不並存，錯誤中不出現 SQL 或堆疊。
 
@@ -1620,7 +1702,7 @@ SPEC-001-BrickModelCatalog TDD 開發
   - 動作：透過正式 C# 介面呼叫 `Dispose`，或以其 factory／Dispose 操作結果與資源。
   - 預期：每次資源所有權正確結束，不提前卸載共用資產或留掛起UI回呼。
 
-- [ ] **CT-009** `CatalogResult_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-009** `CatalogResult_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-019、SC-020、SC-025、SC-026。
   - 前置：全部已列錯誤碼與 Success 樣本。
   - 動作：透過正式 C# 介面呼叫 `CatalogResult`，或以其 factory／Dispose 操作結果與資源。
@@ -1641,7 +1723,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`game/Assets/BrickHigh/Tests/EditMode/Contract/CT011RiskContractTests.cs`（預計；需真實相依／Player或可重跑驗收harness，不以全部mock取代）。
 
-- [ ] **CT-011** `Downgrade_NewSaveSchema_BlocksWrites` — @critical
+- [x] **CT-011** `Downgrade_NewSaveSchema_BlocksWrites` — @critical
   - 目標／BDD：SC-050；AC-030；SPEC §13.4。
   - 前置：相容、需migration、未知較新schema及bad-content的F-Save與可記錄連線模式的adapter。
   - 動作：呼叫相容性checker並嘗試舊版開啟；另測空requiredModels。
@@ -1851,7 +1933,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`tools/acceptance/tests/test_et_017.py`（預計；需真實相依／Player或可重跑驗收harness，不以全部mock取代）。
 
-- [ ] **ET-017** `RestoreBackup_WithoutExplicitChoice_PreservesNewProgress` — @critical
+- [x] **ET-017** `RestoreBackup_WithoutExplicitChoice_PreservesNewProgress` — @critical
   - 目標／BDD：SC-050；AC-030；SPEC §13.4。
   - 前置：隔離F-Save恢復驗收harness，備份版本/時間與新版進度可辨；不是正式玩家UI。
   - 動作：展示指定提示後依序無選擇、取消、注入還原失敗、明確確認還原。
@@ -1978,9 +2060,9 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 ### Step 1：確認可開發條件
 
-2026-09-27目前完成度為70/233（30.0%），以逐項證據矩陣為準。本輪稽核已完成，功能開發仍依使用者階段停止指示保持停止；以下為恢復開發時的流程。
+2026-09-27目前完成度為76/233（32.6%），以逐項證據矩陣為準。使用者已重新啟動開發，並指定先增加積木建模數量及逐件驗證；以下為本輪持續執行的流程。
 
-先讀取[風險稽核報告](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md)及本文件末尾交接紀錄。原SDD、風險方案及補強SDD均已確認，BDD／TDD回寫完成，規劃狀態為 Ready for well-done。開始實作由使用者另行啟動 well-done；不降低全量、離線或真實畫面門檻。
+先讀取[風險稽核報告](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md)及本文件末尾交接紀錄。原SDD、風險方案及補強SDD均已確認，BDD／TDD回寫完成；使用者本輪已啟動 well-done。不降低全量、離線或真實畫面門檻。
 
 ### Step 2：依 SPEC 的風險優先順序執行
 
@@ -2104,20 +2186,20 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-008／SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:16`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 印刷與材質改變key，重試保留UUID。 | — |
 | UT-009／SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:24`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 矛盾alias拒絕合併並保留原候選／缺口。 | — |
 | UT-010／SC-004 | ✅ 已符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:134` | 直接SQL改分母、證據、分類及G被trigger拒絕；後繼Draft可修正。 | — |
-| UT-011／SC-004 | ⚠️ 部分符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67` | 狀態轉移有檢查，但Ready仍接受布林報告；缺真品質報告驗證。 | 高；`SnapshotLifecycle_RevisionFlow_RequiresValidation_FullContractRegression` |
+| UT-011／SC-004 | ✅ 符合 | `tools/catalog/repository.py:131`；`tools/catalog/quality.py:321`；`tools/catalog/quality.py:357` | `tools/catalog/tests/unit/test_quality_report.py:122`；`tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_snapshot_repository.py:123` | Pending／Building／Validating／Ready／Failed 轉移受控；布林報告遭拒，封存 bytes、人工附件與持久化品質摘要需重驗，隔離合成正例可 Ready；SC-004 整體仍受真實資產缺口限制。 | 本項完成；正式來源逐件審核另追 |
 | UT-012／SC-004 | ✅ 已符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67` | Frozen選件遞增version，Published選件被拒絕。 | — |
-| UT-013／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | 有計數政策與V排除假Ready；缺完整有效品質正例及逐分母核對。 | 高；`CatalogCoveragePolicy_CompleteCounts_PassesGate_FullContractRegression` |
+| UT-013／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:94`；`tools/catalog/quality.py:344`；`tools/catalog/repository.py:187` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | 已有隔離單件合成品質正例且假 Ready 不計 V；仍無真實完整來源分母、全 Active 逐件品質及 V=A 發布正例。 | 高；`CatalogCoveragePolicy_CompleteCounts_PassesGate_FullContractRegression` |
 | UT-014／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | fixture被阻擋；尚無全量逐變體來源／品質報告。 | 高；`CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery_FullContractRegression` |
-| UT-015／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | CLI負例保留head，但所有Ready都報unverifiable-quality-report，缺可成功發布正例。 | 高；`CatalogCoveragePolicy_SingleFailedGate_PreservesHead_FullContractRegression` |
+| UT-015／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:94`；`tools/catalog/quality.py:344`；`tools/catalog/repository.py:187` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | 失敗閘門保留 head、合成 Ready 報告可通過驗證但 fixture-content 仍阻發布；缺全部門檻通過時成功切 head 的正式正例。 | 高；`CatalogCoveragePolicy_SingleFailedGate_PreservesHead_FullContractRegression` |
 | UT-016／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 實際GLB與綁hash的validator已驗；尚缺各代表材質、紋理及警告處置矩陣。 | 高；`ModelValidationService_SelfContainedGltf_AcceptsReport_FullContractRegression` |
 | UT-017／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 拒絕空／外部／非法GLB；無占位件、遺失印刷及粉紅shader完整反例。 | 高；`ModelValidationService_PlaceholderOrMissingMaterial_RejectsReport_FullContractRegression` |
-| UT-018／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 8個內部樣本有Player證據，尚非全部合格RuntimeBuild驗證。 | 高；`ModelValidationService_PlayerValidation_RequiresEveryBuild_FullContractRegression` |
+| UT-018／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `artifacts/acceptance/pm-20260928-interactive-20-a/machine-audit.json`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 20個內部樣本逐件 Player 載入與操作通過，尚非合格 Ready RuntimeBuild 的每件驗證。 | 高；`ModelValidationService_PlayerValidation_RequiresEveryBuild_FullContractRegression` |
 | UT-019／SC-007 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:8`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 指定LDraw點與rootScale=1均有精確斷言。 | — |
 | UT-020／SC-007 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:18`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | Unity點與基底旋轉矩陣精確斷言。 | — |
 | UT-021／SC-007 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 點、切線手性、面序已有單測；真匯入mesh／法向／metadata整組一致未全驗。 | 高；`CoordinatePolicy_AlreadyConvertedMesh_AvoidsSecondMirror_FullContractRegression` |
 | UT-022／SC-008 | ❌ 未符合 | `tools/catalog/metadata_quality.py:58` | `tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 僅檢查connector欄位；尚無跨profile合法配對與自由度規則。 | 高；`ConnectorCompatibility_MatchingProfiles_AllowsPair_FullContractRegression` |
 | UT-023／SC-008 | ❌ 未符合 | `tools/catalog/metadata_quality.py:58` | `tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 尚無保持插接空腔的碰撞配對原型。 | 高；`ConnectorCompatibility_InsertionCavity_RemainsOpen_FullContractRegression` |
-| UT-024／SC-008 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:58` | `tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 空接點／理由檢查已做，尚未接上真正Ready品質閘門。 | 高；`ConnectorCompatibility_RequiredConnector_RejectsMissing_FullContractRegression` |
+| UT-024／SC-008 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:58`；`tools/catalog/quality.py:153` | `tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 空接點／理由檢查已接入 Ready 閘門；仍缺必要接點缺漏時實際 Ready 拒絕的整合負例與真實接點配對。 | 高；`ConnectorCompatibility_RequiredConnector_RejectsMissing_FullContractRegression` |
 | UT-025／SC-009 | ❌ 未符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 有分類欄位，但無六部位相容Basic候選驗證。 | 高；`UsageClassification_BasicSlots_RequiresSixCandidates_FullContractRegression` |
 | UT-026／SC-009 | ❌ 未符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 尚無同系統floor/wall/roof/opening接合候選矩陣。 | 高；`UsageClassification_BuildingRoles_RequiresCompatibleSet_FullContractRegression` |
 | UT-027／SC-009 | ⚠️ 部分符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 缺tier／reason會拒絕；部位、用途、錨點的完整資格缺口尚未驗。 | 高；`UsageClassification_MissingClassification_BlocksReadiness_FullContractRegression` |
@@ -2151,9 +2233,9 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-055／SC-019 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160` | 已有開包typed error；manifest／DB／bundle缺失與hash各類仍未全驗。 | 高；`CatalogStartup_MissingFiles_ReturnTypedErrors_FullContractRegression` |
 | UT-056／SC-019 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160` | 顯示修復文案與DiagnosticId；尚缺由ID定位實際本機診斷紀錄。 | 高；`CatalogStartup_MissingModel_UsesRepairMessage_FullContractRegression` |
 | UT-057／SC-019 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160` | provider不代換資產；缺失敗前後存檔bytes與全部載入錯誤矩陣。 | 高；`CatalogStartup_FailedLoad_PreservesUserData_FullContractRegression` |
-| UT-058／SC-020 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236` | Validator與GetVariant有錯誤碼，未驗非法enum／UUID及未知有效UUID整組。 | 高；`VariantQueryValidator_InvalidFilter_ReturnsInvalidQuery_FullContractRegression` |
+| UT-058／SC-020 | ✅ 符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:99`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:235` | 真 SQLite session 中非法 Purpose／Tier／Slot／Limit 與空 UUID 精確回 InvalidQuery，未知有效 UUID 回 VariantNotFound；聚焦 .NET 測試 1/1 通過。 | 本項完成；SC-020 整體仍部分符合 |
 | UT-059／SC-020 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:286` | 跨條件與另一session cursor明確InvalidCursor，不回首頁。 | — |
-| UT-060／SC-020 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236` | 成功／失敗互斥已驗；Failure(code,message)仍可直傳任意SQL／堆疊文字，未具結果層去敏保證。 | 高；`VariantQueryValidator_FailureEnvelope_ExcludesSuccess_FullContractRegression` |
+| UT-060／SC-020 | ✅ 符合 | `game/Assets/BrickHigh/Domain/CatalogResult.cs:23`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogResultPolicyTests.cs:38`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32` | Success／Failure 互斥，任意 SQL／stack message 無法進入玩家文案；僅准固定審核字串。 | 本項完成；SC-020 整體仍部分符合 |
 | UT-061／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 429尊重Retry-After、至多三次重試、長等待及崩潰後預算持久化。 | — |
 | UT-062／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:45`；`tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 同DB成功候選與完成page保留，失敗不改Active成Retired。 | — |
 | UT-063／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:66`；`tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 憑證由header提供、不存URL／DB；外部失敗status exit4，CLI輸入錯誤另為2。 | — |
@@ -2198,10 +2280,10 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-102／SC-034 | ✅ 已符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:99`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:81`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:45` | 單元層换variant綁定新ModelReference／lease並釋放舊模型，不只改名稱。 | — |
 | UT-103／SC-035 | ✅ 已符合 | `game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewOrbitPolicyTests.cs:69`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewOrbitPolicyTests.cs:55`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewOrbitPolicyTests.cs:37`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewOrbitPolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:110`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:102`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:88`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:40`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57` | 真Camera拖曳／縮放／重設與窄比例取景斷言。 | — |
 | UT-104／SC-035 | ✅ 已符合 | `game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewOrbitPolicyTests.cs:25`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:64`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57` | 文字焦點阻止拖曳、滾輪及鍵盤鏡頭並終止原拖曳。 | — |
-| UT-105／SC-035 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57` | Tab、50列捲動、窄窗與Player選取／旋轉／重設已驗；鍵盤篩選、重試、翻頁尚未全驗。 | 高；`PreviewCameraController_KeyboardNavigation_ReachesControls_FullContractRegression` |
+| UT-105／SC-035 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:26`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:27`；`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` | Tab／Shift+Tab 全控制焦點、Dropdown 離開、Clear Submit、可用 NextPage／Retry 焦點、50列捲動及 Player 選取／旋轉／重設已驗；搜尋／選取／重試／翻頁鍵盤 Submit 到 controller 的完整操作矩陣尚未驗。 | 高；`PreviewCameraController_KeyboardNavigation_ReachesControls_FullContractRegression` |
 | UT-106／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | PBR透明／橡膠政策與樣本可見，未逐變體對照印刷來源。 | 高；`MaterialPreviewPolicy_MaterialAssignment_PreservesAppearance_FullContractRegression` |
 | UT-107／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | Player固定光照有圖，無過曝／缺材質遮蔽的品質正反判定。 | 高；`MaterialPreviewPolicy_LightingPreset_PreservesReadability_FullContractRegression` |
-| UT-108／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | 8樣本有版本與Player畫面，尚非每個交付變體及Editor替代反例的驗收政策。 | 高；`MaterialPreviewPolicy_PlayerEvidence_RequiredForAcceptance_FullContractRegression` |
+| UT-108／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`artifacts/acceptance/pm-20260928-interactive-20-a/machine-audit.json` | 20個內部樣本有包版本與Player畫面，尚非合格交付變體及Editor替代反例的驗收政策。 | 高；`MaterialPreviewPolicy_PlayerEvidence_RequiredForAcceptance_FullContractRegression` |
 | UT-109／SC-037 | ✅ 已符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:116`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117` | 空結果文案、空rows及null model明確斷言。 | — |
 | UT-110／SC-037 | ✅ 已符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:166`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:127`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117` | 空結果保留CanClear，uGUI清除按鈕可用。 | — |
 | UT-111／SC-037 | ✅ 已符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:139`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117` | 清除重置所有條件再查同snapshot，恢復清單。 | — |
@@ -2254,7 +2336,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-158／SC-053 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/SafeContent.cs:11`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:243` | `tools/acceptance/tests/integration/test_it_026.py:10`；`tools/acceptance/tests/integration/test_it_027.py:12`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:32` | 實作每次讀實際bytes，Python同大小mtime反例已驗；新程序／多包／存活lease矩陣未全驗。 | 高；`ValidateCache_ChangedFileIdentity_RequiresHash_FullContractRegression` |
 | UT-159／SC-053 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/SafeContent.cs:11`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:243` | `tools/acceptance/tests/integration/test_it_026.py:10`；`tools/acceptance/tests/integration/test_it_027.py:12`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:32` | C#用verified bytes載bundle且鎖讀，缺真Player hash-to-load barrier競態及profile斷言。 | 高；`LoadVerified_BytesChangedBeforeRead_RejectsUnverifiedContent_FullContractRegression` |
 | UT-160／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 報告明列visualApproved=false；缺核准登錄、baseline digest及改版重審政策。 | 中；`ApproveVisual_NoUserDecision_RemainsUnapproved_FullContractRegression` |
-| UT-161／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 隨包字型／shader有檢查；缺字、印刷鏡像、過曝等完整可見缺陷矩陣未驗。 | 中；`EvaluateVisual_VisibleDefect_FailsAcceptance_FullContractRegression` |
+| UT-161／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:480`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:257`；`artifacts/test-results/pm-20260927-unity-integrated-r2.xml` | 缺字會有可見警示並可清除，隨包字型／shader已有檢查；印刷鏡像、過曝、粉紅 shader 等完整可見缺陷矩陣未驗。 | 中；`EvaluateVisual_VisibleDefect_FailsAcceptance_FullContractRegression` |
 | UT-162／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | native launcher與誠實通用文案已做；無3D／崩潰原生通知的實機證據不齊。 | 中；`DescribeStartup_UnknownCause_UsesHonestNativeMessage_FullContractRegression` |
 | UT-163／SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 目前只保存探索環境，無基準資格判定及不同硬體反例測試。 | 中；`EvaluateBenchmark_DifferentHardware_MarksExploratory_FullContractRegression` |
 | UT-164／SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 無完整凍結BenchmarkProfile及變更失效比對器。 | 中；`CompareBenchmark_ChangedProfile_RejectsMixedResults_FullContractRegression` |
@@ -2268,7 +2350,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | ID／來源 | 狀態 | 實作位置 | 斷言／證據位置 | 判定與未完成原因 | 優先級／建議補測 |
 |---|---|---|---|---|---|
 | IT-001／SC-001、SC-002、SC-003 | ✅ 已符合 | `tools/catalog/importing.py:210`；`tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77`；`tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126`；`tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 真正CLI、來源檔與SQLite涵蓋三場景，FK／hash／alias／日期及rollback反例齊備。 | — |
-| IT-002／SC-004、SC-005、SC-027 | ⚠️ 部分符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26`；`tools/catalog/cli.py:88`；`tools/catalog/repository.py:190`；`tools/catalog/policies.py:94` | `tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67`；`tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196`；`tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | 快照／CAS與拒絕發布已驗；完整品質正例仍以布林fixture代替，正式內容閘門不完整。 | 高；`RunPublishGate_ScenarioMatrix_PreservesContract_FullContractRegression` |
+| IT-002／SC-004、SC-005、SC-027 | ⚠️ 部分符合 | `tools/catalog/repository.py:131`；`tools/catalog/quality.py:321`；`tools/catalog/cli.py:94`；`tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | 快照／CAS、拒絕發布與單件合成報告正例已驗；仍無真實完整 SQLite 全量發布矩陣或成功切 head 正例。 | 高；`RunPublishGate_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-003／SC-006、SC-010、SC-013 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11`；`tools/catalog/building.py:114`；`tools/catalog/render_views.py:15`；`tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 真Blender／validator／六視圖可跑，缺補模與所有代表件完整品質及RuntimeBuild。 | 高；`RunModelPipeline_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-004／SC-007、SC-008、SC-029 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15`；`tools/catalog/metadata_quality.py:58`；`game/Assets/BrickHigh/Domain/Geometry.cs:50` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46`；`game/Assets/BrickHigh/Tests/EditMode/Unit/MetadataValidationPolicyTests.cs:9` | 座標數值與實際非對稱模型已有證據，接點／碰撞及完整匯入矩陣未驗。 | 高；`RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-005／SC-009、SC-031 | ⚠️ 部分符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192` | 分類及讀取過濾局部完成，缺六部位／同系統建材與Special用途完整矩陣。 | 高；`RunUsageProjection_ScenarioMatrix_PreservesContract_FullContractRegression` |
@@ -2283,7 +2365,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | IT-014／SC-030 | ⚠️ 部分符合 | `tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_snapshot_repository.py:67` | 真雙連線CAS已有證據，無head切換前後舊session／實體內容一致性驗證。 | 高；`RunConcurrentPublish_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-015／SC-032、SC-039、SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53`；`game/Assets/BrickHigh/Application/SelectionRequestPolicy.cs:8`；`game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SelectionRequestPolicyTests.cs:17`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:247`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | lease與內部provider探針已驗；慢載入／退出重入的真場景共享資源矩陣不足。 | 高；`RunAssetLifetime_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-016／SC-033、SC-034、SC-035、SC-037、SC-038、SC-040、SC-042 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Application/RetryRequestPolicy.cs:6`；`game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:88`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:31`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:118`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:81`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:45`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/RetryRequestPolicyTests.cs:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:209`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | uGUI與Player操作已有證據；鍵盤篩選／重試、損毀換件及圖形故障矩陣不齊。 | 高；`RunPreviewInteractions_ScenarioMatrix_PreservesContract_FullContractRegression` |
-| IT-017／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | 8樣本畫面存在；缺逐變體來源外觀比對、橡膠差異及核准紀錄。 | 高；`RunVisualVariants_ScenarioMatrix_PreservesContract_FullContractRegression` |
+| IT-017／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 20樣本畫面存在；缺逐變體來源外觀比對、橡膠差異及使用者核准紀錄。 | 高；`RunVisualVariants_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-018／SC-043、SC-044、SC-045、SC-046 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28`；`tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36`；`tools/catalog/tests/unit/test_metadata_quality.py:75` | 無完整效能／記憶體／輪組原型與原始量測。 | 中；`RunPerformanceFixtures_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-019／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 有內部F-Catalog建置，非Ready與使用條件通過的Frozen合格子集。 | 高；`BuildPreview_IncompleteCatalog_LabelsNonRelease_FullContractRegression` |
 | IT-020／SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | validation_builds資料表與helper存在，缺真正BuildValidationContent入口及Unity結果。 | 高；`BuildValidation_FrozenSnapshot_ProducesStagingOnly_FullContractRegression` |
@@ -2309,9 +2391,9 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | CT-006／SC-012、SC-019、SC-024、SC-032 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`tools/catalog/content.py:14`；`game/Assets/BrickHigh/Infrastructure/LocalAddressablesPolicy.cs:11`；`game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`tools/catalog/tests/unit/test_sc_024.py:9`；`tools/catalog/tests/unit/test_ldraw_sources.py:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/LocalAddressablesPolicyTests.cs:42`；`game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159` | 真provider正常／取消已有證據；多包／全部故障／零權益寫入矩陣不足。 | 高；`AcquireAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
 | CT-007／SC-018、SC-025 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:50`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54` | 純checker測schema與missing單引用；缺真adapter完整requiredModels與存檔bytes。 | 高；`Check_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
 | CT-008／SC-032、SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53`；`game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | session／lease可重複Dispose；真退出uGUI與共享資產矩陣不足。 | 高；`Dispose_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
-| CT-009／SC-019、SC-020、SC-025、SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23`；`game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 未參數化所有錯誤碼／retryable／文案；任意message仍能直通結果。 | 高；`CatalogResult_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
+| CT-009／SC-019、SC-020、SC-025、SC-026 | ✅ 符合 | `game/Assets/BrickHigh/Domain/CatalogResult.cs:7`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:67` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogResultPolicyTests.cs:8`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogResultPolicyTests.cs:33` | 全 11 錯誤碼、繁中文案、retryable、診斷 ID、Success／Failure 互斥及任意 message 去敏已參數化驗證；Unity 163/163。 | 本項完成；各 BDD 場景仍依各自端到端門檻計 |
 | CT-010／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | Release拒Preview已測；InitialBucket、profile隔離及改config反例不齊。 | 高；`OpenRelease_PreviewPack_RejectsPackage_FullContractRegression` |
-| CT-011／SC-050 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:15` | 政策寫入資格已有測試，缺真adapter觀測不相容零可寫連線。 | 高；`Downgrade_NewSaveSchema_BlocksWrites_FullContractRegression` |
+| CT-011／SC-050 | ✅ 符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9`；`game/Assets/BrickHigh/Application/SaveOpenCoordinator.cs:38` | `game/Assets/BrickHigh/Tests/EditMode/Contract/CT011RiskContractTests.cs:48`；`game/Assets/BrickHigh/Tests/EditMode/Contract/CT011RiskContractTests.cs:166` | 相容、需 migration、較新 schema、壞內容及空 requiredModels 矩陣已測；真 NativeSqlite F-Save 證明較新 schema 零可寫開啟且 bytes 不變，相容時可寫回讀。 | 本項完成；正式 Player 存檔流程仍待整合 |
 | CT-012／SC-051 | ⚠️ 部分符合 | `tools/catalog/runtime_schema.sql:3`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:270` | pack/schema/腐壞有反例；全部身分逐欄及缺歷史引用矩陣不齊。 | 高；`OpenAsync_ManifestCatalogMismatch_RejectsPack_FullContractRegression` |
 | CT-013／SC-052 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:19`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/AssetProviderInputTests.cs:16` | 部分null/disposed/跨owner與header有測；全部方法及不同requiredModels去重仍缺。 | 高；`QueryAsync_NullOrDisposedSession_ReturnsInvalidQuery_FullContractRegression` |
 | CT-014／SC-052 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:19`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/AssetProviderInputTests.cs:16` | 字面查詢與界線單測已做，契約层255/256/257及4095/4096/4097全矩陣未驗。 | 高；`QueryAsync_OversizedOrLiteralWildcard_ValidatesAndBinds_FullContractRegression` |
@@ -2322,7 +2404,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 |---|---|---|---|---|---|
 | ET-001／SC-033 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:31`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:118` | 內部包可安裝首次啟動；未在無開發工具的乾淨斷網Windows完整驗收。 | 高；`RunOfflineInstall_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-002／SC-034、SC-035、SC-037 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/UnityRuntime/PreviewCameraController.cs:12`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:81`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:45`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewCameraControllerTests.cs:41`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:26`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:57`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:117` | 真Player換件／空結果／鏡頭／鍵盤有證據；所有篩選／鍵盤重試／翻頁尚缺。 | 高；`RunBrowseAndCamera_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
-| ET-003／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:123` | 有8樣本六視圖；缺逐外觀來源比對及材質失敗反例與核准。 | 高；`RunMaterialAcceptance_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
+| ET-003／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 有20樣本六方向Player圖；缺逐外觀來源比對及材質失敗反例與使用者核准。 | 高；`RunMaterialAcceptance_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-004／SC-038、SC-039、SC-040、SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Application/SelectionRequestPolicy.cs:8`；`game/Assets/BrickHigh/Application/RetryRequestPolicy.cs:6`；`game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SelectionRequestPolicyTests.cs:17`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:247`；`game/Assets/BrickHigh/Tests/EditMode/Unit/RetryRequestPolicyTests.cs:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:209`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | presenter與原生探針局部通過，未執行安裝版完整故障／快速切換／重入矩陣。 | 高；`RunRapidSelection_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-005／SC-019、SC-026、SC-042 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86`；`game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:88` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 原生啟動器存在，缺全部故障的原生通知與原profile保留證據。 | 高；`RunStartupFailure_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-006／SC-016、SC-017 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86`；`tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35`；`tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | InstallerCore升級及uninstall保留fixture，缺一般帳號／唯讀安裝與实际重啟完整矩陣。 | 高；`RunInstallUpgradeUninstall_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
@@ -2334,11 +2416,11 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | ET-012／SC-044 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無2026片8幾何固定場景的正式FPS／P95報告。 | 中；`RunFrameBenchmark_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-013／SC-045 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無20模型5輪切換與LRU／記憶體實測。 | 中；`RunMemoryBenchmark_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-014／SC-046 | ❌ 未符合 | `tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `tools/catalog/tests/unit/test_metadata_quality.py:75` | 無輪組坡道／路緣實際Player原型。 | 高；`RunWheelGeometryPrototype_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
-| ET-015／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 內部8樣本可操作；缺合格Ready子集、全部代表類別及Release隔離完整驗收。 | 高；`AcceptPreview_VisibleAssets_DoesNotCompleteFullCatalog_FullContractRegression` |
+| ET-015／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` | 內部20樣本可操作；缺合格Ready子集、全部代表類別及Release隔離完整驗收。 | 高；`AcceptPreview_VisibleAssets_DoesNotCompleteFullCatalog_FullContractRegression` |
 | ET-016／SC-049 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:11`；`tools/installer/InstallerCore.cs:53`；`tools/launcher/Program.cs:14` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:17`；`tools/acceptance/tests/integration/test_install_update.py:184`；`tools/acceptance/tests/integration/test_install_update.py:118` | Preview持鎖啟動與Installer身份已有證據，缺兩代Release/Preview真包交叉升級矩陣。 | 高；`Upgrade_StableProductIdentity_UsesExistingProfile_FullContractRegression` |
-| ET-017／SC-050 | ❌ 未符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:15` | 未建立明確選擇／取消／失敗／確認還原的實際harness。 | 高；`RestoreBackup_WithoutExplicitChoice_PreservesNewProgress_FullContractRegression` |
+| ET-017／SC-050 | ✅ 符合（F-Save harness） | `tools/acceptance/save_fixture_recovery.py:69`；`tools/acceptance/save_fixture_recovery.py:97`；`tools/acceptance/save_fixture_recovery.py:113` | `tools/acceptance/tests/integration/test_save_fixture_recovery.py`；`artifacts/acceptance/pm-20260927-save/` 四種 CLI 報告 | 真 SQLite／WAL 一致備份、失敗 rollback、最後良好備份及無選擇／取消／失敗／確認矩陣 14 項通過；確認前新進度保留，確認後先另存當前進度。正式玩家 UI 不屬本 harness。 | 本項完成；SC-050 正式 UI／schema 仍部分符合 |
 | ET-018／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 隨包Noto與三尺寸可讀性已有證據，缺所有錯誤文案／缺glyph反例及乾淨離線機。 | 中；`Preview_MissingChineseGlyph_FailsVisualCheck_FullContractRegression` |
 | ET-019／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 原生launcher有MessageBox與本機診斷，缺無3D／崩潰故障通知實機證據。 | 中；`Startup_NoGraphicsDevice_ProvidesNativeNotice_FullContractRegression` |
-| ET-020／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:306`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 154張Player畫面可檢視，但visualApproved=false；缺基準核准與缺陷回歸流程。 | 中；`Render_GoldenReferenceMismatch_RequiresReview_FullContractRegression` |
+| ET-020／SC-054 | ⚠️ 部分符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170`；`tools/launcher/Program.cs:86` | `artifacts/acceptance/wd-20260926-interactive-c/PlayerEvidence/frames/`；`artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html` | 使用者先前接受八件內部畫面方向；新20件安裝版畫面已交由使用者自行判斷外觀，主代理不代判。仍無綁定真實 Ready revision 的 `visualBaselineId`、正式核准及缺陷回歸流程，`visualApproved=false` 保持不變。 | 中；`Render_GoldenReferenceMismatch_RequiresReview_FullContractRegression` |
 | ET-021／SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 尚無固定2026片場景與指定或核准硬體的完整原始測量。 | 中；`Benchmark_DifferentHardware_DoesNotClaimBaselinePass_FullContractRegression` |
 | ET-022／SC-055 | ❌ 未符合 | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | `game/Assets/BrickHigh/PreviewEntry/InternalPreviewAcceptance.cs:170` | 未凍結profile，無正確材質首幀及冷暖／穩態分段資料。 | 中；`Benchmark_ChangedPreset_InvalidatesComparison_FullContractRegression` |

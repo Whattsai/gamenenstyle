@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "projectId": "brickhigh-local",
+  "projectRoot": "../..",
+  "runtimeRoot": "C:\\Users\\kola-\\AppData\\Local\\brickhigh-local",
+  "identity": [
+    {
+      "contains": "brickhigh-catalog",
+      "path": "brickhigh/pyproject.toml"
+    }
+  ],
+  "repos": [
+    {
+      "path": ".",
+      "requiredInstructions": [
+        "brickhigh/GEMINI.md",
+        "brickhigh/overview/README.md",
+        "brickhigh/docs/README.md"
+      ],
+      "alias": "main"
+    }
+  ],
+  "skills": {
+    "selected": [
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "bdd-feature-generation"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "bdd-frontend-ux-implementation"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "initial-overview"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "mighty-pm"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "mvp-requirement-generation"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "perfect-plan"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "pre-implementation-risk-gap-audit"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "sdd-specification"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ],
+        "name": "spec-bdd-implementation-deep-audit"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job",
+          "start_dotnet_job",
+          "start_dependency_restore",
+          "get_job",
+          "get_job_summary",
+          "search_job_log",
+          "get_job_errors",
+          "get_job_log_tail",
+          "cancel_job"
+        ],
+        "name": "tdd-development"
+      },
+      {
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job",
+          "start_dotnet_job",
+          "start_dependency_restore",
+          "get_job",
+          "get_job_summary",
+          "search_job_log",
+          "get_job_errors",
+          "get_job_log_tail",
+          "cancel_job"
+        ],
+        "name": "well-done"
+      }
+    ],
+    "roots": [
+      ".agents/skills"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "brickhigh-catalog-validation-restore",
+      "kind": "restore",
+      "alias": "main",
+      "cwd": "brickhigh/tools/catalog",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "ci"
+      ]
+    },
+    {
+      "id": "brickhigh-python-test",
+      "kind": "test",
+      "alias": "main",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-python-tests.js"
+      ],
+      "cwd": "brickhigh"
+    }
+  ],
+  "taskDiscovery": {
+    "packagePaths": [
+      "brickhigh/tools/catalog"
+    ]
+  },
+  "dotnet": {
+    "targets": [
+      {
+        "id": "brickhigh-tools-installer-brickhighinstaller",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/installer/BrickHighInstaller.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "brickhigh-tools-installer-installerharness",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/installer/InstallerHarness.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "brickhigh-tools-launcher-acceptanceharness",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/launcher/AcceptanceHarness.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "brickhigh-tools-launcher-brickhighlauncher",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/launcher/BrickHighLauncher.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "brickhigh-tools-tests-brickhigh-core-compatibility",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/tests/BrickHigh.Core.Compatibility.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "brickhigh-tools-tests-brickhigh-core-tests",
+        "alias": "main",
+        "relativeProjectPath": "brickhigh/tools/tests/BrickHigh.Core.Tests.csproj",
+        "allowedActions": [
+          "build",
+          "test",
+          "restore"
+        ]
+      }
+    ],
+    "executable": "C:\\Program Files\\dotnet\\dotnet.exe",
+    "enabled": true
+  },
+  "modules": {
+    "android": {
+      "enabled": false,
+      "adbExecutable": ""
+    },
+    "offlineMedia": {
+      "args": [],
+      "transcriberExecutable": "",
+      "enabled": false
+    },
+    "web": {
+      "enabled": false,
+      "allowedOrigins": []
+    }
+  },
+  "plugin": {
+    "name": "gamenenstyle-local-workspace"
+  }
+}

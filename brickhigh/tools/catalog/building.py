@@ -172,7 +172,7 @@ def build_catalog(workspace, database, snapshot_id, job_key, plan_key):
         raise CatalogError("製作資料庫位於工作目錄外。")
     ContentPathPolicy.resolve(workspace, database.relative_to(workspace).as_posix())
     _uuid(snapshot_id)
-    with CatalogRepository(database) as repo:
+    with CatalogRepository(database, workspace=workspace) as repo:
         plan = _plan(repo, workspace, snapshot_id, plan_key)
         prepared = prepare_toolchain(workspace, plan)
         with repo.transaction():

@@ -38,6 +38,7 @@ namespace BrickHigh.Presentation
         private GameObject boundInstance;
         private bool ownsEvents;
         private bool disposed;
+        private bool deferExitDestroy;
 
         /// <summary>離開按鈕觸發時，讓外部場景入口接續切換。</summary>
         public event Action ExitRequested;
@@ -79,6 +80,8 @@ namespace BrickHigh.Presentation
         public Text DetailsText { get; private set; }
         /// <summary>載入、空狀態及固定錯誤文案。</summary>
         public Text StatusText { get; private set; }
+        /// <summary>字型缺少或無法確認字形時的可見提示；不代表畫面已核准。</summary>
+        public Text FontWarningText { get; private set; }
         /// <summary>由同包入口提供的來源涵蓋數字與實際子集合數。</summary>
         public Text CoverageText { get; private set; }
 
@@ -117,6 +120,7 @@ namespace BrickHigh.Presentation
             CoverageText.text = "來源 C=" + coverage.C + "  A=" + coverage.A + "  R=" + coverage.R +
                 "  U=" + coverage.U + "  G=" + coverage.G + "  V=" + coverage.V +
                 "\n本包子集合：" + packagedVariantCount + (coverage.ScopeReviewed ? "" : " ・來源範圍待審查");
+            RefreshFontWarning();
         }
 
         /// <summary>依 Presenter 的固定快照狀態更新文字與可操作控制，絕不自行取得資產。</summary>
@@ -239,8 +243,16 @@ namespace BrickHigh.Presentation
             if (camera != null && camera.targetTexture == texture) camera.targetTexture = previousTarget;
             if (modelImage != null) modelImage.texture = null;
             if (texture != null) { texture.Release(); DestroyOwned(texture); texture = null; }
-            if (ownsEvents && events != null) DestroyOwned(events.gameObject);
+            if (ownsEvents && events != null && !deferExitDestroy) DestroyOwned(events.gameObject);
             ExitRequested = null;
+#if UNITY_EDITOR
+            if (deferExitDestroy && !UnityEngine.Application.isPlaying)
+            {
+                var ownedView = gameObject;
+                UnityEditor.EditorApplication.delayCall += () => { if (ownedView != null) Object.DestroyImmediate(ownedView); };
+                return;
+            }
+#endif
             DestroyOwned(gameObject);
         }
 
@@ -308,11 +320,16 @@ namespace BrickHigh.Presentation
             FamilyInput.onEndEdit.AddListener(_ => SubmitSearch(false));
             TierDropdown.onValueChanged.AddListener(_ => SubmitSearch(false));
             SlotDropdown.onValueChanged.AddListener(_ => SubmitSearch(false));
+            SearchInput.onValueChanged.AddListener(_ => RefreshFontWarning());
+            FamilyInput.onValueChanged.AddListener(_ => RefreshFontWarning());
+            TierDropdown.onValueChanged.AddListener(_ => RefreshFontWarning());
+            SlotDropdown.onValueChanged.AddListener(_ => RefreshFontWarning());
             ClearButton.onClick.AddListener(() =>
             {
                 SearchInput.SetTextWithoutNotify(""); FamilyInput.SetTextWithoutNotify("");
                 TierDropdown.SetValueWithoutNotify(0); SlotDropdown.SetValueWithoutNotify(0);
                 submittedQuery = Query();
+                RefreshFontWarning();
                 if (controller != null) Run(() => controller.ClearFiltersAsync());
             });
             NextPageButton.onClick.AddListener(() => { if (controller != null) Run(() => controller.NextPageAsync()); });
@@ -368,7 +385,18 @@ namespace BrickHigh.Presentation
             ExitButton = BottomAction("ExitButton", "離開預覽", .67f, 1);
             RetryButton.onClick.AddListener(() => { if (controller != null) Run(() => controller.RetryAsync()); });
             ResetViewButton.onClick.AddListener(() => cameraInput.ResetView());
-            ExitButton.onClick.AddListener(() => { ExitRequested?.Invoke(); Dispose(); });
+            ExitButton.onClick.AddListener(() => { ExitRequested?.Invoke(); deferExitDestroy = true; Dispose(); });
+
+            var warningPanel = Panel("FontWarning", PreviewPanel, new Color(.48f, .16f, .12f, .96f));
+            warningPanel.anchorMin = Vector2.one; warningPanel.anchorMax = Vector2.one;
+            warningPanel.pivot = Vector2.one; warningPanel.anchoredPosition = new Vector2(-12, -82);
+            warningPanel.sizeDelta = new Vector2(270, 24);
+            warningPanel.GetComponent<Image>().raycastTarget = false;
+            FontWarningText = Label("Label", warningPanel, "", 12, TextAnchor.MiddleCenter);
+            Stretch(FontWarningText.rectTransform, 0, 0, 1, 1);
+            FontWarningText.color = new Color(1f, .91f, .86f);
+            FontWarningText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            warningPanel.gameObject.SetActive(false);
         }
 
         private Button BottomAction(string name, string label, float left, float right)
@@ -454,6 +482,51 @@ namespace BrickHigh.Presentation
                 Guid selected = details.VariantId;
                 button.onClick.AddListener(() => { if (controller != null) Run(() => controller.SelectAsync(selected)); });
                 if (focusedVariant == details.VariantId) events.SetSelectedGameObject(button.gameObject);
+            }
+            RefreshFontWarning();
+        }
+
+        private void RefreshFontWarning()
+        {
+            if (FontWarningText == null) return;
+            var missing = new SortedSet<int>();
+            foreach (var label in GetComponentsInChildren<Text>(true))
+            {
+                if (label == FontWarningText || !label.isActiveAndEnabled || string.IsNullOrEmpty(label.text)) continue;
+                CollectMissingGlyphs(label.text, missing);
+            }
+            // InputField 的顯示 Text 會到稍後才刷新，直接檢查正在輸入的值。
+            if (SearchInput != null) CollectMissingGlyphs(SearchInput.text, missing);
+            if (FamilyInput != null) CollectMissingGlyphs(FamilyInput.text, missing);
+
+            if (missing.Count == 0)
+            {
+                FontWarningText.text = "";
+                FontWarningText.transform.parent.gameObject.SetActive(false);
+                return;
+            }
+
+            int first = missing.Min;
+            string count = missing.Count > 1 ? " (+" + (missing.Count - 1).ToString(CultureInfo.InvariantCulture) + ")" : "";
+            FontWarningText.text = "FONT GLYPH NOT VERIFIED: U+" + first.ToString("X4", CultureInfo.InvariantCulture) + count;
+            FontWarningText.transform.parent.gameObject.SetActive(true);
+        }
+
+        private void CollectMissingGlyphs(string value, SortedSet<int> missing)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            for (int i = 0; i < value.Length; i++)
+            {
+                char current = value[i];
+                if (char.IsControl(current)) continue;
+                int scalar = current;
+                if (char.IsHighSurrogate(current) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
+                {
+                    scalar = char.ConvertToUtf32(current, value[++i]);
+                    // 舊版 uGUI 逐一查詢 UTF-16 字元，無法在此確認增補平面的完整字形。
+                    missing.Add(scalar);
+                }
+                else if (!font.HasCharacter(current)) missing.Add(scalar);
             }
         }
 

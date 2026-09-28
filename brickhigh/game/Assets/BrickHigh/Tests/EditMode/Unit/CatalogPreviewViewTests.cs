@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Linq;
+using System.Reflection;
 using BrickHigh.Application;
 using BrickHigh.Domain;
 using BrickHigh.Presentation;
@@ -9,6 +10,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace BrickHigh.Tests
 {
@@ -43,6 +45,77 @@ namespace BrickHigh.Tests
             Assert.That(events.currentSelectedGameObject, Is.SameAs(view.ExitButton.gameObject));
         }
 
+        /// <summary>Tab離開展開中的款式篩選時收合選項並接續主要控制順序。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-105")]
+        public void KeyboardTab_ExpandedTierFilter_ClosesAndContinuesToSlotFilter()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            var popup = new GameObject("Dropdown List", typeof(RectTransform));
+            popup.transform.SetParent(view.TierDropdown.transform, false);
+            var selectedOption = new GameObject("Option", typeof(RectTransform), typeof(Toggle));
+            selectedOption.transform.SetParent(popup.transform, false);
+            events.SetSelectedGameObject(selectedOption);
+
+            view.AdvanceKeyboardFocus(false);
+
+            Assert.That(events.currentSelectedGameObject, Is.SameAs(view.SlotDropdown.gameObject),
+                "離開款式彈出清單後，Tab 應接續至部位篩選。");
+        }
+
+        /// <summary>結果可翻頁且模型可重試時，Tab 導覽包含清單、下一頁與重試按鈕。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-105")]
+        public void KeyboardTab_AvailablePageAndRetry_TraversesEveryControl()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            Guid snapshot = Guid.NewGuid(), variant = Guid.NewGuid();
+            using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
+            {
+                var details = new VariantDetails(variant, "磚", "System", "Active", BrickTier.Basic,
+                    new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
+                var search = state.BeginSearch(new VariantQuery());
+                state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, "next-cursor")));
+                var load = state.BeginSelect(variant);
+                state.CompleteModel(load, CatalogResult<ModelLease>.Failure(CatalogErrorCode.StorageUnavailable));
+                view.RenderState(state, null);
+
+                Assert.That(view.NextPageButton.interactable, Is.True);
+                Assert.That(view.RetryButton.interactable, Is.True);
+                events.SetSelectedGameObject(null);
+                var expected = new[] { view.SearchInput.gameObject, view.FamilyInput.gameObject,
+                    view.TierDropdown.gameObject, view.SlotDropdown.gameObject,
+                    view.SearchPanel.Find("SearchButton").gameObject, view.ClearButton.gameObject,
+                    view.ResultViewport.content.GetChild(0).gameObject, view.NextPageButton.gameObject,
+                    view.PreviewInput, view.RetryButton.gameObject, view.ResetViewButton.gameObject,
+                    view.ExitButton.gameObject, view.SearchInput.gameObject };
+                foreach (var target in expected)
+                {
+                    view.AdvanceKeyboardFocus(false);
+                    Assert.That(events.currentSelectedGameObject, Is.SameAs(target));
+                }
+                view.AdvanceKeyboardFocus(true);
+                Assert.That(events.currentSelectedGameObject, Is.SameAs(view.ExitButton.gameObject));
+            }
+        }
+
+        /// <summary>以鍵盤 Submit 清除搜尋及兩種篩選條件。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-105")]
+        public void KeyboardSubmit_ClearFilters_ResetsSearchAndFilterControls()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            view.SearchInput.text = "3001";
+            view.FamilyInput.text = "機器人系列";
+            view.TierDropdown.value = 2;
+            view.SlotDropdown.value = 3;
+            events.SetSelectedGameObject(view.ClearButton.gameObject);
+
+            ExecuteEvents.Execute(view.ClearButton.gameObject, new BaseEventData(events), ExecuteEvents.submitHandler);
+
+            Assert.That(view.SearchInput.text, Is.Empty);
+            Assert.That(view.FamilyInput.text, Is.Empty);
+            Assert.That(view.TierDropdown.value, Is.Zero);
+            Assert.That(view.SlotDropdown.value, Is.Zero);
+        }
+
         /// <summary>預覽區方向鍵保留鏡頭控制焦點，不被Button自動導覽搶走。</summary>
         [Test, NUnit.Framework.Property("TDD", "UT-105")]
         public void KeyboardMove_PreviewArea_DoesNotNavigateAwayFromCamera()
@@ -51,6 +124,21 @@ namespace BrickHigh.Tests
             events.SetSelectedGameObject(view.PreviewInput);
             ExecuteEvents.Execute(view.PreviewInput, new AxisEventData(events) { moveDir = MoveDirection.Down }, ExecuteEvents.moveHandler);
             Assert.That(events.currentSelectedGameObject, Is.SameAs(view.PreviewInput));
+        }
+
+        /// <summary>Enter提交目前焦點按鈕並執行退出及畫面資源釋放。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-105"), NUnit.Framework.Property("BDD", "SC-035"), NUnit.Framework.Property("BDD", "SC-041")]
+        public void KeyboardSubmit_ExitButton_RaisesExitAndReleasesView()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            bool exitRequested = false;
+            view.ExitRequested += () => exitRequested = true;
+            events.SetSelectedGameObject(view.ExitButton.gameObject);
+
+            ExecuteEvents.Execute(view.ExitButton.gameObject, new BaseEventData(events), ExecuteEvents.submitHandler);
+
+            Assert.That(exitRequested, Is.True);
+            Assert.That(view.RenderTexture, Is.Null);
         }
 
         /// <summary>實際方向鍵事件能跨越列池，移動到最後一筆且始終完整可見。</summary>
@@ -101,7 +189,7 @@ namespace BrickHigh.Tests
             camera.transform.SetParent(host.transform);
             events = new GameObject("Events", typeof(EventSystem)).GetComponent<EventSystem>();
             events.transform.SetParent(host.transform);
-            font = new Font();
+            font = AssetDatabase.LoadAssetAtPath<Font>("Assets/BrickHigh/Fonts/NotoSansCJKtc-Regular.otf") ?? new Font();
         }
 
         /// <summary>清除測試畫面，不保留任何臨時 RenderTexture。</summary>
@@ -110,7 +198,7 @@ namespace BrickHigh.Tests
         {
             view?.Dispose();
             UnityEngine.Object.DestroyImmediate(host);
-            UnityEngine.Object.DestroyImmediate(font);
+            if (font != null && !AssetDatabase.Contains(font)) UnityEngine.Object.DestroyImmediate(font);
         }
 
         /// <summary>需要外部注入字型，並生成可供鍵盤選取的搜尋、篩選與操作元件。</summary>
@@ -186,6 +274,91 @@ namespace BrickHigh.Tests
                 Assert.That(view.StatusText.text, Does.StartWith("載入失敗，請重試。"));
                 Assert.That(view.StatusText.text, Does.Contain("診斷 ID"));
             }
+        }
+
+        /// <summary>損毀資產顯示固定修復文案與診斷 ID，不顯示例外且不可重試。</summary>
+        [Test, NUnit.Framework.Property("BDD", "SC-038")]
+        public void RenderState_CorruptModel_ShowsRepairHintAndDisablesRetry()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            Guid snapshot = Guid.NewGuid(), variant = Guid.NewGuid();
+            using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
+            {
+                var search = state.BeginSearch(new VariantQuery());
+                var details = new VariantDetails(variant, "模型", "System", "Active", BrickTier.Basic,
+                    new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
+                state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, null)));
+                var load = state.BeginSelect(variant);
+                state.CompleteModel(load, CatalogResult<ModelLease>.Failure(CatalogErrorCode.AssetCorrupt));
+
+                view.RenderState(state, null);
+
+                Assert.That(view.StatusText.text, Does.StartWith("此模型檔案不完整，請使用完整安裝包修復。"));
+                Assert.That(view.StatusText.text, Does.Contain("診斷 ID：" + state.DiagnosticId));
+                Assert.That(view.StatusText.text, Does.Not.Contain("Exception"));
+                Assert.That(view.RetryButton.interactable, Is.False);
+                Assert.That(view.GetComponentInChildren<UnityEngine.UI.RawImage>(true).enabled, Is.False,
+                    "損毀模型不能以占位圖宣稱載入成功。");
+            }
+        }
+
+        /// <summary>搜尋欄位組成同一個貨號、系列、款式與部位查詢。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-100"), NUnit.Framework.Property("BDD", "SC-034")]
+        public void SearchControls_Query_CombinesTextAndAllFilters()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            view.SearchInput.text = "3001";
+            view.FamilyInput.text = "機器人系列";
+            view.TierDropdown.value = 2;
+            view.SlotDropdown.value = 3;
+
+            var queryMethod = typeof(CatalogPreviewView).GetMethod("Query", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(queryMethod, Is.Not.Null);
+            var query = (VariantQuery)queryMethod.Invoke(view, null);
+
+            Assert.That(query.QueryText, Is.EqualTo("3001"));
+            Assert.That(query.Family, Is.EqualTo("機器人系列"));
+            Assert.That(query.Tier, Is.EqualTo(BrickTier.Advanced));
+            Assert.That(query.Slot, Is.EqualTo(CharacterSlot.Hands));
+            Assert.That(query.Limit, Is.EqualTo(50));
+        }
+
+        /// <summary>uGUI 不能確認的 CJK 擴展字不會靜默顯示成成功畫面。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-161"), NUnit.Framework.Property("BDD", "SC-054")]
+        public void RenderState_UnverifiedCjkGlyph_ShowsVisibleFontWarningAndPreservesModelError()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            Guid snapshot = Guid.NewGuid(), variant = Guid.NewGuid();
+            string extendedCjk = char.ConvertFromUtf32(0x2EBF0);
+            using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
+            {
+                var search = state.BeginSearch(new VariantQuery());
+                var details = new VariantDetails(variant, "模型" + extendedCjk, "System", "Active", BrickTier.Basic,
+                    new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
+                state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, null)));
+                var load = state.BeginSelect(variant);
+                state.CompleteModel(load, CatalogResult<ModelLease>.Failure(CatalogErrorCode.AssetCorrupt));
+
+                view.RenderState(state, null);
+
+                Assert.That(view.FontWarningText.isActiveAndEnabled, Is.True);
+                Assert.That(view.FontWarningText.text, Does.Contain("U+2EBF0"));
+                Assert.That(view.StatusText.text, Does.StartWith("此模型檔案不完整，請使用完整安裝包修復。"));
+            }
+        }
+
+        /// <summary>清除搜尋條件後，同步移除由查詢輸入觸發的字型警告。</summary>
+        [Test, NUnit.Framework.Property("TDD", "UT-161"), NUnit.Framework.Property("BDD", "SC-037"), NUnit.Framework.Property("BDD", "SC-054")]
+        public void SearchInput_UnverifiedGlyph_ClearFilters_RemovesWarning()
+        {
+            view = CatalogPreviewView.Create(font, camera, host.transform, events);
+            view.SearchInput.text = char.ConvertFromUtf32(0x2EBF0);
+            Assert.That(view.FontWarningText.isActiveAndEnabled, Is.True);
+
+            view.ClearButton.onClick.Invoke();
+
+            Assert.That(view.SearchInput.text, Is.Empty);
+            Assert.That(view.FontWarningText.isActiveAndEnabled, Is.False);
         }
 
         /// <summary>直式畫面改為上下欄位，離開與重開各持有新的 RenderTexture。</summary>
@@ -341,6 +514,8 @@ namespace BrickHigh.Tests
                 Assert.That(scroll.content.rect.height, Is.GreaterThanOrEqualTo(view.DetailsText.preferredHeight - .5f));
                 Assert.That(view.DetailsText.cachedTextGenerator.characterCountVisible,
                     Is.GreaterThanOrEqualTo(view.DetailsText.text.Length - 1));
+                Assert.That(view.FontWarningText.isActiveAndEnabled, Is.False,
+                    "隨包 Noto 字型必須能顯示本場景中的繁中文字元。");
                 if (width == 1280)
                     Assert.That(scroll.viewport.rect.height, Is.GreaterThanOrEqualTo(view.DetailsText.preferredHeight - .5f),
                         "橫向常用尺寸應直接看見 Unknown 生產狀態。");

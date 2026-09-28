@@ -232,6 +232,32 @@ namespace BrickHigh.Tests
             }
         }
 
+        [Test, Property("TDD", "UT-058")]
+        public async Task VariantQuery_InvalidEnumsAndVariantIds_ReturnSpecifiedError()
+        {
+            var catalog = new BrickCatalog(root, PackageKind.Preview);
+            using (var session = (await catalog.OpenAsync(CancellationToken.None)).Value)
+            {
+                foreach (var invalid in new[]
+                {
+                    new VariantQuery { Purpose = (CatalogPurpose)999 },
+                    new VariantQuery { Tier = (BrickTier)999 },
+                    new VariantQuery { Slot = (CharacterSlot)999 },
+                    new VariantQuery { Limit = 0 }
+                })
+                {
+                    var result = await catalog.QueryAsync(session, invalid, CancellationToken.None);
+                    Assert.That(result.Error?.Code, Is.EqualTo(CatalogErrorCode.InvalidQuery));
+                }
+                Assert.That((await catalog.GetVariantAsync(session, Guid.Empty, CancellationToken.None)).Error?.Code,
+                    Is.EqualTo(CatalogErrorCode.InvalidQuery));
+                var unknown = Guid.NewGuid();
+                while (unknown == Guid.Parse(variant)) unknown = Guid.NewGuid();
+                Assert.That((await catalog.GetVariantAsync(session, unknown, CancellationToken.None)).Error?.Code,
+                    Is.EqualTo(CatalogErrorCode.VariantNotFound));
+            }
+        }
+
         [Test, Property("TDD", "CT-014")]
         public async Task QueryAsync_OversizedOrLiteralWildcard_ValidatesAndBinds()
         {

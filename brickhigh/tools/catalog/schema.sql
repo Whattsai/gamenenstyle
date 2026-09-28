@@ -113,6 +113,27 @@ BEGIN SELECT RAISE(ABORT, '凍結候選僅允許選擇已驗證模型版本。')
 CREATE TRIGGER IF NOT EXISTS revision_ready_update BEFORE UPDATE ON model_revisions
 WHEN OLD.status = 'Ready'
 BEGIN SELECT RAISE(ABORT, 'Ready 模型不可變更。'); END;
+CREATE TRIGGER IF NOT EXISTS revision_ready_requires_quality_report BEFORE UPDATE OF status ON model_revisions
+WHEN NEW.status = 'Ready' AND OLD.status <> 'Ready' AND (
+    json_valid(NEW.validation_json) = 0 OR json_valid(NEW.manifest_json) = 0
+    OR json_extract(NEW.validation_json, '$.quality_passed') IS NOT 1
+    OR json_extract(NEW.validation_json, '$.provenance_passed') IS NOT 1
+    OR length(json_extract(NEW.validation_json, '$.qualityReportSha256')) <> 64
+    OR NOT EXISTS (
+        SELECT 1 FROM json_each(NEW.manifest_json, '$.files')
+        WHERE json_extract(json_each.value, '$.name') = 'quality-report.json'
+          AND json_extract(json_each.value, '$.sha256') = json_extract(NEW.validation_json, '$.qualityReportSha256')
+    )
+    OR NOT EXISTS (SELECT 1 FROM json_each(NEW.manifest_json, '$.files')
+                   WHERE json_extract(json_each.value, '$.name') = 'quality-review.json')
+    OR NOT EXISTS (SELECT 1 FROM json_each(NEW.manifest_json, '$.files')
+                   WHERE json_extract(json_each.value, '$.name') = 'review:geometry-evidence')
+    OR NOT EXISTS (SELECT 1 FROM json_each(NEW.manifest_json, '$.files')
+                   WHERE json_extract(json_each.value, '$.name') = 'review:appearance-evidence')
+    OR NOT EXISTS (SELECT 1 FROM json_each(NEW.manifest_json, '$.files')
+                   WHERE json_extract(json_each.value, '$.name') = 'review:attribution-evidence')
+)
+BEGIN SELECT RAISE(ABORT, 'Ready 模型必須引用完整品質報告及覆核附件。'); END;
 CREATE TRIGGER IF NOT EXISTS revision_ready_delete BEFORE DELETE ON model_revisions
 WHEN OLD.status = 'Ready'
 BEGIN SELECT RAISE(ABORT, 'Ready 模型不可刪除。'); END;
