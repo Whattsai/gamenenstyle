@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "projectId": "REPLACE_WITH_UNIQUE_PROJECT_ID",
+  "projectRoot": "../..",
+  "runtimeRoot": "REPLACE_WITH_ABSOLUTE_PROJECT_RUNTIME_PATH",
+  "identity": [{ "path": "AGENTS.md", "contains": "REPLACE_WITH_TARGET_PROJECT_MARKER" }],
+  "repos": [{ "alias": "main", "path": ".", "requiredInstructions": ["AGENTS.md"] }],
+  "skills": { "roots": [".agents/skills"], "selected": [] },
+  "tasks": [],
+  "dotnet": {
+    "enabled": false,
+    "executable": "",
+    "targets": []
+  },
+  "modules": {
+    "web": { "enabled": false, "allowedOrigins": [] },
+    "android": { "enabled": false, "adbExecutable": "" },
+    "offlineMedia": { "enabled": false, "transcriberExecutable": "", "args": [] }
+  },
+  "plugin": { "name": "REPLACE_WITH_UNIQUE_PLUGIN_NAME" }
+}
