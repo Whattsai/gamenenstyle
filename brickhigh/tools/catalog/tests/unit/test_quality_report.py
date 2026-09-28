@@ -58,7 +58,12 @@ def catalog_fixture(workspace):
     pictures = {name + ".png": png() for name in ("front", "back", "left", "right", "top", "bottom", "preview")}
     metadata = {"schemaVersion": 1, "coordinateProfile": "canonical-rh-metres-v1",
                 "referenceDimensions": [.008, .0096, .004], "boundsMeters": geometry["boundsMeters"],
-                "connectorsRequired": False, "connectors": [], "noConnectorsReason": "裝飾模型無接點"}
+                "connectorsRequired": False, "connectors": [], "compatibilityProfiles": [],
+                "noConnectorsReason": "裝飾模型無接點",
+                "collisionProxy": {"schemaVersion": 1, "coordinateProfile": "canonical-rh-metres-v1",
+                    "evidence": "fixture-collision-review", "shapes": [
+                        {"id": "body", "type": "box", "center": [.004, .0048, -.002], "size": [.008, .0096, .004]}],
+                    "cavityChecks": [], "noCavityReason": "裝飾fixture無接合空腔"}}
     conversion = {"schemaVersion": 1, "purpose": "GeometryProbe", "variantEvidencePending": True,
                   "productionStatus": "Unknown", "qualityPassed": False, "source": {"files": [source_row]},
                   "geometry": geometry, "importerWarnings": [], "materialComparisons": [],

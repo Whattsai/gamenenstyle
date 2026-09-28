@@ -136,6 +136,13 @@ def audit_one(project, package, evidence, catalog, operations, captures, index, 
         if direction not in images:
             issues.append("missing-player-view:" + direction)
 
+    gate2_issues = list(metadata_checks["geometryIssues"])
+    if metadata is None or metadata.get("productionStatus") != "Active":
+        gate2_issues.append("production-status-not-active")
+    if not reference or not reference.get("exactPartNumberMatch"):
+        gate2_issues.append("source-part-crosswalk-unverified")
+    gate2_issues = list(dict.fromkeys(gate2_issues))
+
     return {
         "index": index, "folder": folder, "partNumber": display.get("partNumber"),
         "sourceFilename": conversion["source"]["filename"], "variantId": variant,
@@ -144,21 +151,35 @@ def audit_one(project, package, evidence, catalog, operations, captures, index, 
         "sourceSixViews": source_views.is_file(), "runtimeSixViews": all(x in images for x in SIX_VIEWS),
         "metadataIssues": metadata_checks["geometryIssues"],
         "collisionProxyPresent": bool(metadata and metadata.get("collisionProxy")),
-        "productionStatus": "Unknown", "referencePartMatch": bool(reference and reference.get("exactPartNumberMatch")),
+        "productionStatus": metadata.get("productionStatus") if metadata else "Unknown",
+        "referencePartMatch": bool(reference and reference.get("exactPartNumberMatch")),
         "mechanicalIssues": issues, "mechanicalPass": not issues,
+        "gate2Issues": gate2_issues, "gate2Ready": not gate2_issues,
         "readyAsset": False, "visualApproved": False, "playerImages": images,
     }
 
 
 def write_viewer(output, items):
     rows = ["<!doctype html><html lang='zh-Hant'><meta charset='utf-8'>",
-            "<title>BrickHigh 20 件模型人工外觀檢視</title>",
+            "<title>BrickHigh 20 件模型 Gate 1 / Gate 2 驗證</title>",
             "<style>body{font-family:system-ui;background:#17202c;color:#f5f5f5;max-width:1100px;margin:auto;padding:24px}"
             "img{max-width:46%;margin:4px;border:1px solid #748499}summary{cursor:pointer;padding:12px;background:#283749}"
-            "details{margin:12px 0}p{line-height:1.6}</style>",
-            "<h1>BrickHigh 20 件模型人工外觀檢視</h1>",
-            "<p>以下圖片來自實際安裝的內部 Player。請只判斷模型外觀、材質與光照；其他品質由機器報告記錄。"
-            "本包仍是 F-Catalog，尚未標為 Ready。</p>"]
+            "details{margin:12px 0}p{line-height:1.6}table{width:100%;border-collapse:collapse;margin:18px 0}"
+            "th,td{border:1px solid #526273;padding:8px;text-align:left;vertical-align:top}.ok{color:#75e6a4}.blocked{color:#ffb36b}"
+            "code{white-space:normal}</style>",
+            "<h1>BrickHigh 20 件模型 Gate 1 / Gate 2 驗證</h1>",
+            "<p><strong>Gate 1：</strong>使用者已確認本批 20 件的外觀方向，可繼續。這不等於正式 Ready visualBaselineId。"
+            "<br><strong>Gate 2：</strong>下表只根據可重跑 metadata／來源契約判定；任一 blocker 存在都不得標 Ready。</p>",
+            "<table><thead><tr><th>#</th><th>零件</th><th>Gate 1</th><th>Gate 2</th><th>Gate 2 blockers</th></tr></thead><tbody>"]
+    for item in items:
+        blockers = ", ".join(item["gate2Issues"]) if item["gate2Issues"] else "—"
+        gate2 = "<span class='ok'>Ready</span>" if item["gate2Ready"] else "<span class='blocked'>Blocked</span>"
+        rows.append("<tr>" +
+                    f"<td>{item['index'] + 1:02d}</td>" +
+                    f"<td>{html.escape(item['sourceFilename'])}</td>" +
+                    "<td><span class='ok'>已確認方向</span></td>" +
+                    f"<td>{gate2}</td><td><code>{html.escape(blockers)}</code></td></tr>")
+    rows.append("</tbody></table><h2>實際 Player 畫面</h2>")
     for item in items:
         label = html.escape(f"{item['index'] + 1:02d}. {item['sourceFilename']} — {item['folder']}")
         rows.append(f"<details><summary>{label}</summary>")
@@ -202,7 +223,9 @@ def main():
         "installedLauncher": str(Path(run["installRoot"]) / "BrickHighLauncher.exe"),
         "coverage": coverage, "unityEditMode": "163/163", "python": "192/192", "dotnet": "131/131",
         "mechanicalPassCount": sum(x["mechanicalPass"] for x in items),
+        "gate2ReadyCount": sum(x["gate2Ready"] for x in items),
         "runtimeModelCount": len(operations), "playerFrameCount": len(player["captures"]),
+        "gate1VisualDirectionAccepted": True,
         "readyAsset": False, "visualApproved": False, "items": items,
     }
     (output / "machine-audit.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

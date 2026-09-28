@@ -1,12 +1,12 @@
 # Overview 目錄指引
 
-`overview/` 是 AI 讀取專案現況的主要入口。目前只開發 [SPEC-001-BrickModelCatalog](../docs/specs/SPEC-001-BrickModelCatalog.md)；不是既有模板中的 Web／Docker 應用程式。以下已於2026-09-27完成現況同步；完整驗收進度以 [TDD](../docs/tdd/SPEC-001-BrickModelCatalog-TDD.md) 為準。
+`overview/` 是 AI 讀取專案現況的主要入口。目前只開發 [SPEC-001-BrickModelCatalog](../docs/specs/SPEC-001-BrickModelCatalog.md)；不是既有模板中的 Web／Docker 應用程式。以下已於2026-09-28完成現況同步；完整驗收進度以 [TDD](../docs/tdd/SPEC-001-BrickModelCatalog-TDD.md) 為準。
 
 ## 現有程式與邊界
 
 | 路徑 | 已有內容與限制 |
 |---|---|
-| `game/Assets/BrickHigh/Domain/` | 不引用 UnityEngine 的座標、尺寸、查詢、結果、session 與存檔標頭契約 |
+| `game/Assets/BrickHigh/Domain/` | 不引用 UnityEngine 的座標、尺寸、查詢、結果、session、存檔標頭，以及版本化 connector 配對／簡化插接空腔契約 |
 | `game/Assets/BrickHigh/Application/` | 只讀存檔相容政策、預覽搜尋／分頁／選取／錯誤狀態、單次重試、過期結果釋放與外接球鏡頭政策；不建立人物／庫存資料，不執行還原 |
 | `game/Assets/BrickHigh/Infrastructure/` | SQLite C API、包內 bytes／manifest 索引核對、固定 session 查詢、整組歷史引用 resolver、runtime_files 投影與 Addressables 離線啟動政策 |
 | `game/Assets/BrickHigh/UnityRuntime/` | BrickAssetProvider 私有 locator／實際 bytes 雜湊與記憶體 bundle 載入、主執行緒 ModelLease、CatalogPreviewController 本機預覽協調、PreviewCameraController 的 uGUI／Input System 鏡頭接點與內部 Player 探針；已有Presentation的uGUI繁中畫面，完整UX驗收未完成 |
@@ -59,7 +59,7 @@ dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosit
 npm ci --prefix tools/catalog --ignore-scripts --no-audit --no-fund
 ```
 
-真實 Blender 探針另外需要 `blender` 在 PATH、官方 LDraw library 位於 `artifacts/sources/ldraw-release/ldraw`，以及 ImportLDraw 位於 `artifacts/toolchain/ImportLDraw`、commit 為 `c306fb777a4e0da85492f09d65daf458767a0aa1`。缺任一工具時該探針會明確 skip，不能把 skip 算完成；最近既有回歸（9/26）為Python173 passed／Unity EditMode129 passed，無失敗或略過；9/27只做稽核，沒有重跑產品回歸。測試案例數不等於 TDD checklist 完成數。
+真實 Blender 探針另外需要 `blender` 在 PATH、官方 LDraw library 位於 `artifacts/sources/ldraw-release/ldraw`，以及 ImportLDraw 位於 `artifacts/toolchain/ImportLDraw`、commit 為 `c306fb777a4e0da85492f09d65daf458767a0aa1`。缺任一工具時該探針會明確 skip，不能把 skip 算完成；Gate 2 最新回歸為 Python **195/195 passed**（catalog 聚焦 **159/159**）、.NET core **140/140 passed**、.NET Standard 2.1 build 0 warning／0 error。Unity 前輪 EditMode 證據為163/163；SC-008 增量後本輪兩次重跑都在 Test Runner 前被 Unity Package Manager IPC 啟動逾時阻擋，因此沒有新的 Unity pass/fail 結論。測試案例數不等於 TDD checklist 完成數。
 
 取得與展開 LDraw 來源後，可在**全新輸出目錄**執行幾何探針：
 
@@ -73,7 +73,9 @@ node tools/catalog/validate_glb.cjs artifacts/models/3001-red-new-probe/model.gl
 
 ## 下一個驗收關卡
 
-`well-done`已依使用者要求重新啟動，並固定本階段20件模型的逐件驗證。TDD 76/233（32.6%；71 UT、2 IT、2 CT、1 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。原8件加新12件均通過 GLB／來源雜湊與安裝版逐件載入操作，382張 Player 畫面可在 `artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html` 檢視，安裝入口為 `C:/bh-qa-wd/20260928-20-a/BrickHighLauncher.exe`。使用者只自行確認外觀；尺寸、接點／碰撞、生產狀態與正式 Ready 門檻由主代理記錄及後續處理，目前均未達 Ready。下一關仍為逐件合格品質、完整故障／跨版本矩陣及正式效能／全量。
+`well-done` 已改採「每一階段先形成可操作成果、人工驗收後才進下一階段」的 Gate 流程：Gate 1＝20 件模型目錄瀏覽與外觀／材質／光照驗證；Gate 2＝逐件 Ready 品質（reference dimensions、connectors、collisionProxy、來源與生產狀態）；Gate 3＝Frozen／RuntimeBuild、正式安裝與故障／跨版本矩陣；Gate 4＝全量來源、指定硬體效能與最終深度稽核。未通過前一 Gate，不把後一 Gate 的部分證據提前算完成。
+
+Gate 1 的20件內部 Player 外觀方向已由使用者確認，現在停在 **Gate 2：固定同20件補 Ready 品質**。TDD 仍為 76/233（32.6%；71 UT、2 IT、2 CT、1 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%），Gate 2 readiness 仍為 **0/20 Ready**。collision fail-closed metadata、版本化 connector profile 配對、必要接點與簡化插接空腔已完成純 Domain／Python Green：Python 195/195（catalog 159/159）、.NET core 140/140、.NET Standard 2.1 build 0 warning／0 error；本輪 Unity EditMode 兩次都在 Test Runner 前因 UPM IPC 啟動逾時失敗，因此不把 UT-022～024／IT-004 升格為正式 Unity Green。20件既有382張 Player 畫面仍可在 `artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html` 檢視，Gate 2 缺口則見 `artifacts/acceptance/pm-20260928-interactive-20-a/gate2-readiness-review.html`。下一個可執行技術關卡是恢復 Unity Test Runner 後完成 `IT-004 CoordinateAndConnectors` 的真實 glTF／Collider 配對與逐件接點／碰撞證據；生產 Active、reference dimensions 與正式 Ready 證據仍不得推定。
 
 Unity EditMode 使用 `-batchmode -nographics -projectPath <game絕對路徑> -runTests -testPlatform EditMode -assemblyNames BrickHigh.Tests.EditMode -testResults <新的xml> -logFile <新的log>`。不加 `-quit`，由 Test Runner 結束；只計專案 assembly，不把 Addressables 文件範例測試算進完成度。
 

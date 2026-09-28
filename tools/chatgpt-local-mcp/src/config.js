@@ -68,12 +68,22 @@ export function loadConfig(path = CONFIG_PATH) {
   for (const task of raw.tasks) {
     if (!namePattern.test(task.id ?? '') || taskIds.has(task.id) || !['build','test','restore','skill'].includes(task.kind) || !repos[task.alias]) fail('invalid task');
     taskIds.add(task.id);
+    if (task.purpose !== undefined && (typeof task.purpose !== 'string' || !task.purpose.trim() || task.purpose.length > 300)) fail(`task purpose invalid: ${task.id}`);
     if (!isAbsolute(task.executable ?? '') || !existsSync(task.executable) || /\.(?:cmd|bat|ps1|sh)$/i.test(task.executable) || /^(?:cmd|powershell|pwsh|bash|sh|wsl)\.exe$/i.test(basename(task.executable))) fail(`task executable invalid: ${task.id}`);
     if (!Array.isArray(task.args) || task.args.some(x => typeof x !== 'string' || /(?:password|secret|token|api.?key)=/i.test(x))) fail(`task args invalid: ${task.id}`);
     if (!safeRelative(task.cwd)) fail(`task cwd invalid: ${task.id}`);
     const cwd = realpathSync(resolve(repos[task.alias].root, task.cwd));
     if (!within(repos[task.alias].root, cwd)) fail(`task cwd outside repo: ${task.id}`);
     task.resolvedCwd = cwd;
+    if (task.unity !== undefined) {
+      const unity = task.unity;
+      if (!unity || !isAbsolute(unity.projectPath ?? '') || !within(projectRoot, resolve(unity.projectPath)) || !existsSync(unity.projectPath)) fail(`Unity project invalid: ${task.id}`);
+      if (!isAbsolute(unity.upmExecutable ?? '') || !existsSync(unity.upmExecutable)) fail(`Unity Package Manager executable missing: ${task.id}`);
+      if (!Number.isInteger(unity.timeoutSeconds) || unity.timeoutSeconds < 30 || unity.timeoutSeconds > 7200) fail(`Unity timeout invalid: ${task.id}`);
+      if (!task.args.includes('-projectPath') || task.args[task.args.indexOf('-projectPath') + 1] !== unity.projectPath) fail(`Unity project argument mismatch: ${task.id}`);
+      if (unity.resultsPath !== undefined && (task.args[task.args.indexOf('-testResults') + 1] !== unity.resultsPath || !isAbsolute(unity.resultsPath))) fail(`Unity results argument mismatch: ${task.id}`);
+      if (!task.args.includes('-batchmode')) fail(`Unity batchmode required: ${task.id}`);
+    }
   }
   if (!raw.dotnet || typeof raw.dotnet.enabled !== 'boolean' || !Array.isArray(raw.dotnet.targets)) fail('dotnet settings required');
   if (raw.dotnet.enabled) {

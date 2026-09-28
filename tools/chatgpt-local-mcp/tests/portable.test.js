@@ -27,14 +27,17 @@ async function fixture(){
   await writeFile(join(project,'.agents','skills','demo','SKILL.md'),'---\nname: demo\ndescription: Demonstrate the Quartz workflow.\n---\n\nRead [guide](references/guide.md).\n');
   await writeFile(join(project,'.agents','skills','demo','references','guide.md'),'Quartz guide\n');
   const git=spawnSync('git',['init'],{cwd:project,encoding:'utf8'});assert.equal(git.status,0,git.stderr);
-  const config={schemaVersion:1,projectId:'quartz-local',projectRoot:'../..',runtimeRoot:join(base,'runtime'),identity:[{path:'AGENTS.md',contains:'Quartz project'}],repos:[{alias:'main',path:'.',requiredInstructions:['AGENTS.md']}],skills:{root:'.agents/skills',selected:[{name:'demo',requiredTools:['get_active_workspace_session','resolve_workspace_session','begin_workspace_session','read_workspace_text','apply_workspace_patch','start_project_job']}]},tasks:[{id:'build-demo',kind:'build',alias:'main',executable:process.execPath,args:['-e',"console.log('Quartz build passed')"],cwd:'.'}],dotnet:{enabled:false,executable:'',targets:[]},modules:{web:{enabled:false,allowedOrigins:[]},android:{enabled:false,adbExecutable:''},offlineMedia:{enabled:false,transcriberExecutable:'',args:[]}},plugin:{name:'quartz-local'}};
+  const config={schemaVersion:1,projectId:'quartz-local',projectRoot:'../..',runtimeRoot:join(base,'runtime'),identity:[{path:'AGENTS.md',contains:'Quartz project'}],repos:[{alias:'main',path:'.',requiredInstructions:['AGENTS.md']}],skills:{root:'.agents/skills',selected:[{name:'demo',requiredTools:['get_active_workspace_session','resolve_workspace_session','begin_workspace_session','read_workspace_text','apply_workspace_patch','list_project_tasks','start_project_job']}]},tasks:[{id:'build-demo',purpose:'Build the Quartz demo.',kind:'build',alias:'main',executable:process.execPath,args:['-e',"console.log('Quartz build passed')"],cwd:'.'}],dotnet:{enabled:false,executable:'',targets:[]},modules:{web:{enabled:false,allowedOrigins:[]},android:{enabled:false,adbExecutable:''},offlineMedia:{enabled:false,transcriberExecutable:'',args:[]}},plugin:{name:'quartz-local'}};
   const configPath=join(tool,'config','project.json');await writeFile(configPath,JSON.stringify(config,null,2));
   return {base,project,tool,config,configPath,loaded:loadConfig(configPath)};
 }
 test('copied template uses the target project, enforces gates, and isolates state',async()=>{
   const f=await fixture();try{
     assert.equal(f.loaded.projectId,'quartz-local');assert.ok(!toolNames(f.loaded).has('web_browser_action'));assert.ok(!toolNames(f.loaded).has('android_device_action'));assert.ok(!toolNames(f.loaded).has('transcribe_local_media'));
-    const service=new ProjectService(f.loaded);await service.init();const session=await service.begin(['main']);
+    const service=new ProjectService(f.loaded);await service.init();
+    assert.deepEqual(service.listTasks(),{tasks:[{taskId:'build-demo',purpose:'Build the Quartz demo.',kind:'build',alias:'main'}]});
+    assert.doesNotMatch(JSON.stringify(service.listTasks()),/console\.log|executable|args/);
+    const session=await service.begin(['main']);
     await assert.rejects(service.patch({sessionId:session.id,alias:'main',path:'note.md',expectedSha256:null,createContent:'hello'}),/AGENT_INSTRUCTIONS_NOT_READ/);
     await service.read('main','AGENTS.md',session.id);
     await assert.rejects(service.read('main','tools/chatgpt-local-mcp/config/project.json',session.id),/SERVER_PATH_BLOCKED/);
@@ -175,8 +178,9 @@ test('optional dotnet config validates allowlisted projects and advertises diagn
     for(const name of ['start_dotnet_job','start_dependency_restore','get_job','get_job_summary','search_job_log','get_job_errors','get_job_log_tail','cancel_job'])assert.ok(allToolNames(loaded).has(name));
     assert.equal(buildVstestFilter({type:'fully-qualified-name',operator:'contains',value:'Demo.Tests|Injected'}),'FullyQualifiedName~Demo.Tests\\|Injected');
     const transport=new StdioClientTransport({command:process.execPath,args:[join(template,'src','index.js')],cwd:template,env:{...process.env,PROJECT_MCP_CONFIG:f.configPath},stderr:'pipe'});client=new Client({name:'quartz-dotnet-test',version:'1.0.0'},{capabilities:{}});await client.connect(transport);
-    const tools=(await client.listTools()).tools;for(const name of ['get_active_workspace_session','resolve_workspace_session','start_dotnet_job','get_job','get_job_summary','get_job_errors','search_job_log']){const tool=tools.find(item=>item.name===name);assert.ok(tool,name);assert.ok(tool.outputSchema,`${name} output schema`);}
-    const summaryTool=tools.find(item=>item.name==='get_job_summary');assert.match(summaryTool.description,/poll/i);assert.deepEqual(Object.keys(summaryTool.outputSchema.properties).sort(),['durationMs','exitCode','failureType','status','testSummary']);
+    const tools=(await client.listTools()).tools;for(const name of ['get_active_workspace_session','resolve_workspace_session','list_project_tasks','start_dotnet_job','get_job','get_job_summary','get_job_errors','search_job_log']){const tool=tools.find(item=>item.name===name);assert.ok(tool,name);assert.ok(tool.outputSchema,`${name} output schema`);}
+    const listed=(await client.callTool({name:'list_project_tasks',arguments:{}})).structuredContent;assert.deepEqual(listed.tasks,[{taskId:'build-demo',purpose:'Build the Quartz demo.',kind:'build',alias:'main'}]);assert.equal(tools.find(item=>item.name==='list_project_tasks').annotations.readOnlyHint,true);
+    const summaryTool=tools.find(item=>item.name==='get_job_summary');assert.match(summaryTool.description,/poll/i);assert.deepEqual(Object.keys(summaryTool.outputSchema.properties).sort(),['durationMs','exitCode','failureType','filterSummary','status','testSummary']);
   }finally{await client?.close();await rm(f.base,{recursive:true,force:true});}
 });
 test('template parses multi-project TRX and structured .NET errors',async()=>{
@@ -185,6 +189,22 @@ test('template parses multi-project TRX and structured .NET errors',async()=>{
     await writeFile(join(root,'one.trx'),make('One.Tests','Passed'));await writeFile(join(root,'two.trx'),make('Two.Tests','Failed'));const parsed=await parseTrxDirectory(root);assert.deepEqual({total:parsed.summary.total,passed:parsed.summary.passed,failed:parsed.summary.failed},{total:2,passed:1,failed:1});assert.equal(parsed.failedTests[0].project,'Two.Tests');
     const errors=parseLogErrors('A.cs(2,4): error CS0246: Missing [A.csproj]\nView.razor(3,1): error RZ10012: Bad [Web.csproj]\nerror NU1301: offline\nUnhandled exception. System.Exception: boom');assert.deepEqual(errors.map(x=>x.type),['compiler_error','razor_error','restore_error','runtime_exception']);
   }finally{await rm(root,{recursive:true,force:true});}
+});
+test('successful filtered .NET run with zero tests reports no_tests_matched and the filter',async()=>{
+  const f=await fixture();try{
+    await writeFile(join(f.project,'Demo.Tests.csproj'),'<Project />');
+    f.config.dotnet={enabled:true,executable:process.execPath,targets:[{id:'demo-tests',alias:'main',relativeProjectPath:'Demo.Tests.csproj',allowedActions:['test']}]};
+    await writeFile(f.configPath,JSON.stringify(f.config));
+    const loaded=loadConfig(f.configPath),service=new ProjectService(loaded);await service.init();
+    const dotnet=new DotnetService(loaded,service);await dotnet.init();
+    const filter={type:'name',operator:'equals',value:'NoSuchTest'};
+    const started=await dotnet.start(loaded.dotnet.targets[0],'test',['-e','process.exit(0)','--'],30,filter);
+    let job;for(let i=0;i<50;i++){job=await dotnet.read(started.id);if(job.status!=='running')break;await new Promise(resolve=>setTimeout(resolve,100));}
+    assert.equal(job.status,'failed');assert.equal(job.exitCode,0);assert.equal(job.testSummary.total,0);
+    assert.equal(job.failureType,'no_tests_matched');
+    assert.deepEqual((await dotnet.summary(started.id)).filterSummary,filter);
+    assert.equal((await dotnet.summary(started.id)).failureType,'no_tests_matched');
+  }finally{await rm(f.base,{recursive:true,force:true});}
 });
 test('template job summary is lightweight, bounded, redacted, and optionally records terminal validation',async()=>{
   const f=await fixture();let client;try{

@@ -91,7 +91,8 @@ namespace BrickHigh.Tests
                 db.Execute("INSERT INTO runtime_meta VALUES('minReaderVersion','1')");
                 db.Execute("INSERT INTO runtime_meta VALUES('assetContractVersion','1')");
                 db.Execute("INSERT INTO runtime_snapshots VALUES(?,?,?,?)", snapshot, "2026-09-08T15:59:59Z", "{\"C\":101,\"A\":0,\"R\":0,\"U\":101,\"G\":1,\"V\":0,\"scope_reviewed\":false}", 1);
-                db.Execute("INSERT INTO runtime_profiles VALUES(?,?,?)", snapshot, "System-v1", "{\"pairs\":[[\"stud\",\"tube\"]]}");
+                db.Execute("INSERT INTO runtime_profiles VALUES(?,?,?)", snapshot, "system-stud-v1", "{\"compatibleWith\":[\"system-tube-v1\"],\"degreesOfFreedom\":[\"explicit-fixture-freedom\"]}");
+                db.Execute("INSERT INTO runtime_profiles VALUES(?,?,?)", snapshot, "system-tube-v1", "{\"compatibleWith\":[\"system-stud-v1\"],\"degreesOfFreedom\":[\"explicit-fixture-freedom\"]}");
                 foreach (var file in manifest["files"])
                     db.Execute("INSERT INTO runtime_files VALUES(?,?,?,?)", (string)file["storageKey"], (string)file["sha256"],
                         (long)file["byteLength"], (string)file["kind"]);
@@ -227,7 +228,14 @@ namespace BrickHigh.Tests
                 Assert.That(detail.Value.Name, Is.EqualTo("中文'100%_積木"));
                 Assert.That(detail.Value.Model.RevisionId, Is.EqualTo(Guid.Parse(revision)));
                 Assert.That((await catalog.GetCoverageAsync(session, CancellationToken.None)).Value.U, Is.EqualTo(101));
-                Assert.That((await catalog.GetProfilesAsync(session, CancellationToken.None)).Value.Definitions["System-v1"], Does.Contain("stud"));
+                var profiles = (await catalog.GetProfilesAsync(session, CancellationToken.None)).Value.Definitions;
+                Assert.That(profiles.Keys, Is.EquivalentTo(new[] { "system-stud-v1", "system-tube-v1" }));
+                var stud = JObject.Parse(profiles["system-stud-v1"]);
+                var tube = JObject.Parse(profiles["system-tube-v1"]);
+                Assert.That((string)stud["compatibleWith"][0], Is.EqualTo("system-tube-v1"));
+                Assert.That((string)tube["compatibleWith"][0], Is.EqualTo("system-stud-v1"));
+                Assert.That(stud["degreesOfFreedom"].Values<string>(), Is.Not.Empty);
+                Assert.That(tube["degreesOfFreedom"].Values<string>(), Is.Not.Empty);
                 Assert.That(File.Exists(Path.Combine(root, "catalog.db-wal")), Is.False);
             }
         }

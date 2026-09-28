@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
 
-const result = spawnSync('python.exe', ['-m', 'pytest', '-q'], {
+const suites = {
+  all: ['-m', 'pytest', '-q'],
+  catalog: ['-m', 'pytest', '-q', 'tools/catalog/tests'],
+  acceptance: ['-m', 'pytest', '-q', 'tools/acceptance/tests'],
+};
+const suite = process.argv[2] ?? 'all';
+if (process.argv.length > 3 || !Object.hasOwn(suites, suite)) {
+  process.stderr.write('Unknown fixed Python test suite.\n');
+  process.exit(2);
+}
+const result = spawnSync('python.exe', suites[suite], {
   stdio: 'inherit',
   shell: false,
   windowsHide: true,

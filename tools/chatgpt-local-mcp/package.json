@@ -6,7 +6,7 @@
   "engines": { "node": ">=24 <25" },
   "scripts": {
     "start": "node src/index.js",
-    "check": "node --check src/index.js && node --check src/core.js && node --check src/dotnet.js && node --check scripts/plugin.js && node --check scripts/run-brickhigh-python-tests.js",
+    "check": "node --check src/index.js && node --check src/core.js && node --check src/unity.js && node --check src/dotnet.js && node --check scripts/plugin.js && node --check scripts/run-brickhigh-python-tests.js && node --check scripts/run-brickhigh-player-acceptance.js",
     "test": "node --test tests/*.test.js",
     "plugin:build": "node scripts/plugin.js build",
     "plugin:validate": "node scripts/plugin.js validate"

@@ -37,6 +37,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -58,6 +59,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -79,6 +81,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -100,6 +103,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -121,6 +125,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -142,6 +147,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -163,6 +169,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -184,6 +191,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -205,6 +213,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job"
@@ -226,6 +235,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job",
@@ -255,6 +265,7 @@
           "move_workspace_path",
           "trash_workspace_path",
           "inspect_git_changes",
+          "list_project_tasks",
           "start_project_job",
           "get_project_job",
           "cancel_project_job",
@@ -277,6 +288,7 @@
   "tasks": [
     {
       "id": "brickhigh-catalog-validation-restore",
+      "purpose": "Restore the pinned GLB validator dependency for the Python catalog toolchain.",
       "kind": "restore",
       "alias": "main",
       "cwd": "brickhigh/tools/catalog",
@@ -288,6 +300,7 @@
     },
     {
       "id": "brickhigh-python-test",
+      "purpose": "Run all configured Python pytest catalog and acceptance tests.",
       "kind": "test",
       "alias": "main",
       "executable": "C:\\Program Files\\nodejs\\node.exe",
@@ -295,6 +308,96 @@
         "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-python-tests.js"
       ],
       "cwd": "brickhigh"
+    },
+    {
+      "id": "brickhigh-python-catalog-test",
+      "purpose": "Run Python catalog unit and integration pytest suites.",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-python-tests.js",
+        "catalog"
+      ]
+    },
+    {
+      "id": "brickhigh-python-acceptance-test",
+      "purpose": "Run Python acceptance integration pytest suites.",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-python-tests.js",
+        "acceptance"
+      ]
+    },
+    {
+      "id": "brickhigh-unity-editmode-test",
+      "purpose": "Run Unity EditMode tests and write XML results to artifacts/test-results.",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Unity.com",
+      "unity": {
+        "projectPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "upmExecutable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe",
+        "resultsPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-editmode-results.xml",
+        "timeoutSeconds": 1800
+      },
+      "args": [
+        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-runTests", "-testPlatform", "EditMode", "-testResults", "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-editmode-results.xml",
+        "-logFile", "-"
+      ]
+    },
+    {
+      "id": "brickhigh-unity-playmode-test",
+      "purpose": "Run Unity PlayMode tests; currently no PlayMode test assembly is configured, so verify the result count before treating this as coverage.",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Unity.com",
+      "unity": {
+        "projectPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "upmExecutable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe",
+        "resultsPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-playmode-results.xml",
+        "timeoutSeconds": 1800
+      },
+      "args": [
+        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-runTests", "-testPlatform", "PlayMode", "-testResults", "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-playmode-results.xml",
+        "-logFile", "-"
+      ]
+    },
+    {
+      "id": "brickhigh-unity-player-build",
+      "purpose": "Build the internal F-Catalog Windows Player and installer package through the Unity Editor entrypoint.",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Unity.com",
+      "unity": {
+        "projectPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "upmExecutable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe",
+        "timeoutSeconds": 3600
+      },
+      "args": [
+        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-executeMethod", "BrickHigh.Editor.ToolchainProbeBuild.BuildInteractiveFixture", "-quit", "-logFile", "-"
+      ]
+    },
+    {
+      "id": "brickhigh-unity-player-acceptance",
+      "purpose": "Install the latest internal F-Catalog package into a fresh runtime directory and run the real Player interaction acceptance probe.",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-player-acceptance.js"
+      ]
     }
   ],
   "taskDiscovery": {

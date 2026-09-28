@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile, rename, rm, lstat, realpath, readdir, copyFile, stat } from 'node:fs/promises';
 import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import fg from 'fast-glob';
+import { UnityRunner } from './unity.js';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
 const inside = (root, candidate) => { const rel = relative(root, candidate); return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)); };
@@ -12,7 +13,7 @@ const blockedSegments = new Set(['.git','.vs','.ssh','.gnupg','credentials','sec
 const textExt = new Set(['.md','.txt','.json','.jsonc','.yaml','.yml','.js','.mjs','.cjs','.ts','.tsx','.jsx','.css','.html','.xml','.cs','.csproj','.sln','.sql','.py','.ps1','.sh','.feature','.toml','.ini','.config','.gitignore']);
 const sensitive = name => /^\.env(?:\.|$)/i.test(name) || /(?:^|[-_.])(secret|password|credential|private[-_]?key)(?:[-_.]|$)/i.test(name) || /\.(?:pem|pfx|p12|key)$/i.test(name);
 export function redact(value) { return String(value).replace(/(?:sk|sess|rk|pk)-[A-Za-z0-9_-]{16,}/g,'[REDACTED_KEY]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi,'$1[REDACTED]').replace(/((?:Password|Pwd|AccountKey|SharedAccessSignature)\s*[=:]\s*)[^;\s'\"]+/gi,'$1[REDACTED]').replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]'); }
-export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];return env;}
+export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramData','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];return env;}
 function assertText(path) { if (!textExt.has(extname(path).toLowerCase()) && !textExt.has(basename(path).toLowerCase())) fail('TEXT_TYPE_BLOCKED','unsupported text file'); }
 function normalize(path) {
   if (typeof path !== 'string' || !path || path.includes('\0') || isAbsolute(path) || /^[A-Za-z]:/.test(path)) fail('PATH_NOT_RELATIVE','use a relative path');
@@ -56,7 +57,7 @@ async function command(executable,args,cwd,timeout=30_000) {
 }
 
 export class ProjectService {
-  constructor(config) { this.config=config; this.state=basename(config.runtimeRoot)===config.projectId?config.runtimeRoot:join(config.runtimeRoot,config.projectId); this.children=new Map(); }
+  constructor(config) { this.config=config; this.state=basename(config.runtimeRoot)===config.projectId?config.runtimeRoot:join(config.runtimeRoot,config.projectId); this.children=new Map(); this.unity=new UnityRunner(this); }
   async init() { for (const dir of ['sessions','jobs','logs','trash','artifacts']) await mkdir(join(this.state,dir),{recursive:true}); }
   repo(alias) { const repo=this.config.repos[alias]; if(!repo) fail('UNKNOWN_ALIAS',alias); return repo; }
   sessionPath(id) { if(!/^[0-9a-f-]{36}$/.test(id)) fail('INVALID_SESSION_ID','bad session ID'); return join(this.state,'sessions',`${id}.json`); }
@@ -140,16 +141,25 @@ export class ProjectService {
     if(operation!=='status'&&!safe.length)fail('PATHS_REQUIRED','diff needs explicit paths');
     const args=['-C',repo.root,...(operation==='status'?['status','--short']:['diff',...(operation==='diff-check'?['--check']:[]),'--',...safe])];return command('git',args,repo.root);
   }
+  listTasks() { return {tasks:this.config.tasks.map(task=>({taskId:task.id,purpose:task.purpose??`Configured ${task.kind} task`,kind:task.kind,alias:task.alias}))}; }
   async startJob(sessionId,taskId) {
     const task=this.config.tasks.find(x=>x.id===taskId);if(!task)fail('UNKNOWN_TASK',taskId);
     const session=await this.requireSession(sessionId,task.alias,true);const id=randomUUID(),logPath=join(this.state,'logs',`${id}.txt`),recordPath=join(this.state,'jobs',`${id}.json`);
     const job={id,taskId,kind:task.kind,alias:task.alias,status:'running',started:new Date().toISOString()};await atomicJson(recordPath,job);
+    if(task.unity){
+      void (async()=>{
+        try { await this.unity.run(sessionId,task,job,recordPath); }
+        catch(error){job.status='failed';job.failureType=error.message.startsWith('UNITY_PROJECT_BUSY')?'unity-project-busy':error.message.startsWith('UNITY_PREFLIGHT_MISSING')?'unity-preflight-failure':'unity-infrastructure-failure';job.error=redact(error.message);}
+        finally{job.completed=new Date().toISOString();await atomicJson(recordPath,job);await this.recordValidation(sessionId,{jobId:id,taskId,alias:task.alias,status:job.status,failureType:job.failureType??null}).catch(()=>{});}
+      })();
+      return job;
+    }
     const child=spawn(task.executable,task.args,{cwd:task.resolvedCwd,shell:false,windowsHide:true,env:safeEnvironment()});this.children.set(id,child);
     let output='';const append=chunk=>{output+=chunk;if(output.length>2_000_000){output=output.slice(-2_000_000);child.kill();}};child.stdout.on('data',append);child.stderr.on('data',append);
     child.on('error',async error=>{job.status='failed';job.error=redact(error.message);await atomicJson(recordPath,job);});
     child.on('close',async code=>{this.children.delete(id);job.status=code===0?'succeeded':'failed';job.exitCode=code;job.completed=new Date().toISOString();await writeFile(logPath,redact(output));await atomicJson(recordPath,job);await this.recordValidation(sessionId,{jobId:id,taskId,alias:task.alias,status:job.status}).catch(()=>{});});
     return job;
   }
-  async getJob(id) {if(!/^[0-9a-f-]{36}$/.test(id))fail('INVALID_JOB_ID','invalid job ID');const job=await json(join(this.state,'jobs',`${id}.json`));if(!job)fail('JOB_NOT_FOUND',id);let log='';try{log=await readFile(join(this.state,'logs',`${id}.txt`),'utf8');}catch{}return {...job,logTail:redact(log.slice(-24000))};}
-  async cancelJob(id){const job=await this.getJob(id);this.children.get(id)?.kill();return job;}
+  async getJob(id) {if(!/^[0-9a-f-]{36}$/.test(id))fail('INVALID_JOB_ID','invalid job ID');const job=await json(join(this.state,'jobs',`${id}.json`));if(!job)fail('JOB_NOT_FOUND',id);let log='';try{log=await readFile(job.logPath??join(this.state,'logs',`${id}.txt`),'utf8');}catch{}return {...job,logTail:redact(log.slice(job.logPath?-6000:-24000))};}
+  async cancelJob(id){const job=await this.getJob(id);if(job.status==='running')this.unity.cancel(id);this.children.get(id)?.kill();return job;}
 }

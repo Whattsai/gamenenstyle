@@ -28,6 +28,63 @@ def _bounds(value):
             and all(high > low for low, high in zip(value["min"], value["max"])))
 
 
+def _collision_issues(value, connectors, connectors_required):
+    issues = []
+    if (not isinstance(value, dict) or type(value.get("schemaVersion")) is not int
+            or value.get("schemaVersion") != 1):
+        return ["invalid-collision-proxy"]
+    if value.get("coordinateProfile") != "canonical-rh-metres-v1":
+        issues.append("invalid-collision-coordinate-profile")
+    if not _text(value.get("evidence")):
+        issues.append("missing-collision-evidence")
+
+    shapes = value.get("shapes")
+    if not isinstance(shapes, list) or not shapes:
+        issues.append("missing-collision-shapes")
+    else:
+        seen = set()
+        for shape in shapes:
+            if not isinstance(shape, dict) or not _text(shape.get("id")):
+                issues.append("invalid-collision-shape")
+                continue
+            if shape["id"] in seen:
+                issues.append("duplicate-collision-shape-id")
+            seen.add(shape["id"])
+            kind = shape.get("type")
+            if kind == "box":
+                size = shape.get("size")
+                if not _vector(shape.get("center")) or not _vector(size) or any(not _positive(item) for item in size):
+                    issues.append("invalid-collision-box")
+            elif kind == "convexHull":
+                vertices = shape.get("vertices")
+                if (not isinstance(vertices, list) or len(vertices) < 4 or not all(_vector(vertex) for vertex in vertices)
+                        or len({tuple(vertex) for vertex in vertices}) < 4):
+                    issues.append("invalid-collision-convex-hull")
+            else:
+                issues.append("unsupported-collision-shape")
+
+    cavity_checks = value.get("cavityChecks")
+    if not isinstance(cavity_checks, list):
+        issues.append("missing-cavity-check-contract")
+    elif connectors_required is True:
+        if not cavity_checks:
+            issues.append("missing-cavity-checks")
+        connector_ids = {item.get("id") for item in connectors if isinstance(item, dict) and _text(item.get("id"))}
+        seen = set()
+        for check in cavity_checks:
+            if (not isinstance(check, dict) or not _text(check.get("id")) or not _text(check.get("evidence"))
+                    or check.get("result") != "Pass" or not isinstance(check.get("connectorIds"), list)
+                    or not check["connectorIds"] or any(item not in connector_ids for item in check["connectorIds"])):
+                issues.append("invalid-cavity-check")
+                continue
+            if check["id"] in seen:
+                issues.append("duplicate-cavity-check-id")
+            seen.add(check["id"])
+    elif connectors_required is False and not cavity_checks and not _text(value.get("noCavityReason")):
+        issues.append("missing-no-cavity-reason")
+    return list(dict.fromkeys(issues))
+
+
 def inspect_metadata(metadata, geometry):
     """按公尺及SPEC容差回傳明確缺口；輪組資格與純外觀幾何分開。"""
     geometry_issues, wheel_issues, mass_issues = [], [], []
@@ -86,6 +143,17 @@ def inspect_metadata(metadata, geometry):
                 geometry_issues.append("invalid-connector-position")
             elif math.sqrt(sum((a - b) ** 2 for a, b in zip(position, measured))) > .00005 + 1e-12:
                 geometry_issues.append("connector-position-mismatch")
+
+    profiles = metadata.get("compatibilityProfiles")
+    if not isinstance(profiles, list) or any(not _text(item) for item in profiles) or len(set(profiles)) != len(profiles):
+        geometry_issues.append("invalid-compatibility-profiles")
+    elif isinstance(connectors, list) and connectors:
+        connector_profiles = {item.get("profile") for item in connectors if isinstance(item, dict) and _text(item.get("profile"))}
+        if not connector_profiles.issubset(set(profiles)):
+            geometry_issues.append("missing-connector-compatibility-profile")
+
+    geometry_issues.extend(_collision_issues(metadata.get("collisionProxy"),
+                                             connectors if isinstance(connectors, list) else [], required))
 
     vehicle = metadata.get("vehicleMetadata")
     if vehicle is not None:
