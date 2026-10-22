@@ -1,0 +1,358 @@
+{
+  "schemaVersion": 1,
+  "database": "artifacts/acceptance/gate3-fixed20-staging/catalog.sqlite",
+  "parentSnapshotId": "0218014f-94cc-41a6-907d-11f795567f00",
+  "parentVersion": 42,
+  "parentSelectionDigest": "0692d45f74e2b6e6fcccbe2a66f027da7744545569d5e370aeaee77cd00fca96",
+  "pinnedElements": {
+    "path": "artifacts/sources/rebrickable-20260927/elements.csv.gz",
+    "sha256": "77f09a01495cd0d310c70c815903c873bcb3ce8c34561b8cdf51342c0212cc03"
+  },
+  "cohort": [
+    {
+      "sourceVariantId": "34afe652-e4dd-543f-9149-bd5bfd286518",
+      "sourceRevisionId": "1f66fd3d-49c6-4925-9aad-237e310b022e",
+      "ldrawPart": "3001.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "3001",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "e416641d-cad1-5780-a37f-a07102caf522",
+      "sourceRevisionId": "0b4ce893-0b93-4775-96d8-66365a0bc482",
+      "ldrawPart": "3020.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "3020",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "74f724d0-9b99-534e-8410-d3fe3dd4e017",
+      "sourceRevisionId": "c031722b-2e57-4ef6-a243-1e4aa0164671",
+      "ldrawPart": "3001.dat",
+      "ldrawColour": "47",
+      "family": "System",
+      "pinnedPartNumber": "3001",
+      "pinnedColourId": "47"
+    },
+    {
+      "sourceVariantId": "d1e9b066-6ef6-5337-ac9a-e3c411606ad0",
+      "sourceRevisionId": "e4b9290c-44b5-47b6-9f81-f451085aa3fc",
+      "ldrawPart": "973p06.dat",
+      "ldrawColour": "4",
+      "family": "Minifigure",
+      "pinnedPartNumber": "973p06",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "cfa891ea-26ca-52ea-8e54-b54c1202ea9a",
+      "sourceRevisionId": "d37e4a79-7561-481f-b18b-491bc813e7df",
+      "ldrawPart": "2780.dat",
+      "ldrawColour": "4",
+      "family": "Technic",
+      "pinnedPartNumber": "2780",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "8fe83929-1c22-5645-9efb-a00a9d243c93",
+      "sourceRevisionId": "5450b22f-b5b2-458d-b23e-fb97ad9d7041",
+      "ldrawPart": "3705.dat",
+      "ldrawColour": "4",
+      "family": "Technic",
+      "pinnedPartNumber": "3705",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "d3131551-1e31-5062-afc3-efa8cb3ee9bb",
+      "sourceRevisionId": "2b4ac177-a10c-4143-9e6d-e61b2a316c4d",
+      "ldrawPart": "3437.dat",
+      "ldrawColour": "4",
+      "family": "DUPLO",
+      "pinnedPartNumber": "3437",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "82426d05-9df0-554a-9285-c7d835ae490d",
+      "sourceRevisionId": "ccab9b94-70f4-4a39-8c92-897f8d70cebe",
+      "ldrawPart": "3298.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "3298",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "87159c1f-51b6-51c2-8b41-3912fe3d5b42",
+      "sourceRevisionId": "a69803db-3869-447a-a258-f587f289f686",
+      "ldrawPart": "3700.dat",
+      "ldrawColour": "7",
+      "family": "Technic",
+      "pinnedPartNumber": "3700",
+      "pinnedColourId": "7"
+    },
+    {
+      "sourceVariantId": "cb658f57-dc9f-5a8e-b44a-93694ca46784",
+      "sourceRevisionId": "8ac2fbc7-ac17-48f1-92a3-bdc4b201916c",
+      "ldrawPart": "4032a.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "4032a",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "976589bc-0bf3-5507-aa9d-d1490cc70be2",
+      "sourceRevisionId": "e8528619-39c4-4e87-8e44-6c5967983ccb",
+      "ldrawPart": "3069b.dat",
+      "ldrawColour": "14",
+      "family": "System",
+      "pinnedPartNumber": "3069b",
+      "pinnedColourId": "14"
+    },
+    {
+      "sourceVariantId": "0f886177-a1a7-58fd-9d45-4d5f93246d34",
+      "sourceRevisionId": "b7ee2d19-3af9-4bd7-853d-0ee4fe810b49",
+      "ldrawPart": "4085c.dat",
+      "ldrawColour": "7",
+      "family": "System",
+      "pinnedPartNumber": "4085c",
+      "pinnedColourId": "7"
+    },
+    {
+      "sourceVariantId": "8f772c89-ea39-5d35-a6e9-d22008afd3e5",
+      "sourceRevisionId": "334a7aab-c270-407e-8129-ce2ec3e20288",
+      "ldrawPart": "30374.dat",
+      "ldrawColour": "4",
+      "family": "Technic",
+      "pinnedPartNumber": "30374",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "ff760d4c-435d-519b-9c26-078ef3f80d85",
+      "sourceRevisionId": "b097d138-ff3c-4893-86ae-b646b88ce99d",
+      "ldrawPart": "14417.dat",
+      "ldrawColour": "7",
+      "family": "Technic",
+      "pinnedPartNumber": "14417",
+      "pinnedColourId": "7"
+    },
+    {
+      "sourceVariantId": "0b00cb86-b50d-5145-9aad-37c90400a417",
+      "sourceRevisionId": "b8a915b1-6273-4119-9968-e82c1b7feb7b",
+      "ldrawPart": "14418.dat",
+      "ldrawColour": "7",
+      "family": "Technic",
+      "pinnedPartNumber": "14418",
+      "pinnedColourId": "7"
+    },
+    {
+      "sourceVariantId": "89a743a2-6b8b-5029-af9b-183ff37491b3",
+      "sourceRevisionId": "784ad962-cc4a-4a14-993e-d00a2d26dfa4",
+      "ldrawPart": "11211.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "11211",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "d09412b3-5260-583e-a619-4806f59829fa",
+      "sourceRevisionId": "20a4cd8e-3a24-4c89-8e2e-a8eccaaa9848",
+      "ldrawPart": "2456.dat",
+      "ldrawColour": "14",
+      "family": "System",
+      "pinnedPartNumber": "2456",
+      "pinnedColourId": "14"
+    },
+    {
+      "sourceVariantId": "8459fb53-8d9b-5413-818c-77a50a927015",
+      "sourceRevisionId": "42b0f676-d843-4715-83e2-be2916083607",
+      "ldrawPart": "6060.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "6060",
+      "pinnedColourId": "4"
+    },
+    {
+      "sourceVariantId": "f496a5e3-a0fa-54ca-9e37-29c64f9ee65a",
+      "sourceRevisionId": "13440d3b-f54c-4fc1-98ca-926a66d1534c",
+      "ldrawPart": "3005.dat",
+      "ldrawColour": "14",
+      "family": "System",
+      "pinnedPartNumber": "3005",
+      "pinnedColourId": "14"
+    },
+    {
+      "sourceVariantId": "b6b4efd5-c0f8-534b-b21d-e553108375dc",
+      "sourceRevisionId": "5e9af417-79b6-42e4-a619-a4c2a516a087",
+      "ldrawPart": "6141.dat",
+      "ldrawColour": "4",
+      "family": "System",
+      "pinnedPartNumber": "6141",
+      "pinnedColourId": "4"
+    }
+  ],
+  "sources": [
+    {
+      "manifestPath": "artifacts/sources/gate3-set-10698-identity/exchange-manifest.json",
+      "manifestSha256": "6520df7bb78d09cd9293e9d7eac01676bd574e270d52fd9fa2151b87b82d7708",
+      "setNumber": "10698"
+    },
+    {
+      "manifestPath": "artifacts/sources/gate3-verify-40408-source/exchange-manifest.json",
+      "manifestSha256": "ff2bf75264772c6aff1e9a6778f5e093f81ee266e150e2519db71e68881dea84",
+      "setNumber": "40408"
+    },
+    {
+      "manifestPath": "artifacts/sources/gate3-40875-red-3001/exchange-manifest.json",
+      "manifestSha256": "8eeb23fda1f140a86fe51d74d161f3b160a4dc8d6d568263d00b1fd178c2e61d",
+      "setNumber": "40875"
+    },
+    {
+      "manifestPath": "artifacts/sources/gate3-verify-42210-source/exchange-manifest.json",
+      "manifestSha256": "c26a693468422602186ecec2c6591a27f173f49efb54ffb60fc17341a654196b",
+      "setNumber": "42210"
+    },
+    {
+      "manifestPath": "artifacts/sources/gate3-verify-43269-source/exchange-manifest.json",
+      "manifestSha256": "3214e838961a6a7597d2e0f58368652d0958bf77c807641156e8e21f98d6c14b",
+      "setNumber": "43269"
+    }
+  ],
+  "candidates": [
+    {
+      "sourceVariantId": "34afe652-e4dd-543f-9149-bd5bfd286518",
+      "elementId": "300121",
+      "designId": "3001",
+      "reviewPath": "build-plans/gate3-official-review-300121.json",
+      "reviewSha256": "0b34852bcb284eb63eca437a37655a6a6a80aa2901606a729b4a56fe98018fe0",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-300121/source.bin",
+          "sha256": "e31ba3d2135b09efe186227d2247aa08ecf4982308402340dfe88fb3e880281b",
+          "manifestPath": "artifacts/sources/gate3-official-image-300121/manifest.json",
+          "manifestSha256": "9f842e88e5ffe3f7b55c4bb4bee2c20662101abd38a480840c010a3ccc1b1d34"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "e416641d-cad1-5780-a37f-a07102caf522",
+      "elementId": "302021",
+      "designId": "3020",
+      "reviewPath": "build-plans/gate3-official-review-302021.json",
+      "reviewSha256": "bf7ac5daf0e3ef99914811ecb32d0e5a9ac07c09868c4eba48a0b452faadda74",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-302021/source.bin",
+          "sha256": "b7dab10232d45917740c9b1df72aeaa1571e63187092ee9c907c779b29660ec4",
+          "manifestPath": "artifacts/sources/gate3-official-image-302021/manifest.json",
+          "manifestSha256": "0bb12c9711b44548dfe16f8a3eb04274ace00b0fabadfba4d7f6b55db7bbf89b"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "8fe83929-1c22-5645-9efb-a00a9d243c93",
+      "elementId": "6129995",
+      "designId": "3705",
+      "reviewPath": "build-plans/gate3-official-review-6129995.json",
+      "reviewSha256": "dc1d0591633065ce0e51f8e57102e2f035e2782cc84025ba0d6d40fbe2def25e",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-6129995/source.bin",
+          "sha256": "c096375e61e7639739f9b50857df1b02425a40ea3bdd36a03702d4e8433182b1",
+          "manifestPath": "artifacts/sources/gate3-official-image-6129995/manifest.json",
+          "manifestSha256": "321ea6cdfbd616dbf8ebf692b0733d357b4ec787612c3a2f221c103fb6f2a604"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "82426d05-9df0-554a-9285-c7d835ae490d",
+      "elementId": "329821",
+      "designId": "3298",
+      "reviewPath": "build-plans/gate3-official-review-329821.json",
+      "reviewSha256": "9cc0668c014bf546a7c40152667b3d60dd37a1d177f5769f970e5d26c5b8e893",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-329821/source.bin",
+          "sha256": "cfa7d84475f80e28e29dfe35c6506ea7728d61ff3d652fa28a5ffc64c7c7b414",
+          "manifestPath": "artifacts/sources/gate3-official-image-329821/manifest.json",
+          "manifestSha256": "46c34f00dc1074333eebbc5dcb72a07b059553cccba6965a8c2cfb81f50eada0"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "cb658f57-dc9f-5a8e-b44a-93694ca46784",
+      "elementId": "403221",
+      "designId": "4032",
+      "reviewPath": "build-plans/gate3-official-review-403221.json",
+      "reviewSha256": "8e1ebb12fd6e6edc6ff1803cb1d1571acf453c761ff57ce6c22a6b14da7d9cd3",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-403221/source.bin",
+          "sha256": "8ca73f41b058e24a892af9676c61fb06c24f681c1da2f6cc9dd780cd405b6c6a",
+          "manifestPath": "artifacts/sources/gate3-official-image-403221/manifest.json",
+          "manifestSha256": "058fbeee23275de59394df09f8e0f99d10c3771eb9c96b26e57d53e40e1fcb2b"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "976589bc-0bf3-5507-aa9d-d1490cc70be2",
+      "elementId": "306924",
+      "designId": "3069",
+      "reviewPath": "build-plans/gate3-official-review-306924.json",
+      "reviewSha256": "e1d222f9c0681dc4c84a11e9dcff14c5163994df5f648e3edfd9fdd6848f25b0",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-306924/source.bin",
+          "sha256": "474f4ae2b04f4a117d052c35a3b59ec927231f36f5b2cd8eda589c45436e315d",
+          "manifestPath": "artifacts/sources/gate3-official-image-306924/manifest.json",
+          "manifestSha256": "dbe09df2a384a9627d58f53154a6109b8a51e1967260fdca3caa4092f1496c2b"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "89a743a2-6b8b-5029-af9b-183ff37491b3",
+      "elementId": "6019155",
+      "designId": "11211",
+      "reviewPath": "build-plans/gate3-official-review-6019155.json",
+      "reviewSha256": "ee64e52451acde03887262f85007562dcfb3e3925456fc78884b8905fe2c9d89",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-6019155/source.bin",
+          "sha256": "79a3197ab03acccda58e7c8116046591a0b7becac6265010cf29bea605cbf36f",
+          "manifestPath": "artifacts/sources/gate3-official-image-6019155/manifest.json",
+          "manifestSha256": "5270d24a466b4e137c842f797cc0aa05cbd061d58b725a58f82b9dd2e47a3ff6"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "f496a5e3-a0fa-54ca-9e37-29c64f9ee65a",
+      "elementId": "300524",
+      "designId": "3005",
+      "reviewPath": "build-plans/gate3-official-review-300524.json",
+      "reviewSha256": "ec74542d6e5e65fc2f7f4f7ede3056cd365196442c200b0528150db1fb4aa4f8",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-300524/source.bin",
+          "sha256": "00f362c49d6cc721d6c26af5b35fea849077ee3aac52721e6c9f610666f2c001",
+          "manifestPath": "artifacts/sources/gate3-official-image-300524/manifest.json",
+          "manifestSha256": "ad5df1ba7813f83bda3f73ca950d47bb6ef17ee204fe214fbe9dd5778f2701c9"
+        }
+      ]
+    },
+    {
+      "sourceVariantId": "b6b4efd5-c0f8-534b-b21d-e553108375dc",
+      "elementId": "614121",
+      "designId": "6141",
+      "reviewPath": "build-plans/gate3-official-review-614121.json",
+      "reviewSha256": "918619df7edaf50a69972999f4c3cecce266ee1fcc5d634704ec1a7b8e31b628",
+      "officialEvidence": [
+        {
+          "path": "artifacts/sources/gate3-official-image-614121/source.bin",
+          "sha256": "b77f933338c7a82da406da6df20685da0ca225318e3f1642f1792fc79cb2a9b5",
+          "manifestPath": "artifacts/sources/gate3-official-image-614121/manifest.json",
+          "manifestSha256": "19b2bac95f151b61caa1ccf5bc440ff4c2b0abe0d27ec5ee139e9870520482f2"
+        }
+      ]
+    }
+  ],
+  "validationPlanSha256": "6e45c6a969681306c3acb8ab97e75854756bf6d252426deb3c1f5081487f2852"
+}

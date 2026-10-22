@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 minifig torso attachment-aware compound collision proxy for fixed model 973p06",
+  "validationStatus": "Verified",
+  "folder": "pm-20260923-printed-torso-973p06-color4",
+  "sourcePart": "973p06.dat",
+  "sourceDependencyDigest": "634efc9612150e253659d75fcb3d208ea99cbad185a34d679b858a24a3b09abf",
+  "modelSha256": "652080b9c5690db5a96bf8783b3eca1cc65dcf819d8f021b0ecbcf7b3467af74",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "minifig-arm-pin-v1",
+  "femaleProfile": "minifig-torso-arm-socket-v1",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-minifig-torso-v1",
+  "sockets": [],
+  "proxyBoxes": [
+    {"id": "front-shell", "center": [0.0, -0.004, -0.0035], "size": [0.0152, 0.0176, 0.001]},
+    {"id": "back-shell", "center": [0.0, -0.004, 0.0035], "size": [0.0152, 0.0176, 0.001]},
+    {"id": "lower-left-rail", "center": [-0.0052, -0.0116, 0.0], "size": [0.0048, 0.0024, 0.006]},
+    {"id": "lower-right-rail", "center": [0.0052, -0.0116, 0.0], "size": [0.0048, 0.0024, 0.006]},
+    {"id": "mid-core", "center": [0.0, -0.007, 0.0], "size": [0.008, 0.004, 0.006]},
+    {"id": "neck-post", "center": [0.0, 0.0024, 0.0], "size": [0.0034, 0.0048, 0.0034]}
+  ],
+  "passageChecks": [
+    {"id": "right-arm-socket-passage", "start": [-0.0079, -0.0032, 0.0], "end": [-0.0052, -0.0032, 0.0], "radiusMeters": 0.00125},
+    {"id": "left-arm-socket-passage", "start": [0.0079, -0.0032, 0.0], "end": [0.0052, -0.0032, 0.0], "radiusMeters": 0.00125},
+    {"id": "hips-socket-passage", "start": [0.0, -0.0132, 0.0], "end": [0.0, -0.0101, 0.0], "radiusMeters": 0.0012}
+  ],
+  "solidChecks": [
+    {"id": "neck-post-solid", "connectorIds": ["runtime-minifig-neck-post"], "start": [-0.003, 0.0024, 0.0], "end": [0.003, 0.0024, 0.0], "radiusMeters": 0.00035}
+  ],
+  "specialConnectors": [
+    {
+      "id": "runtime-minifig-right-arm-socket",
+      "family": "minifig-arm",
+      "profile": "minifig-torso-arm-socket-v1",
+      "compatibleProfile": "minifig-arm-pin-v1",
+      "side": "female",
+      "position": [-0.00616, -0.0032, 0.0],
+      "normal": [-1.0, 0.0, 0.0],
+      "tangent": [0.0, 1.0, 0.0],
+      "degreesOfFreedom": ["axial-insert", "axial-rotate"],
+      "passageIds": ["right-arm-socket-passage"],
+      "solidCheckIds": []
+    },
+    {
+      "id": "runtime-minifig-left-arm-socket",
+      "family": "minifig-arm",
+      "profile": "minifig-torso-arm-socket-v1",
+      "compatibleProfile": "minifig-arm-pin-v1",
+      "side": "female",
+      "position": [0.00616, -0.0032, 0.0],
+      "normal": [1.0, 0.0, 0.0],
+      "tangent": [0.0, 1.0, 0.0],
+      "degreesOfFreedom": ["axial-insert", "axial-rotate"],
+      "passageIds": ["left-arm-socket-passage"],
+      "solidCheckIds": []
+    },
+    {
+      "id": "runtime-minifig-neck-post",
+      "family": "minifig-head",
+      "profile": "minifig-neck-post-v1",
+      "compatibleProfile": "minifig-head-socket-v1",
+      "side": "male",
+      "position": [0.0, 0.0024, 0.0],
+      "normal": [0.0, 1.0, 0.0],
+      "tangent": [1.0, 0.0, 0.0],
+      "degreesOfFreedom": ["axial-insert", "axial-rotate"],
+      "passageIds": [],
+      "solidCheckIds": ["neck-post-solid"]
+    },
+    {
+      "id": "runtime-minifig-hips-socket",
+      "family": "minifig-hips",
+      "profile": "minifig-torso-hips-socket-v1",
+      "compatibleProfile": "minifig-hips-post-v1",
+      "side": "female",
+      "position": [0.0, -0.0128, 0.0],
+      "normal": [0.0, -1.0, 0.0],
+      "tangent": [1.0, 0.0, 0.0],
+      "degreesOfFreedom": ["axial-insert"],
+      "passageIds": ["hips-socket-passage"],
+      "solidCheckIds": []
+    }
+  ],
+  "sourceConnectorChecks": [],
+  "evidence": "Unity PlayMode IT-004 job d01424c4-e0cd-41d2-b9a3-ff29d336d983 verified 2026-10-02 against the exact 973p06 model hash: right/left arm socket passages and the hips socket passage all returned actualHit=false/proxyOpen=true, while the neck-post solid probe returned actualHit=true/proxyOpen=false. Attachment origins remain separately pinned to ImportLDraw Parent 973; collision geometry is independent of torso colour/print appearance."
+}

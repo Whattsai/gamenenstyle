@@ -67,6 +67,37 @@ def test_connector_frame_and_reference_position_must_be_valid():
     assert "connector-position-mismatch" in inspect_metadata(broken, geometry())["geometryIssues"]
 
 
+def test_character_attachment_contract_requires_unique_traceable_anchor_positions():
+    value = metadata()
+    value["characterAttachmentsRequired"] = True
+    value["characterAttachments"] = [
+        {"id": "character-head", "slot": "head", "position": [0, .0096, 0],
+         "referencePosition": [0, .0096, 0], "evidence": "pinned-parent-map"},
+        {"id": "character-hips", "slot": "hips", "position": [0, -.0128, 0],
+         "referencePosition": [0, -.0128, 0], "evidence": "pinned-parent-map"},
+    ]
+    assert inspect_metadata(value, geometry())["geometryIssues"] == []
+
+    broken = deepcopy(value)
+    broken["characterAttachments"][1]["slot"] = "head"
+    assert "duplicate-character-attachment-slot" in inspect_metadata(broken, geometry())["geometryIssues"]
+
+    broken = deepcopy(value)
+    broken["characterAttachments"][0]["evidence"] = ""
+    assert "invalid-character-attachment" in inspect_metadata(broken, geometry())["geometryIssues"]
+
+    broken = deepcopy(value)
+    broken["characterAttachments"][0]["position"][0] = .000051
+    assert "character-attachment-position-mismatch" in inspect_metadata(broken, geometry())["geometryIssues"]
+
+
+def test_character_attachment_contract_fails_closed_when_required_but_missing():
+    value = metadata()
+    value["characterAttachmentsRequired"] = True
+    value["characterAttachments"] = []
+    assert "missing-required-character-attachments" in inspect_metadata(value, geometry())["geometryIssues"]
+
+
 def test_collision_proxy_is_required_and_must_use_supported_shapes():
     value = metadata()
     value.pop("collisionProxy")
@@ -96,6 +127,25 @@ def test_required_connectors_need_passing_cavity_pairing_evidence():
     value["collisionProxy"]["cavityChecks"] = [{"id": "stud-clearance", "connectorIds": ["stud-1"],
         "result": "Pass", "evidence": "fixture-pairing-probe"}]
     assert inspect_metadata(value, geometry())["geometryIssues"] == []
+
+
+def test_required_male_connector_can_use_solid_collision_evidence_without_fake_cavity():
+    value = metadata()
+    value["connectorsRequired"] = True
+    value["connectors"] = [{"id": "bar-1", "family": "bar", "profile": "bar-v1",
+        "position": [0, .0048, .008], "referencePosition": [0, .0048, .008], "normal": [0, 1, 0], "tangent": [1, 0, 0],
+        "side": "male", "degreesOfFreedom": ["axial-insert", "axial-rotate"], "evidence": "fixture-bar-geometry"}]
+    value["compatibilityProfiles"] = ["bar-v1", "clip-v1"]
+    value["collisionProxy"]["cavityChecks"] = []
+    value["collisionProxy"].pop("noCavityReason")
+    value["collisionProxy"]["solidChecks"] = [{"id": "bar-body", "connectorIds": ["bar-1"],
+        "start": [0, 0, 0], "end": [0, .0096, 0], "radiusMeters": .0015,
+        "result": "Pass", "evidence": "fixture-bar-solid-probe"}]
+    assert inspect_metadata(value, geometry())["geometryIssues"] == []
+
+    broken = deepcopy(value)
+    broken["collisionProxy"]["solidChecks"][0]["result"] = "Fail"
+    assert "invalid-solid-check" in inspect_metadata(broken, geometry())["geometryIssues"]
 
 
 def test_connector_profile_must_be_declared_in_versioned_compatibility_profiles():

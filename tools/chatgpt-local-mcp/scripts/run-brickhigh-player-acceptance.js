@@ -30,9 +30,9 @@ if (!packagePath || !existsSync(installer)) {
 }
 const runId = randomUUID();
 const outputRoot = resolve(config.runtimeRoot, basename(config.runtimeRoot) === config.projectId ? '' : config.projectId, 'player-acceptance', runId);
-const args = [script, '--package', packagePath, '--installer', installer,
+const args = ['-u', script, '--package', packagePath, '--installer', installer,
   '--install-root', join(outputRoot, 'installed'), '--output', join(outputRoot, 'evidence')];
 process.stdout.write(`Internal F-Catalog package: ${packagePath}\nEvidence: ${join(outputRoot, 'evidence')}\n`);
-const child = spawn('python.exe', args, { cwd: project, shell: false, windowsHide: true, stdio: 'inherit' });
+const child = spawn('python.exe', args, { cwd: project, shell: false, windowsHide: true, stdio: 'inherit', env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1' } });
 child.once('error', error => { process.stderr.write(`${error.message}\n`); process.exitCode = 1; });
 child.once('close', (code, signal) => { process.exitCode = signal ? 1 : (code ?? 1); });

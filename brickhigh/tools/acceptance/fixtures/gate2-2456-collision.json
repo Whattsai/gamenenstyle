@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified logical sockets and compound collision proxy for fixed model 2456",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/2456-colour14",
+  "sourcePart": "2456.dat",
+  "sourceDependencyDigest": "28f66114eb85b587f09ff302a664b864d7d963aeab2ef0e5534d8cb5c51ef648",
+  "modelSha256": "008a34ba64e3ac1b0043ac797c5069f239d29eef2eb4b1d7c54faffb7e461e94",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0074]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [-0.020, -0.0096, -0.004]},
+    {"id": "runtime-socket-002", "position": [-0.020, -0.0096, 0.004]},
+    {"id": "runtime-socket-003", "position": [-0.012, -0.0096, -0.004]},
+    {"id": "runtime-socket-004", "position": [-0.012, -0.0096, 0.004]},
+    {"id": "runtime-socket-005", "position": [-0.004, -0.0096, -0.004]},
+    {"id": "runtime-socket-006", "position": [-0.004, -0.0096, 0.004]},
+    {"id": "runtime-socket-007", "position": [0.004, -0.0096, -0.004]},
+    {"id": "runtime-socket-008", "position": [0.004, -0.0096, 0.004]},
+    {"id": "runtime-socket-009", "position": [0.012, -0.0096, -0.004]},
+    {"id": "runtime-socket-010", "position": [0.012, -0.0096, 0.004]},
+    {"id": "runtime-socket-011", "position": [0.020, -0.0096, -0.004]},
+    {"id": "runtime-socket-012", "position": [0.020, -0.0096, 0.004]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, -0.00195, 0.0], "size": [0.048, 0.0071, 0.016]},
+    {"id": "rib-x-left", "center": [-0.02325, -0.00755, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "rib-x-1", "center": [-0.016, -0.00755, 0.0], "size": [0.003, 0.0041, 0.016]},
+    {"id": "rib-x-2", "center": [-0.008, -0.00755, 0.0], "size": [0.003, 0.0041, 0.016]},
+    {"id": "rib-x-3", "center": [0.0, -0.00755, 0.0], "size": [0.003, 0.0041, 0.016]},
+    {"id": "rib-x-4", "center": [0.008, -0.00755, 0.0], "size": [0.003, 0.0041, 0.016]},
+    {"id": "rib-x-5", "center": [0.016, -0.00755, 0.0], "size": [0.003, 0.0041, 0.016]},
+    {"id": "rib-x-right", "center": [0.02325, -0.00755, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "rib-z-back", "center": [0.0, -0.00755, -0.00725], "size": [0.048, 0.0041, 0.0015]},
+    {"id": "rib-z-mid", "center": [0.0, -0.00755, 0.0], "size": [0.048, 0.0041, 0.003]},
+    {"id": "rib-z-front", "center": [0.0, -0.00755, 0.00725], "size": [0.048, 0.0041, 0.0015]}
+  ],
+  "evidence": "Unity PlayMode IT-004 verified 2026-09-29 against exact 2456 model hash: all twelve logical sockets actualHit=false and compound proxyOpen=true; outside control actualHit=true and proxyOpen=false."
+}

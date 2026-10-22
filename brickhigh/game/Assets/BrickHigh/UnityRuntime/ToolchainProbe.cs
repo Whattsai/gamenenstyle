@@ -210,7 +210,6 @@ namespace BrickHigh.UnityRuntime
                 if (!report.previewRetryVerified) { Finish("PreviewRetryDidNotRecover:" + preview.State.ErrorCode); yield break; }
                 report.previewFlowVerified = selecting.Result && preview.State.Model != null && preview.Instance != null
                     && preview.State.SelectedDetails.Model.SnapshotId == Guid.Parse(SnapshotId)
-                    && preview.State.ProductionStatusText == "生產狀態待查"
                     && preview.Instance.GetComponentsInChildren<MeshFilter>().Sum(x => x.sharedMesh.triangles.Length / 3) == report.triangles;
                 try { VerifyPreviewCamera(preview.Instance); report.previewCameraVerified = true; }
                 catch (Exception e) { Finish("PreviewCamera:" + e.Message); yield break; }

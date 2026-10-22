@@ -85,14 +85,31 @@ namespace BrickHigh.Domain
 
         private static bool SegmentIntersectsExpandedBox(InsertionProbe probe, CollisionBox box)
         {
-            var halfX = box.Size.X / 2 + probe.Radius;
-            var halfY = box.Size.Y / 2 + probe.Radius;
-            var halfZ = box.Size.Z / 2 + probe.Radius;
+            var dx = probe.End.X - probe.Start.X;
+            var dy = probe.End.Y - probe.Start.Y;
+            var dz = probe.End.Z - probe.Start.Z;
+            var insertionAxis = CanonicalInsertionAxis(dx, dy, dz);
+            if (insertionAxis < 0) return true; // 非 canonical 軸向目前沒有足夠證據，fail closed。
+
+            // InsertionProbe 是平端圓柱近似：半徑只擴張插入軸的兩個徑向軸，不能把兩端誤當成半球。
+            var halfX = box.Size.X / 2 + (insertionAxis == 0 ? 0 : probe.Radius);
+            var halfY = box.Size.Y / 2 + (insertionAxis == 1 ? 0 : probe.Radius);
+            var halfZ = box.Size.Z / 2 + (insertionAxis == 2 ? 0 : probe.Radius);
             var tMin = 0d;
             var tMax = 1d;
-            return IntersectsAxis(probe.Start.X, probe.End.X - probe.Start.X, box.Center.X - halfX, box.Center.X + halfX, ref tMin, ref tMax)
-                && IntersectsAxis(probe.Start.Y, probe.End.Y - probe.Start.Y, box.Center.Y - halfY, box.Center.Y + halfY, ref tMin, ref tMax)
-                && IntersectsAxis(probe.Start.Z, probe.End.Z - probe.Start.Z, box.Center.Z - halfZ, box.Center.Z + halfZ, ref tMin, ref tMax);
+            return IntersectsAxis(probe.Start.X, dx, box.Center.X - halfX, box.Center.X + halfX, ref tMin, ref tMax)
+                && IntersectsAxis(probe.Start.Y, dy, box.Center.Y - halfY, box.Center.Y + halfY, ref tMin, ref tMax)
+                && IntersectsAxis(probe.Start.Z, dz, box.Center.Z - halfZ, box.Center.Z + halfZ, ref tMin, ref tMax);
+        }
+
+        private static int CanonicalInsertionAxis(double dx, double dy, double dz)
+        {
+            const double epsilon = 1e-15;
+            var x = Math.Abs(dx) > epsilon;
+            var y = Math.Abs(dy) > epsilon;
+            var z = Math.Abs(dz) > epsilon;
+            if ((x ? 1 : 0) + (y ? 1 : 0) + (z ? 1 : 0) != 1) return -1;
+            return x ? 0 : y ? 1 : 2;
         }
 
         private static bool IntersectsAxis(double origin, double delta, double min, double max, ref double tMin, ref double tMax)

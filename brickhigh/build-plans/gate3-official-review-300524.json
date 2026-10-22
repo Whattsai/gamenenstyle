@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "3005",
+  "elementId": "300524",
+  "ldrawColour": "14",
+  "ldrawPart": "3005.dat",
+  "metadataSha256": "a8e99f776e671a36608e5fc00f9617019316643eb6421a2e11995063627bc9c3",
+  "modelSha256": "0c2bba4a76e6446c9d34db1fd0eb1c9940057fe5a749062c48e5f8ccd28cd185",
+  "mouldEquivalenceReason": "",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-300524/manifest.json",
+      "manifestSha256": "ad5df1ba7813f83bda3f73ca950d47bb6ef17ee204fe214fbe9dd5778f2701c9",
+      "path": "artifacts/sources/gate3-official-image-300524/source.bin",
+      "sha256": "00f362c49d6cc721d6c26af5b35fea849077ee3aac52721e6c9f610666f2c001"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 3005.dat／色碼 14／官方 Element 300524，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "13440d3b-f54c-4fc1-98ca-926a66d1534c"
+}

@@ -84,9 +84,6 @@ namespace BrickHigh.Application
         public CatalogErrorCode? ErrorCode => error?.Code;
         /// <summary>玩家可提供給診斷工具的識別。</summary>
         public string DiagnosticId => error?.Code == CatalogErrorCode.Cancelled ? null : error?.DiagnosticId;
-        /// <summary>未知生產狀態不假稱未停產。</summary>
-        public string ProductionStatusText => SelectedDetails == null ? "" : SelectedDetails.ProductionStatus == "Unknown"
-            ? "生產狀態待查" : SelectedDetails.ProductionStatus == "Active" ? "已確認未停產" : "已停產";
         /// <summary>僅使用固定玩家文案，不轉送來源的任意錯誤字串。</summary>
         public string Message => disposed ? "" : IsLoading ? "正在載入本機模型…"
             : error != null ? (error.Code == CatalogErrorCode.StorageUnavailable ? "載入失敗，請重試。" : CatalogError.Describe(error.Code))
@@ -131,8 +128,7 @@ namespace BrickHigh.Application
             if (!result.IsSuccess) { error = result.Error; return true; }
             var page = result.Value;
             if (page?.Items == null || page.Items.Count > request.Input.Limit || page.Items.Any(x => x == null
-                || x.Model == null || !x.Model.IsValid || x.Model.SnapshotId != snapshot || x.VariantId != x.Model.VariantId
-                || (kind == PackageKind.Preview && x.ProductionStatus == "Retired"))
+                || x.Model == null || !x.Model.IsValid || x.Model.SnapshotId != snapshot || x.VariantId != x.Model.VariantId)
                 || page.Items.Select(x => x.VariantId).Distinct().Count() != page.Items.Count)
             { error = CatalogResult<T>.Failure(CatalogErrorCode.IncompatibleContent).Error; return true; }
             Rows = Array.AsReadOnly(page.Items.ToArray()); nextCursor = page.NextCursor; error = null;

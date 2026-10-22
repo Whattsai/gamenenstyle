@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified System socket, clip/bar passage and compound collision proxy for fixed model 4085c",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/4085c-colour7",
+  "sourcePart": "4085c.dat",
+  "sourceDependencyDigest": "5575b8bb59864920fec609aa55bbc70930c1bbcba14c09ab7c48182710e4700f",
+  "modelSha256": "3fae779da4cc9b71ffe23b0e809ebde870972e7fcdf350854565d85bc45538a4",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-connector-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0034]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [0.0, -0.0032, 0.0]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, 0.00125, 0.0], "size": [0.008, 0.0007, 0.008]},
+    {"id": "ring-left", "center": [-0.00325, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "ring-right", "center": [0.00325, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "ring-back", "center": [0.0, -0.00115, -0.00325], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "ring-front", "center": [0.0, -0.00115, 0.00325], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "clip-left-arm", "center": [-0.00255, -0.0016, 0.0072], "size": [0.0014, 0.0032, 0.0048]},
+    {"id": "clip-right-arm", "center": [0.00255, -0.0016, 0.0072], "size": [0.0014, 0.0032, 0.0048]}
+  ],
+  "passageChecks": [
+    {"id": "clip-bar-opening", "start": [0.0, -0.00305, 0.008], "end": [0.0, -0.00015, 0.008], "radiusMeters": 0.00145}
+  ],
+  "specialConnectors": [
+    {
+      "id": "runtime-clip-001",
+      "family": "clip",
+      "profile": "clip-v1",
+      "compatibleProfile": "bar-v1",
+      "side": "female",
+      "position": [0.0, -0.0016, 0.008],
+      "normal": [0.0, -1.0, 0.0],
+      "tangent": [1.0, 0.0, 0.0],
+      "degreesOfFreedom": ["axial-insert", "axial-rotate"],
+      "passageIds": ["clip-bar-opening"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job ef22d75a-3056-4cdc-8c6a-72ffff7957c8 verified 2026-10-01 against exact 4085c model hash: bottom System socket actualHit=false/proxyOpen=true; clip-bar-opening actualHit=false/proxyOpen=true; outside control actualHit=true/proxyOpen=false. LDraw 4085c.dat references clip2.dat, whose 4 LDU radius opening equals 1.6 mm in canonical metres."
+}

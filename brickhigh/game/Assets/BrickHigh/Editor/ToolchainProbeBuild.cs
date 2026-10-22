@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Linq;
+using Process = System.Diagnostics.Process;
+using ProcessStartInfo = System.Diagnostics.ProcessStartInfo;
 using Newtonsoft.Json.Linq;
 using BrickHigh.Infrastructure;
 using BrickHigh.UnityRuntime;
@@ -49,6 +51,7 @@ namespace BrickHigh.Editor
             string output = Path.Combine(project, "artifacts/acceptance/toolchain-" + id);
             Directory.CreateDirectory(generated);
             Directory.CreateDirectory(output);
+            RecoverIncompleteCatalogFixtures(generated);
             var platform = NamedBuildTarget.Standalone;
             string company = PlayerSettings.companyName, product = PlayerSettings.productName;
             string applicationId = PlayerSettings.GetApplicationIdentifier(platform);
@@ -168,8 +171,16 @@ namespace BrickHigh.Editor
                     if (!sourcePack.StartsWith(allowed, StringComparison.OrdinalIgnoreCase)
                         || !destinationPack.StartsWith(generatedPrefix, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidDataException("人工包移回路徑越界。");
-                    string moveError = AssetDatabase.MoveAsset(packDirectory, generated + "/catalog-fixture");
-                    if (!string.IsNullOrEmpty(moveError)) throw new IOException(moveError);
+                    if (!Directory.Exists(sourcePack)) throw new DirectoryNotFoundException("人工包來源目錄不存在。");
+                    if (Directory.Exists(destinationPack)) throw new IOException("人工包目的目錄已存在。");
+                    Directory.Move(sourcePack, destinationPack);
+                    string sourceMeta = sourcePack.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + ".meta";
+                    string destinationMeta = destinationPack.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + ".meta";
+                    if (File.Exists(sourceMeta))
+                    {
+                        if (File.Exists(destinationMeta)) throw new IOException("人工包目的 meta 已存在。");
+                        File.Move(sourceMeta, destinationMeta);
+                    }
                 }
                 PlayerSettings.companyName = company;
                 PlayerSettings.productName = product;
@@ -191,7 +202,38 @@ namespace BrickHigh.Editor
             }
         }
 
-        // 人工 F-Catalog 僅驗證 adapter；刻意保留 Unknown／非 Ready，不進入發布流程。
+        private static void RecoverIncompleteCatalogFixtures(string generated)
+        {
+            const string catalogRoot = "Assets/StreamingAssets/Catalog";
+            if (!Directory.Exists(catalogRoot)) return;
+            string allowedSource = Path.GetFullPath(catalogRoot) + Path.DirectorySeparatorChar;
+            string allowedDestination = Path.GetFullPath(generated) + Path.DirectorySeparatorChar;
+            foreach (string source in Directory.GetDirectories(catalogRoot, "p*", SearchOption.TopDirectoryOnly))
+            {
+                // 完整 catalog 有 release-manifest；只有建置中斷留下的 DB 半成品才移到 recovery 區保存。
+                if (File.Exists(Path.Combine(source, "release-manifest.json")) || !File.Exists(Path.Combine(source, "catalog.db"))) continue;
+                string name = Path.GetFileName(source.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                string destination = generated + "/recovered-incomplete-catalog-" + name;
+                string sourceFull = Path.GetFullPath(source);
+                string destinationFull = Path.GetFullPath(destination);
+                if (!sourceFull.StartsWith(allowedSource, StringComparison.OrdinalIgnoreCase)
+                    || !destinationFull.StartsWith(allowedDestination, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("殘缺人工 catalog recovery 路徑越界。");
+                if (Directory.Exists(destinationFull)) throw new IOException("殘缺人工 catalog recovery 目的目錄已存在。");
+                Directory.Move(sourceFull, destinationFull);
+                string sourceMeta = sourceFull.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + ".meta";
+                string destinationMeta = destinationFull.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + ".meta";
+                if (File.Exists(sourceMeta))
+                {
+                    if (File.Exists(destinationMeta)) throw new IOException("殘缺人工 catalog recovery 目的 meta 已存在。");
+                    File.Move(sourceMeta, destinationMeta);
+                }
+                Debug.Log("BRICKHIGH_RECOVERED_INCOMPLETE_CATALOG " + name);
+            }
+            AssetDatabase.Refresh();
+        }
+
+        // 人工 F-Catalog 僅驗證 adapter；刻意保持非 Ready，不進入發布流程。
         private static void CreateReadFixture(string project, string packDirectory, ToolchainProbe probe, string[] modelSources)
         {
             probe.SnapshotId = Guid.NewGuid().ToString();
@@ -214,13 +256,13 @@ namespace BrickHigh.Editor
             LocalAddressablesPolicy.Validate(File.ReadAllText(Path.Combine(buildPath, "settings.json")),
                 files.Where(x => (string)x["kind"] == "LocalCatalog").Select(x => (string)x["storageKey"]));
             string lockDigest = SafeContent.Hash(File.ReadAllBytes("Packages/packages-lock.json"));
-            string buildId = Guid.NewGuid().ToString();
             var manifest = new JObject {
                 ["purpose"] = "F-Catalog", ["readyAsset"] = false, ["packId"] = probe.PackId,
                 ["appVersion"] = "0.0.0-probe", ["editorVersion"] = UnityEngine.Application.unityVersion, ["readerVersion"] = 1,
                 ["currentSnapshotId"] = probe.SnapshotId, ["catalogSchemaVersion"] = 1, ["assetContractVersion"] = 1,
                 ["applicationId"] = "com.gamenenstyle.brickhigh.preview", ["packageKind"] = "Preview", ["buildTarget"] = "windows-x64",
-                ["sourceSnapshotStatus"] = "Frozen", ["sourceSelectionDigest"] = new string('a', 64), ["packageLockDigest"] = lockDigest,
+                ["coordinateProfile"] = "canonical-rh-to-unity-lh-v1", ["sourceSnapshotStatus"] = "Frozen",
+                ["sourceSelectionDigest"] = new string('a', 64), ["packageLockDigest"] = lockDigest,
                 ["compatibleSaveVersions"] = new JArray(1), ["previewCompleteness"] = new JObject { ["incomplete"] = true }, ["files"] = files
             };
             using (var db = new NativeSqlite(Path.Combine(packDirectory, "catalog.db"), false))
@@ -232,25 +274,29 @@ namespace BrickHigh.Editor
                 db.Execute("INSERT INTO runtime_meta VALUES('schemaVersion','1')");
                 db.Execute("INSERT INTO runtime_meta VALUES('minReaderVersion','1')");
                 db.Execute("INSERT INTO runtime_snapshots VALUES(?,?,?,1)", probe.SnapshotId, "2026-09-08T15:59:59Z",
-                    new JObject { ["C"] = modelSources.Length, ["A"] = 0, ["R"] = 0, ["U"] = modelSources.Length, ["G"] = modelSources.Length, ["V"] = 0, ["scope_reviewed"] = false }.ToString());
+                    new JObject { ["C"] = modelSources.Length, ["G"] = modelSources.Length, ["V"] = 0, ["scope_reviewed"] = false }.ToString());
                 for (int i = 0; i < modelSources.Length; i++)
                 {
                 string variant = i == 0 ? probe.VariantId : Guid.NewGuid().ToString();
                 string revision = i == 0 ? probe.RevisionId : Guid.NewGuid().ToString();
-                string runtime = i == 0 ? buildId : Guid.NewGuid().ToString();
-                var conversion = JObject.Parse(File.ReadAllText(Path.Combine(modelSources[i], "conversion.json")));
+                string conversionPath = Path.Combine(modelSources[i], "conversion.json");
+                var conversion = JObject.Parse(File.ReadAllText(conversionPath));
+                string validationDigest = SafeContent.Hash(File.ReadAllBytes(conversionPath));
+                string runtime = RuntimeBuildPolicy.ComputeIdentity(revision, "windows-x64",
+                    UnityEngine.Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1",
+                    (string)bundle["sha256"], validationDigest);
                 string part = (string)conversion["source"]["filename"];
                 var min = conversion["geometry"]["boundsMeters"]["min"];
                 var max = conversion["geometry"]["boundsMeters"]["max"];
                 var metadata = new JObject { ["readyAsset"] = false, ["widthMeters"] = (double)max[0] - (double)min[0],
                     ["heightMeters"] = (double)max[1] - (double)min[1], ["depthMeters"] = (double)max[2] - (double)min[2] };
                 db.Execute("INSERT INTO runtime_revisions VALUES(?,?)", variant, revision);
-                db.Execute("INSERT INTO runtime_variants VALUES(?,?,?,?,?,?,?,?)", probe.SnapshotId, variant, Guid.NewGuid().ToString(),
-                    "Unknown", "Basic", new JObject { ["name"] = "內部幾何 " + part + (modelSources[i].Contains("transparent") ? " 透明" : ""),
+                db.Execute("INSERT INTO runtime_variants VALUES(?,?,?,?,?,?,?)", probe.SnapshotId, variant, Guid.NewGuid().ToString(),
+                    "Basic", new JObject { ["name"] = "內部幾何 " + part + (modelSources[i].Contains("transparent") ? " 透明" : ""),
                         ["family"] = part == "3437.dat" ? "DUPLO" : part == "2780.dat" || part == "3705.dat" || part == "3700.dat" ? "Technic" : "System",
                         ["partNumber"] = Path.GetFileNameWithoutExtension(part) }.ToString(), "{}", revision);
                 db.Execute("INSERT INTO runtime_builds VALUES(?,?,?,?,?,?,?,?,?,?)", runtime, variant, revision, "windows-x64",
-                    UnityEngine.Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1", (string)bundle["sha256"], "internal-probe-not-quality-approved", (string)bundle["storageKey"]);
+                    UnityEngine.Application.unityVersion, lockDigest, "canonical-rh-to-unity-lh-v1", (string)bundle["sha256"], validationDigest, (string)bundle["storageKey"]);
                 db.Execute("INSERT INTO runtime_models VALUES(?,?,?,?,?,?,?)", probe.SnapshotId, variant, revision, "windows-x64", runtime,
                     metadata.ToString(), i == 0 ? "probe/model" : "probe/model-" + i);
                 Directory.CreateDirectory(Path.Combine(packDirectory, "SourceEvidence"));
@@ -276,10 +322,18 @@ namespace BrickHigh.Editor
             if (!symbols.StartsWith(outputPrefix, StringComparison.OrdinalIgnoreCase)
                 || !keptSymbols.StartsWith(outputPrefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("符號檔路徑越界。");
             if (Directory.Exists(symbols)) Directory.Move(symbols, keptSymbols);
-            File.Copy(Path.Combine(project, "artifacts/toolchain/launcher-pm-20260923/BrickHighLauncher.exe"), Path.Combine(package, "BrickHighLauncher.exe"));
+
+            // 內部 F-Catalog 必須封裝本輪 source，而不是沿用歷史 launcher/installer artifact。
+            // Launcher 的 LocalLow override 只在這個 acceptance-only publish 定義，正式 Preview/Release 不存在此入口。
+            string published = Path.Combine(output, "PublishedTools");
+            string launcher = PublishDotnetTool(project, "tools/launcher/BrickHighLauncher.csproj", "BrickHighLauncher.exe",
+                Path.Combine(published, "Launcher"), "PackageKind=Preview", "AcceptanceStorageOverride=true");
+            string installer = PublishDotnetTool(project, "tools/installer/BrickHighInstaller.csproj", "BrickHighInstaller.exe",
+                Path.Combine(published, "Installer"));
+            File.Copy(launcher, Path.Combine(package, "BrickHighLauncher.exe"));
             Directory.CreateDirectory(Path.Combine(package, "Installer"));
-            File.Copy(Path.Combine(project, "artifacts/toolchain/installer-pm-20260924-final/BrickHighInstaller.exe"), Path.Combine(package, "Installer/BrickHighInstaller.exe"));
-            File.Copy(Path.Combine(package, "Installer/BrickHighInstaller.exe"), Path.Combine(output, "BrickHighInstaller.exe"));
+            File.Copy(installer, Path.Combine(package, "Installer/BrickHighInstaller.exe"));
+            File.Copy(installer, Path.Combine(output, "BrickHighInstaller.exe"));
             File.Copy("Assets/BrickHigh/Fonts/NotoSansCJK-LICENSE.bytes", Path.Combine(package, "NotoSansCJK-LICENSE.txt"));
             foreach (string license in new[] { "CAlicense.txt", "CAlicense4.txt", "CAreadme.txt" })
                 File.Copy(Path.Combine(project, "artifacts/sources/ldraw-release/ldraw", license), Path.Combine(package, "LDraw-" + license));
@@ -288,6 +342,45 @@ namespace BrickHigh.Editor
             var index = new JObject { ["applicationId"] = "com.gamenenstyle.brickhigh.preview", ["packageKind"] = "Preview", ["buildId"] = id,
                 ["purpose"] = "F-Catalog", ["description"] = "Internal geometry - not Ready", ["playerKey"] = "Player/BrickHighPreview.exe", ["files"] = files };
             File.WriteAllText(Path.Combine(package, "package-index.json"), index.ToString());
+        }
+
+        private static string PublishDotnetTool(string project, string projectRelativePath, string executableName,
+            string outputDirectory, params string[] properties)
+        {
+            if (Directory.Exists(outputDirectory)) throw new IOException("本次工具 publish 目錄已存在。");
+            Directory.CreateDirectory(outputDirectory);
+            string projectFile = Path.GetFullPath(Path.Combine(project, projectRelativePath));
+            string arguments = "publish " + QuoteArgument(projectFile)
+                + " -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true --nologo --verbosity minimal -o "
+                + QuoteArgument(Path.GetFullPath(outputDirectory));
+            foreach (string property in properties)
+            {
+                if (string.IsNullOrWhiteSpace(property) || property.IndexOfAny(new[] { ' ', '\"', '\r', '\n' }) >= 0)
+                    throw new InvalidDataException("dotnet publish property 格式無效。");
+                arguments += " -p:" + property;
+            }
+            var start = new ProcessStartInfo("dotnet", arguments) {
+                UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = project
+            };
+            using (var process = Process.Start(start))
+            {
+                if (process == null) throw new InvalidOperationException("無法啟動 dotnet publish。");
+                if (!process.WaitForExit(180000))
+                {
+                    try { process.Kill(); } catch { }
+                    throw new TimeoutException("dotnet publish 超過 180 秒。");
+                }
+                if (process.ExitCode != 0) throw new InvalidOperationException("dotnet publish 失敗：" + projectRelativePath);
+            }
+            string executable = Path.Combine(outputDirectory, executableName);
+            if (!File.Exists(executable)) throw new FileNotFoundException("dotnet publish 未產生預期單檔執行檔。", executable);
+            return executable;
+        }
+
+        private static string QuoteArgument(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Contains("\"")) throw new InvalidDataException("命令列路徑格式無效。");
+            return "\"" + value + "\"";
         }
     }
 }

@@ -27,7 +27,8 @@ def triangle_glb():
         "accessors": [{"bufferView": 0, "componentType": 5126, "count": 3, "type": "VEC3"},
                       {"bufferView": 1, "componentType": 5123, "count": 3, "type": "SCALAR"}],
         "meshes": [{"primitives": [{"attributes": {"POSITION": 0}, "indices": 1, "material": 0}]}],
-        "materials": [{"pbrMetallicRoughness": {"baseColorFactor": [1, 0, 0, 1]}}],
+        "materials": [{"name": "Material_4", "pbrMetallicRoughness": {
+            "baseColorFactor": [1, 0, 0, 1], "metallicFactor": 0, "roughnessFactor": .28}}],
     }
     text = json.dumps(document).encode()
     text += b" " * (-len(text) % 4)
@@ -55,6 +56,10 @@ def catalog_fixture(workspace):
     source_row = {"path": "parts/3001.dat", "author": "Example", "license": "CC BY 4.0",
                   "sha256": source_sha, "bytes": len(source_bytes),
                   "source": "https://library.ldraw.org/library/official/parts/3001.dat"}
+    colour_config_bytes = b"0 !LDRAW_ORG Configuration"
+    colour_config = {"path": "LDConfig.ldr",
+                     "sha256": hashlib.sha256(colour_config_bytes).hexdigest(),
+                     "source": "https://library.ldraw.org/library/official/LDConfig.ldr"}
     pictures = {name + ".png": png() for name in ("front", "back", "left", "right", "top", "bottom", "preview")}
     metadata = {"schemaVersion": 1, "coordinateProfile": "canonical-rh-metres-v1",
                 "referenceDimensions": [.008, .0096, .004], "boundsMeters": geometry["boundsMeters"],
@@ -65,10 +70,19 @@ def catalog_fixture(workspace):
                         {"id": "body", "type": "box", "center": [.004, .0048, -.002], "size": [.008, .0096, .004]}],
                     "cavityChecks": [], "noCavityReason": "裝飾fixture無接合空腔"}}
     conversion = {"schemaVersion": 1, "purpose": "GeometryProbe", "variantEvidencePending": True,
-                  "productionStatus": "Unknown", "qualityPassed": False, "source": {"files": [source_row]},
-                  "geometry": geometry, "importerWarnings": [], "materialComparisons": [],
+                  "qualityPassed": False, "source": {"filename": "3001.dat", "files": [source_row],
+                                                 "colourConfig": colour_config},
+                  "geometry": geometry, "importerWarnings": [],
+                   "sourceSurfaceEvidence": {"sourceExplicitFaceColours": [], "usedExportedColours": []},
+                   "sourceGeometryEvidence": {"profile": "printed-xy-grid-v1", "colourMetrics": {}},
+                   "materialComparisons": [
+                       {"material": "Material_4", "target": {"baseColorLinear": [1, 0, 0, 1],
+                        "metallic": 0, "roughness": .28, "alphaMode": "OPAQUE"}}],
+                  "toolchain": {"blenderVersion": "5.2.1", "importerCommit": "c306fb777a4e0da85492f09d65daf458767a0aa1",
+                                "coordinateProfile": "ldraw-canonical-metres-v1", "scriptSha256": "f" * 64},
                   "remainingChecks": ["SourceAppearance", "AttributionReview"]}
     attribution = {"schemaVersion": 1, "modelSha256": geometry["sha256"], "sources": [source_row],
+                   "colourConfig": colour_config,
                    "modifications": "LDraw至canonical GLB", "reviewed": False}
     views = {"schemaVersion": 1, "modelSha256": geometry["sha256"], "visualApproved": False,
              "profile": {"id": "catalog-six-views-v1", "coordinateProfile": "canonical-rh-metres-v1",
@@ -86,7 +100,7 @@ def catalog_fixture(workspace):
             "numWarnings": 0, "messages": []}}).encode(),
         "attribution.json": canonical_json(attribution).encode(),
         "sources/parts/3001.dat": source_bytes,
-        "sources/LDConfig.ldr": b"0 !LDRAW_ORG Configuration",
+        "sources/LDConfig.ldr": colour_config_bytes,
         **pictures,
     }.items():
         saved = store.put(data)
@@ -111,6 +125,40 @@ def catalog_fixture(workspace):
     return revision, manifest
 
 
+def test_quality_template_ignores_only_global_canvas_fabric_colour_table_warnings(tmp_path):
+    revision, manifest = catalog_fixture(tmp_path)
+    conversion_ref = next(item for item in manifest["files"] if item["name"] == "conversion.json")
+    conversion_path = tmp_path / conversion_ref["storageKey"]
+    conversion = json.loads(conversion_path.read_text(encoding="utf-8"))
+    conversion["importerWarnings"] = [
+        "21:05:08.52 [importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Black code: 20000] in line: ['MATERIAL', 'FABRIC', 'CANVAS']",
+        "[importldraw] Unsupported material finish: FABRIC for [colour: Canvas_Dark_Green code: 20288] in line: ['MATERIAL', 'FABRIC', 'CANVAS']",
+    ]
+    data = canonical_json(conversion).encode()
+    conversion_path.write_bytes(data)
+    conversion_ref["sha256"] = hashlib.sha256(data).hexdigest()
+    conversion_ref["byteLength"] = len(data)
+
+    report = quality_review_template(tmp_path, revision, manifest)
+
+    assert set(report["reviews"]) == {"geometry", "appearance", "attribution"}
+
+
+def test_quality_template_rejects_actionable_importer_warning(tmp_path):
+    revision, manifest = catalog_fixture(tmp_path)
+    conversion_ref = next(item for item in manifest["files"] if item["name"] == "conversion.json")
+    conversion_path = tmp_path / conversion_ref["storageKey"]
+    conversion = json.loads(conversion_path.read_text(encoding="utf-8"))
+    conversion["importerWarnings"] = ["WARNING: missing referenced texture torso-print.png"]
+    data = canonical_json(conversion).encode()
+    conversion_path.write_bytes(data)
+    conversion_ref["sha256"] = hashlib.sha256(data).hexdigest()
+    conversion_ref["byteLength"] = len(data)
+
+    with pytest.raises(GateNotMet):
+        quality_review_template(tmp_path, revision, manifest)
+
+
 def test_quality_template_binds_archived_model_and_keeps_every_review_pending(tmp_path):
     revision, manifest = catalog_fixture(tmp_path)
 
@@ -128,7 +176,7 @@ def test_review_submission_without_actual_approval_stays_validating(tmp_path):
     revision, manifest = catalog_fixture(tmp_path)
     database = tmp_path / "catalog.sqlite"
     with CatalogRepository(database, workspace=tmp_path) as repo:
-        part = repo.add_part("測試", "System", "test-part")
+        part = repo.add_part("測試", "System", "LEGO-Design:3001")
         variant = repo.add_variant(part, {"color": "4"})
         revision["variant_id"] = variant
         actual_revision = repo.start_revision(variant, revision["input_digest"], {"tool": "fixture"})
@@ -157,12 +205,13 @@ def test_review_submission_without_actual_approval_stays_validating(tmp_path):
 def test_verified_report_can_mark_only_a_local_fixture_ready_and_validate_its_evidence(tmp_path):
     revision, manifest = catalog_fixture(tmp_path)
     with CatalogRepository(tmp_path / "catalog.sqlite", workspace=tmp_path) as repo:
-        part = repo.add_part("測試幾何", "System", "quality-fixture")
+        part = repo.add_part("測試幾何", "System", "LEGO-Design:3001")
         variant = repo.add_variant(part, {"color": "4", "print": None, "material": "plastic"})
         snapshot = repo.create_snapshot("2026-09-08T15:59:59Z", {"families": ["System"]})
-        repo.put_entry(snapshot, variant, "Active", [], {"tier": "Basic", "reason": "測試用"},
-                       {"name": "品質閘門fixture", "fixture": True})
-        repo.review_scope(snapshot, {"reviewer": "fixture", "artifact": "missing-production-evidence"})
+        repo.put_entry(snapshot, variant, [], {"tier": "Basic", "reason": "測試用"},
+                       {"name": "品質閘門fixture", "fixture": True,
+                        "designId": "3001", "elementId": "300101"})
+        repo.review_scope(snapshot, {"reviewer": "fixture", "artifact": "missing-scope-evidence"})
         repo.freeze(snapshot, repo.snapshot(snapshot)["version"])
         actual_revision = repo.start_revision(variant, revision["input_digest"], {"tool": "fixture"})
         revision["revision_id"] = actual_revision

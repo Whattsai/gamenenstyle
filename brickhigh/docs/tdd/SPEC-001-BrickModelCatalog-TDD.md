@@ -4,380 +4,167 @@
 > **規格**：[SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md)
 > **需求**：[MVP-001-V1Version](../requirements/MVP-001-V1Version.md)
 > **生成日期**：2026-09-09
-> **狀態**：2026-09-28 `$mighty-pm $well-done` 階段式續作中；Gate 1 的20件內部 Player 外觀方向已由使用者確認並授權進入 Gate 2。Gate 2 固定同20件補 Ready 品質契約，目前 0/20 Ready；正式逐項計數為 TDD 79/233（33.9%；74 UT、2 IT、2 CT、1 ET）、BDD 5/56（8.9%）、UX 1/20（5.0%）、SPEC 完整驗收條款 2/36（5.6%）。本次階段確認不等同正式 `visualBaselineId`，合格 Preview 與全量 Release 尚未完成。
+> **最新核對**：2026-10-22；**Gate 3 固定20件技術里程碑已驗收完成，可開始 Gate 4**（僅 SPEC-001）。Gate 2 幾何20/20；Gate 3 QA品質／Frozen20/20、真Windows Player與離線安裝／更新／唯讀／故障30/30、正式LEGO來源子集合9/9 RuntimeBuild／Player與獨立verify Passed。QA11件不可冒充正式來源；Gate4將改採使用者指定盒組作來源及新增模型的正式分母，效能／全SPEC驗收與Preview／Release仍依原規格獨立處理，TDD未完成條目不降標、不自動勾選。
 
-### 2026-09-28 階段式 Gate 1 → Gate 2 續作紀錄
+## 最新進度與驗收邊界
 
-使用者已實際確認20件內部 Player 的外觀方向並回覆可繼續，因此 **Gate 1 階段完成**；此決策只授權繼續品質開發，不將 F-Catalog、`Unknown` 生產狀態或未 Ready revision 提升為正式視覺基準。`ET-020`／`SC-054` 仍需未來綁定真實 Ready revision 的 `visualBaselineId`、版本 digest、核准日期及缺陷回歸流程，故正式 TDD／BDD／SPEC 計數不因本次確認增加。
-
-Gate 2 固定原8件加新增12件共20件，不再擴增模型數量。第一個 Red-Green 切片針對 SPEC §4.3 的碰撞／插接空腔缺口：`tools/catalog/metadata_quality.py` 新增 fail-closed `collisionProxy` 驗證，要求 schema／coordinate profile／evidence、合法 box 或 convexHull 簡化形狀；需要 connectors 的模型還必須具可追溯且 `Pass` 的 cavity/pairing evidence，無接點模型則須說明無空腔檢查原因。`tools/catalog/tests/unit/test_metadata_quality.py` 與 `test_quality_report.py` 已補對應正反 fixture，`tools/acceptance/audit_internal_model_set.py` 亦新增 `gate2Issues`／`gate2Ready`，避免 `mechanicalPass` 被誤解成 Ready。
-
-MCP 現已提供固定 Python runner；Gate 2 collision／metadata 契約的 catalog 回歸 **159/159 passed**，完整 Python 回歸 **195/195 passed**。`SC-008` 的版本化 connector profile 配對、必要接點與插接空腔已完成 Red-Green：.NET core **140/140 passed**，`.NET Standard 2.1` 相容建置 0 warning／0 error；先前 Unity Package Manager IPC 阻塞已解除，最終 EditMode 確實進入 Test Runner 並 exit 0。`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs` 亦已由真正 PlayMode assembly 執行 `RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract`，使用 glTFast 匯入真實 3001／3298／3005 GLB，核對 3001 尺寸、3298 非對稱性、3005 stud 與 3001 八個 cavity probes，非 0-test 且 exit 0。依本文件單元層定義，`UT-022～024` 已具完整隔離規則證據而升格完成；`IT-004` 仍保持部分符合，因 SC-007 的 mesh／normal／winding 全矩陣、SC-008 的完整代表配對矩陣及 SC-029 的 texture／preview 資產預算實證尚未閉環。Gate 2 可視化狀態頁為 `artifacts/acceptance/pm-20260928-interactive-20-a/gate2-readiness-review.html`，目前仍為 **0/20 Ready**：原8件主要缺完整 metadata／collision／Active 生產證據及來源貨號交叉核對；新增12件主要缺獨立 reference dimensions、必要 connectors／collision 及 Active 生產證據。下一步維持固定20件，補齊逐件 reference dimensions、connectors／collisionProxy、來源與 Active 生產證據，並完成 `IT-004` 剩餘矩陣；不自行填造模型尺寸、接點或生產狀態。
-
-### 2026-09-27 Mighty PM 續作紀錄（完成契約 v1）
-
-本次使用者以 `$mighty-pm $well-done` 明確重新啟動 `SPEC-001` 開發，取代上方歷史階段停止指示；70/233、5/56、1/20、2/36仍是本輪開始前的逐項稽核基線，不因啟動而增加。交接狀態為 `Ready for well-done`，五份文件可讀且既有風險方案已確認。起始工作樹乾淨。其他 SPEC、正式人物／庫存／房屋／賽車玩法不在本輪範圍。
-
-使用者已實際檢視 `C:/bh-qa-wd/20260926-c/BrickHighLauncher.exe` 的八件內部預覽，回覆「方向可接受，繼續逐件驗證」。此回覆確認目前模型外觀、材質、光照與繁中畫面的**方向**，授權繼續逐資產檢查；八件仍為 F-Catalog 探索樣本。尚未形成綁定正式 Ready 資產版本、RuntimeBuild、六視圖與逐件審核的 `visualBaselineId`，故 ET-020／SC-054 仍待正式驗收。
-
-| ID | 來源與交付／完成條件 | 負責人與寫入範圍 | 依賴／狀態 | 驗證與風險處置 |
-|---|---|---|---|---|
-| P0 | Phase 1；核對交接、36 AC、56 BDD、233 TDD 與工作樹 | 主代理；本文件與整合文件 | 無／完成 | 交接狀態與五份文件核對，逐項引用既有矩陣；本輪重新驗證另列 |
-| P1 | 模型來源與品質證據路徑；確認合格 Ready Preview／全量缺口 | source_model，GPT-6-Astra medium；主代理整合 | P0／來源盤點完成 | 原八件仍是 F-Catalog；新增官方 Rebrickable CDN 12 份 CSV 候選來源及 SHA manifest，`parts` 64,675 列、`inventory_parts` 1,558,301 列；CSV 不證明生產 Active，完整 Ready／指定硬體仍缺 |
-| P2-M | 使用者補充優先目標：增加實體積木模型數量並逐件驗證 | source_model，GPT-6-Astra medium；`artifacts/models/pm-20260927-expansion-v1/`；主代理 Player 整合 | P1／20 件內部驗證完成、Ready 仍有缺口 | 新 12 件及原 8 件共 20 件，Khronos 0 error／0 warning；Player 20/20 載入與操作、382 張畫面，逐件稽核 `machine-audit.json` 無機械驗證錯誤；仍 `Unknown`／非 Ready |
-| P2-C | Phase 2 目錄品質、Ready／發布門檻的可測實作 | catalog_quality，GPT-6-Luna max；`tools/catalog/**` | P0／寫入完成、全回歸與稽核中 | 報告逐 bytes 驗證；聚焦 44 passed，合成 Ready 正例仍 `fixture-content`、V=0、releaseAllowed=false；全 Python 由主代理執行 |
-| P2-U | Phase 2–3 既有預覽 UI 的可測缺口 | ui_ux，GPT-6-Luna max；`Presentation/**` 與 `CatalogPreviewViewTests.cs` | P0／整合驗證完成、UX 稽核中 | 缺字警示、錯誤畫面／鍵盤離開／查詢映射；焦點矩陣聚焦 21/21，全 EditMode 163/163；UT-105 仍部分符合 |
-| P2-S | Phase 2 存檔備份、遷移與明確還原人工 fixture | 主代理 `tools/acceptance/save_fixture_recovery.py`、`verify_save_fixture_recovery.py`及其測試；save_policy，GPT-6-Luna max，專屬 C# 政策／測試 | P0／整合驗證完成、契約稽核中 | 真 SQLite/WAL、故障／選擇矩陣14項通過；獨立 CLI 四種選擇報告於 `artifacts/acceptance/pm-20260927-save/`；完整 .NET 131/131、相容性建置 0 警告錯誤、Unity 163/163 |
-| P3 | Phase 2–3 封裝、離線 Player、效能與正式來源驗收 | 主代理；安裝／驗收工具 | 20 件內部包重驗完成、正式門檻待補 | `pm-20260928-player20-build.log` 成功；全新隔離安裝 `C:/bh-qa-wd/20260928-20-a`、launcher exit 0、382 張真實 Player 圖及 20/20 操作探針 success 見 `artifacts/acceptance/pm-20260928-interactive-20-a/run.json`；仍為 F-Catalog，指定硬體與全量資產待補 |
-| P4 | Phase 4–5；逐項深度稽核、缺漏回寫、補實作與重驗直到符合 | 主代理整合，可再派不重疊工作 | P1–P3／進行中 | 基線 36 AC／56 SC／233 TDD 已逐項核對；本輪目錄、UX、存檔增量分別唯讀稽核，主代理整合重算；缺正式來源／硬體者保留未完成 |
-| P5 | Phase 6；完成契約逐項驗收與最終交付 | 主代理；TDD／BDD／overview | P4／待開始 | 僅可驗證項目標為完成；未驗收保留精確缺口與下一步 |
-
-### 八件內部樣本逐件證據（2026-09-27）
-
-對 `artifacts/acceptance/wd-20260926-interactive-c/PlayerEvidence/frames/` 的八件、共 48 張六方向 Player PNG 逐張目視核對；模型均有對應輪廓，斜磚左右斜面方向不同、torso 正面印刷及側孔、透明件前後／底面結構、axle 十字端面均可辨。這只是在現有顯示大小下排除明顯空白或缺件，不能取代來源參考圖逐像素／尺寸／材質對照。八件 `model.glb` 重新以 `node tools/catalog/validate_glb.cjs` 驗證，報告各有 `modelSha256`／`modelByteLength`，皆為 0 error／0 warning，保存於 `artifacts/acceptance/pm-20260927-eight-glb/<樣本>/khronos-report.json`。這證明現有 GLB bytes 可通過結構驗證，尚不證明接點、物理、來源授權及正式 Ready。
-
-| 樣本來源 | Player front／bottom 畫面 | 本輪目視與下一個逐件門檻 |
+| 範圍 | 最新狀態 | 判定說明 |
 |---|---|---|
-| 普通磚 `3001.dat` | `frame00058`／`frame00063` | 四顆正面可見 stud、底部三個管位；待接點座標、碰撞與來源顏色比對 |
-| 薄板 `3020.dat` | `frame00134`／`frame00139` | 薄板高度與底部管位可見；待板高 reference 與上下配對測試 |
-| 透明磚 `3001.dat` 色47 | `frame00001`／`frame00006` | 透明正背面與底部結構可見；待色47材質與遮擋、缺材質反例 |
-| 印刷 torso `973p06.dat` | `frame00020`／`frame00025` | 正面衣紋、頸部與底部輪廓可見；待印刷來源比對及頭／臂／腰錨點 |
-| Technic pin `2780.dat` | `frame00115`／`frame00120` | 中央環與軸向空隙可見；待接收孔配對、插入深度與自由度 |
-| Technic axle `3705.dat` | `frame00077`／`frame00082` | 軸外形可見；待十字截面／方向、接收件與非法 profile 反例 |
-| DUPLO `3437.dat` | `frame00096`／`frame00101` | 正面雙 stud 與底部腔體可見；待 DUPLO 接點尺度及跨系列拒絕 |
-| 非對稱斜磚 `3298.dat` | `frame00039`／`frame00044` | 正面斜面與底部管位可見；待非鏡像方向、面法向／繞序及碰撞 |
+| **Gate 2：固定20件模型** | **20/20 幾何 Ready** | 三軸尺寸逐軸誤差 ≤ `max(0.1 mm, 來源軸長0.5%)`；20/20 具備原始 LDraw 對照與真 Unity glTFast／MeshCollider 接點、碰撞、空腔的 `Verified` 證據 |
+| 尺寸／碰撞／Player 基線 | 尺寸 **20/20**；碰撞 **20/20**；GLB ≤20 MiB **20/20** | 內部 Player 已能載入、操作20件；六方向畫面與 preview evidence 20/20 |
+| **Gate 3 真實 Catalog 品質管線** | **20/20 Ready；60項已核准審查正式提交** | `brickhigh-gate3-quality-submit` 逐件沿用 `complete_revision_quality`；實跑Job `3b2ae26d-8449-41f3-adfd-294802cb995a` succeeded／exit 0，安全重試Job `406beb5b-0994-480a-813d-c9668654825c` succeeded／exit 0且SQLite位元組不變。原Pending模板及核准聲明綁定的summary永久保留，當前狀態見current-status.json；此Ready不會使fixture自動取得正式身份。 |
+| **Gate 3 內部 Windows 安裝／Player** | **本批30/30 checks、exit0；固定20件真操作** | 最新Build Job `f10b2b1d-f785-4e1c-b7ac-4e7bc31bd135` succeeded／exit0；真原生安裝／A→B更新／可寫+唯讀啟動器與Player／每場景20件382幀22操作／storage denied／missing SQLite／uninstall及profile保留皆通過，Player Job `6d25a8f0-15e3-420c-a7de-4f9f13990961` succeeded／exit0、無失敗。F-Catalog是隔離內部QA，**不是正式20/20 RuntimeBuild或可發佈Preview／Release**。 |
+| **Gate 3 正式 Frozen BuildValidationContent** | **已取得的官方來源9/9 RuntimeBuild+Player Passed** | 原QA Frozen v42仍保留；後繼LEGO官方Frozen `7f67a752-65a7-4817-a453-4ed4d90c8834` v20具9件Ready，真Unity Windows建置Job `8cad067c-039e-45a3-ac9b-43478fb2337c` exit0、獨立verify Job `a405fe34-24ef-47c2-8f39-0f8578414eb4` exit0／Passed；證據 `artifacts/validation-content/20261021T014631-27c55311/`。剩餘11件未擅自升格正式身份或RuntimeBuild，將在Gate4依實際盒組驗證；產品正式發佈仍未完成。 |
+| **來源修訂Ready／正式來源資格** | **原QA Ready20/20，正式來源9/20、其餘11件待補** | 使用者確認9件官方Element圖片及4032a模具用途等價，9份SHA審查已由原Catalog來源API合法後繼匯入，Job `d4af4b06-c044-4535-b053-34a15c59709e` Passed。其餘11件沒有同外觀官方身分，不冒認通過；原QA/Frozen歷史不變。 |
+| TDD 總進度 | **111/233（47.6%）** | 已符合111、部分符合90、未符合32；UT-142有獨立核對證據，原233個ID均保留 |
+| BDD／UX／SPEC | **13/56（23.2%）**；**1/20（5.0%）**；**3/36（8.3%）** | 2026-10-22逐項對照原BDD56個SC，補勾SC-008/020/028/029（均有完整對應TDD綠燈），SPEC36個AC狀態為3完整、28部分、5未符合；UX不因非前端場景新增勾選。 |
+| 工作範圍 | **Gate 3 固定20件技術驗收完成；可進 Gate 4** | 先驗證20件QA模型／內部真安裝Player與9件真來源正例；Gate4才以**實際指定盒組**為全量身分與模型分母（10334只是例子）、擴大實例、檢查效能與剩餘正式條款，既有幾何不重做，真Preview/Release閘門不解除。 |
 
-來源模型資料夾仍缺逐件 `metadata.json`、獨立尺寸 reference、canonical profile、connectors、collisionProxy、characterAttachments 與 attribution；安裝版 DB 的 `readyAsset=false` 保持不變。舊 Player 報告 `visualApproved=false` 不覆寫；使用者本輪只批准視覺方向。
+**判定原則**：Gate 2 只檢驗固定20件模型的尺寸與合理接合／碰撞；不要求先歸屬特定盒組、取得該盒組官方 Element／Design 或完成後續發布人工核准。這是**幾何階段里程碑**，不會自動更動正式資料庫 `ModelRevision` 狀態、`visualApproved`、`visualBaselineId`、Frozen/Published 或正式 Release 門檻。
 
-使用者補充無本機 CSV，並明確要求工作目的包含持續增加建模數量。主代理已直接從 Rebrickable 官方 CDN 取得 12 份 bulk CSV，`artifacts/sources/rebrickable-20260927/download-manifest.json` 保存來源 URL、欄位、列數、byteLength 與 SHA-256；`model-candidate-crosswalk.json` 對新增批次 12 個 part_num 全部精確匹配 `parts.csv.gz`，另列套裝年份與顏色作候選旁證。`4085c` 最新套裝年份為 2019，特別保留停產待查；任何套裝年份或 CSV 行都不自動給 `Active`。新批次仍需外觀、尺寸、接點、來源授權和生產狀態逐件確認。
 
-### 新增十二件逐件幾何證據（2026-09-27）
+### 2026-10-22 SPEC／BDD／UX／TDD核對修正（最新）
 
-批次索引 `artifacts/models/pm-20260927-expansion-v1/handoff-manifest.json` 記錄每件來源、GLB／metadata／verification／CSV 對照 SHA-256；逐件重新核對 12/12 檔案及 hash 無誤。每件都有來源依賴與署名、`model.glb`、`conversion.json`、`metadata.json`、`khronos-report.json`、`verification.json`、六方向 PNG 與 preview。Blender 轉換及 Khronos 結果為 12/12 成功、0 error／0 warning，共 72 張六視圖及 12 張 preview；已逐件目視 preview，其中 `6060` 再看六視圖確認完整拱形、兩個 stud 與底部腔體。這些證據只支持可辨識幾何；`readyAsset=false`、`productionStatus=Unknown` 保持不變。
+- **TDD**：原233個ID保持唯一，逐項`[x]`111（UT96／IT6／CT7／ET2），未勾選122；完成率47.6%，分類矩陣為111符合／90部分／32未符合，不因BDD勾選再增加UT/IT/CT/ET數。
+- **BDD**：56個不同SC均有單一checkbox，原文件實際勾選9個卻宣稱11/56；對照下列所有已勾選對應測試的Given／When／Then，補勾漏記的`SC-008`（UT022～024/IT004/CT004）、`SC-020`（UT058～060/CT002/003/009）、`SC-028`（UT082～084/IT008/CT002）、`SC-029`（UT085～087/IT004）。現行實際勾選**13/56（23.2%）**，43場景尚未完整勾選；不是新增測試數。其餘BDD即使有部分技術證據，缺完整對應或獨立UX/Preview/Release條件仍不得補勾。
+- **UX**：20項中僅SC-037已勾選，**1/20（5.0%）**；其餘16部分、3未符合（這是UX原稽核分類，非由checkbox直接推算），本輪新增的4個SC都不是前端UX。
+- **SPEC AC**：驗收矩陣36列ID唯一，實際**3符合（AC-002、003、010）／28部分／5未符合**，3/36=8.3%；之前稽核說明的27部分/6未符合與矩陣不同，已校正。AC仍有正式盒組、Preview/Release或完整正式身份等條件未完成，不能由單一SC完工推動AC自動通過。MVP requirement、SPEC、BDD及overview的頂部最新進度均已同步；有日期的舊執行紀錄標示為歷史，不作現況。
+- **Gate狀態**：Gate3固定20件隔離QA技術里程碑完成，真官方來源僅9件正式RuntimeBuild成功，剩餘11件QA選色不冒充正式身份；Gate4繼續真實指定盒組來源全集與正式發布標準。保留原233 TDD、56 BDD、36 AC、20 UX測試及正式來源發布保護。
 
-| 零件／顏色資料夾 | 可辨識的幾何 | 下一個逐件門檻 |
-|---|---|---|
-| `3700-colour7` | Technic 側孔磚 | 孔徑、軸／pin 配對、接點及碰撞 |
-| `4032a-colour4` | 圓板與中央十字孔 | 孔形、四 stud 與上下插接尺寸 |
-| `3069b-colour14` | 平面 1×2 tile | 厚度、底部腔體與來源顏色 |
-| `4085c-colour7` | 1×1 直立夾件 | 來源生產狀態先確認；夾口配對與彈性空間 |
-| `30374-colour4` | 細長圓 bar | 直徑、長度、夾件相容及碰撞 |
-| `14417-colour7` | 側向球頭板 | 球徑、球心座標與球窩配對 |
-| `14418-colour7` | 側向球窩板 | 開口／腔體及球頭旋轉自由度 |
-| `11211-colour4` | 側向雙 stud 磚 | 側向接點、垂直方向與底部結構 |
-| `2456-colour14` | 2×6 普通磚 | 12 stud 位置、底部管位及接點矩陣 |
-| `6060-colour4` | 曲線拱件 | 獨立尺寸、拱內碰撞空間與兩端支撐 |
-| `3005-colour14` | 1×1 普通磚 | 單 stud／底部空腔及上下配對 |
-| `6141-colour4` | 1×1 圓板 | 圓形接點、厚度及底部管位 |
+### 2026-10-22 TDD 233項核對補正：UT-142新通過，其他項目保留
 
-上述各件的 `metadata.json` 明列獨立尺寸、接點／碰撞、來源顏色與 Unity Runtime 驗證待補；CSV 精確貨號對照不證明所選 LDraw 顏色等同 Rebrickable 顏色，也不證明仍在生產。
+- **UT-142 `ValidateCandidate_FrozenSnapshot_LeavesHeadUnchanged`升格為通過**：`tools/catalog/tests/integration/test_validation_content.py`既有隔離的規則測試已涵蓋Frozen未Published即可建立staging、Ready子集合可Prepared、結果寫入`validation_builds`仍保留原head、摘要漂移/不合格Player報告不可提交Passed。經現有受控MCP聚焦重驗Job `04403115-f8fe-447c-a71f-a25d52187951` **26/26 passed／exit0**。合成UnityFS/畫面只用於單元規則核對；真實9件官方來源的Windows RuntimeBuild／Player及獨立verify正例，另由Jobs `8cad067c-039e-45a3-ac9b-43478fb2337c`及`a405fe34-24ef-47c2-8f39-0f8578414eb4`證實。
+- **此輪已通過但不重複加分**：原`ET-006`離線安裝／更新／資料保留早已勾選；近期固定20件F-Catalog真Player 30/30、Acceptance回歸81/81只是更新其可追溯Job。**仍不能勾選**：`IT-020`需真Preview包及完整staging、`UT-143/144`及`IT-021`需完整發布摘要/CAS正反例、`ET-001`需乾淨斷網環境完整安裝證據、`ET-008`需自製修補模型全鏈；已有部分證據不能假稱完整Then/And。
+- **精確統計**：TDD由`110/233（47.2%）`→**`111/233（47.6%）`**；單元UT `95→96/168`、部分符合 `91→90`、未符合32不變，IT6、CT7、ET2不變。BDD經2026-10-22跨文件複核另補4個完整SC（由9勾選到13/56）；UX1/20、SPEC3/36維持不變；`SC-048/AC-028`需其他測試全部閉環才能升格。**Gate3固定20件技術里程碑完成**與**完整SPEC的233項TDD完成**屬不同驗收層次，Gate4接手指定盒組官方全量及仍未完成的Preview／Release／效能等規格。
 
-### 二十件內部 Player 與非外觀逐件稽核（2026-09-28）
+### 2026-10-21 Gate 3 階段技術里程碑結案／Gate 4 接續準備（歷史結案批次，最新TDD項目稽核見上方）
 
-使用者補充本階段只親自確認**外觀品質**，其餘驗證由主代理負責；第二批增量建模已停止，範圍固定為原 8 件加新增 12 件。全新 Win64 安裝包 `artifacts/acceptance/toolchain-20260928T051404-cd46ec63/Package/` 經原生安裝器裝於 `C:/bh-qa-wd/20260928-20-a`，`BrickHighLauncher.exe` 啟動成功。`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` 記錄安裝與 launcher exit 0；`PlayerEvidence/result.json` 為 success=true、20/20 載入、各件六方向與 12 步旋轉縮放重設、382 張 PNG，含鍵盤、空搜尋與直式重排。Player 於 Intel Iris Xe／Direct3D11／Linear 色彩空間執行，這不是 SPEC 指定效能設備。
+- **使用者授權的驗收分工**：Gate 3對原固定20件檢驗**尺寸／形狀／連接／碰撞／Catalog QA修訂／Frozen／實際Windows安裝Player／更新與故障矩陣**，另須以已取得官方外觀核准的LEGO Element子集驗證嚴格正式Catalog→RuntimeBuild→Player→獨立verify可行性；不要求任意QA選色都取得LEGO官方生產Element。Gate4才以**使用者實際指定盒組**建立真實inventory唯一Element身份分母、模具與顏色印刷、去重增量建模、全量來源品質／正式資產／指定硬體效能及原SPEC其它條款。這是**Gate里程碑分工調整**，不是正式產品來源或發行標準的豁免。原233 TDD、56 BDD、36 AC、20 UX項目不刪除，整份SPEC未結案。
+- **20件QA模型／品質／Frozen合格證據**：Gate2逐件尺寸誤差≤`max(0.1mm,0.5%)`、接點／碰撞20/20與外觀預覽20/20；`artifacts/acceptance/gate3-fixed20-staging/current-status.json` SHA `ba2380ed84d9e9b3d7c3a916c85521d09c2f0eff7fa1cc62eef2b43edfa46d89` 以`purpose=Gate3 fixed20 QA-only`明示隔離、itemCount20、`readyCount=20`、`pendingReviewCount=0`，原QA Frozen `0218014f-94cc-41a6-907d-11f795567f00` v42保留；原品質提交Job `3b2ae26d-8449-41f3-adfd-294802cb995a` succeeded，安全重試同SQLite bytes。
+- **真Windows安裝版完整操作**：最新內部F-Catalog Windows Player Build Job `f10b2b1d-f785-4e1c-b7ac-4e7bc31bd135` **succeeded exit0**，生成`artifacts/acceptance/toolchain-20261021T022502-b6d04c11/Package`。真Installer／Launcher／Player Job `6d25a8f0-15e3-420c-a7de-4f9f13990961` **succeeded exit0、30/30 checks、failedChecks=[]**；A→B更新、可寫及唯讀各20件382畫面／22操作、profile不變、缺原生依賴、儲存權限拒絕、uninstall與既有資料保留全部通過。Player evidence位於獨立本機驗收資料根 `AppData/Local/brickhigh-local/player-acceptance/16b8aee4-5d18-427f-9a7a-b432a185e0b3/evidence`。F-Catalog仍不得用於正式Preview／Release。
+- **來源與正式Unity RuntimeBuild正例**：9件真LEGO官方來源已合法後繼匯入（Job `d4af4b06-c044-4535-b053-34a15c59709e` exit0），真正式Frozen `7f67a752-65a7-4817-a453-4ed4d90c8834` v20，正式Windows Build Job `8cad067c-039e-45a3-ac9b-43478fb2337c` exit0、獨立verify Job `a405fe34-24ef-47c2-8f39-0f8578414eb4` exit0、9/9模型各六視圖及bundle SHA／Player passed；原始封存 `artifacts/validation-content/20261021T014631-27c55311/`。其餘11件`OfficialElementNotLocatedInVerifiedSources`保持Blocked，**不把20件QA宣稱為20件正式來源或20件正式RuntimeBuild**。
+- **Fail-closed與驗收回歸**：直接重驗QA Frozen建置拒絕fixture的負例 `e65f16e7-32ad-4008-9930-9d02bd942dbb` **1/1 passed**，正式發佈沒有繞過來源。唯讀ACL矩陣第一次失敗：`run_interactive_fixture.py::_run_acl`對`stdout=None`呼叫`.strip()`，先Red Job `a11dec04-f21b-4f7d-98b5-6970abcb33d5` **1 failed**，最小修正後焦點回歸Job `60ba41a9-9c6b-437a-8aa7-81f43ae21168` **8/8 passed**；原QA staging測試原假設SQLite總revision恆等20，在9個合法source successor後變29，改成只驗原20個revision ID及Frozen不變，聚焦Job `96dd09ab-a129-4ba0-b599-98c4b94cf5f9` **1/1 passed**。完整Acceptance初輪 `47f40d31-549a-456a-b19a-2c0e25013bde` 80pass／1fail，修正後完整回歸 `26958c45-525b-4f4e-a57f-543470d14e99` **81/81 passed、exit0**。
+- **結案判定**：以上固定20件QA與正式9件範例均已驗證，Gate3作為「固定20件技術能力與安裝／Player里程碑」**已完成，可啟動Gate4**；不宣告全部20件正式來源或全SPEC達成，不切Published head。Gate4第一步重新依實際指定盒組建立真實inventory／模型覆蓋分母，保留原20件幾何及9件正式來源資產能合法重用，未取得證據則依§§3.4、13.1～13.2阻擋發布；原TDD全項進度暫保持`110/233`、BDD`11/56`、UX`1/20`、SPEC`3/36`，後續逐項完整驗證才能勾選。
 
-`python -m tools.acceptance.audit_internal_model_set` 依包內 `SourceEvidence/<index>.json` 與 Runtime SQLite 對 20 件逐一核對：來源依賴及授權標頭 hash、GLB 與 conversion／包內來源證據 hash、非空 mesh／三角形／材質、重新執行 Khronos 0 error／0 warning、六方向 Player PNG、操作與 runtime 貨號／`Unknown`／非 Ready。新增 12 件來源六視圖 hash 也核對。結果 `artifacts/acceptance/pm-20260928-interactive-20-a/machine-audit.json` 為 **20/20 mechanicalPass**；封裝 `package-integrity.json` 為 222/222 package 檔、216/216 安裝 Player 檔 hash 相符。`manual-visual-review.html` 提供每件七張實際 Player 畫面，外觀結果由使用者填判，報告保留 `visualApproved=false`。
+### 2026-10-21 Gate 3 正式來源9件／RuntimeBuild及Player真實驗證通過（歷史批次，最新里程碑以上方為準）
 
-此處的 mechanicalPass 不等於 Ready。主代理依 `inspect_metadata` 確認原 8 件缺模型品質 metadata；新增 12 件皆缺獨立 reference dimensions 與必要 connectors；20 件皆無已驗證的 collisionProxy 與生產 Active 證據，包內 coverage 為 C=20、A=0、U=20、G=20、V=0，`scope_reviewed=false`。這些是主代理後續要補的非外觀門檻，不轉交使用者視覺判定，也不把人工外觀回覆當作它們的通過證據。
+- 使用者本次對話明確確認9件LEGO官方Element照片與先前核准的模型外觀一致、`4032a`與`4032`在本模型用途等價。已另建9份 `build-plans/gate3-official-review-{ElementId}.json`，逐件綁定user-confirmed決策、Element、模型/metadata及原來源圖片SHA，不假稱審核身分經核實。原Pending模板、QA模型及核准皆保留；`build-plans/source-onboarding.json` SHA `efef8350a6897d06fcee29cd15585fe176e2c79fb2830e6694ecedcfe645e1bf`。
+- 正式來源匯入固定Job **`d4af4b06-c044-4535-b053-34a15c59709e` succeeded／exit0／Passed**，9件Verified、剩餘11件因 `OfficialElementNotLocatedInVerifiedSources` Blocked。結果 `artifacts/source-onboarding/0ad6e36d18d765d1d248eb51f84229086f17f4fb0efed2d8790236cc680f471f/v2/result.json` SHA `482b85ff29d58d9393080576b893f0b7e1978c9eb298519e3c20d409247e36a9`。新官方Frozen `7f67a752-65a7-4817-a453-4ed4d90c8834`／v20、selection digest `bdf46db6838dc4e7dae54e4d7ea900ce280415b84f361bee8584e21f235a64b1`。舊QA Frozen v42不變，head未發布。
+- 來源Job透過CAS將正式 `build-plans/validation-content.json` SHA釘選為 `cec4e7fe8af0e521db5e7cdbf50ecbb8ff262701ee9753c0c89b0971a20e0187`。真正Windows Unity正式驗證建置Job **`8cad067c-039e-45a3-ac9b-43478fb2337c` succeeded／exit0**；獨立Verify Job **`a405fe34-24ef-47c2-8f39-0f8578414eb4` succeeded／exit0／Passed**。證據 `artifacts/validation-content/20261021T014631-27c55311/`，`preflight.json`9件無issues、`editor-report.json` passed=true、`player-report.json` passed=true、`execution.json` playerExitCode=0，9件各有真mesh/材質/尺寸/六視圖 SHA與bundle SHA，`result.json` status=Passed、9個RuntimeBuild，buildId `ad3ec7d1-6d7c-473d-83c5-f1a1d8f2a815`，result SHA `8924f21c43bf5abd2eca30e7e07a7d178364210b6cde4a2274fea4df88b33728`、seal SHA `94e9f466c592baa178896876c5a6384b47c797cef33bb6bf3d8c4ba85a915489`。
+- **Gate3整體尚未結案**，另11件仍缺同外觀LEGO官方Element，尤其紅`973p06`印刷、舊淺灰`14417/14418`需精確來源或未來另議外觀調整；未自行改模型、降低閘門或進Gate4。正式驗證子集9/20，非20/20；正式Preview/Release及全233項TDD繼續獨立，原計數110/233不因部分成功自動改。
 
-### 本輪整合測試與驗收證據
+### 2026-10-21 Gate 3 官方圖片取得9/9（本輪新證據）
 
-- `dotnet test tools/tests/BrickHigh.Core.Tests.csproj --nologo --verbosity quiet`：Gate 2 最新完整重跑 **140 passed**；`dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet`：0 warning、0 error。
-- Unity：先前 SC-008 增量的 UPM IPC 啟動逾時已解除。最終 `brickhigh-unity-editmode-test`（job `e2aafda9-1ab9-4873-ac09-dce955ead5ed`）確實進入 Test Runner、exit 0；真實 `brickhigh-unity-playmode-test`（job `644ee8de-b5b9-46b3-b760-f3b206e9faba`）亦為非 0-test、exit 0，執行 `CoordinateAndConnectorTests.cs::RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract` 並實際以 glTFast 載入 3001／3298／3005 GLB。前輪完整 EditMode 基線 `pm-20260927-unity-final.xml` 的 **163/163** 仍保留作既有回歸證據。
-- Python Gate 2 聚焦 catalog 回歸為 **159/159 passed**；完整 `brickhigh-python-test` 最新重跑為 **195/195 passed**。其中既有真 SQLite F-Save 備份、遷移與還原 14 項仍保留；四種無選擇／取消／注入失敗／明確確認的 CLI 原始報告在 `artifacts/acceptance/pm-20260927-save/`。
-- 新 Win64 20 件內部包 `artifacts/acceptance/toolchain-20260928T051404-cd46ec63/` 建置成功；`artifacts/acceptance/pm-20260928-interactive-20-a/run.json` 記錄全新隔離安裝、launcher exit 0、Player 操作探針 success 與 382 張真實畫面。這仍為 F-Catalog，`readyAsset=false`／`visualApproved=false`。
-- `git diff --check` 無空白錯誤，只有工作樹既有 LF／CRLF 轉換提示。
+- 在既有MCP受控流程以 `archive_external_source` 存入 **LEGO官方素材CDN** `https://www.lego.com/cdn/product-assets/element.img.lod5photo.192x192/{ElementId}.jpg`；九件候選皆 **HTTP200、image/jpeg、原始bytes與SHA完整封存**，不經其他MCP或代用第三方圖片。來源路徑均為 `artifacts/sources/gate3-official-image-{ElementId}/{source.bin,manifest.json}`；逐件JPEG SHA：
+  - `300121` `e31ba3d2135b09efe186227d2247aa08ecf4982308402340dfe88fb3e880281b`
+  - `302021` `b7dab10232d45917740c9b1df72aeaa1571e63187092ee9c907c779b29660ec4`
+  - `6129995` `c096375e61e7639739f9b50857df1b02425a40ea3bdd36a03702d4e8433182b1`
+  - `329821` `cfa7d84475f80e28e29dfe35c6506ea7728d61ff3d652fa28a5ffc64c7c7b414`
+  - `403221` `8ca73f41b058e24a892af9676c61fb06c24f681c1da2f6cc9dd780cd405b6c6a`
+  - `306924` `474f4ae2b04f4a117d052c35a3b59ec927231f36f5b2cd8eda589c45436e315d`
+  - `6019155` `79a3197ab03acccda58e7c8116046591a0b7becac6265010cf29bea605cbf36f`
+  - `300524` `00f362c49d6cc721d6c26af5b35fea849077ee3aac52721e6c9f610666f2c001`
+  - `614121` `b77f933338c7a82da406da6df20685da0ca225318e3f1642f1792fc79cb2a9b5`
+- 先前官方服務路徑 `https://www.lego.com/service/bricks/5/2/{ElementId}` 403，不能推論LEGO沒有該圖片。核對LEGO原始JPEG視覺可見300121為紅2×4、403221為紅色圓板、6019155為紅色側面凸點塊，但此觀察不代替逐件正式核准或4032a模具等價證明。
+- **adapter缺口已修復**：`tools/catalog/source_onboarding.py::_appearance` 沿用內部 `_appearance_evidence`，在原舊路徑以外只新增精確固定URI `https://www.lego.com/cdn/product-assets/element.img.lod5photo.192x192/{ElementId}.jpg`。Element必須為ASCII 6～8位數字且逐字相符；不同domain／port／scheme／query／fragment／其他CDN路徑／不同Element均拒絕。保留來源manifest SHA、原檔SHA／byteLength／storagePath與HTTP200、8MB及像素上限。新路徑只接受image/jpeg及真正JPEG，要求192×192、完整EOI，先verify再以相同bytes實際load解碼；PNG／HTML／截斷JPEG／錯尺寸或MIME拒絕。原JSON／PNG／JPEG舊來源驗證、revision／模型／metadata SHA、Approved審查與模具等價閘門保留，未新增MCP Tools。
+- `build-plans/source-onboarding.json` 只在原9個candidate加入 `officialEvidence` 的圖片與manifest雙SHA引用；輸入plan SHA `8504dd187869ff1247804b867be321cb2b4a74b0c4c4b62af1e8fe1308209eb0`。沒有填Approved／reviewPath／reviewSha256，父Frozen、版本、selection digest、20件範圍、ID及建置plan釘選均不變。缺審查時也會先驗附件；新模板帶同一圖片引用，decision保持Pending，shape／colour／print／mould全部false。
+- **Red／Green**：新增 `tools/catalog/tests/unit/test_official_appearance_images.py`，Red Job `621633ad-1146-421f-94bd-c0301f951cfc` 為4 failed／29 passed；Green `dc8bc1ac-3a1e-4ad7-90f0-528c61d1b9c3` **33/33 passed**。包含正常固定JPEG、錯Element與URL／manifest／SHA／長度／HTTP／偽裝圖／截斷圖／尺寸／MIME、原人工審查與模具防護、舊JPEG／PNG相容，以及真正9份封存圖片與唯讀SQLite位元組不變。原來源流程回歸 `02a050eb-1aff-4806-805d-6a9fd5ff4fd9` **25/25 passed**；MCP **78/78 passed、0 skipped**。完整Catalog Job `7b715571-2363-4130-8de6-cac5a21797a3` **416/416 passed／exit0（801.54秒）**。真20件原核准附件唯讀重驗 `8597ae44-9da6-4583-9c8a-ff6c18d8cbf3` **2/2 passed**；`git diff --check`通過。
+- **既有task實跑／安全重試**：`bc23fdf7-faf2-4383-ab9b-5df5f84db3b4`、`12bc6540-a64d-40ec-b6ae-a3e5edd6665e` 都完成20/20稽核，9/9圖片通過附件預驗；因未核准仍為Blocked／exit3。新不可變結果與9份Pending模板在 `artifacts/source-onboarding/b9d217e110d9c9c7f60ffefb54db0dff75fb9492ea19917e350720affe81e5f5/v2/`；result SHA `065b4b52fd00e0489c3bc603fa17a5b16649e3d6479d1511c1fd8b09c60557a5` 重跑完全一致。原模板及原始JPEG不覆寫。現有MCP已可使用新圖片；Node工具／task設定未改且每次啟動新的Python，無須重啟MCP或tunnel。
+- 本輪九件圖片已存，但**9件人工來源外觀審查未完成、其餘11件仍缺對應官方身分**；不得自動Approved或修改已核准20件模型。正式來源資格0/20、RuntimeBuild0、正式Player0、QA Ready20/20、Frozen v42、TDD110/233不變；不進Gate4。
 
-### 本輪 Phase 4–5 逐項稽核與進度重算
+### 2026-10-20 Gate 3 正式來源後繼匯入固定入口（本輪最新）
 
-以 2026-09-27 原 233 項逐項矩陣為基線，重新核對本輪改動所涉及的目錄、錯誤結果、存檔、UI 與 Player 項目；未改動項保留既有逐項證據及缺口。前段嚴格升格六項：`UT-011`、`UT-058`、`UT-060`、`CT-009`、`CT-011`、`ET-017`；本次 Gate 2 再依單元層原始完成條件與 Unity 實證升格 `UT-022`、`UT-023`、`UT-024`。結果為 **79/233（33.9%）**，其中 79 符合、122 部分符合、32 未符合；分類為 74 UT、2 IT、2 CT、1 ET。`IT-004` 因完整真實資產矩陣仍缺而保持部分符合；Gate 2 readiness 仍是 0/20。BDD 仍 **5/56（8.9%）**，UX **1/20（5.0%）**，SPEC 完整驗收條款 **2/36（5.6%）**。報告型品質門檻有本機合成正例，但沒有真實 Ready 模型；不能因此提升 SC-004、SC-054 或正式 Preview／Release。使用者接受方向不能替代 ET-020 所需 `visualBaselineId`。
+**程式管線已新增，正式來源端到端尚未完成。** 唯一新增task為 `brickhigh-gate3-source-onboard`（原 `start_project_job`，900秒、不接受caller命令或參數）；輸入 `build-plans/source-onboarding.json`，固定原20件、原Frozen v42／selection digest，9件官方候選及5份完整官方封存。沒有新增MCP tools、改Write Lease或降低品質閘門。使用者另明確同意以本機檔案工具維護MCP本身；正式來源取得、匯入與資料操作仍只走GameNenStyle MCP。
 
-開發與稽核的剩餘主路徑：取得具完整範圍與生產狀態的來源資料 → 為各來源變體建立可追溯模型、reference dimensions、接點／碰撞及外觀／授權覆核 → 逐件 Ready 與正式六視圖基準 → Frozen staging／RuntimeBuild → 合格 Preview／全量 Release → 指定 GTX 1660／i5-10400／16GB／SSD 與故障情境重驗。現有主機為 Intel Iris Xe／i5-13500H／約24GB，僅有本機替代證據。缺少的來源與硬體不以 F-Catalog 或本機 FPS 推定。
+- `tools/catalog/source_onboarding.py` 重驗原始request／response／manifest SHA與長度、LEGO確切URL／POST、指定盒組／無縮小篩選／完整count=total、重複Element、pinned dataset SHA與逐件part／色碼。另檢查GraphQL真正以單一searchElements(input:$input)使用已驗變數，拒絕literal條件、alias、directive或額外operation，不能僅憑variables證明查詢範圍。沿用 `map_pick_a_brick_set_response`、`load_authoritative_element_bindings`、`import_catalog`、`complete_revision_quality`、`freeze/select_revision`。多頁尚未收齊時一律拒絕，沒有將400筆上限當全量。一般mapper保持全資料嚴格拒絕衝突；固定cohort匯入可將非候選衝突隔離列入audit，候選自身衝突仍拒絕。本輪另外識別到非本批Element6117969（官方Design21712／pinned92411）、6378481（官方89954／pinned76537），未升格這兩件。
+- 正式外觀審查必須明確Approved且綁定真正sourceRevision／model.glb／metadata SHA、Element／Design、精確LDraw part與colour、形狀／顏色／印刷／模具及原MCP封存的官方附件；布林聲明、第三方別名或殘缺PNG不放行。4032a對4032、3069b對3069等尾碼差異必須額外給明確模具等價證據，不能自動去尾碼。原模板只建立Pending；核准提交應另存 `build-plans/` 新檔，並在來源計畫候選填入reviewPath／reviewSha256，禁止覆寫不可變模板或手寫假官方原始資料。
+- `repository.py` 的巢狀交易改用savepoint；`importing.py` 支援父Frozen版本／selection CAS、cohort缺口及原始provenance封存。整批可核實項目透過原API建立有parent的新Draft、正規variant及後繼revision，在同一外層交易內完成品質重驗、Freeze與CAS選件；故障前移轉不留半套DB狀態。原QA fixture／GLB／metadata／60項核准／Frozen歷史均保留，不切Published head。
+- `quality.py::reuse_approved_revision` 只沿用可重算Ready且相同GLB／metadata SHA的既有資產核准，清楚封存原revision／原核准者與附件；另保留新的官方身分審查。新修訂仍走Building→Validating→原完整品質API，不用SQL改狀態。新增 `source_onboarding_runs` 不可變提交紀錄，crash後以同一輸入復用同一successor。提交成功後以SHA CAS原子更新validation-content plan，保留原plan bytes；CAS衝突可恢復，不重建修訂。Design未公開時保留null、geometry以Element隔離，與SPEC §3.3一致，不猜Design。
+- **實際結果0/9正式匯入、0正式RuntimeBuild、0正式Player。** Job `635a8746-caf8-477c-a7d5-f473ed4d9979` 及重試 `8433c492-7cc5-4886-8135-1257b9f6e482` 都完成20/20來源稽核、exit3，業務結果Blocked；通用Job外層狀態為failed，逐件原因及Pending模板見 `artifacts/source-onboarding/5fce91a7c0d5e8a90359f643b9a2bbf9e80025a3ad2e55b6d3e0c5319077b5f2/v2/result.json`、`audit.json`、`source-mapping-conflicts.json`、`review-templates/`。result SHA `cc0b72ac324e81ade04f5de186426ef7f081a3653069acf70c7744516b179f1a`。最終query範圍檢查修正後，Job `269dcb3a-6a2e-4a5f-98cd-e0e5d73c57cd` 同樣20/20稽核後exit3／Blocked，result SHA重讀完全相同。9候選皆缺OfficialAppearanceReviewMissing；其餘11件為OfficialElementNotLocatedInVerifiedSources，僅表示本次已驗來源未取得，不表示不存在。
+- **真實來源取得阻塞**：官方新增name欄位查詢成功；另外已對10698、40875、42210、40408、43269五份完整回應逐一核對，9候選的imageUrl皆為null（10698另有7個非本批Element有圖片，不得借用）。新增4份原MCP封存在 `artifacts/sources/gate3-image-field-{40875,42210,40408,43269}/`，derived audit／response SHA見同v2目錄 `image-field-audit.json`；測過color／colour等欄位回GraphQL400（原bytes已封存，不能假設有顏色證書）。原 `archive_external_source` 取得300121官方圖片端點回HTTP403。既有 `capture_lego_replacement_parts_metadata` 開啟10698官方頁成功HTTP200，使用者已回覆搜尋／選取300121，再次擷取實際回 `LEGO_REPLACEMENT_OFFICIAL_METADATA_NOT_FOUND`。未改用其他MCP操作瀏覽器、未繞安全檢查。現有外觀adapter只接受已SHA封存的對應Element圖片／結構化原始附件；未驗證的Next/HAR形狀不可直接當已支援。需要先取得真正可驗證的官方外觀內容；這個來源／擷取缺口未解決前，不能宣稱ChatGPT已可無人工介入完成全套正式驗收。
 
-關鍵路徑：交接核對 → 可驗證品質與預覽／存檔實作 → 真實 Player／安裝與來源、硬體驗收 → 全項稽核／返工 → PM 接受。共享 Unity 專案、文件與執行環境由主代理排程。主要風險為缺全量來源、逐資產外觀核准、指定效能基準機；觸發時由主代理保留原門檻、記錄本機替代證據和恢復條件，不偽稱達標。
-
-## 🎯 開發進度總覽
-
-### 2026-09-27 續作前全項稽核基線
-
-本次已逐項核對36個AC、56個BDD場景與233個TDD項目；稽核完成不等於缺漏修復完成。下列數值是本輪續作前基線，後續實作與驗證完成後逐項重算。使用者已回覆視覺方向可接受並要求繼續逐件驗證。
-
-TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。這是驗收項目完成率，不是整個MVP或模型資產的完成率。233項中70項已符合、128項部分符合、35項未符合；部分符合不給半分。每列的實作、斷言位置、缺漏、優先級及補測名稱見本文件末尾「2026-09-27 逐項證據矩陣」。
-
-相對9/26舊50/233，補記22項既有成果、撤回UT-060及UT-095，共淨增20項，沒有新增功能。UT-060僅證明結果互斥，任意message仍可直傳；UT-095已驗共享／取消，但失敗載入後的完整handle回收證據不足。
-
-稽核採用9/26既有最後回歸：Python 173/173、Unity EditMode 129/129，皆0失敗／0略過；本次只讀斷言與結果檔，沒有把它們描述為9/27重新執行。Player版本`20260926T025815-ef8f8371`的154張畫面及成功結果只作其實際範圍證據。SC-037空搜尋→清除→恢復清單可完整核對，因此UX由0/20調整為1/20；不代表模型外觀已核准。
-
-目前高優先缺口：真正Ready品質報告與Unity驗證／發布封裝、接點／碰撞與候選用途、存檔一致備份／還原、完整引用及失敗／取消矩陣。中優先驗收工作：逐變體外觀／字型故障與核准流程、固定profile效能及記憶體量測。原需求門檻不變；全量來源與指定設備未取得，仍保留未驗收。
-
-下列9/26及更早段落是當時紀錄，舊百分比與「尚未全項稽核」不作目前總覽。使用方式與分層統計已按本次矩陣重算。
-
-### 2026-09-26 階段交付與使用者要求停止（歷史紀錄）
-
-使用者明確要求「完成階段成果後停下，告訴我可以實際視覺驗收的部分再繼續」。本輪在下列驗證收尾後停止，不再啟動下一階段；待使用者視覺驗收回饋後續作。這是使用者指定的階段界線，不是100%驗收或外部阻斷結論。
-
-- 可直接人工操作：`C:/bh-qa-wd/20260926-c/BrickHighLauncher.exe`，版本`20260926T025815-ef8f8371`。正常啟動無自動驗收環境變數，因此持續顯示、不自動退出。
-- 本次可視覺驗收：8個LDraw幾何樣本（含透明件／人物印刷組件）、材質與光照、繁中字型、搜尋／清除與清單、滑鼠旋轉縮放重設、鍵盤Tab／Shift+Tab／方向鍵／Enter、720×960直式重排。樣本不等於完整未停產模型庫；逐件品質及使用者外觀核准尚未完成。
-- 真正Player證據：`artifacts/acceptance/wd-20260926-interactive-c/run.json`、`PlayerEvidence/result.json`與154張PNG；安裝0、launcher0、success=true。已檢視橫式`frame00000.png`與直式`frame00153.png`；所有畫面都保留內部測試提示，visualApproved=false。
-- 最終Python：`python -m pytest -q --junitxml=artifacts/test-results/wd-20260926-stage-final.xml`，173 passed／0 failed／0 skipped（103.76秒）。最終Unity EditMode：`wd-20260926-ui-verified.xml`，129 passed／0 failed／0 skipped（38.03秒）；之後僅擴大內部Player驗收按鍵腳本並成功重建／安裝，不再修改UI產品邏輯。
-- 額外品質修復：`validate_glb.cjs`及`glb.py::verify_validator_report`綁定模型SHA-256／長度、固定validator版本並拒絕不完整／警告報告；`wd-20260926-validator-binding-red.xml`缺modelSha256 → green 21 passed。`building.py::_snapshot_fence`在準備後及交易提交前核對Frozen版本，`wd-20260926-snapshot-race-red.xml`2 failed → green 28 passed。原始LDraw依賴及LDConfig一起存入不可變revision manifest，`wd-20260926-build-source-archive-red.xml`缺來源bytes → green 11 passed；重試同樣重驗原始封存。
-- 文件包沿原交接：`docs/requirements/MVP-001-V1Version.md`、`docs/specs/SPEC-001-BrickModelCatalog.md`、本TDD、對應BDD及既有RiskAudit；本輪更新TDD／BDD與`overview/README.md`。完成度仍49/168 UT＋1/29 IT＋0/14 CT＋0/22 ET＝50/233（21.46%）；BDD 3/56，UX 0/20完整驗收，尚未宣稱Phase 4全項稽核完成。
-
-### 2026-09-25 well-done 續作與追溯（歷史紀錄）
-
-本輪沿 Ready 交接與既有五份文件，保留前輪未提交實作；僅開發 SPEC-001。按 checklist ID 計算完成度，不以測試 cases 代替。本節是新增項目及修復核對，不是 Phase 4 全233項深度稽核結案。
-
-| 項目 | 實作／測試證據（相對brickhigh） | 結論 |
-|---|---|---|
-| UT-001～003／SC-001 | `tools/catalog/importing.py:210`；`tools/catalog/tests/unit/test_sc_001.py:39`、`:56`、`:79`；`tests/integration/test_source_import.py` | 單元層完成：hash／日期／系列展開、附件排除、缺頁及缺系列G；非真實全量來源 |
-| IT-001／SC-001～003 | `tools/catalog/resolving.py:77`、`cli.py`、`schema.sql`；`tests/integration/test_catalog_resolve.py:178`及同檔三態／故障矩陣、`test_source_import.py`、`test_sc_001.py`～`test_sc_003.py`（tests相對tools/catalog） | 真CLI→檔案→SQLite矩陣完成：跨來源候選、外觀ID、映射衝突、基準日三態、變體獨立、FK／integrity及回滾；受控離線fixture |
-| import CLI／來源封存 | `tools/catalog/cli.py`、`importing.py`；`wd-20260925-import-red-v2.xml`、`wd-20260925-import-storage-red.xml` → `wd-20260925-import-green.xml` 12 passed | 補入口、工作鍵冪等、相對storage key與全新DB；憑證URI仍拒絕 |
-| resolve CLI／不可變證據 | `resolving.py:59`、`:77`；`wd-20260925-resolve-red.xml` 12 failed → `wd-20260925-resolve-green.xml` 16 passed；`wd-20260925-resolve-integrity-red.xml` 4 failed → `wd-20260925-resolve-integrity-green.xml` 45 passed | 附件hash、日期、歸屬、分類、別名、CAS、回滾；相反證據保留Unknown；過時重試拒絕，附件與evidence禁止改寫 |
-| 封存重試／新觀測 | `importing.py:182`；`wd-20260925-import-provenance-red.xml` 4 failed → `wd-20260925-import-provenance-green.xml` 11 passed | 重試核對封存bytes，新觀測日期保留獨立附件，schemaVersion拒絕bool／float |
-| validate報告 | `cli.py:83`；`wd-20260925-cli-gates-red.xml` 2 failed → `wd-20260925-cli-gates-green.xml` 10 passed；`wd-20260925-retired-red.xml` 1 failed → `wd-20260925-retired-green.xml` 32 passed | V不採信布林Ready，Retired也須有效證據；未解除品質、RuntimeBuild及全量門檻 |
-| UT-101／105／139 部分UX修復 | `game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs::FormatDetails`；`Tests/EditMode/Unit/CatalogPreviewViewTests.cs:69`（相對Assets/BrickHigh） | `wd-20260925-unity.xml` 124 passed／1 failed；來源狀態移至第二行後`wd-20260925-unity-green.xml` 125 passed |
-| UT-097 虛擬清單修復 | 同view的`UpdateRows`及測試`RenderState_TallViewport_VirtualRowsCoverEveryVisiblePosition` | `wd-20260925-ui-rows-red.xml`確認第11列空白；改依高度配置列池與實際偏移選列後`wd-20260925-ui-final.xml` 126 passed／0 failed／0 skipped |
-| build CLI／真實逐件模型工作 | `tools/catalog/building.py`、`tests/integration/test_catalog_build.py`（tests相對tools/catalog） | 固定工具與來源hash、Frozen計畫、不可變模型產物、同鍵重試；缺來源／逾時僅使該件Failed。實際Blender與Khronos Validator整合，成功停在Validating，未選件或發布 |
-| metadata可計算品質 | `tools/catalog/metadata_quality.py`、`tests/unit/test_metadata_quality.py` | 公尺bounds及參考尺寸容差、接點位置／正交基底、空接點理由、輪徑／軸向及未知質量檢查；`wd-20260925-build-metadata-green.xml` 19 passed。尚非完整接合／碰撞／輪組原型驗收 |
-| 工作租約錯誤清理 | `tools/catalog/jobs.py::release_on_error`、`building.py`及上述build測試、`tests/integration/test_catalog_jobs.py` | 封存損壞的重用失敗原留Running租約；`wd-20260925-lease-red.xml` 1 failed → `wd-20260925-lease-final.xml` 16 passed。修復後可立即重試，舊worker不可清除接手者租約 |
-| 逐模型六視圖／來源署名 | `tools/catalog/render_views.py`、`building.py`、`tests/integration/test_six_views.py`及build測試 | `wd-20260925-sixviews-red.xml` 1 failed → green 1 passed；`wd-20260925-build-views-red.xml` 1 failed → green 9 passed。實際GLB、固定CPU渲染、六面PNG及preview、模型hash／工具／相機／光照報告與attribution一起封存；未自動核准外觀 |
-| Frozen涵蓋缺口保護 | `tools/catalog/schema.sql`、`tests/integration/test_snapshot_repository.py` | `wd-20260925-frozen-gaps-red.xml` 4 failed → green 50 passed（含來源／resolve回歸）。禁止凍結後新增、刪除、解決或從Draft搬入coverage gap；後繼Draft可修正且原快照不變 |
-
-以上XML位於`artifacts/test-results/`。`wd-20260925-it001-final.xml`來源／CLI核對組50 passed，無失敗／略過。另補非法enum形別exit 2：`wd-20260925-resolve-input-red.xml` 3 failed → `wd-20260925-resolve-input-green.xml` 3 passed。原正常fixture含token URI及把壞JSON當工作鍵衝突的錯誤前置已修正，另保留獨立拒絕案例；未放寬安全／JSON驗證。
-
-建置及metadata首輪完整Python回歸`wd-20260925-python-build-final.xml`為152 passed；後續另補租約與六視圖測試。六視圖目視證據：`artifacts/acceptance/six-views-2192d37bc45d403084f85165042e7f72/preview.png`、`bottom.png`為實際紅色2×4磚，凸點與底部空腔可見；`six-views.json`保存來源模型hash與渲染設定。此為來源GLB渲染，不能取代Unity Player六視圖或使用者visualBaselineId核准。
-
-六視圖與租約補強後完整回歸`wd-20260925-python-views-final.xml`為155 passed；Frozen gap新增四個反例另由上述50項組驗證。本輪新增的建置／metadata／六視圖／租約／Frozen gap證據屬對應SC-004／006／008／010／011／013／056的部分實作，未因此新增整項勾選。
-
-2026-09-26接續前，包含Frozen gap反例的完整Python回歸`wd-20260925-python-catalog-final.xml`為159 passed／0 failed／0 skipped（121.52秒）。下一步補虛擬清單鍵盤事件鏈；整項完成度維持50/233，不以回歸cases增加勾選。
-
-2026-09-26虛擬清單鍵盤修復：`Presentation/CatalogRowNavigation.cs`及`CatalogPreviewView.cs::MoveRow`（相對`game/Assets/BrickHigh/`）讓方向鍵移動資料焦點、完整顯示目標列，列池重用保留原VariantId而非悄悄改選另一件。`KeyboardMove_VirtualList_ReachesOffscreenRowsWithoutSelectingAnotherVariant`以實際uGUI方向事件走過50列、再回上一列，確認未自行載入模型；`wd-20260926-keyboard-red.xml`原第8列已超出viewport（350px > 307px），修復後`wd-20260926-keyboard-green.xml`完整Unity EditMode 127 passed／0 failed／0 skipped。UT-105仍待完整輸入鏈與Player驗證，不單因本反例修復勾選。
-
-Tab／Shift+Tab新增固定控制順序、跳過不可用項目與清單單一Tab入口；預覽區停用Button方向鍵自動導覽，讓箭頭保留給鏡頭。`wd-20260926-tab-red.xml`重現預覽方向鍵把焦點移到ResetViewButton；其中Tab模擬也暴露EditMode測試輸入不受支援，後續`tab-focused`／`tab-dynamic`屬測試環境失敗，不列成功證據。最終EditMode改直接驗證同一`AdvanceKeyboardFocus`操作入口，真Input System按鍵佇列驗證移至`PreviewEntry/InternalPreviewAcceptance.cs`的實際Player。`wd-20260926-ui-final.xml`完整129 passed／0 failed／0 skipped；尚待新版Player安裝驗證。曾嘗試的全域EventSystem選取測試亦因EditMode未註冊而無效，已移除，沒有忽略錯誤log或把失敗算通過。
-
-實際Player再現／修復：`artifacts/acceptance/wd-20260926-interactive-a/PlayerEvidence/result.json`在Tab成功後於`KeyboardRowFocus`失敗；離開未改動InputField仍觸發搜尋，清空即將操作的清單。`CatalogPreviewView.cs::SubmitSearch`保留上次提交條件，未改動的失焦不重查，明確搜尋按鈕仍強制查詢。重建`20260926T025425-875f28f0`後，隔離安裝至`C:/bh-qa-wd/20260926-b`成功，`artifacts/acceptance/wd-20260926-interactive-b/run.json`為installer=0、launcher=0；Player記錄`input-system-tab-reverse-and-list-navigation`、8件模型六視圖／旋轉縮放重設、搜尋清除與直式畫面共154張。已檢視`PlayerEvidence/frames/frame00153.png`，繁中及Unknown提示可讀。此為Input System自動按鍵事件，不是桌面HID錄影或使用者核准；readyAsset=false、visualApproved=false。
-
-修復後完整Unity回歸`wd-20260926-ui-verified.xml`為129 passed／0 failed／0 skipped。再擴大Player按鍵提交驗證，build `20260926T025815-ef8f8371`安裝至`C:/bh-qa-wd/20260926-c`，`artifacts/acceptance/wd-20260926-interactive-c/run.json`安裝與launcher皆0、success=true；operation `input-system-tab-reverse-list-submit-orbit-reset`核對Enter載入完整選定變體、預覽方向鍵保持焦點且相機改變、Tab＋Enter重設回原相機位置。仍保留8件／154張Player畫面及F-Catalog限制。
-
-新增勾選僅UT-001～003及IT-001，重算49/168 UT、1/29 IT、0/14 CT、0/22 ET，共50/233（21.46%）。既有46項沿歷史證據，不稱為全項重新稽核。BDD SC-001～003依受控fixture場景完成，3/56；UX仍0/20完整驗收。正式來源、逐資產品質、發行管線、完整UX／故障／效能／輪組矩陣及全項稽核尚未完成。
-
-### Mighty PM 完成契約與執行紀錄（2026-09-23，v1）
-
-本次授權為 `$mighty-pm $well-done` 接續本文件；規劃交接 Ready，五份文件包及既有決策沿用。範圍為本 SPEC 的 36 AC、56 BDD（20 UX）、233 TDD，以及必需的深度稽核、缺漏修復與重驗；其他 SPEC、人物／庫存／交易／房屋與正式賽車玩法排除。起始工作樹 `git status --short` 為空。根本缺口為內部探針尚未接成合格 Preview 與完整發行管線；不以 fixture、測試案例數或畫面概念圖取代正式驗收。
-
-| ID | 來源／交付與驗收條件 | 負責人／寫入範圍 | 依賴 | 狀態／驗證 |
-|---|---|---|---|---|
-| P0 | well-done Phase 1；文件、決策、實際工作樹與現存證據核對 | 主代理；既有 MVP/SPEC/BDD/TDD/overview | 無 | verified；確認交接 Ready，文件鏈與現行程式已核對 |
-| P1 | SPEC §3、4、8、13.1；真實來源、代表資產及全量缺口 | source_readiness（gpt-6-luna/high）；唯讀 | P0 基線 | verified（盤點）；本機 LDraw 幾何可讀，無全球在產涵蓋證據；資產合格與全量驗收仍未完成 |
-| P2 | Phase 2/3；233 項 TDD 及 20 個 UX 的實作與證據 | 主代理與限定工作者；派工時明訂檔案 | P0，逐項依賴 P1 | active；工作重試、材質、UI 已進入修正整合，尚未逐項完成 |
-| P3 | 原生封裝、安裝更新、離線 Player、畫面與效能 | 主代理；建置／啟動／驗收工具；catalog_jobs 限定 installer | P2 及合格資產 | active；鎖與受控啟動測試通過，安裝與 Player 整合中 |
-| P4 | Phase 4/5；逐項 AC/BDD/TDD 深度稽核及有缺漏時修復重驗 | 指定稽核工作者、主代理整合；證據與已分配修復範圍 | P1–P3 | planned；每項要求文件／程式／測試路徑與行號，不抽樣 |
-| P5 | Phase 6；完成契約逐項驗收與文件交付 | 主代理；最終文件與整合證據 | P4、全部必要關卡 | planned；僅 Verified 或允許的等價證據可結案 |
-
-關鍵路徑：現況核對 → 可操作 UI／來源品質與封裝 → 真實 Player／安裝 → 畫面核准與正式效能／全量 → 全項稽核／修復 → PM 驗收。Unity 專案、共享 DTO／schema 與整合文件由主代理控制；工作者不得另派工作者，並行工作限不重疊寫入範圍。尚無成本數據，不聲稱金額節省；以少量獨立工作者及里程碑調整。
-
-#### 2026-09-23 整合證據（進行中，尚非全案驗收）
-
-- P2-C：`tools/catalog/jobs.py` 補工作租約、token fencing、checkpoint、來源重試與子程序 timeout。主代理審查補上長 Retry-After 不提早重試、最後失敗後當機不多呼叫一次的反例。`artifacts/test-results/pm-20260923-jobs-focused-final.xml` 為14 passed；完整下載與 CLI 不因局部 helper 完成而勾選。
-- P2-A：透明材質由明確拒絕改為保留 LDraw alpha 與 GLB BLEND；真實透明磚與印刷人物 GLB validator 0 error/0 warning。工作者材料 Red/Green 僅留工具 stdout/exit（Green 8 passed），沒有持久化歷史 log，不重造。`artifacts/models/pm-20260923-transparent-color47`、`pm-20260923-printed-torso-973p06-color4` 保留 Unknown／qualityPassed=false／appearanceApproved=false，未提升為 Ready。
-- P2-U：第一輪真 Unity 完整 EditMode `pm-20260923-ui-green.xml` 為114 passed/1 failed；失敗為釋放仍被 Camera 引用的 RenderTexture，已進入修復重驗。Coverage 新增測試真實編譯 Red 見 `pm-20260923-coverage-red.log`；窄窗幾何另補反例。測試通過案例數不直接計入233個清單ID。
-- P3：固定 Preview／Release 身分、共用生命週期鎖、一次性 named-pipe 子程序 PID／版本授權與原生通知；政策7項通過（`pm-20260923-policy-green.trx`）、授權5項通過（`pm-20260923-launch-green.trx`）、真正兩程序競爭2項通過（`pm-20260923-launch-process-green.xml`）。Player 安裝指標核對先 Red，再4 passed/1 failed（越界例外未攔），修正後5 passed（`pm-20260923-startup-final.trx`）。尚非完整 IT-022／ET-016。
-- 本地繁中字型採固定 Noto CJK Sans2.004 的 Traditional Chinese OTF，隨包 OFL 1.1 授權；待實際 Player 缺字與畫面驗證。原生 launcher 已完成自包含 win-x64 publish；尚待實際安裝包與 Player 啟動核對。
-
-#### 2026-09-24 續作檢查點
-
-- 使用者已明確回覆「尚無，請繼續開發」：目前沒有2026-09-08全量在產／停產證據或指定GTX1660／i5-10400基準機紀錄。兩項維持 Deferred；開發範圍與驗收條件未縮減。
-- 三位工作者上輪由 runtime 回報用量限制而中斷，不視為已完成。續作時核對實際工作樹、log與產物後，以原工作者恢復 P3-I 安裝入口與 P2-A 證據結報；P2-U 已達成的 UI 修改停止寫入，改做 P2-Q 全233項開發缺口盤點。P2-Q不是最終Phase4稽核，不預先結案。
-- P2-U 最終整合結果：`artifacts/test-results/pm-20260923-ui-integrated.xml` 為 **122 passed / 0 failed / 0 skipped**。涵蓋先前 RT 與窄窗失敗修復；不代表實際 Player 畫面或233項全通過。
-- P2-A 斜面件根因是 ImportLDraw `_s`／`_c` 材質用途後綴。精確解析數字色碼並保留原材質名稱；未知名稱仍拒絕。`pm-20260923-asymmetric-green-final.xml` **16 passed / 0 failed / 0 skipped**，有兩輪持久化 Red。最終3298 GLB `pm-20260923-asymmetric-slope-3298-materials-v2` SHA-256 `ce1a16e98492945427e45bb5df4b7590b7b04a7f90f044de94843396e3a986e1`，Khronos 0 error/0 warning，仍非Ready。
-- 主代理當前回歸：`pm-20260924-core.trx` **105 passed / 0 failed / 0 skipped**；`pm-20260924-catalog.xml` **64 passed / 0 failed / 0 skipped**；`pm-20260924-netstandard.log` netstandard2.1 build **0 warning / 0 error**。
-- `ToolchainProbeBuild.BuildInteractiveFixture` 真實Unity建置成功，log `pm-20260924-interactive-build.log`、產物 `artifacts/acceptance/toolchain-20260923T165204-beeb922f/Package`。含8件真實GLB來源、離線中文字型及原生launcher，但使用人工F-Catalog固定讀取包，明確未Ready／未核准；下一步為隔離安裝、Player啟動及實際影像，不提升正式Preview完成度。
-
-#### 2026-09-24 Player 與安裝整合續作
-
-- 第一個8模型內部包已真正安裝至隔離根目錄 `C:/bh-qa-pm/20260924-a`，透過原生launcher授權啟動Player。`artifacts/acceptance/pm-20260924-interactive-a/run.json` 記錄 installExit=0、launcherExit=0；Player輸出154張真實畫面，含8件模型六視圖、旋轉／縮放／重設、搜尋清除及直式視窗。此為F-Catalog操作證據，不是正式Preview或視覺核准。
-- 實際畫面檢查發現中文字型標題、Coverage及來源狀態被裁切，直式文字過小；已補三種視窗尺寸的真實Noto字型反例，`pm-20260924-ui-font-red.xml` 為3 failed。P2-U回到preview_ui限定Presentation修正；主代理執行Green與重建。P2-Q全233項缺口盤點改由source_readiness唯讀執行，僅寫 `pm-20260924-gap-inventory.json`，仍非Phase4結案稽核。
-- P3-I新增原生安裝入口、卸載捷徑、更新回滾及舊索引相容；`pm-20260924-installer-uninstall-final-v2.txt` 為17 passed。封裝binary SHA-256 `7e581842ccc0768c326473f6a9171afd6c51d4506eb100c2d8a7e2b24e4a32b3`。執行中版本內卸載如留下自身exe，明確回報8；未以此宣稱完全移除。實際新Player包整合、原生GUI與ACL場景尚待驗證。
-- P2-D由catalog_jobs接續開發端CLI的freeze／validate／publish／status，寫入限定CLI與專用測試；import／resolve／build及正式Unity內容管線仍未完成，不以helper或探針替代。
-
-| 風險／驗證限制 | 負責人／觸發 | 處理與恢復條件 |
-|---|---|---|
-| 全量基準／來源狀態尚缺 | 主代理；無全球涵蓋與有效生產證據 | 調查並保存缺口，Unknown 保留；具完整實際來源與逐模型品質後才驗收 AC-017 |
-| 畫面核准尚缺 | 主代理；尚無合格安裝包與 visualBaselineId | 先完成具體可審閱 Player／六視圖／操作證據，再請使用者核准；自動圖像檢查不等價 |
-| 正式基準設備尚缺 | 主代理；本機僅探索環境 | 記錄本機結果；取得 SPEC 指定或另明確核准設備與固定 profile 後完成正式驗收 |
-| 共用 Unity 編輯與測試環境競爭 | 主代理；任何 Unity 啟動／建置 | 主代理排程單一 Editor，工作者獨立測試需預約；不改使用者場景及正式 Profiles |
-
-未完成驗證不能默認通過；無等價證據者保持 Deferred／Incomplete。此紀錄是完整流程基線，條件修復沿同一紀錄更新，不把階段性結果當作整份需求交付。
-
-### 整體進度
-
-```text
-SPEC-001-BrickModelCatalog TDD 開發
-目前工作：Gate 1 已確認；Gate 2 固定20件補 Ready 品質，SC-008 單元契約已 Green，Unity Test Runner 已恢復且真實 glTFast PlayMode 已 Green；IT-004 保持部分符合，現為 0/20 Ready
-開始時間／最後稽核／負責人：2026-09-10／2026-09-28／Codex
-進度條：[███████░░░░░░░░░░░░░] 33.9% (79/233)
-```
-
-### 分層進度追蹤
-
-| 測試層級 | 進度 | 已符合 | 部分符合 | 未符合 | 狀態 |
-|---|---|---|---|---|---|
-| 單元測試 | 44.0% | 74/168 | 72 | 22 | SC-008 UT-022～024 隔離規則完成；真實資產完整矩陣由 IT-004 續追 |
-| 集成測試 | 6.9% | 2/29 | 24 | 3 | IT-001、IT-013完整符合；IT-004 已有真 glTFast PlayMode 證據但仍部分符合 |
-| 程式內API契約 | 14.3% | 2/14 | 12 | 0 | CT-009、CT-011 符合；其餘部分證據 |
-| E2E／安裝／畫面／效能 | 4.5% | 1/22 | 14 | 7 | ET-017 F-Save harness 符合；正式 Player 尚未驗收 |
-| 合計 | 33.9% | 79/233 | 122 | 32 | 154項尚未完整符合 |
-
-一個原始checklist ID只計一次；參數化cases、assertions、文件追溯及部分實作不加分。四層百分比與總百分比四捨五入至小數一位。全項逐列判定見末尾矩陣；既有回歸全綠不等於233項全數通過。
-
-### 當前 Sprint 狀態
-
-| 項目 | 內容 |
+| 其餘11件 | 精確阻塞／接續方向（第三方僅作搜尋線索） |
 |---|---|
-| 當前階段 | Gate 2：固定20件模型補齊 Ready 品質契約，不擴增模型數量 |
-| 當前工作 | Gate 1 已由使用者確認方向；Gate 2 collision fail-closed、connector profile 與 cavity 單元契約已完成，Unity runner 已恢復，真實 glTFast PlayMode 已補入 IT-004；接續固定20件逐件 Ready 證據與 IT-004 剩餘矩陣 |
-| 已核對證據 | .NET core 140/140；Python 195/195（catalog 159/159）；.NET Standard build 0 warning／0 error；既有完整 Unity EditMode 163/163，Gate 2 最終 EditMode Test Runner exit 0、真實 PlayMode 非0測試 exit 0；20/20 Player 操作、382 張畫面、20/20 機械稽核；Gate 2 readiness 0/20 |
-| 最後更新 | 2026-09-28 |
-| 邊界 | 保留233個原始ID與名稱，不降低完整Preview／Release及實機驗收要求 |
+| 3001透明／LDraw47 | 缺同透明外觀官方Element及pinned alias；11040／40953盒組線索不等於正式核准 |
+| 973p06紅／4 | 目前同印刷線索主要黑色，原LDraw預設-c0；紅色同印刷未證實，不能自行改黑或換印刷 |
+| 2780紅／4 | 缺同色官方Element與pinned alias；保留紅色，不能套其他色 |
+| 3437紅／4 | DUPLO歷史part／色有第三方存在紀錄，尚無本外觀官方身分 |
+| 3700舊淺灰／7 | 需歷史同色官方資料；不能套71淺藍灰 |
+| 4085c舊淺灰／7 | 408502只是第三方候選；需確切c模具與舊色證明 |
+| 30374紅／4 | 有第三方存在線索，尚缺同色及版本官方封存 |
+| 14417舊淺灰／7 | 第三方主要深藍灰；原舊淺灰未證實，不自改72 |
+| 14418舊淺灰／7 | 第三方主要淺藍灰；原舊淺灰未證實，不自改71 |
+| 2456黃／14 | 有第三方存在線索，尚缺同色／精確版本官方身分 |
+| 6060紅／4 | 有第三方存在線索，尚缺同色／精確版本官方身分 |
 
-### 里程碑
+**接續順序**：常駐MCP需重新載入才能顯示新task，本輪未重啟tunnel。ChatGPT Desktop以 `@gamenenstyle-local-workspace well-done resume` 讀此段、確認lease及必要指令後，先補真正官方原始外觀附件與逐件審查，再以SHA保護更新來源計畫並跑 `brickhigh-gate3-source-onboard`；只有Passed後才跑既有 `brickhigh-unity-validation-content-build`、`brickhigh-validation-content-verify`。對紅973p06、球接件舊色與4032a模具，若需改模型或換版本，必須先人工決策。當前Ready20/20、QA Frozen v42、正式來源0/20、RuntimeBuild0、TDD110/233、BDD11/56、UX1/20、SPEC3/36不變，不進Gate4。
 
-- [ ] M1：完成已核准的原生封裝相容原型與對應失敗測試。
-- [ ] M2：完成領域／製作管線／真實 SQLite 測試。
-- [ ] M3：完成程式內契約、座標與 Unity UX 測試。
-- [ ] M4：完成真實安裝／離線／升級及畫面證據。
-- [ ] M5：完成指定硬體效能、逐資產品質與全量發布門檻。
-- [ ] M6：完成實作稽核與交付；不得因測試綠燈但實際模型缺件就勾選。
+**本輪測試**：先Red17項缺模組／Design必填；後續新增非候選衝突與殘缺圖片Red2項、Pending模板Red1項。最終聚焦 `078bdd19-7a02-4689-833a-04a1fd5b7598` **25/25 passed**（新增實際query必須使用$input、拒絕literal篩選與conditional directive；Red `3efb1fb9-e990-4f1c-a53d-5bd0989a8a9c` 2 failed）（含5個crash點、重試位元組不變、SHA／錯盒組／缺頁／色碼／模具／未核准、Element-only真preflight、提交後build-plan CAS恢復）。MCP **78/78 passed、0 skipped**，npm check／check:source-onboard通過；補固定UTF-8父子程序環境測試，不接受caller注入任意env。完整Catalog最終固定版本回歸Job `3828cda0-f324-449c-befe-51730ac4cfcc` **383/383 passed／exit0（421.04秒）**。真20件原核准唯讀重驗 `a9cb0e15-2777-4791-bc94-ba4a455e2478` **2/2 passed**；`git diff --check`通過。前次 `5adf1aee-552f-4707-8300-25c9873892cf` 為380 passed／1 failed，唯一為既有錯誤訊息Design ID字樣契約，已保留原措辭並補具體ID，原mapper單元 `446f29aa-fab8-475e-80c8-829f93b7882d` 10/10通過；較早 `5d972748-84ef-4a3f-8470-079a4bd2062f` 在程式修改中啟動，13項失敗為舊mapper快取與新required_element_ids介面混用，不能算有效的固定版本完整回歸。
 
-### 關鍵指標
+### 2026-10-20 Gate 3 固定20件來源「形狀×顏色×印刷」覆查（來源候選歷史）
 
-| 指標 | 目標 | 目前 |
-|---|---|---|
-| TDD驗收 | 233/233有完整對應證據 | 79/233（33.9%），122部分／32未符合 |
-| AC／BDD／TDD逐項現況核對 | 36／56／233全部過表 | 36／56／233已過表；不是全部通過 |
-| 完整AC／BDD／UX | 36／56／20 | 2／5／1；詳SPEC及BDD矩陣 |
-| 全量模型 | A>0、U=0、G=0、V=A及逐件品質 | 未取得完整來源分母與Ready品質閉環 |
-| 原生畫面 | 合格Preview與核准基準 | 20模型內部Player可安裝操作，提供人工外觀檢視頁；尚未有正式逐件核准 |
-| 效能 | 固定硬體／profile／場景實測 | 正式基準未驗收 |
-| 程式碼覆蓋率 | 實際報告，不能替代驗收 | 未量測 |
+**此為來源存在性稽核，不是正式Catalog來源放行**。已從現有20件QA `current-status.json` 與 pinned crosswalk 精確區分 LDraw 顏色與零件版本，並新增本機 MCP 封存的官方盒組 PickABrickQuery。因官方回應僅揭露 Element／Design，色碼由 pinned 第三方資料映射，官方候選仍須完整 source onboarding／外觀覆核。
 
-### 每日進度記錄
+- 已封存完整 LEGO 官方查詢：`42210` **257/257**（`artifacts/sources/gate3-verify-42210-source/`，response SHA `d5ab6449d221aff20f8c06c0874589c637dd0e9a1ac99502115f0a1bdb02a40d`）對應 **⑥紅色3705：Element 6129995／Design 3705**；`40408` **47/47**（`artifacts/sources/gate3-verify-40408-source/`，SHA `9125178e47473bd39b9ff085eaeb376b447f48a4cc043aef7b39f878db5459a0`）對應 **⑩紅色4032a：Element 403221／Design 4032**，但 4032a 精確模具變體尚未核准；`43269` **349/349**（`artifacts/sources/gate3-verify-43269-source/`，SHA `98759d4dd5bcf7d1b6f11316e97541a51f4b823b193de3a1be42c9dbf1c6500f`）對應 **⑯紅色11211：Element 6019155／Design 11211**。前輪的①②⑧⑪⑲⑳六件仍有效；**共9/20件有set-scoped官方Element／Design「候選同鍵」**，不是9件正式來源資格。
+- 其他封存的官方回應包括11040、6462、11374、21324、76161、77070、40581、10325、60423、60443、40474、77263、42223、60414、60365、76039等。部分查詢 `total>count`（例11374為468/400、21324為528/400）是後端單頁上限，**不可將不完整回應偽裝成全量來源**；部分舊盒組回傳0亦不證明該零件從未生產。
+- 已從第三方可公開查閱的真盒組／顏色紀錄得到其餘樣本多數並非「不存在」：③透明3001（BrickLink盒組11040／40953）；⑤紅2780；⑦紅3437 DUPLO；⑨舊淺灰3700；⑫舊淺灰4085c（例如6462，Element候選408502）；⑬紅30374；⑰黃2456；⑱紅6060，均有相同基本part／顏色的外部紀錄；⑥／⑩／⑯亦有上述官方同鍵候選。這些資料僅屬**第三方存在性線索**或官方Element／Design同鍵候選，不等於本QA修訂已獲正式來源核准。④、⑩、⑭、⑮必須額外核對具體印刷、模具或舊色。
+- **確切顏色差異**：LDraw 官方 `7=Light_Grey`（舊淺灰），`71=Light_Bluish_Grey`（淺藍灰），不是相同顏色。⑭ `14417`、⑮ `14418` 的現行QA為 `colour=7`，但第三方零件目錄主要記錄14417的深藍灰、14418的淺藍灰，未取得**相同舊淺灰**的可信正式盒組身分；不得自動轉成色71或72。④ `973p06` 現行QA `colour=4` 紅色，但官方LDraw `parts/973p06.dat` 的 `!CMDLINE -c0` 為黑色預設，BrickLink `973pb0069` 印刷款的既有迷你人偶紀錄亦是黑色；**紅色同印刷外觀尚未證實**。⑩ `4032a` 不能只由官方Design `4032` 推導為完全相同模具，待形狀／版本比對。
+- 外部查證參考（非官方 Element/Design 證書）：`https://ldraw.org/parts/colour.html`、`https://library.ldraw.org/parts/14205`、`https://www.bricklink.com/catalogItemIn.asp?P=973pb0069&in=M`、`https://www.bricklink.com/v2/catalog/catalogitem.page?P=14417`、`https://www.bricklink.com/v2/catalog/catalogitem.page?P=14418`。BrickLink、New Elementary等資料只用來找候選／辨識錯色，正式來源依原immutable官方請求／回應核對。
+- **處理原則**：不重建已過Gate2的模型、不改使用者核准的GLB／revision／色碼、不以「找不到」判定一定不存在、不刪fixture、不直接改SQLite、不以第三方別名冒充LEGO官方。正式QA來源匯入／successor／Frozen改選仍需安全受控的MCP固定job與人類決策（對④⑭⑮的實際顏色與⑩的模具）；`ModelRevision Ready=20/20`、Frozen v42、正式來源資格0/20、RuntimeBuild0、Published head=null、TDD110/233、BDD11/56、UX1/20、SPEC3/36不變；不進Gate4。
 
-2026-09-09：SDD 經使用者確認；生成46場景與179測試。未開始實作、未取得正式畫面截圖、未跑任何 Unity 測試。
+### 2026-10-20 Gate 3 官方來源證據補充（尚未取得正式來源資格）
 
-2026-09-10：新增領域規則、開發端 SQLite repository、不可變內容儲存、Windows 實際路徑／hash 防護、C# 原生 SQLite 與固定 session 讀取、存檔相容檢查。加入 Unity 專案骨架及候選套件清單；完成 LDraw 3001 幾何轉換探針，不把測試顏色選擇視為已觀測實際變體。未修改既有 `blender/brickhigh.blend`。
+- 使用既有 `archive_external_http_exchange` 對 LEGO 官方 `PickABrickQuery` 以指定盒組、無文字篩選、含 AVAILABLE／OUT_OF_STOCK 的查詢取得完整回應：**40875 共225/225**（`artifacts/sources/gate3-40875-red-3001/`，request SHA `4def5a385da4effd5a13ac8fd352b3babba013ca1e2972f72834614e7393a4ae`，response SHA `61e869b1b9b7f33f3562b878f54dcc9047947c26b4d0705494746506dd291118`）；**10698 共230/230**（`artifacts/sources/gate3-set-10698-identity/`，response SHA `10d7edc06f853fb67b1fd3af52cc8c7330c07a5b340971058e5833bde66924f0`）。皆HTTP 200、無GraphQL errors，原request／response及manifest由MCP封存並核對SHA。
+- 與原fixed20 pinned crosswalk交集後有**6/20 件官方Element／Design候選**：①`3001`紅`300121/3001`、②`3020`紅`302021/3020`、⑧`3298`紅`329821/3298`、⑪`3069b`黃`306924/3069`（40875）；⑲`3005`黃`300524/3005`、⑳`6141`紅`614121/6141`（10698）。①在兩盒組均找到。其餘14件沒有匹配；其他查詢（10696、10713、11021、11030、11033、7997、5512）均已另行封存，不得把空回應或無匹配視為完成。
+- **本輪只取得官方候選證據**：GraphQL回應僅有Element／Design，LDraw顏色及造型映射仍由第三方pinned資料推得。仍須既有`map_pick_a_brick_set_response`、`load_authoritative_element_bindings`、實際來源比對、合法新Draft／後繼revision匯入及完整審查。MCP尚無可直接執行此source-onboarding與successor組合的固定工作入口，不能以測試runner冒充正式匯入或直接修改fixture／Frozen。**正式來源資格仍0/20，現有Ready20/20、Frozen v42、RuntimeBuild 0、Published head=null、TDD110/233均不變；不進Gate4。**
 
-2026-09-11～12：發現使用者已安裝可執行的 Unity 6000.3.18f1，授權解析成功。補上 manifest／runtime_files／bundle 引用核對、整組歷史模型 resolver、最新選取狀態與主執行緒 ModelLease；實際建立 Win64 Mono Player，普通磚可由本地 Addressables 顯示，SQLite 唯讀與缺 DLL／無圖形裝置反例已執行。沒有因此改成 Ready、發布 Preview、核准外觀或清除全量缺口。
+### 2026-10-20 固定20件已核准品質正式提交
 
-### 原生探針與本輪新增證據（2026-09-11～12）
+- 新增的只是原 `start_project_job` 可執行之固定task **`brickhigh-gate3-quality-submit`**，無新增MCP tools；固定600秒，輸入固定20份review-submissions與既有核准聲明，拒絕外部命令、路徑或count。實作 `tools/catalog/quality_submission.py`，wrapper `tools/chatgpt-local-mcp/scripts/submit-brickhigh-quality-reviews.js`。
+- 先整批預驗revision／變體／原計畫／Frozen membership／使用者聲明與所有實際模型、六視圖、來源和附件SHA，再封存原提交及附件，逐件呼叫 `complete_revision_quality`；沒有直接UPDATE狀態。Ready重試必須重算封存品質，且normalized核准內容完全相同；已提交品質但未寫receipt的中斷可恢復。OS鎖序列化提交，程序終止即釋放；原MCP Write Lease不變。
+- 選件沿用 `select_revision`，補可選expected_version在原交易內CAS；相同選件重試不再增加version。保留原fixture scope／projection／part identity／原GLB與metadata，Published head維持null/version 0、validation_builds=0。staging重跑改為重讀原revision並驗證Ready封存，不重新建模；保留核准聲明已引用的原summary，當前狀態另存current-status.json。
+- 提交batch：`16f2a42dacc0851e48d70fe74361098a97ab836292221a17c774610b7996676e`；`artifacts/quality-submissions/<batch>/result.json`與20份receipt、原提交／附件25份封存可核對。不可變提交證據SHA **`0849c7a1b297a0c86accc09cc3ef01069619ff14a0a9437290d5ad9183f72361`**。真20件模型／metadata及所有原manifest檔案逐一重讀SHA確認未變。
+- 現有來源缺口稽核 `artifacts/quality-submissions/<batch>/source-gap-audit.json`，不可變SHA **`d4150e8e51715a6b62c38e4ad01238e890bd862e22ee585a13dabf131f1af955`**，保留crosswalk與官方identity audit原bytes。Pinned bulk Design 19/20、Element alias15/20是第三方對照；透明3001色47、2780色4、14417色7、14418色7及973p06色4仍缺pinned alias；973p06僅LDraw／BrickLink裝飾件對照，官方Design／Element未建立。既有其他盒組的官方來源不能套到不同色／印刷；**不是要求20件必須屬於10334**。需要逐件可驗證的實際外觀官方來源及合法後繼匯入，不能僅刪fixture冒充正式來源。
+- Red：新增品質提交13項因模組缺失失敗；Frozen CAS及Ready staging續跑各先失敗後修正。Green：品質提交15/15、真核准／staging重驗3/3、MCP76/76（0 skipped）、新模組標準庫trace行覆蓋90.35%（206/228）；npm run check、check:quality-submit、git diff --check通過。完整Catalog最新結果見下方有效驗證表。
+- 第一個額外Unity重跑 `be56dd7e-9591-4357-b8fd-e3e258b88501` 三次UPM IPC失敗：本次隔離SDK stdio測試client的預設環境未繼承ProgramData。查實SDK預設清單後僅補送必要Windows OS變數重跑，未修改MCP安全環境白名單／平台授權；上表a86a2f4f實際進入原builder並清楚回報來源阻擋。原常駐MCP需重新載入才顯示新task，本輪未重啟tunnel。
+- 本批不提升TDD110/233、BDD11/56、UX1/20、SPEC3/36，不偽造正式RuntimeBuild或正式Player結論，不進Gate4。
 
-- 原生環境：`C:/Program Files/Unity/Hub/Editor/6000.3.18f1/Editor/Unity.exe`；實際解析既有 `game/Packages/packages-lock.json`。候選套件已通過普通磚探針，尚未通過透明／印刷／代表件全集與安裝驗收，不能凍結為完整發行工具鏈。
-- `artifacts/test-results/manifest-red-20260911.trx`：8 個不完整索引反例在舊實作全部錯誤成功；新增 `Infrastructure/ReleaseFileIndex.cs` 後通過，另有歷史引用錯配測試。這些真實 SQLite fixture 的 bundle bytes 是測試用，不作 Unity 資產證據。
-- `artifacts/test-results/lease-bounded-20260912.xml`：只執行 `BrickHigh.Tests.EditMode`，48 passed、0 failed、0 skipped。較早的 34／43 總數各含一個 Addressables 文件範例 `TestStub.RequiredTest`，本專案當時分別為 33／42，範例不計進度。
-- `ModelLeasePolicyTests.cs` 的背景 Dispose 原先假設下一個 Test Runner tick 就完成，出現 47/48；改成最多 5 秒的主執行緒排程等待後 48/48。仍斷言引用已釋放及背景存取 Prefab 被拒絕，沒有忽略失敗或改成 skip。
-- 首次 Player（`toolchain-20260911T125107-9267fea8`）雖有載入資料，直接 framebuffer 擷取實為黑圖；其舊報告的 `passed=true` 不可採信為畫面通過。原始失敗證據保留，未覆寫。
-- 修正後 `artifacts/acceptance/toolchain-20260911T125714-066b6fbe/run-01/player.png` 為實際 Player Camera RenderRequest，已目視確認紅色 2×4 磚而非黑圖；報告為 3068 triangles、寬 0.031999998 m、URP glTF shader、17667 個紅色像素。只證明普通磚可渲染，不代表來源外觀／光照核准。
-- 同 build 的 `matrix-1b3a5c9e544a4a648460bcda1ddd0565/`：正常 exit 0；無圖形裝置 exit 3；缺 SQLite DLL 的獨立測試複本 exit 3。DLL 只是從新複本移至 `sqlite3.dll.disabled`，可恢復；原 Player、正式 Profiles 與原 Blender 工作檔不變。
-- `artifacts/acceptance/toolchain-20260912T001303-27d7c688/matrix-43a224f65077460b90eb7b88ba6334ae`：v3 直接 Addressables 與 ModelLease 的正常／無圖形／缺 DLL 三項通過，正常報告有共用及最後一次釋放證據；不等於受控 provider 驗收。
-- 探針入口：`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs::Build`；執行檢核：`tools/acceptance/verify_toolchain_player.ps1 -PlayerDirectory <本次輸出>/Player`。新版檢核另要求取消／重新載入證據，舊報告不滿足新增要求，須用新版重建。探針 runtime 只在 `UNITY_EDITOR` 或 `BRICKHIGH_TOOLCHAIN_PROBE` 編譯，不提供玩家 CLI。
-- glTFast 6.14.1 的實際匯入器翻 X；探針以 Y 軸 180° 純旋轉對齊專案翻 Z 契約，未二次翻轉 winding。完整非對稱、接點、人物錨點與碰撞整合仍未驗收。
+### 分層 TDD 完成度
 
-本輪新增勾選 UT-094～096、115～117：`UnityRuntime/ModelLease.cs` → `Tests/EditMode/Unit/ModelLeasePolicyTests.cs`；`Application/SelectionRequestPolicy.cs` → `Tests/EditMode/Unit/SelectionRequestPolicyTests.cs`（相對 `game/Assets/BrickHigh/`）。UT-095／096 原先保留未完成，待下方 v5 真實取消／失敗 handle 釋放與背景取得證據補齊才勾選。IT-015、024 不因局部成功整項勾選。未建立新 HTTP API，resolver 為 Infrastructure 的 internal 邊界。
+| 類型 | 已符合 | 部分符合 | 未符合 | 合計 |
+|---|---:|---:|---:|---:|
+| UT（單元） | 96 | 50 | 22 | 168 |
+| IT（整合） | 6 | 20 | 3 | 29 |
+| CT（程式內契約） | 7 | 7 | 0 | 14 |
+| ET（端對端／安裝／視覺／效能） | 2 | 13 | 7 | 22 |
+| **合計** | **111** | **90** | **32** | **233** |
 
-### 受控資產載入接續（2026-09-12）
+每個原始測試ID只計一次；新增參數化負例、回歸項數與部分符合不增加完成數。下方保留完整233項測試定義、BDD追溯及逐項實作證據矩陣。
 
-- Red：`provider-red-20260912.log`、`provider-player-red-20260912.log` 均因缺少 `BrickAssetProvider` 產生 CS0246；不是跳過原生測試。
-- Green：`provider-green-20260912.xml` 為 50 passed／0 failed／0 skipped；`provider-core-20260912.trx` 為純 C# 45 passed；`.NET Standard 2.1` build 為 0 warnings／0 errors。
-- 實作：`UnityRuntime/BrickAssetProvider.cs` 先驗完整 snapshot／variant／revision 引用與 session，再使用固定本地 catalog 的私有 locator。bundle 依 `runtime_files` 核對實際 bytes，再把同一陣列交 `AssetBundle.LoadFromMemoryAsync`；所有 Unity 操作派回主執行緒。`ModelLease` 回報獨立引用釋放，provider Dispose 不銷毀已交出的租約。
-- 原生 v4：`artifacts/acceptance/toolchain-20260912T003041-51e63fec/matrix-27b069f04cbe4540a7088f92c52fbd97/` 四項通過：正常圖形 exit 0、無圖形 exit 3、缺 DLL exit 3、同名同大小同 mtime bundle 竄改回 `FirstAcquire:AssetCorrupt`／exit 3。正常圖片已目視確認是紅色普通磚。F-Catalog／非 Ready 標記保留，沒有發布 Preview。
-- 原生 v5：`artifacts/acceptance/toolchain-20260912T003537-7305169b/matrix-a56dcfc4163d4b538aa8f13693149eb1/` 四項全通過。正常流程預先取消零 IO／handle、真實 handle 配置後取消、背景重新取得、provider Dispose 後既有 lease 仍有效；共 3 次 bundle 讀取、4 份 handle 配置，最後 lease／bundle 皆 0。損壞反例確實讀取 1 次並配置 1 份 handle，回 AssetCorrupt 且 lease／bundle 皆 0。內部 `HandleAllocated` 觀察點只用於確定取消時序，沒有替換資產 bytes 或載入結果。
-- 最終 EditMode 回歸：`provider-final-20260912.xml` 為 50 passed／0 failed／0 skipped。v5 新增生命週期斷言先對舊 v4 執行並失敗，未放寬斷言後再驗 v5 通過。
-- 首次 v4 `matrix-db72e99071f44fa8908e319416851dfa` 的 hash 反例未通過：複本 bundle 路徑達 292 字元，Mono 先回 `CatalogOpen:AssetMissing`。測試複本移到新的短路徑後才驗到預期 hash 錯誤；長路徑安裝相容性仍未解決。故障注入只改新複本，備份可恢復，原 Player 與使用者資料未刪除。
-- 目前仍缺：多 bundle／多包隔離、catalog 遠端初始化拒絕全集、重新解析與實際 Player 的並行替換矩陣、取消 UI、正式來源及安裝 UX。UT-156、IT-026／027、CT-006 保持未勾選；完整來源與品質門檻不由人工 F-Catalog 取代。
+### 最後有效驗證證據
 
-### 離線啟動設定防護（2026-09-13）
+| 驗證 | 結果／來源 |
+|---|---|
+| Gate 2 fixed20 獨立判定 | `artifacts/acceptance/gate2-fixed20-metadata-inputs/summary.json`：`itemCount=20`、`referenceDimensionCount=20`、`collisionProxyCount=20`、**`gate2ReadyCount=20`**；正式Catalog `readyCount=0` |
+| Gate 2 聚焦 Red／Green | 預期失敗 `ac27d968-75bd-4d9e-899c-6542cdbc81fa`（1 failed）；修正後 **1 passed／exit 0** `161ffee5-6c55-48c6-8538-9c3007e68e78` |
+| 尺寸對照與碰撞明細 | `artifacts/acceptance/gate2-fixed20-source-dimensions.json`、`artifacts/acceptance/gate2-fixed20-metadata-inputs/checkpoint-review.html`；原 Unity PlayMode `73aecfc4-eac3-40d4-9c13-c05c2f1aba2c` Green |
+| 20件外觀／預覽畫面 | `artifacts/acceptance/gate2-fixed20-preview-completion/manual-visual-review.html`、`artifacts/acceptance/pm-20260928-interactive-20-a/manual-visual-review.html`；不等於正式人工視覺基準 |
+| Gate 3 真實 Catalog → Validating → 覆核模板 | 同一整合案例已擴大為固定**20件逐件驗證、20/20 passed／exit 0**，Job `64579a0f-8a35-4c98-b5c2-93c5152956b8`（2026-10-19，184.22秒）；原3件基線Job `9b80c0c4-2ea2-4ffc-8c8f-b81df4ca9ac8` 4/4 passed。測試使用隔離SQLite，未將人工Pending改為Ready |
+| Gate 3 QA staging 首次建置／續跑 | `tools/acceptance/gate3_fixed20_staging.py`＋`test_gate3_fixed20_staging.py`：20件真SQLite修訂與覆核模板持久化，首次 **1 passed／exit 0** Job `141c408e-f4b0-4662-988a-03ee00c66aa7`；重跑沿用既有同一批revision、不重建 **1 passed／exit 0** Job `1239d3cc-ac9d-4e6d-9a17-0a112cb375c2`。正式範圍仍待人工審查 |
+| 2026-10-20 使用者人工核准紀錄與逐件品質預驗證 | 使用者明確核准紀錄 `artifacts/acceptance/gate3-fixed20-staging/user-approval-attestation-20261020.json`；20份 `review-submissions/*.json` 合計60項Approved已附真尺寸碰撞、Player外觀及核准紀錄附件SHA。原Pending模板不覆寫。唯讀核對 `test_gate3_review_approval_submissions.py` **2/2 passed／exit 0**，Job `140d7ed2-64ed-4307-9486-55ed1843e2c6`；均通過Catalog `_normalize_review` 的模型封存與附件預驗。此列為正式提交前的歷史預驗證；本輪原品質API正式提交及安全重試均成功，DB已Ready 20/20、Frozen選件20/20；QA fixture及正式source identity缺口仍保留，詳見本頁最新狀態。 |
+| Catalog 最新完整回歸 | **416/416 passed／exit0**（2026-10-21；801.54秒），Job `7b715571-2363-4130-8de6-cac5a21797a3`；經原MCP pytest runner。固定JPEG圖片33/33、原來源流程25/25、真20件核准唯讀重驗2/2、MCP78/78（0 skipped）、git diff --check通過。383/383為固定圖片adapter修復前歷史基線；TDD checklist110/233維持。 |
+| Frozen builder／證據協定回歸 | `test_validation_content.py` **26/26 passed**；新模組標準庫trace行覆蓋 **93.99%**；MCP **75/75**、Unity EditMode **209/209**（Job `121bf773-0d29-491a-868e-81e97839cecc`）；`npm run check`、`git diff --check`通過。協定測試的Ready／UnityFS資料是隔離fixture，不能算正式資產。 |
+| 真Windows validation Player共用管線 | `artifacts/acceptance/validation-content-engine-test/20261019T162319-324391d9/`：合成立方體 **testOnly**、真bundle載入、URP材質／尺寸、六張512×512畫面與exit 0；`sourceQualityApproved=false`，不產生Preview／Release或正式validation_builds。207檔／102249642 bytes已封存內容位址庫，audit摘要 `c22bfc4d7dc7a2b3241ea0482f6c9e6b0da3de09289b40b2390d475ef893eec1`。 |
+| Gate 3 最新實機 Windows 內部安裝驗收 | Build Job `5a1773fc-5b29-4b86-9e8c-cde3ad8595bf` **成功／exit 0**；內部 Player acceptance Job `eb49022e-74f0-4c77-b708-aade6cb8aa9c` **30/30 checks／exit 0**、失敗0；buildId `20261019T153503-3a45ad1f`；可寫／唯讀各20件、382截圖與22操作、升級與故障/解除安裝通過。此為非正式 F-Catalog Player |
+| 玩家 QA 焦點／啟動修正 | `PreviewBootstrap.cs` 在驗收模式提前設定 `runInBackground` 並記錄有限啟動階段；`InternalPreviewAcceptance.cs` 只在帶明確驗收輸出路徑時允許 InputSystem 失焦合成測試，仍檢查真實焦點與操作。之前 Player 驗收存在唯讀卡住或鍵盤焦點不穩，本次完整綠燈；正常玩家輸入設定不受影響 |
+| 其他既有回歸 | .NET Core.Tests **168/168**、相容性 build exit 0；均為2026-10-18已存證結果，本次文件整理不重跑 |
 
-- 根因：Addressables 在指定 catalog 前仍先初始化 `aa/settings.json`；只驗 bundle 路徑無法阻止初始化時連線。新增 `Infrastructure/LocalAddressablesPolicy.cs` 與 13 個 `LocalAddressablesPolicyTests.cs` cases（追溯 UT-071），檢查固定 Win64／本機 catalog、停用更新、空額外初始化與 certificate handler、禁止遠端／越界／自訂 provider／hash 相依／序列化 payload。
-- Red：新 C# 測試先因缺少政策類別編譯失敗。`tools/acceptance/verify_offline_bootstrap.py` 在短路徑的新人工 F-Catalog 複本注入回環 HTTP catalog，並同步測試 DB／manifest hash，避免以 hash 不符掩蓋政策缺口。舊 Player 的 `toolchain-20260912T004030-6f56e031/bootstrap-13bd7ed0/bootstrap-report.json` 記錄 1 次 `/catalog.bin` 請求、Addressables 例外與 `ProbeTimeout`；此為有效紅燈。較早 `bootstrap-98fd387a` 因測試端 SQLite connection 尚未關閉而回 StorageUnavailable，不能作為此政策的證據，已修正測試端關閉順序。
-- Green：`toolchain-20260913T020817-cc74a123/bootstrap-3274468b/bootstrap-report.json` 為 passed，0 次 HTTP 請求、`FirstAcquire:AssetCorrupt`、exit 3，0 bundle 讀取／0 資產 handle。provider 在 Addressables 初始化前驗 settings 的實際 bytes 與政策，且持有不可寫換的檔案直到 catalog 初始化完成；建置探針也執行同一政策。
-- 同 build 的 `matrix-bc8c87464cf7467cab4d8e9cc9ee2e42/` 正常／無圖形／缺 DLL／同大小竄改四項全通過；正常仍含預先取消、已配置 handle 後取消、背景重新取得及零殘留證據。
-- 本輪回歸：`bootstrap-green-20260913.trx` 純 C# 58 passed；`bootstrap-green-20260913.xml` Unity 63 passed；`python-20260913.xml` Python 38 passed，全部 0 skipped；.NET Standard 2.1 build 0 warnings／0 errors。參數化 cases 不增加原始 233 checklist ID。
-- 建置副作用修復：原本 setter 會把 `overrideDefaultApplicationIdentifier` 留為 1；`provider-identity-build-20260912.log` 的重建後已驗回 0，company／product 為原本 DefaultCompany／game。URP 自動產生的設定與明確化的預設值仍在 worktree，不包含正式 profile 修改。
-- 此階段限制：當時 fixture 尚未移到 `StreamingAssets/Catalog/<packId>`，接續驗證見下節。多包隔離、全部 catalog 相依安全矩陣與乾淨離線安裝仍未完成。IT-012 僅增加遠端初始化反例證據，未勾選。Python 只在開發端做故障注入，Player 沒有新增 Python 相依。
+### 2026-10-20 尚未完成與後續開發邊界（歷史快照；最新Gate3/Gate4以本頁頂部為準）
 
-### 包內布局接續（2026-09-13）
-
-- Red：建置器把人工 DB／manifest／catalog／bundle 改放 `StreamingAssets/Catalog/<packId>`；`toolchain-20260913T021556-36a53a98/matrix-87da3c2391ae4beca9453452ca49b1ee` 正常情境回 `FirstAcquire:AssetCorrupt`，0 bundle 讀取／0 資產 handle，證明舊 provider 綁定頂層路徑而不支援規格布局。
-- 實作：`BrickAssetProvider` 分開驗證 Player 固定 `StreamingAssets/aa` 啟動 settings／catalog 與選定包的私有 catalog。啟動檔案的實際 hash 必須等於包內索引且持續拒絕寫換；catalog 的固定 RuntimePath bundle 僅轉為該包的同一 storage key，驗證後將包內 bytes 交給 Unity，不載入頂層 bundle。其他外部路徑仍拒絕。
-- Green：`toolchain-20260913T021909-c8fbff07` 的人工包為 `p25e70ae7`；`matrix-bb9f9b596da747f8894205c6b2892183` 四項全通過，包內 bundle 損壞即回 AssetCorrupt；正常圖片已目視確認普通紅磚。`bootstrap-e3828abd` 仍為 0 HTTP 請求／0 資產 handle，遠端設定被拒絕。`pack-final-20260913.xml` 為 Unity 63 passed／0 failed／0 skipped。
-- 補強矩陣 `matrix-08917646b73744948487dfdb54e96930` 六項全通過：除上述四項外，移走獨立複本的頂層 bundle 仍正常渲染／取消／重新取得；移走頂層啟動 catalog 則回 `FirstAcquire:AssetMissing`，0 bundle 讀取／0 資產 handle。移走檔案分別保留為 `unused.bundle.backup`／`bootstrap.catalog.backup`，原 Player 不變。此反例證明正常顯示不依賴頂層 bundle，也不略過啟動 catalog 的驗證。
-- 人工包短 ID 用於隔離既知 Mono 長路徑問題，這次 bundle 完整路徑 255 字元；不代表 292 字元案例已修復。建置後以已驗證範圍的 `AssetDatabase.MoveAsset` 將本次人工包及 meta 移回忽略版控的生成目錄，不留下可發行的假包；原使用者 Profiles 與 Blender 檔不變。
-- 本節只完成內部單包布局證據：尚未完成正式建置／安裝器、多包併發、歷史資產全集、品質核准、UI 或深度稽核，整體仍為 30/233。
-
-### 預覽控制層接續（2026-09-13 下午）
-
-- 根因與邊界：既有 `BrickHighToolchainProbe.exe` 是自動驗收入口，未傳 `-probe-output` 時明確 `Quit(2)`，完成後也會退出；不是可雙擊操作的模型瀏覽器。這一行為不改稱崩潰，也不把新增控制層宣稱為已交付 uGUI。
-- Red：`RetryRequestPolicyTests` 與 `CatalogPreviewPresenterTests` 分別先以 CS0246 確認缺少實作；新增釋放順序測試先以 CS1061 確認缺少 `ReleasingModel`。`preview-flow-red-20260913.log` 記錄原生探針缺 `CatalogPreviewController` 的 CS0103。新增驗收要求先跑舊 `toolchain-20260913T021909-c8fbff07/matrix-e111201c001640b187f986e1a35052f5`，因沒有 `previewFlowVerified` 被拒絕，沒有把舊成功報告當成新功能證據。
-- 實作：`Application/CatalogPreviewPresenter.cs` 固定快照、Browse 用途與有界分頁，複製條件、處理空狀態、完整變體選取、固定繁中錯誤及診斷 ID；晚到查詢不蓋新頁，晚到模型只釋放。`RetryRequestPolicy.cs` 使用不透明請求識別阻擋重複重試，換件可立即取代舊重試。兩者不開網路、不寫玩家資料。
-- `UnityRuntime/CatalogPreviewController.cs` 以既有本機 SQLite 與 `BrickAssetProvider` 串接搜尋／清除／下一頁／選取／重試，擁有 session、lease 與 instance；主執行緒先移除 instance 才釋放 lease，Dispose 後不通知舊 UI。此為可綁定 uGUI 的控制層，尚無正式畫面、字型、鏡頭操作或安裝入口。
-- Unity 初次整合在 `preview-flow-green-20260913.log` 發現 `BrickHigh.Application` 遮蔽 `UnityEngine.Application`，已改成明確限定引擎類別；沒有更動引擎或公開讀取契約。`Domain` 僅新增測試 assembly 的 friend 存取以建立不可公開偽造的 DTO fixtures。
-- Green：`preview-sqlite-core-20260913.trx` 為純 C# 81 passed；`preview-final-20260913.xml` 為 Unity 86 passed，全部 0 failed／0 skipped。`.NET Standard 2.1` build 為 0 warnings／0 errors。`ReadContractTests` 另以真實 SQLite 核對所有篩選相交、貨號精確優先於名稱部分匹配及有界下一頁；不是用 mock SQL 判搜尋通過。
-- 原生控制層：`toolchain-20260913T082541-677a5ffd/matrix-3fa960cefa6945e589d85e56d128e4b4` 六項全通過。正常及無頂層 bundle 情境的 `previewFlowVerified=true`，實際完成 SQLite 無結果→清除→同快照模型選取→建立 3068 triangles instance→Dispose，controller 的 lease／bundle 歸零。原有正常／無圖形／缺 DLL／同大小 bundle 竄改／缺啟動 catalog 反例仍維持正確結果。`bootstrap-77c26b35` 遠端設定反例仍是 0 HTTP 請求、AssetCorrupt、exit 3。此為流程 harness，沒有 UI 操作錄影，不冒稱 UX 通過。
-- 新增勾選：UT-097、098、100～102、109～114 對應 `CatalogPreviewPresenterTests.cs`（UT-100 另有 `ReadContractTests.cs`）；UT-118～120 對應 `RetryRequestPolicyTests.cs` 及 presenter 的晚到重試測試。這 14 項僅完成各自單元狀態規則，IT-016 與全部 UI／安裝 E2E 未勾選。UT-099、121、122 只有部分串接／生命週期證據，仍未完成整項。
-- 初始化重試 Red：`toolchain-20260913T083035-31914a6a/matrix-810ccd46c83f4fda9e03176cb65a0c61/normal/player-report.json` 在真實 `FileShare.None` 暫時占用頂層啟動設定後，首次正確回 StorageUnavailable；解除占用再重試卻仍回 `PreviewRetryDidNotRecover:StorageUnavailable`。原因是 provider 沿用已失敗的初始化 Task，而非檔案仍被占用。
-- 修復：`BrickAssetProvider.Cleanup` 僅於全部等待者與租約歸零、且初始化為暫時 StorageUnavailable 時清除失敗工作及其私有 handle；下一次明確重試重新讀取並驗證 bytes。永久內容錯誤不因此放行。探針在相同 controller／session 上解除檔案鎖後重試，另同時重複點擊，要求只有一次有效請求且能建立真實模型。
-- 重試 Green：`toolchain-20260913T083340-2c8fe11c/matrix-3595e6639e5f42d6b881a574efb5343c` 六項全通過，正常與無頂層 bundle 報告具有 `previewFlowVerified=true`／`previewRetryVerified=true`；最終 EditMode `preview-retry-final-20260913.xml` 仍為 86 passed／0 failed／0 skipped。`bootstrap-278d4e55` 遠端設定仍以 0 HTTP 請求拒絕，不因重試機制放寬來源政策。故障檔只在本次新複本移至 backup／disabled，原 Player、Profiles、Blender 檔不變。
-- 尚需補足：真正 uGUI 操作與可讀字型／窄視窗／鍵盤／鏡頭、啟動與查詢失敗的重試 UI、多模型與材質的真實操作驗收、instance／render texture 完整生命週期；原有來源品質、安裝更新、多包安全及效能門檻不變。重試只補真實啟動設定占用反例，尚非所有 Addressables 初始化故障／多等待者矩陣完成。
-
-### 本輪驗證與追溯證據（2026-09-10）
-
-以下命令工作目錄為 `brickhigh/`；`artifacts/` 保存本機可重建證據，不入版控。
-
-| 命令／證據 | 實際結果 | 不可推論的範圍 |
-|---|---|---|
-| `python -m pytest -q --junitxml=artifacts/test-results/python-20260910.xml` | 38 passed，0 skipped | 不代表 Unity 資產載入或全量來源完成 |
-| `dotnet test tools/tests/BrickHigh.Core.Tests.csproj --nologo --verbosity quiet --logger "trx;LogFileName=core-20260910.trx" --results-directory artifacts/test-results` | 33 passed，0 skipped | 非 Unity Test Runner／Player |
-| `dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet` | .NET Standard 2.1，0 warnings／0 errors | 不代表套件、shader 或 native Player 相容 |
-| `node tools/catalog/validate_glb.cjs artifacts/models/3001-red-exploratory-v1/model.glb artifacts/models/3001-red-exploratory-v1/khronos-report.json` | Khronos 2.0.0-dev.3.10：0 errors／0 warnings／0 infos／0 hints | 未完成尺寸全集、接點、來源外觀、六視圖、Unity 及使用者核准；重跑需新的報告路徑 |
-| `artifacts/models/3001-red-exploratory-v1/conversion.json` | Blender 5.2.1；3068 triangles；32 mm 寬；逐依賴作者／license／hash；`Unknown`、`qualityPassed=false` | 幾何探針，不是 Ready、Preview 安裝包或已確認未停產變體 |
-
-探索 GLB SHA-256：`a4c11b4d5c56235d8f29d60f83949a0360ae92a17e2161c7998184246216bae9`。ImportLDraw 固定 commit：`c306fb777a4e0da85492f09d65daf458767a0aa1`。匯入器未支援的 FABRIC 色表訊息保存在轉換報告；本探針只使用 BASIC 材質，透明／特殊材質仍明確拒絕，不默默變成不透明塑膠。
-
-| 已勾選 ID | 實作 | 測試證據 |
-|---|---|---|
-| UT-004～006 | `tools/catalog/policies.py::ProductionStatusPolicy` | `tools/catalog/tests/unit/test_sc_002.py` |
-| UT-007～009 | `tools/catalog/policies.py::VariantIdentityPolicy` | `tools/catalog/tests/unit/test_sc_003.py` |
-| UT-019～020 | `game/Assets/BrickHigh/Domain/Geometry.cs` | `Tests/EditMode/Unit/CoordinatePolicyTests.cs`（以下 Tests 均相對 `game/Assets/BrickHigh/`） |
-| UT-046 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs` | `Tests/EditMode/Integration/NativeSqliteTests.cs`；實際 bundled DLL、唯讀且無 sidecar |
-| UT-060、082 | `Domain/CatalogResult.cs`、`Domain/CatalogInputPolicy.cs`（Domain 相對 `game/Assets/BrickHigh/`） | `Tests/EditMode/Unit/CatalogInputPolicyTests.cs` |
-| UT-070～072 | `tools/catalog/content.py` | `tools/catalog/tests/unit/test_sc_024.py`；另有 C# Windows 保留名稱反例 |
-| UT-073～074、148 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs`、`Domain/SaveContracts.cs` | `Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs`；只讀政策，未實作正式存檔資料表 |
-| UT-079～081 | `tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/unit/test_sc_027.py` |
-| UT-085～087 | `game/Assets/BrickHigh/Domain/Geometry.cs` | `Tests/EditMode/Unit/MetadataValidationPolicyTests.cs` |
-| UT-155 | `Domain/CatalogInputPolicy.cs`、`Infrastructure/BrickCatalog.cs`（Infrastructure 相對 `game/Assets/BrickHigh/`） | `Tests/EditMode/Unit/CatalogInputPolicyTests.cs`、`Tests/EditMode/Integration/ReadContractTests.cs`；scalar／cursor 邊界與實際字面 SQL 查詢 |
-
-部分整合證據：`tools/catalog/tests/integration/test_snapshot_repository.py`（CAS、凍結／Ready 不可變、故障 rollback）；`tools/acceptance/tests/integration/test_it_026.py`／`test_it_027.py`（真實 Windows junction 及同大小／mtime 內容替換）；`Tests/EditMode/Integration/ReadContractTests.cs`（101 筆分頁、session／包身分、literal LIKE）；`tools/catalog/tests/integration/test_blender_conversion.py`（真實 Blender＋官方 LDraw 幾何）。上述尚未涵蓋各 ID 的完整 Player／工作／更新矩陣，不能勾選整個 IT／CT。
-
-### 鏡頭與輸入接續（2026-09-13 晚間）
-
-- 技能與範圍：依 `tdd-development` 先測試，並使用 `bdd-frontend-ux-implementation` 核對 SPEC §7／BDD SC-035。現有 15 項畫面 AC 均有 BDD 追溯，本次沒有新增產品功能或重編 233 項；SC-035 的完整控制鏈仍未驗收。
-- Red：7 個 `PreviewOrbitPolicyTests` cases 先因缺少類別而 CS0246（終端執行紀錄）。`orbit-unity-red.log` 同樣記錄缺少 `PreviewCameraController`；原生新版腳本對舊 build `toolchain-20260913T083340-2c8fe11c/matrix-aa4f9a21b44247a9970761aeec0fdf3b` 拒絕缺少鏡頭證據的舊成功報告。
-- 實作：`Application/PreviewOrbitPolicy.cs` 以公尺外接球、垂直 FOV 與長寬比計算取景／裁切面；角度、縮放及非有限值都有界。`UnityRuntime/PreviewCameraController.cs` 只移動借用 Camera，不改模型 transform；綁定所屬 EventSystem，uGUI InputField 選取當幀就阻擋拖曳／縮放／快捷鍵，結束舊拖曳。只有選取預覽區域時才處理方向鍵／PageUp／PageDown／Home；其他控制仍保留自己的鍵盤導覽責任。
-- 測試修正而非宣稱產品故障：`orbit-unity-green.xml` 初次 98/99，`orbit-focus-diagnostic.xml` 定位 EditMode 未自動註冊 `EventSystem.current`。原測試多次動作後的重設可能掩蓋焦點錯誤，故補成每次動作都斷言不變；controller 改為明確注入畫面 EventSystem，不再依賴全域註冊時序。未放寬焦點／晚到拖曳斷言。
-- Green：`orbit-policy-green/` 的 TRX 為 7 passed；`orbit-core-final.trx` 純 C# 88 passed；`orbit-unity-green2.xml` Unity 99 passed，皆 0 failed／0 skipped。`dotnet build tools/tests/BrickHigh.Core.Compatibility.csproj --nologo --verbosity quiet` 為 0 warnings／0 errors。
-- 原生：`orbit-player-build.log` 建置 exit 0；`toolchain-20260913T131217-e7110a88/matrix-e03da487a6eb42c19bafac96043d0e46` 六項全通過。正常及無頂層 bundle 的 `previewCameraVerified=true`，真實 SQLite／provider 載入 3068 triangles 模型後，驗證旋轉、縮放、重設、文字焦點、鍵盤鏡頭輸入、直式 bounds 取景、Unbind 及模型 transform 不變。原有暫時占用重試／取消／零殘留矩陣仍通過。
-- 畫面：正常案例新增 `camera-reset.png`、`camera-orbit-zoom.png`、`camera-portrait.png`（480×960），已目視確認是同一紅色 2×4 磚、不同視角及完整直式取景。圖像來自真實 Player Camera RenderRequest；事件由 harness 派送，沒有宣稱桌面 HID 錄影、完整 uGUI 或畫面風格核准。燈光／材質仍未核准，不能用這三張取代逐資產六視圖。
-- 離線防護回歸：同 build 的 `bootstrap-7148b9a8/bootstrap-report.json` 為 passed，0 次 HTTP 請求、`FirstAcquire:AssetCorrupt`、exit 3；由 `python tools/acceptance/verify_offline_bootstrap.py --player-directory <本次Player>` 重跑。原生矩陣則使用 `./tools/acceptance/verify_toolchain_player.ps1 -PlayerDirectory <本次Player>`，皆為開發端驗收工具。
-- 新增勾選 UT-103／104：`PreviewOrbitPolicyTests.cs` 與 `PreviewCameraControllerTests.cs`（相對 `game/Assets/BrickHigh/Tests/EditMode/Unit/`），加上述真實 Player 證據。UT-105、SC-035、IT-016、ET-002 仍缺完整搜尋／篩選／清單／按鈕鍵盤控制鏈與窄視窗 UI 重排；UT-121／122 仍缺完整畫面自有 render texture 生命週期，不勾選。
-- 邊界：沒有改 Player 的缺參數退出行為，探針仍不是可雙擊瀏覽器。沒有修改原 Blender、正式 Profiles 或留下 ProjectSettings／Addressables 設定差異；故障僅作用於新人工複本，移走的檔案仍有備份。未進行 Phase 4 全項深度稽核，19.74% 是 checklist 完成比例，不是正式模型完成率。
-
-### 接續實作所需條件與未完成範圍
-
-- 先前 Unity 安裝條件已解除，未重試提權或代為啟用授權；使用者安裝的 Editor 已能執行。剩餘關卡是合格代表資產、可操作 Preview、原生啟動器、乾淨 Windows 安裝與真正離線驗收。
-- `packages-lock.json` 已存在並經 Editor 解析；普通磚 Player 探針通過不代表全部材質／平台及安裝相依驗證完成。
-- 開發 CLI／完整來源 adapter、工作恢復、涵蓋審查實證、全部分類／接點／品質閉環仍未完成。repository 的合成驗證報告僅供交易測試；目前不得拿人工旗標或 fixture 發布真實內容。
-- 精確模型 resolver、ModelLease 與最新選取已有實作；完整受控 Addressables provider、uGUI／鏡頭／輸入、啟動器與離線安裝更新、備份還原 harness、完整 manifest／bundle 封裝及其故障矩陣仍需實作與實機驗證。
-- 全部 BDD 場景驗收仍為 0/56、UX 0/20；無 Player 六視圖、`visualBaselineId` 或指定 GTX 1660 基準報告。Phase 3／Phase 4 尚未完成，沒有 100% 深度稽核結論。
+- Gate 2 **已按使用者最新定義完成20/20**；不要反覆以 `10334` crosswalk、缺 Element ID 或不相關的 SC-036 防呆負例將其改回0/20。
+- **Gate 3 還未結案的真實阻塞**：20件人工明確核准已由原品質API正式提交為Ready並選入Frozen；剩餘問題是逐件實際外觀的正式來源身份尚未建立、QA範圍仍為fixture。最新builder已實讀version 42／20件Ready選件，仍明確阻擋20/20，validation_builds=0、head=null/version 0。需要可驗證的官方來源證據與合法後繼匯入，不能僅改fixture字樣或套用其他外觀的Element／Design。現有GLB可重用，不重做建模；來源覆蓋率／IoU、Ready、正式Player／RuntimeBuild及§13.1～13.2門檻均維持，Gate3尚未結案，不進Gate4。
+- **其餘 SPEC 驗收**：完整畫面與 `visualBaselineId` 人工核准、離線安裝／更新錯誤矩陣、效能基準、輪組原型、來源與正式指定盒組全集交付等，依下列未完成 TDD 條目逐項處理；指定盒組只有**未來被正式指定**時才成為其全量 Catalog 分母。
+- 保留既有 Git 工作樹及原始資產；**已獲授權進入 Gate 3，不進 Gate 4**。優先補真正的 Catalog→RuntimeBuild→Player 品質管線，保持本文件最新狀態集中呈現，不再新增歷史執行流水帳。
 
 ## 測試資料、位置與層級約定
 
@@ -416,22 +203,22 @@ SPEC-001-BrickModelCatalog TDD 開發
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：缺頁來源產生未解決 G，不宣稱來源完整。
 
-### 1.2 SC-002 逐變體判定生產三態
+### 1.2 SC-002 分離 LEGO Design、Element 與顏色身份
 
 **位置**：`tools/catalog/tests/unit/test_sc_002.py`
-**目標／來源**：隔離 `ProductionStatusPolicy` 規則；AC-002，BDD SC-002。
-**共同前置**：候選分別有有效生產、停產、缺貨、舊現貨、日期不明及衝突證據。
-**共同動作**：維護者計算基準日生產狀態；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
+**目標／來源**：隔離 LEGO Design／Element identity 與幾何去重規則；AC-002，BDD SC-002。
+**共同前置**：同一 LEGO Design ID 有不同顏色的 Element，另有相同 Design／相同外觀被重複匯入的情境。
+**共同動作**：維護者由指定盒組的 Element ID 建立／重用 Design 幾何與外觀 variant；依斷言使用受控輸入／SQLite 結果。涉及畫面或硬體時，本層只測 identity／去重規則，真實效果見對應 IT／ET。
 
-- [x] **UT-004** `ProductionStatusPolicy_DatedEvidence_ClassifiesStatus` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：有效生產且無衝突判為 Active，有效停產判為 Retired。
-- [x] **UT-005** `ProductionStatusPolicy_AmbiguousEvidence_RemainsUnknown` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：缺貨、舊現貨、日期不明與衝突均保持 Unknown。
-- [x] **UT-006** `ProductionStatusPolicy_RetiredColor_PreservesOtherVariant` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：某顏色停產不改變另一有效 Active 變體。
+- [x] **UT-004** `LegoDesignIdentity_SameDesign_ReusesGeometryPart` — @critical
+  - 前置／動作：同一 Design ID `11211` 重複加入相同設計。
+  - 預期：重用同一 Part／幾何身份，`parts` 不重複建立。
+- [x] **UT-005** `LegoElementIdentity_DifferentColour_CreatesAppearanceVariants` — @critical
+  - 前置／動作：同一 Design ID `11211` 分別加入 Medium Nougat 與 Earth Blue Element 外觀。
+  - 預期：共用同一幾何 Part，但建立不同顏色／Element 對應的 appearance variants。
+- [x] **UT-006** `LegoElementIdentity_ReissuedElementCanReuseSameAppearanceVariant` — @critical
+  - 前置／動作：同一 Design 與同一外觀重複匯入／重發 Element identity。
+  - 預期：重用相同 appearance variant，不因 Element 重發而重複建立幾何或相同外觀 variant。
 
 ### 1.3 SC-003 保留實際外觀變體及穩定識別
 
@@ -471,18 +258,21 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`tools/catalog/tests/unit/test_sc_005.py`
 **目標／來源**：隔離 `CatalogCoveragePolicy` 規則；AC-009、AC-017，BDD SC-005。
-**共同前置**：實際來源範圍已審查且 A>0、U=0、G=0、V=A，沒有分類／品質／映射缺口。
+**共同前置**：指定盒組 scope 已審查且 C>0、G=0、V=C，沒有 identity／分類／品質／映射缺口。
 **共同動作**：維護者要求正式發布；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-013** `CatalogCoveragePolicy_CompleteCounts_PassesGate` — @critical
+- [x] **UT-013** `CatalogCoveragePolicy_CompleteCounts_PassesGate` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：C=A+R+U 且 Ready 變體逐一與已確認分母對應。
-- [ ] **UT-014** `CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery` — @critical
+  - 預期：C 為指定盒組展開後去除 fixture 的候選分母，且 V=C；每個 Ready 變體逐一與已確認 Element／Design scope 對應。
+  - 證據：`tools/catalog/policies.py::CatalogCoveragePolicy.evaluate`、`tools/catalog/repository.py::coverage`、`tools/catalog/tests/unit/test_sc_005.py::test_UT_013_CatalogCoveragePolicy_CompleteCounts_PassesGate`。
+- [x] **UT-014** `CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：報告列出所有實際變體的來源與品質證據，不混入 fixtures。
-- [ ] **UT-015** `CatalogCoveragePolicy_SingleFailedGate_PreservesHead` — @critical
+  - 證據：`tools/catalog/tests/unit/test_sc_005.py::test_UT_014_CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery`，fixture 保留診斷但 C/V 分母完全排除。
+- [x] **UT-015** `CatalogCoveragePolicy_SingleFailedGate_PreservesHead` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：僅全部門檻通過可切換 Published，單一門檻失敗維持舊 head。
+  - 證據：`tools/catalog/tests/unit/test_sc_005.py::test_UT_015_CatalogCoveragePolicy_SingleFailedGate_PreservesHead`，真品質 bundle／validation build 正例與失敗 head-preservation 反例。
 
 ### 1.6 SC-006 驗證真實 GLB 與 Unity 產物
 
@@ -514,7 +304,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 - [x] **UT-020** `CoordinatePolicy_CanonicalBasis_ConvertsRotation` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：Unity 目標點為 (0.008,0.0096,0.004)，旋轉以 M R M^-1 轉換。
-- [ ] **UT-021** `CoordinatePolicy_AlreadyConvertedMesh_AvoidsSecondMirror` — @critical
+- [x] **UT-021** `CoordinatePolicy_AlreadyConvertedMesh_AvoidsSecondMirror` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：網格／法向／切線手性／面繞序／metadata 一致，匯入器既有轉換不重複鏡像。
 
@@ -559,49 +349,57 @@ SPEC-001-BrickModelCatalog TDD 開發
 **共同前置**：同幾何有不同顏色及印刷 revision。
 **共同動作**：維護者彙整輸出 manifest；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-028** `RevisionManifestPolicy_VariantViews_RequiresSixDirections` — @critical
+- [x] **UT-028** `RevisionManifestPolicy_VariantViews_RequiresSixDirections` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：每變體有六視圖與對照來源，不能只用同幾何一張圖代替。
-- [ ] **UT-029** `RevisionManifestPolicy_Attribution_RequiresProvenance` — @critical
+  - 證據：`tools/catalog/quality.py::_review_template`；`tools/catalog/tests/unit/test_sc_010.py::test_UT_028_RevisionManifestPolicy_VariantViews_RequiresSixDirections`，逐封存 bytes 核對 model／六方向／preview／source SHA，缺方向反例 fail-closed。
+- [x] **UT-029** `RevisionManifestPolicy_Attribution_RequiresProvenance` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：原始／輸出 hash、作者／授權、製作工具與來源版本完整。
-- [ ] **UT-030** `RevisionManifestPolicy_RuntimeManifest_KeepsBuildIdentity` — @critical
+  - 證據：`tools/catalog/quality.py::_validate_provenance`；`tools/catalog/tests/unit/test_sc_010.py::test_UT_029_RevisionManifestPolicy_Attribution_RequiresProvenance`，author／license／source URI／source hash／LDConfig／Blender／ImportLDraw commit／script SHA 正反例。
+- [x] **UT-030** `RevisionManifestPolicy_RuntimeManifest_KeepsBuildIdentity` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：RuntimeBuild 另留 Editor、套件鎖定、coordinateProfile 與驗證 digest。
+  - 證據：`game/Assets/BrickHigh/Infrastructure/ReleaseFileIndex.cs::ValidateRuntimeBuildIdentity`、`BrickCatalog.OpenAsync`、`ReadContractTests.RuntimeManifestBuildIdentity_MismatchRejectsPack`／`RuntimeManifestBuildIdentity_SourceRevisionForeignKeyRejectsDrift`；UT-030 7/7、Core 150/150、Unity EditMode 188/188 Green。
 
-### 1.11 SC-011 新增貨號及冪等重建
+### 1.11 SC-011 新增盒組零件及冪等重建
 
 **位置**：`tools/catalog/tests/unit/test_sc_011.py`
-**目標／來源**：隔離 `RevisionBuildPolicy` 規則；AC-010，BDD SC-011。
-**共同前置**：已有 Published，另有基準日後推出的新貨號及同工作鍵重試。
-**共同動作**：建立較新基準的後繼快照並重跑工作；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
+**目標／來源**：隔離 set-driven successor、revision identity 與工作冪等規則；AC-010，BDD SC-011。
+**共同前置**：已有 Published snapshot，另指定新 LEGO 盒組帶入尚未收錄的 Element／Design，以及同工作鍵重試。
+**共同動作**：由 Published 建立 successor 並加入新 scope component，再重跑工作；依斷言使用受控輸入／SQLite 結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-031** `RevisionBuildPolicy_NewPart_RequiresLaterBaseline` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：新貨號進入較新基準快照，舊快照不變。
+- [x] **UT-031** `SetDrivenSuccessor_AllowsSameBaselineAndPreservesPublishedParent` — @critical
+  - 前置／動作：在相同 catalog baseline 由 Published 建 successor，加入指定盒組帶來的新 Element／Design。
+  - 預期：新 identity 只存在 successor；舊 Published snapshot／entries 完全不變，且不以推出日期、在產／停產或其他 lifecycle 狀態作為 successor 前提。
+  - 證據：`tools/catalog/repository.py::CatalogRepository.fork`；`tools/catalog/tests/unit/test_sc_011.py::test_UT_031_SetDrivenSuccessor_AllowsSameBaselineAndPreservesPublishedParent` 與 `tools/catalog/tests/integration/test_job_recovery.py::test_IT_006_RunJobRecovery_ScenarioMatrix_PreservesContract`。
 - [x] **UT-032** `RevisionBuildPolicy_SameJobKey_EnforcesIdempotency` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：同鍵同輸入重用成功結果，同鍵不同輸入回衝突 exit 5。
-- [ ] **UT-033** `RevisionBuildPolicy_ChangedSource_CreatesRevision` — @critical
+- [x] **UT-033** `RevisionBuildPolicy_ChangedSource_CreatesRevision` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：修改模型／metadata／製作工具產生新 source revision，不重用舊內容。
+  - 證據：`tools/catalog/building.py::revision_input_digest`；`tools/catalog/tests/unit/test_sc_011.py` 對 source／metadata／toolchain 三類 identity 變更逐項斷言；`tools/catalog/tests/integration/test_catalog_build.py::test_build_changed_identity_input_creates_immutable_successor_revision` 驗證 predecessor manifest 不變且 successor revision 另建。
 
 ### 1.12 SC-012 更新後仍能讀取舊模型引用
 
 **位置**：`game/Assets/BrickHigh/Tests/EditMode/Unit/ModelReferenceResolverTests.cs`
 **目標／來源**：隔離 `ModelReferenceResolver` 規則；AC-011、AC-023，BDD SC-012。
-**共同前置**：存檔 fixture 引用舊 snapshot／variant／revision，新目錄已停產該變體。
+**共同前置**：存檔 fixture 引用舊 snapshot／variant／revision，而新的指定盒組 scope 已不再包含該 Element／Design。
 **共同動作**：以精確引用解析資產並查詢新取得清單；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-034** `ModelReferenceResolver_ExactReference_PreservesRevision` — @critical
+- [x] **UT-034** `ModelReferenceResolver_ExactReference_PreservesRevision` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：舊引用取得對應的相容 RuntimeBuild，不自動改成最新 revision。
-- [ ] **UT-035** `ModelReferenceResolver_HistoricalProjection_RemainsFrozen` — @critical
+  - 證據：`BrickCatalog.ResolveVariantAsync`／`ResolveModelAsync`；`ReadContractTests.ModelReferenceResolver_ExactReference_PreservesRevision`，完整歷史 tuple 精確回到舊 revision／RuntimeBuild／address key。
+- [x] **UT-035** `ModelReferenceResolver_HistoricalProjection_RemainsFrozen` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：舊名稱／分類從凍結投影取得，不 join 最新可變資料。
-- [ ] **UT-036** `ModelReferenceResolver_RetiredVariant_ExcludesNewAcquisition` — @critical
+  - 證據：`ReadContractTests.ModelReferenceResolver_HistoricalProjection_RemainsFrozen`，同 variant 的 current 與 historical 名稱／tier 故意不同，歷史 resolver 只回 frozen projection。
+- [x] **UT-036** `ModelReferenceResolver_OutOfScopeVariant_ExcludesNewAcquisition` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：停產變體不進入新取得清單，舊引用仍可載入。
+  - 預期：不屬於目前指定盒組 scope 的變體不進入本次新取得清單，但舊精確引用仍可載入。
+  - 證據：`ReadContractTests.ModelReferenceResolver_OutOfScopeVariant_ExcludesNewAcquisition`，retired variant 對 current `QueryAsync` 為空，但 exact historical projection/model 仍成功。
 
 ### 1.13 SC-013 來源缺件時補建而不以占位品交付
 
@@ -610,9 +408,10 @@ SPEC-001-BrickModelCatalog TDD 開發
 **共同前置**：LDraw 缺子模型、TEXMAP 或曲面支援。
 **共同動作**：維護者嘗試自建／補建並重新驗證；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-037** `ModelBuildPolicy_UnsupportedSource_RecordsFailure` — @critical
+- [x] **UT-037** `ModelBuildPolicy_UnsupportedSource_RecordsFailure` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：未支援來源先列 Failed 與原因，不當作完成。
+  - 證據：`tools/catalog/building.py::_source_failure_reason`／`prepare_toolchain`／`build_catalog`；`tools/catalog/tests/unit/test_sc_013.py` 的真 LDraw parser 分類與 Failed revision/head-preservation 矩陣。
 - [ ] **UT-038** `ModelBuildPolicy_CustomModel_KeepsEvidence` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：補建保留尺寸／外觀來源及新 revision。
@@ -622,37 +421,43 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 ### 1.14 SC-014 引擎升版重建執行期資產
 
-**位置**：`game/Assets/BrickHigh/Tests/EditMode/Unit/RuntimeBuildPolicyTests.cs`
+**位置**：`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs`（純 .NET Core harness 與 Unity EditMode 共同執行）
 **目標／來源**：隔離 `RuntimeBuildPolicy` 規則；AC-011、AC-025，BDD SC-014。
 **共同前置**：source revision 未變但 Editor／URP／套件鎖定或平台改變。
 **共同動作**：重新製作 RuntimeBuild 映射；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-040** `RuntimeBuildPolicy_EngineChange_PreservesSourceRevision` — @critical
+- [x] **UT-040** `RuntimeBuildPolicy_EngineChange_PreservesSourceRevision` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：source revision 保留，RuntimeBuild 身分隨建置輸入改變。
-- [ ] **UT-041** `RuntimeBuildPolicy_LegacyReference_RequiresCurrentBuild` — @critical
+  - 證據：`RuntimeBuildPolicy.ComputeIdentity`、`ReadContractTests.RuntimeBuildPolicy_EngineChange_PreservesSourceRevision`；Editor／package lock 改變後 deterministic build ID 改變，但 ModelReference revision 保持原值。
+- [x] **UT-041** `RuntimeBuildPolicy_LegacyReference_RequiresCurrentBuild` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：每個受支援舊引用映射到當前可載入產物。
-- [ ] **UT-042** `RuntimeBuildPolicy_OldBundleOnly_RejectsCompatibility` — @critical
+  - 證據：`ReadContractTests.RuntimeBuildPolicy_LegacyReference_RequiresCurrentBuild`；真 SQLite 將歷史 source revision 映射到升版後 current RuntimeBuild，exact historical resolver 回新 build。
+- [x] **UT-042** `RuntimeBuildPolicy_OldBundleOnly_RejectsCompatibility` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：不以保留舊 bundle 檔案當作相容驗證成功。
+  - 證據：`ReleaseFileIndex.ValidateRuntimeBuildIdentity`、`ReadContractTests.RuntimeBuildPolicy_OldBundleOnly_RejectsCompatibility`；manifest 工具鏈升版但仍使用舊 RuntimeBuild／bundle 時 `OpenAsync` fail-closed。
 
 ### 1.15 SC-015 單一 session 的共用查詢契約
 
-**位置**：`game/Assets/BrickHigh/Tests/EditMode/Unit/BrickCatalogTests.cs`
+**位置**：`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs`（純 .NET Core harness 與 Unity EditMode 共同執行）
 **目標／來源**：隔離 `BrickCatalog` 規則；AC-015、AC-019，BDD SC-015。
 **共同前置**：完整已發布的本地 pack 含名稱、用途、接點與覆蓋資料。
 **共同動作**：呼叫 OpenAsync、QueryAsync、GetVariantAsync、GetProfilesAsync、GetCoverageAsync；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [ ] **UT-043** `BrickCatalog_SessionQueries_KeepSnapshot` — @critical
+- [x] **UT-043** `BrickCatalog_SessionQueries_KeepSnapshot` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：全部回應固定 pack／snapshot／schema 並用 Success 或 Failure 擇一。
-- [ ] **UT-044** `BrickCatalog_DetailsProfilesCoverage_ReturnFrozenData` — @critical
+  - 證據：`ReadContractTests.BrickCatalog_SessionQueries_KeepSnapshot`；session 開啟後即使 manifest 指到另一 snapshot，五個讀取契約仍固定原 pack／snapshot／schema，未知 variant 為互斥 Failure。
+- [x] **UT-044** `BrickCatalog_DetailsProfilesCoverage_ReturnFrozenData` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：詳情包含所選來源 revision、用途／錨點／車輛 metadata，規則與覆蓋值均來自同快照。
-- [ ] **UT-045** `BrickCatalog_ReadOnlyCalls_DoNotGrantOwnership` — @critical
+  - 證據：`ReadContractTests.BrickCatalog_DetailsProfilesCoverage_ReturnFrozenData`；真 SQLite fixture 同時放入 anchor、vehicle metadata 與另一 snapshot 衝突 profile／coverage，回傳只取 session frozen projection。
+- [x] **UT-045** `BrickCatalog_ReadOnlyCalls_DoNotGrantOwnership` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：只經本地資料與程式內方法取得，不啟動 HTTP 或變動擁有權。
+  - 證據：`ReadContractTests.BrickCatalog_ReadOnlyCalls_DoNotGrantOwnership`；所有公開 read calls 前後 pack 檔案集合／SHA 完全不變且無 WAL／SHM，`IBrickCatalog` surface 僅五個 read operations；runtime source 無 HTTP client/listener 依賴。
 
 ### 1.16 SC-016 唯讀安裝與本機資料分離
 
@@ -664,12 +469,14 @@ SPEC-001-BrickModelCatalog TDD 開發
 - [x] **UT-046** `LocalStoragePolicy_ReadOnlyCatalog_AvoidsSidecars` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：catalog.db 以唯讀開啟且不產生安裝目錄 WAL／SHM。
-- [ ] **UT-047** `LocalStoragePolicy_WritableData_UsesUserRoot` — @critical
+- [x] **UT-047** `LocalStoragePolicy_WritableData_UsesUserRoot` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：可變資料只寫使用者可寫位置，不寫來源工具工作區。
-- [ ] **UT-048** `LocalStoragePolicy_DiagnosticRecord_RedactsSecrets` — @critical
+  - 證據：`LocalStoragePolicy.Resolve`／`ProfileFile` 與 `LocalStoragePolicyTests.LocalStoragePolicy_WritableData_UsesUserRoot`；實際 profile／diagnostic 均落 LocalLow 產品資料根，install／source workspace 保持空白，重疊根與 traversal／nested path fail-closed；launcher 亦改用同一 policy。
+- [x] **UT-048** `LocalStoragePolicy_DiagnosticRecord_RedactsSecrets` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：診斷不含金鑰／完整存檔且不自動上傳。
+  - 證據：`LocalStoragePolicy.WriteStartupDiagnostic` 與 `LocalStoragePolicyTests.LocalStoragePolicy_DiagnosticRecord_RedactsSecrets`；診斷固定僅三欄，無 token／完整 save／inventory，非法 ID／非 UTC 拒絕且 `AutomaticDiagnosticUploadEnabled=false`。
 
 ### 1.17 SC-017 離線升級成功及解除安裝保留資料
 
@@ -751,7 +558,7 @@ SPEC-001-BrickModelCatalog TDD 開發
   - 預期：遵守 Retry-After 並最多自動重試 3 次，超限保留待恢復。
 - [x] **UT-062** `SourceRetryPolicy_InterruptedImport_PreservesCandidates` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：失敗不清空成功候選或把缺資料判成停產。
+  - 預期：失敗不清空成功候選、不刪除既有 identity，也不因缺資料自行猜測 Element／Design 對應。
 - [x] **UT-063** `SourceRetryPolicy_CredentialFailure_RedactsOutput` — @critical
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：來源憑證不寫 URL／日誌，工具失敗 exit 4。
@@ -841,22 +648,22 @@ SPEC-001-BrickModelCatalog TDD 開發
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：不嘗試安裝線上工具、不清空既有 profile，記錄去敏診斷。
 
-### 1.27 SC-027 空目錄與單一未解決項目不能全量發布
+### 1.27 SC-027 空 scope 與單一未解決項目不能全量發布
 
 **位置**：`tools/catalog/tests/unit/test_sc_027.py`
 **目標／來源**：隔離 `CatalogCoveragePolicy` 規則；AC-004、AC-009、AC-017，BDD SC-027。
-**共同前置**：分別使用 A=0、U=1、G=1、V=A-1 或未分類一筆的資料。
-**共同動作**：計算覆蓋率並要求發布；依斷言使用受控輸入／時鐘／載入結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
+**共同前置**：分別使用 C=0、G=1、V<C、未分類、品質或 provenance 缺漏的資料。
+**共同動作**：計算指定盒組 scope 的 C/G/V 覆蓋率並要求發布；依斷言使用受控輸入／結果。涉及畫面或硬體時，本層只測狀態／報告判定，真實效果見對應 IT／ET。
 
-- [x] **UT-079** `CatalogCoveragePolicy_ZeroActive_AvoidsFalseComplete` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：A=0 顯示「尚無已確認基準」，不除以零或顯示 100%。
+- [x] **UT-079** `CatalogCoveragePolicy_ZeroCandidates_AvoidsFalseComplete` — @critical
+  - 前置／動作：候選分母為空。
+  - 預期：C=0 顯示「尚無候選模型」，coverage 為 null，不除以零或顯示 100%。
 - [x] **UT-080** `CatalogCoveragePolicy_SingleGap_BlocksPublish` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：任一未知、缺口、缺 revision 或分類缺漏均阻止正式發布。
+  - 前置／動作：逐一注入 G、非 Ready、未分類、品質或 provenance 缺口。
+  - 預期：任一未解缺口均阻止正式發布。
 - [x] **UT-081** `CatalogCoveragePolicy_CompleteKnownSet_RequiresScopeReview` — @critical
-  - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
-  - 預期：V/A=100% 但無涵蓋審查仍不是全量完成。
+  - 前置／動作：V=C 但 scope 尚未審查。
+  - 預期：即使 coverage=100% 仍不可發布；只有 C>0、G=0、V=C 且 scope_reviewed=true 才允許。
 
 ### 1.28 SC-028 分頁邊界與固定排序
 
@@ -1181,16 +988,16 @@ SPEC-001-BrickModelCatalog TDD 開發
   - 前置／動作：沿用本節共同前置與動作，獨立初始化 fixture。
   - 預期：主要車身剛體與簡化碰撞的接觸結果留存，不宣稱完成車輛性能演算法或三賽道。
 
-### 1.47 SC-047 隔離技術預覽與正式全量交付
+### 1.47 SC-047 隔離技術預覽與正式指定盒組交付
 
 **位置**：`game/Assets/BrickHigh/Tests/EditMode/Unit/PreviewPackagePolicyTests.cs`
 **目標／來源**：隔離 `PreviewPackagePolicy` 的規則／狀態判定；AC-027、SC-047、GAP-001，SPEC §13.1。
-**共同前置**：Frozen固定版本含已驗證代表資產、Unknown與Retired反例，正式全量尚有缺口。
+**共同前置**：Frozen固定版本含已驗證 Ready 代表資產與 non-Ready／缺 identity／缺 RuntimeBuild 反例，正式指定盒組全集尚有缺口。
 **共同動作**：建置並安裝Preview，再以Release開啟該包及請求正式取得用途。本層只用受控輸入隔離判定；真實資料庫、程序、像素及物理行為由 IT-019、CT-010、ET-015 驗證。
 
-- [ ] **UT-139** `SelectPreview_MixedStatuses_ExcludesRetiredAndLabelsUnknown` — @critical
-  - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
-  - 預期：Preview僅含Ready且RuntimeBuild通過及使用條件可核對的非Retired代表件，Unknown顯示「生產狀態待查」；顯示「技術預覽・非完整模型庫」與完整C/A/R/U/G/V及子集合數。
+- [ ] **UT-139** `SelectPreview_ReadySubset_ExcludesIncompleteItems` — @critical
+  - 前置／動作：沿用共同前置，獨立建立 Ready 與 identity／品質／RuntimeBuild 缺漏反例並執行規則；不得共用可變狀態。
+  - 預期：Preview僅含 Ready、RuntimeBuild 通過且使用條件可核對的代表件；顯示「技術預覽・非完整模型庫」與完整 C/G/V 及 Preview 子集合數。
 - [ ] **UT-140** `OpenPackage_PreviewInRelease_ReturnsIncompatibleContent` — @critical
   - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
   - 預期：Release回IncompatibleContent及「此資產包僅供技術預覽，不能作為正式遊戲資料。」；包類型鎖在建置，不可改設定繞過。
@@ -1200,12 +1007,12 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 ### 1.48 SC-048 先驗證Frozen候選再發布已驗證內容
 
-**位置**：`tools/catalog/tests/unit/test_sc_048.py`
+**位置**：`tools/catalog/tests/unit/test_sc_048.py`（UT-143/144仍為規劃）；UT-142現行獨立fixture與完整規則證據位於`tools/catalog/tests/integration/test_validation_content.py`
 **目標／來源**：隔離 `ValidationPromotionPolicy` 的規則／狀態判定；AC-028、SC-048、GAP-002，SPEC §13.2。
 **共同前置**：Frozen快照及固定選件、工具鏈、target摘要，另備變更後快照與上一版head。
 **共同動作**：執行BuildValidationContent後嘗試發布及BuildCatalogContent。本層只用受控輸入隔離判定；真實資料庫、程序、像素及物理行為由 IT-020、IT-021 驗證。
 
-- [ ] **UT-142** `ValidateCandidate_FrozenSnapshot_LeavesHeadUnchanged` — @critical
+- [x] **UT-142** `ValidateCandidate_FrozenSnapshot_LeavesHeadUnchanged` — @critical
   - 前置／動作：沿用共同前置，獨立建立正例與對應反例並執行規則；不得共用可變狀態。
   - 預期：驗證只產生不可變staging與validation_builds證據，不需先Published也不切head；Preview可引用合格子集合。
 - [ ] **UT-143** `PromoteCandidate_ChangedDigest_RejectsStaleReport` — @critical
@@ -1389,7 +1196,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs`
 
-- [ ] **IT-004** `RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract` — @critical
+- [x] **IT-004** `RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract` — @critical
   - 目標／BDD：SC-007、SC-008、SC-029。
   - 前置：實際 glTFast 匯入 mesh、metadata、碰撞配對與非對稱 fixture。
   - 動作：依上述各場景的 When 分別執行，場景間重設隔離環境；fault 情境保留操作前後快照。
@@ -1409,11 +1216,12 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`tools/catalog/tests/integration/test_job_recovery.py`
 
-- [ ] **IT-006** `RunJobRecovery_ScenarioMatrix_PreservesContract` — @critical
+- [x] **IT-006** `RunJobRecovery_ScenarioMatrix_PreservesContract` — @critical
   - 目標／BDD：SC-011、SC-022。
   - 前置：真實工作 DB、可受控終止的 Blender worker、可控制時鐘與租約。
   - 動作：依上述各場景的 When 分別執行，場景間重設隔離環境；fault 情境保留操作前後快照。
   - 預期：逐項驗證上述場景全部 Then／And；記錄實際 DB、檔案、UI 或 Player 結果，沒有未預期副作用。
+  - 證據：`tools/catalog/tests/integration/test_job_recovery.py` 以真 `CatalogRepository`／`CatalogJobs` 覆蓋 Published→same-baseline set-driven successor、新盒組 Element／Design 隔離、同鍵冪等／衝突 exit 5、revision identity 變更、過期租約雙連線接手與真 Blender subprocess timeout 隔離；最新 catalog regression 於本輪重驗。
 
 ### IT-007 LegacyRuntime
 
@@ -1429,21 +1237,23 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 **位置**：`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs`
 
-- [ ] **IT-008** `RunReadContract_ScenarioMatrix_PreservesContract` — @critical
+- [x] **IT-008** `RunReadContract_ScenarioMatrix_PreservesContract` — @critical
   - 目標／BDD：SC-015、SC-028。
   - 前置：真實唯讀 SQLite、101 筆與多篩選組合，不 mock repository。
   - 動作：依上述各場景的 When 分別執行，場景間重設隔離環境；fault 情境保留操作前後快照。
   - 預期：逐項驗證上述場景全部 Then／And；記錄實際 DB、檔案、UI 或 Player 結果，沒有未預期副作用。
+  - 證據：`ReadContractTests.RunReadContract_ScenarioMatrix_PreservesContract`；Release fixture 逐頁讀滿 101 筆，驗證 CharacterCreation／InitialBucket、selected revision、anchor／vehicle metadata、System＋DUPLO versioned profiles、C/G/V 完整審查，另一 snapshot 衝突資料不洩漏，且 pack 全檔 SHA 前後不變、無 WAL／SHM。
 
 ### IT-009 NativeStorage
 
-**位置**：`game/Assets/BrickHigh/Tests/Player/NativeStorageTests.cs`
+**位置**：`tools/acceptance/run_interactive_fixture.py`（真 packaged Installer／Launcher／Windows Player matrix）
 
-- [ ] **IT-009** `RunNativeStorage_ScenarioMatrix_PreservesContract` — @critical
+- [x] **IT-009** `RunNativeStorage_ScenarioMatrix_PreservesContract` — @critical
   - 目標／BDD：SC-016、SC-026。
   - 前置：真實 Windows Player 原生 DLL、含中文與空格的路徑、唯讀安裝區與不可寫使用者區。
   - 動作：依上述各場景的 When 分別執行，場景間重設隔離環境；fault 情境保留操作前後快照。
   - 預期：逐項驗證上述場景全部 Then／And；記錄實際 DB、檔案、UI 或 Player 結果，沒有未預期副作用。
+  - 證據：`run_interactive_fixture.py` 對真安裝樹施加目前帳號 RX ACL，確認 write probe 被拒、Player 在唯讀 install 下仍 exit 0、install tree SHA 不變且無 WAL／SHM；另將獨立 LocalLow 改成不可寫，Launcher 必須 exit 3 並輸出 `StorageUnavailable`，既有 profile SHA 保持不變。fresh job `3883ee7e-bcfc-4891-8b99-1b2f9c414e80` exit 0。
 
 ### IT-010 InstallerSwitch
 
@@ -1541,7 +1351,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 - [ ] **IT-019** `BuildPreview_IncompleteCatalog_LabelsNonRelease` — @critical
   - 目標／BDD：SC-047；AC-027；SPEC §13.1。
-  - 前置：真實Frozen SQLite與可轉換的非Retired代表模型；另備缺使用條件、未Ready件。
+  - 前置：真實 Frozen SQLite 與可轉換的 Ready 代表模型；另備缺 identity、缺使用條件、未 Ready 件。
   - 動作：實際BuildValidationContent及BuildPreviewPlayer；讀回包manifest與目錄。
   - 預期：只封裝合格子集；含packageKind/applicationId/sourceSnapshotStatus/sourceSelectionDigest/previewCompleteness，保留全量缺口與非完整標記，正式head不動。
   - 證據：命令／步驟、fixture與pack/build版本、實際結果及失敗診斷；可見行為附實際畫面或錄影，涉及外觀需核准紀錄。缺設備或資產記為阻斷，不能skip後算通過。
@@ -1662,35 +1472,39 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 使用真實 adapter 與受控 DB／資產；不使用網路測試伺服器。下列9項涵蓋5個 IBrickCatalog 方法、資產載入、相容檢查與資源／結果契約。
 
-- [ ] **CT-001** `OpenAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-001** `OpenAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-015、SC-019、SC-026。
   - 前置：已發布／缺目錄／缺相依／不支援 schema。
   - 動作：透過正式 C# 介面呼叫 `OpenAsync`，或以其 factory／Dispose 操作結果與資源。
   - 預期：session 綁定 manifest，錯誤型別明確；取消不遺留連線。
+  - 證據：`ReadContractTests.OpenAsync_ContractMatrix_ReturnsSpecifiedOutcome`；pre-cancel、缺 pack、Release 正例、缺相依與 unsupported schema 均回指定結果，取消不產生 SQLite sidecar。
 
-- [ ] **CT-002** `QueryAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-002** `QueryAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-015、SC-020、SC-028、SC-031。
   - 前置：101筆、所有用途／篩選、Limit 邊界、跨快照 cursor。
   - 動作：透過正式 C# 介面呼叫 `QueryAsync`，或以其 factory／Dispose 操作結果與資源。
   - 預期：排序及 cursor 無重漏，非法輸入拒絕且 Special 限制生效。
+  - 證據：`ReadContractTests.QueryAsync_ContractMatrix_ReturnsSpecifiedOutcome`；101 筆完整分頁、exact/family/tier/slot/用途、Special 排除、Limit／enum／bucket 條件、跨 snapshot cursor 與 cancellation 全矩陣 Green。
 
-- [ ] **CT-003** `GetVariantAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-003** `GetVariantAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-012、SC-015、SC-020。
   - 前置：有效 variant、未知 UUID、錯誤 snapshot。
   - 動作：透過正式 C# 介面呼叫 `GetVariantAsync`，或以其 factory／Dispose 操作結果與資源。
   - 預期：詳情使用凍結投影與正確 revision；不存在回 VariantNotFound。
+  - 證據：`ReadContractTests.GetVariantAsync_ContractMatrix_ReturnsSpecifiedOutcome`；current variant 回 frozen snapshot/revision，其他 snapshot-only variant／未知 UUID 回 VariantNotFound，空 UUID、取消與 disposed session 回指定 typed error。
 
-- [ ] **CT-004** `GetProfilesAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-004** `GetProfilesAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-008、SC-015。
   - 前置：同名不同系列 profile 與多個快照。
   - 動作：透過正式 C# 介面呼叫 `GetProfilesAsync`，或以其 factory／Dispose 操作結果與資源。
   - 預期：回該 session 的版本化完整配對規則，禁止混入最新規則。
 
-- [ ] **CT-005** `GetCoverageAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
+- [x] **CT-005** `GetCoverageAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-005、SC-015、SC-027。
-  - 前置：空基準、完整已知分母、含G/U與完整審查資料。
+  - 前置：空 scope、完整已知指定盒組分母、含 G 與完整審查資料。
   - 動作：透過正式 C# 介面呼叫 `GetCoverageAsync`，或以其 factory／Dispose 操作結果與資源。
-  - 預期：回一致的 C/A/R/U/G/V 及涵蓋審查，空基準不報100%。
+  - 預期：回一致的 C/G/V 及涵蓋審查，空 scope 不報100%。
+  - 證據：`ReadContractTests.GetCoverageAsync_ContractMatrix_ReturnsSpecifiedOutcome` 參數化 **3/3**；空 scope ratio=null、完整 C=V ratio=1、含 gap 的 C/G/V 與 ScopeReviewed 均精確回讀。
 
 - [ ] **CT-006** `AcquireAsync_ContractMatrix_ReturnsSpecifiedOutcome` — @critical
   - 目標／BDD：SC-012、SC-019、SC-024、SC-032。
@@ -1827,13 +1641,14 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 ### ET-006 InstallUpgradeUninstall
 
-**位置**：`tools/acceptance/tests/test_install_upgrade_uninstall.py`（預計 harness；人工操作驗證仍回報到同案例）。
+**位置**：`tools/acceptance/run_interactive_fixture.py`（真 packaged Installer／Launcher／Windows Player harness）。
 
-- [ ] **ET-006** `RunInstallUpgradeUninstall_InstalledPlayer_SatisfiesAcceptance` — @critical
+- [x] **ET-006** `RunInstallUpgradeUninstall_InstalledPlayer_SatisfiesAcceptance` — @critical
   - 目標／BDD：SC-016、SC-017。
   - 前置：一般使用者、唯讀安裝區、人工 profile fixture。
   - 動作：安裝 A→關閉→升級 B→啟動→預設解除安裝，全程核對 profile bytes／DB資料及本地寫入位置。
   - 預期：對應場景全部 Then／And 成立；提交 build／pack／snapshot／fixture 與硬體資料、實際結果及失敗證據。無設備或資產時記為阻斷，不能略過後算通過。
+  - 證據：同一 harness 先以真 packaged installer 安裝 A，再升級 B 並核對 `installation.json` pointer、保留 previous version 與 profile SHA；之後真啟動 Player、注入唯讀 install／不可寫 user root／缺 sqlite3，最後以安裝版本內 uninstaller 執行預設解除安裝，要求 pointer 移除、profile 保留且只允許執行中的 uninstaller 自身殘留。fresh job `3883ee7e-bcfc-4891-8b99-1b2f9c414e80` exit 0。
 
 ### ET-007 FailedUpdateAndSave
 
@@ -1862,7 +1677,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 - [ ] **ET-009** `RunFullCatalogRelease_InstalledPlayer_SatisfiesAcceptance` — @critical
   - 目標／BDD：SC-005、SC-027。
   - 前置：已取得的實際全量來源、模型與涵蓋審查。
-  - 動作：獨立重算 C/A/R/U/G/V、逐變體RuntimeBuild載入與證據；未取得來源時明確阻斷，不skip後算通過。
+  - 動作：由指定盒組 inventory 獨立重算 C/G/V、逐變體 RuntimeBuild 載入與證據；每個 inventory row 必須有 authoritative Element identity，Design ID 有官方證據則驗證並用於 dedup，未公開 Design 則必須有 Element fallback provenance。Element identity 缺口／衝突時明確阻斷，不 skip 後算通過。
   - 預期：對應場景全部 Then／And 成立；提交 build／pack／snapshot／fixture 與硬體資料、實際結果及失敗證據。無設備或資產時記為阻斷，不能略過後算通過。
 
 ### ET-010 LegacyModelUpgrade
@@ -1871,8 +1686,8 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 - [ ] **ET-010** `RunLegacyModelUpgrade_InstalledPlayer_SatisfiesAcceptance` — @critical
   - 目標／BDD：SC-012、SC-014。
-  - 前置：兩代實際包、保留來源revision與停產／分類差異。
-  - 動作：新版載入舊精確引用，外觀／尺寸不被新模型替代，停產不影響既有引用且不新發放。
+  - 前置：兩代實際包、保留來源 revision 與指定盒組 scope／分類差異。
+  - 動作：新版載入舊精確引用，外觀／尺寸不被新模型替代；目前 scope 不再包含的舊 Element／Design 仍可由舊引用載入，但不因瀏覽而新增權益。
   - 預期：對應場景全部 Then／And 成立；提交 build／pack／snapshot／fixture 與硬體資料、實際結果及失敗證據。無設備或資產時記為阻斷，不能略過後算通過。
 
 ### ET-011 QueryAndColdLoad
@@ -1922,8 +1737,8 @@ SPEC-001-BrickModelCatalog TDD 開發
 - [ ] **ET-015** `AcceptPreview_VisibleAssets_DoesNotCompleteFullCatalog` — @critical
   - 目標／BDD：SC-047；AC-027；SPEC §13.1。
   - 前置：斷網乾淨Windows與Preview安裝包，代表普通磚/板/透明/印刷人物/Technic插銷軸/DUPLO及非對稱件。
-  - 動作：安裝、旋轉、縮放、換件、查看Unknown件與全量計數；另裝Release相容fixture核對隔離。
-  - 預期：可操作真實3D並可讀非完整及待查標籤；無正式發放或進度；截圖錄影與包版本留存，Preview通過不勾ET-009全量完成。
+  - 動作：安裝、旋轉、縮放、換件、查看 non-Ready／缺 identity 件與 C/G/V；另裝 Release 相容 fixture 核對隔離。
+  - 預期：可操作真實3D並可讀非完整標籤；無正式發放或進度；截圖錄影與包版本留存，Preview通過不勾ET-009指定盒組全集完成。
   - 證據：命令／步驟、fixture與pack/build版本、實際結果及失敗診斷；可見行為附實際畫面或錄影，涉及外觀需核准紀錄。缺設備或資產記為阻斷，不能skip後算通過。
 
 ### ET-016 Upgrade
@@ -2068,7 +1883,7 @@ SPEC-001-BrickModelCatalog TDD 開發
 
 ### Step 1：確認可開發條件
 
-2026-09-28目前完成度為79/233（33.9%），以逐項證據矩陣為準。使用者已重新啟動開發，並指定固定20件先完成 Gate 2 逐件驗證；以下為本輪持續執行的流程。
+目前最新狀態以上方「最新進度與驗收邊界」為準。Gate 2 已20/20通過；使用者授權 Gate 3，接續固定20件的正式 Catalog 與可安裝 Player 驗證。不因本授權縮減剩餘233項完整驗收，也不自行進 Gate 4。
 
 先讀取[風險稽核報告](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md)及本文件末尾交接紀錄。原SDD、風險方案及補強SDD均已確認，BDD／TDD回寫完成；使用者本輪已啟動 well-done。不降低全量、離線或真實畫面門檻。
 
@@ -2090,95 +1905,31 @@ ET-001～ET-005 與 ET-012 提交可操作安裝包識別、實際 Player 截圖
 
 ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harness，不把它稱為完整遊戲UI。ET-020須取得使用者對真實Player的畫面核准；ET-021／022須揭露硬體與profile差異。
 
-## 📝 稽核記錄
-
-2026-09-10：Phase 2 本機回歸與進度核對完成；24 項單元 ID 有上述證據，其餘維持未勾選。不是 Phase 4 全項深度稽核，不能以此宣告 36 AC、56 BDD 或整份 SPEC 已驗收。
-
-2026-09-09（規劃時點）：保留179基線測試，使用者已「全數同意 請繼續」風險方案並「確認」補強版SDD。10項缺漏已回寫SPEC §13／AC-027～036、BDD SC-047～056與54項TDD補強（30UT＋11IT＋5CT＋8ET）。合計168UT＋29IT＋14CT＋22ET＝233項，當時全部未執行；36/36 AC及56/56場景有文件追溯，非產品完成率。
-
-文件驗證：已核對233個唯一且連續的測試ID、56個Given／When／Then場景及各至少3個UT、36個AC追溯、原179項測試ID／名稱保留、24個建議名稱全數追加、五份文件本機連結與Markdown空白。`git diff --check`通過（僅Git行尾轉換提示）；這些是文件檢查，不是Unity或遊戲測試。
-
-## 規劃交接紀錄
+## 規劃交接紀錄（目前有效）
 
 **交接狀態**：Ready for well-done
-**最後確認日期**：2026-09-09
-**唯一開發目標／順序**：`SPEC-001-BrickModelCatalog`，MVP-001 第1順位；不得自行接續下一份SPEC。
 
-### 文件包
+**範圍**：`SPEC-001-BrickModelCatalog`；Gate 2 固定20件建模驗收20/20，Gate 3 已由使用者授權，繼續同20件；未授權 Gate 4 或其他 SPEC。
 
-| 類型 | 路徑 | 狀態 |
-|---|---|---|
-| MVP | [MVP-001-V1Version](../requirements/MVP-001-V1Version.md) | 已確認規劃基線；其餘模組尚未完成 |
-| SPEC | [SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md) | 基線及第13節補強已確認，36個AC |
-| BDD | [SPEC-001-BrickModelCatalog-BDD](../bdd/SPEC-001-BrickModelCatalog-BDD.md) | 56場景、20個@frontend，已生成並追溯 |
-| TDD | [SPEC-001-BrickModelCatalog-TDD](SPEC-001-BrickModelCatalog-TDD.md) | 233項已補強；實作／執行0% |
-| RiskAudit | [SPEC-001-BrickModelCatalog-RiskAudit](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md) | Q-001～003及補強SDD均已確認，10項缺漏已回寫 |
+**已確認規劃**：原179項測試加54項補強為233項；56個BDD場景與36個SPEC驗收條款有追溯。規劃文件補強已完成，執行完成度以上方最新表格為準，而非原規劃日期0%的歷史敘述。
 
-### 已確認風險
-
-使用者先回覆「全數同意 請繼續」接受Q-001～003，再回覆「確認」接受具體SDD補強。以下接受的是處理方式與驗收門檻，不代表未取得的來源、軟體或硬體證據已存在。
-
-| 風險 ID | 風險摘要 | 使用者決策 | 文件回寫位置 | 開發注意事項 |
-|---|---|---|---|---|
-| Q-001／GAP-001、002 | 首次畫面與全量發布互等 | 使用者接受：獨立Preview先行，不縮減全量需求 | SPEC §13.1～13.2；SC-047～048；IT-019～021、CT-010、ET-015 | Frozen先驗證，正式Release全量與CAS門檻仍在 |
-| Q-002／GAP-008、009 | 外觀主觀與硬體不同 | 使用者接受：實際畫面先核准，探索與正式量測分開 | SPEC §13.8～13.9；SC-054～055；ET-018～022 | 尚無visualBaselineId或正式基準量測，不可假稱完成 |
-| Q-003／GAP-003～007、010 | 更新、恢復、引用、輸入、資產與輪組缺口 | 已補回文件：依同意方案保留資料、精確拒絕及補測 | SPEC §13.3～13.7、13.10；SC-049～053、056及下表 | 本份只F-Save與有限輪組原型，無人物交易房屋或正式賽車 |
-| RISK-001／002 | 全量來源與補模未取得 | 使用者接受：依Q-001分階段驗證，正式全量未完成不能結案 | SPEC §3.4、13.1；SC-001～006、013、027、047；ET-008、009、015 | Unknown不能當Active；無全球涵蓋證據不得稱全量 |
-| RISK-003／004 | 接點及外觀識別 | 已補回文件：沿基線及Q-002／003加驗外觀與輪組 | SC-003、007～009、029、036、054、056；IT-004、005、017、029；ET-020 | 真實資產尺寸／材質核對，不能只有mock |
-| RISK-005 | 來源使用條件未核實 | 使用者接受：Q-001規定逐資產可散布證據先於Preview納入 | SPEC §13.1；SC-010、013、047；IT-003、019 | 沒有來源／使用條件者不可散布，不推定商標授權 |
-| RISK-006 | 全量包大小未知 | 使用者接受：全量仍需後續實測，不用子集合承諾大小 | SPEC §8.2、13.1；SC-029、043～045、047；ET-009、011～013 | 不刪必要歷史引用來縮包，超預算要記缺口 |
-| RISK-007 | SDD確認 | 已補回文件：原SDD及第13節已明確確認 | 本紀錄、SPEC狀態與MVP階段紀錄 | 不再列為規劃阻斷 |
-| RISK-008 | 原生套件相容未實測 | 使用者接受：Q-001原型優先驗證，未通過不能凍結發行工具鏈 | SPEC §2、13.2；SC-006、014、026、033、048；IT-020、ET-001、015 | 鎖定實際可用Editor、SQLite、glTFast、Addressables與URP版本後離線打包 |
-| RISK-009／010／011 | 尺度、升級與效能 | 已補回文件：Q-002／003保留原門檻並增加具體驗收 | SPEC §13.3～13.4、13.9～13.10；SC-049、050、055、056 | 硬體不足不冒充正式通過，降版不覆蓋新進度 |
-
-### 已補回缺漏
-
-| 缺漏 ID | 缺漏來源 | 補入文件位置 | 補入項目 | 狀態 |
-|---|---|---|---|---|
-| GAP-001 | RiskAudit 第二節／AC-027 | SPEC §13.1；BDD SC-047；TDD UT-139、UT-140、UT-141、IT-019、CT-010、ET-015 | 隔離技術預覽與正式全量交付 | 已補回文件 |
-| GAP-002 | RiskAudit 第二節／AC-028 | SPEC §13.2；BDD SC-048；TDD UT-142、UT-143、UT-144、IT-020、IT-021 | 先驗證Frozen候選再發布已驗證內容 | 已補回文件 |
-| GAP-003 | RiskAudit 第二節／AC-029 | SPEC §13.3；BDD SC-049；TDD UT-145、UT-146、UT-147、IT-022、ET-016 | 更新與啟動共用互斥且身分穩定 | 已補回文件 |
-| GAP-004 | RiskAudit 第二節／AC-030 | SPEC §13.4；BDD SC-050；TDD UT-148、UT-149、UT-150、CT-011、IT-023、ET-017 | 降版及備份失敗不擅自回退進度 | 已補回文件 |
-| GAP-005 | RiskAudit 第二節／AC-031 | SPEC §13.5；BDD SC-051；TDD UT-151、UT-152、UT-153、IT-024、CT-012 | 完整模型引用與包身分必須一致 | 已補回文件 |
-| GAP-006 | RiskAudit 第二節／AC-032 | SPEC §13.6；BDD SC-052；TDD UT-154、UT-155、UT-156、CT-013、CT-014、IT-025 | 輸入邊界與取消順序具有精確契約 | 已補回文件 |
-| GAP-007 | RiskAudit 第二節／AC-033 | SPEC §13.7；BDD SC-053；TDD UT-157、UT-158、UT-159、IT-026、IT-027 | 實際檔案目標與新載入內容不可繞過驗證 | 已補回文件 |
-| GAP-008 | RiskAudit 第二節／AC-034 | SPEC §13.8；BDD SC-054；TDD UT-160、UT-161、UT-162、ET-018、ET-019、ET-020 | 真實畫面基準、繁中字型與原生失敗通知 | 已補回文件 |
-| GAP-009 | RiskAudit 第二節／AC-035 | SPEC §13.9；BDD SC-055；TDD UT-163、UT-164、UT-165、ET-021、ET-022 | 不同硬體及品質設定不可冒充基準效能 | 已補回文件 |
-| GAP-010 | RiskAudit 第二節／AC-036 | SPEC §13.10；BDD SC-056；TDD UT-166、UT-167、UT-168、IT-028、IT-029 | 輪組單位、未知質量與配對原型可核對 | 已補回文件 |
-
-共10項（高6、中4），新增10個BDD場景與54項TDD；原179項定義與編碼保留。原建議24個測試名稱全數落入各層，其餘30項確保每場景至少3個獨立單元測試。文件追溯36/36 AC、56/56場景；所有測試仍未執行。
-
-### 實作注意事項
-
-- 先用最小Red-Green-Refactor驗證原生相依、Frozen staging、離線安裝及隔離Preview。以真實代表模型交出可旋轉／縮放／換件的Player，先讓使用者驗收畫面；不等待全量模型齊備才首次封裝。
-- Preview含普通磚、板、透明、印刷人物、Technic插銷／軸、DUPLO及非對稱代表，可重疊；逐件Ready及RuntimeBuild證據不可省略，未知生產狀態明示待查，已知停產排除。
-- Preview及Release的包身分、資料根與安裝捷徑分開，僅透過原生啟動器進入，更新與啟動共用生命週期鎖。玩家不需Editor、Blender、Python、伺服器或網路。
-- 233案例逐一留Red／Green／Refactor、命令與證據；unit綠燈不替代實際模型／Player。人工畫面驗收可以重跑程序留證，不可無聲skip。
-- 正式人物、2026片發放、模擬訂單交易、建屋、玩家還原UI及完整MVP-002賽車留各自SPEC。本份F-Save只用人工測試資料，禁止故障注入使用者正式存檔。
-- 若實作發現新契約變更或確實無法完成既定門檻，回報具體證據與缺口，不擅自換引擎、縮減來源、改硬體基準或新增線上服務。
-
-### 不得進入開發的阻斷項
-
-無（規劃層級）。所有必需決策與文件補強均已完成；本紀錄是交接，不是已開始實作。
-
-### 不得宣告正式交付的開發驗收門檻
-
-| 門檻 | 目前狀態／解除證據 |
+| 文件 | 位置 |
 |---|---|
-| 全量未停產來源與逐資產使用／品質 | 未取得完整證據；需SPEC §3.4與ET-009實際通過，Preview不得代替 |
-| 可安裝離線原生相依與工具鏈鎖版 | 尚無Unity專案或Player；需原型安裝、正常／故障及包依賴驗證 |
-| 代表畫面核准及繁中可讀性 | 尚無實際畫面；ET-018～020提交Player六視圖／操作錄影並記錄使用者核准visualBaselineId |
-| 固定Medium profile及正式硬體效能 | AA／陰影隨畫面核准鎖定；Iris Xe只探索，ET-021／022與原效能案例需正式證據 |
-| 精確引用、更新／備份／降版與輪組 | 僅文件定義；依本233案例執行並由後續實作稽核逐項核對 |
+| MVP | [MVP-001-V1Version](../requirements/MVP-001-V1Version.md) |
+| SPEC | [SPEC-001-BrickModelCatalog](../specs/SPEC-001-BrickModelCatalog.md) |
+| BDD | [SPEC-001-BrickModelCatalog-BDD](../bdd/SPEC-001-BrickModelCatalog-BDD.md) |
+| TDD | 本文件（233項ID、BDD追溯與下方逐項證據） |
+| 風險稽核 | [SPEC-001-BrickModelCatalog-RiskAudit](../specs/SPEC-001-BrickModelCatalog-RiskAudit.md) |
 
-下一步由使用者啟動 `well-done` 接手本文件包；perfect-plan於此停止，不建立下一份SPEC。
+**持續有效的風險決策**：Preview 與正式 Release 分離（SPEC §13.1～13.2）；凍結來源／版本與來源授權、修改不可變 revision 前須重新驗證；安裝更新、玩家資料保留與備份不可降級（§13.3～13.7）；外觀核准、正式效能硬體與輪組實證保留（§13.8～13.10）。`10334` 僅為指定盒組例子；Gate 2 20件不受其身份／庫存阻擋。不得重新引入停產／在產檢查。
 
+**交接注意事項**：下方原始測試清單與逐項證據矩陣保留開發追溯；未完成條目仍不可直接標為通過。須先檢查 write-lease、Git 與既有測試證據；重用已成功驗收，阻塞時回報明確原因，不降低既定品質門檻。無需再次執行已通過的固定20件尺寸／碰撞驗收。
 
-## 2026-09-27 逐項證據矩陣
+## 逐項證據矩陣（實作追溯）
 
-本次全項靜態核對以既有通過報告與實際Player紀錄為執行證據，沒有新增產品程式、測試或重新執行產品回歸。路徑相對`brickhigh/`，行號為本次稽核時點。✅僅表示該TDD層級整項符合；⚠️及❌均維持未勾選。缺少實作時所列程式為最接近的現有邊界，所列測試為已檢查但不足的證據，不表示該需求已有測試。建議名稱只補強原ID，不增加233分母。
+本表保存233項原始ID的實作位置、測試證據與待補缺口，方便後續逐項開發。✅表示該TDD層級已具證據；⚠️／❌仍未完整符合。表中部分位置與行號源自早期靜態稽核，與最新結果有差異時以上方進度、實際程式及最新回歸為準；不得將舊行號或既有mock誤認正式Player通過。
 
-執行報告：`artifacts/test-results/wd-20260926-stage-final.xml:1`（173 passed）、`artifacts/test-results/wd-20260926-ui-verified.xml:2`（129 passed）；實際Player：`artifacts/acceptance/wd-20260926-interactive-c/PlayerEvidence/result.json:1`。較早原生探針僅作補充，不據其單獨提高完成狀態。
+最新可重跑證據與Job ID集中於上方驗收摘要；本表不再重複列歷史批次日誌。
 
 ### UT 逐項判定
 
@@ -2187,51 +1938,51 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-001／SC-001 | ✅ 已符合 | `tools/catalog/importing.py:210` | `tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126` | 來源附件、hash與UTC觀測／有效日期均有回讀斷言。 | — |
 | UT-002／SC-001 | ✅ 已符合 | `tools/catalog/importing.py:210` | `tools/catalog/tests/unit/test_sc_001.py:56`；`tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126` | 五類系列、套裝／人物展開與排除理由逐項比對。 | — |
 | UT-003／SC-001 | ✅ 已符合 | `tools/catalog/importing.py:210` | `tools/catalog/tests/unit/test_sc_001.py:79`；`tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126` | 缺頁及缺系列各產生未解G，發布被拒絕。 | — |
-| UT-004／SC-002 | ✅ 已符合 | `tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77` | `tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80` | 有效日期內Producing／Discontinued分成Active／Retired。 | — |
-| UT-005／SC-002 | ✅ 已符合 | `tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77` | `tools/catalog/tests/unit/test_sc_002.py:20`；`tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80` | 缺貨、現貨、缺日期、相反與範圍外日期保持Unknown。 | — |
-| UT-006／SC-002 | ✅ 已符合 | `tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77` | `tools/catalog/tests/unit/test_sc_002.py:29`；`tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80` | 兩個變體獨立分類；CLI回讀A=1、R=1。 | — |
+| UT-004／SC-002 | ✅ 已符合 | `tools/catalog/repository.py::CatalogRepository.add_part` | `tools/catalog/tests/unit/test_sc_002.py::test_UT_004_LegoDesignIdentity_SameDesign_ReusesGeometryPart` | 同一 LEGO Design ID 重複匯入只建立一個 Part／幾何身份。 | — |
+| UT-005／SC-002 | ✅ 已符合 | `tools/catalog/repository.py::CatalogRepository.add_variant` | `tools/catalog/tests/unit/test_sc_002.py::test_UT_005_LegoElementIdentity_DifferentColour_CreatesAppearanceVariants` | 同 Design 不同顏色 Element 共用 Part，但建立不同 appearance variants。 | — |
+| UT-006／SC-002 | ✅ 已符合 | `tools/catalog/repository.py::CatalogRepository.add_variant` | `tools/catalog/tests/unit/test_sc_002.py::test_UT_006_LegoElementIdentity_ReissuedElementCanReuseSameAppearanceVariant` | 同 Design／同外觀重複匯入重用相同 variant，不重複建立幾何或相同 appearance。 | — |
 | UT-007／SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 只保存觀測組合，重複去重且不生成笛卡兒積。 | — |
 | UT-008／SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:16`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 印刷與材質改變key，重試保留UUID。 | — |
 | UT-009／SC-003 | ✅ 已符合 | `tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_003.py:24`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 矛盾alias拒絕合併並保留原候選／缺口。 | — |
 | UT-010／SC-004 | ✅ 已符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:134` | 直接SQL改分母、證據、分類及G被trigger拒絕；後繼Draft可修正。 | — |
 | UT-011／SC-004 | ✅ 符合 | `tools/catalog/repository.py:131`；`tools/catalog/quality.py:321`；`tools/catalog/quality.py:357` | `tools/catalog/tests/unit/test_quality_report.py:122`；`tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_snapshot_repository.py:123` | Pending／Building／Validating／Ready／Failed 轉移受控；布林報告遭拒，封存 bytes、人工附件與持久化品質摘要需重驗，隔離合成正例可 Ready；SC-004 整體仍受真實資產缺口限制。 | 本項完成；正式來源逐件審核另追 |
 | UT-012／SC-004 | ✅ 已符合 | `tools/catalog/repository.py:129`；`tools/catalog/schema.sql:26` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_snapshot_repository.py:67` | Frozen選件遞增version，Published選件被拒絕。 | — |
-| UT-013／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:94`；`tools/catalog/quality.py:344`；`tools/catalog/repository.py:187` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | 已有隔離單件合成品質正例且假 Ready 不計 V；仍無真實完整來源分母、全 Active 逐件品質及 V=A 發布正例。 | 高；`CatalogCoveragePolicy_CompleteCounts_PassesGate_FullContractRegression` |
-| UT-014／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | fixture被阻擋；尚無全量逐變體來源／品質報告。 | 高；`CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery_FullContractRegression` |
-| UT-015／SC-005 | ⚠️ 部分符合 | `tools/catalog/cli.py:94`；`tools/catalog/quality.py:344`；`tools/catalog/repository.py:187` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_catalog_cli.py:196` | 失敗閘門保留 head、合成 Ready 報告可通過驗證但 fixture-content 仍阻發布；缺全部門檻通過時成功切 head 的正式正例。 | 高；`CatalogCoveragePolicy_SingleFailedGate_PreservesHead_FullContractRegression` |
-| UT-016／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 實際GLB與綁hash的validator已驗；尚缺各代表材質、紋理及警告處置矩陣。 | 高；`ModelValidationService_SelfContainedGltf_AcceptsReport_FullContractRegression` |
-| UT-017／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 拒絕空／外部／非法GLB；無占位件、遺失印刷及粉紅shader完整反例。 | 高；`ModelValidationService_PlaceholderOrMissingMaterial_RejectsReport_FullContractRegression` |
+| UT-013／SC-005 | ✅ 符合 | `tools/catalog/policies.py::CatalogCoveragePolicy.evaluate`；`tools/catalog/repository.py::coverage` | `tools/catalog/tests/unit/test_sc_005.py::test_UT_013_CatalogCoveragePolicy_CompleteCounts_PassesGate` | C 去除 fixture，V 逐件要求 authoritative identity、Ready、分類、quality、provenance；C>0、G=0、V=C 且 scope reviewed 才通過。 | 本項完成 |
+| UT-014／SC-005 | ✅ 符合 | `tools/catalog/policies.py::CatalogCoveragePolicy.evaluate` | `tools/catalog/tests/unit/test_sc_005.py::test_UT_014_CatalogCoveragePolicy_FixtureRows_ExcludedFromDelivery` | fixture rows 可保留在診斷 variants 但不計入 C/V，正式 delivery 集合不混入 fixture。 | 本項完成 |
+| UT-015／SC-005 | ✅ 符合 | `tools/catalog/repository.py::publish`；`tools/catalog/quality.py::complete_revision_quality` | `tools/catalog/tests/unit/test_sc_005.py::test_UT_015_CatalogCoveragePolicy_SingleFailedGate_PreservesHead`；`tools/catalog/tests/integration/test_catalog_cli.py` | 單一 gate 失敗維持舊 head；完整品質覆核、選件與 validation build 通過後真實切換 Published/head。 | 本項完成 |
+| UT-016／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 實際GLB與綁hash的validator已驗；2026-10-18 另以內嵌 PNG+UV 正反矩陣補驗引用完整性與安全範圍；仍缺各代表真材質、完整影像解碼與警告處置矩陣。 | 高；`ModelValidationService_SelfContainedGltf_AcceptsReport_FullContractRegression` |
+| UT-017／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212` | 拒絕空／外部／非法GLB，並補齊無效內嵌紋理／UV／sampler／image 參照的 fail-closed 反例；尚缺完整占位件、遺失印刷與 Unity 粉紅 shader 反例。 | 高；`ModelValidationService_PlaceholderOrMissingMaterial_RejectsReport_FullContractRegression` |
 | UT-018／SC-006 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11` | `artifacts/acceptance/pm-20260928-interactive-20-a/machine-audit.json`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 20個內部樣本逐件 Player 載入與操作通過，尚非合格 Ready RuntimeBuild 的每件驗證。 | 高；`ModelValidationService_PlayerValidation_RequiresEveryBuild_FullContractRegression` |
 | UT-019／SC-007 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:8`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 指定LDraw點與rootScale=1均有精確斷言。 | — |
 | UT-020／SC-007 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:18`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | Unity點與基底旋轉矩陣精確斷言。 | — |
-| UT-021／SC-007 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | 點、切線手性、面序已有單測；真匯入mesh／法向／metadata整組一致未全驗。 | 高；`CoordinatePolicy_AlreadyConvertedMesh_AvoidsSecondMirror_FullContractRegression` |
+| UT-021／SC-007 | ✅ 符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69` | canonical 點／rotation／tangent handedness／triangle winding 單元契約已固定；3298 真 glTFast 非對稱 mesh 驗證 winding 與 vertex normals 一致，新增 `CoordinateTangentImportTests.cs` 又以真 glTFast 匯入帶 NORMAL／TANGENT 的 test-only glTF，job `73aecfc4-eac3-40d4-9c13-c05c2f1aba2c` Green／exit 0，log 為 `vertices=3 tangents=3 handedness=1 windingDot=1`；20件 metadata／Renderer bounds 亦逐件核對，因此本項閉環。 | 本項完成；ET-008 真 Source→Player 完整鏈另追 |
 | UT-022／SC-008 | ✅ 符合 | `game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 版本化 profileId、雙向明確 compatibleProfileIds、跨系列拒絕與可核對自由度符合本 UT 的隔離規則；core 140/140、最終 Unity EditMode exit 0，並有真 glTFast PlayMode 代表件補強證據。公開 session profile 投影另由 CT-004 驗收，不阻擋本單元項完成。 | 本項完成；CT-004／IT-004 另追 |
 | UT-023／SC-008 | ✅ 符合 | `game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | probe-radius 對簡化 AABB 的 fail-closed 插接空腔正反 fixture 已完整驗證：整體包圍盒封死拒絕、中央空腔通過；core 140/140 與 Unity EditMode Green。真實 PlayMode 又以 glTFast 匯入 3001 並跑八個 cavity probes 成功，UPM blocker 已解除。 | 本項完成；IT-004 全矩陣另追 |
 | UT-024／SC-008 | ✅ 符合 | `game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58`；`tools/catalog/quality.py:153` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46` | 本 UT 的隔離規則已閉環：需要接合的零件缺 connector evidence 必須拒絕，無接點裝飾件只有具明確理由才可通過；core 140/140、catalog 159/159 與最終 Unity EditMode Green。逐件真實 Ready revision 的 connector／collision 完整性仍是 Gate 2 資產整合工作，不降低本單元規則完成度。 | 本項完成；逐件 Ready／IT-004 另追 |
 | UT-025／SC-009 | ❌ 未符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 有分類欄位，但無六部位相容Basic候選驗證。 | 高；`UsageClassification_BasicSlots_RequiresSixCandidates_FullContractRegression` |
 | UT-026／SC-009 | ❌ 未符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 尚無同系統floor/wall/roof/opening接合候選矩陣。 | 高；`UsageClassification_BuildingRoles_RequiresCompatibleSet_FullContractRegression` |
 | UT-027／SC-009 | ⚠️ 部分符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104` | 缺tier／reason會拒絕；部位、用途、錨點的完整資格缺口尚未驗。 | 高；`UsageClassification_MissingClassification_BlocksReadiness_FullContractRegression` |
-| UT-028／SC-010 | ⚠️ 部分符合 | `tools/catalog/building.py:114`；`tools/catalog/render_views.py:15` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12` | 逐GLB產生六面及hash，尚缺每種外觀與來源對照的品質判定。 | 高；`RevisionManifestPolicy_VariantViews_RequiresSixDirections_FullContractRegression` |
-| UT-029／SC-010 | ⚠️ 部分符合 | `tools/catalog/building.py:114`；`tools/catalog/render_views.py:15` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12` | 來源bytes、作者、授權、輸出與工具hash已封存；缺完整來源版本／使用條件正反例。 | 高；`RevisionManifestPolicy_Attribution_RequiresProvenance_FullContractRegression` |
-| UT-030／SC-010 | ⚠️ 部分符合 | `tools/catalog/building.py:114`；`tools/catalog/render_views.py:15` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12` | 內部包有Editor／lock／profile；正式RuntimeBuild驗證digest產生與核對未完成。 | 高；`RevisionManifestPolicy_RuntimeManifest_KeepsBuildIdentity_FullContractRegression` |
-| UT-031／SC-011 | ⚠️ 部分符合 | `tools/catalog/jobs.py:158`；`tools/catalog/building.py:167`；`tools/catalog/repository.py:105` | `tools/catalog/tests/integration/test_catalog_build.py:57`；`tools/catalog/tests/integration/test_catalog_cli.py:153`；`tools/catalog/tests/integration/test_catalog_build.py:113` | fork保留舊快照；缺新貨號上市日晚於基準時必須後繼基準的反例。 | 高；`RevisionBuildPolicy_NewPart_RequiresLaterBaseline_FullContractRegression` |
+| UT-028／SC-010 | ✅ 符合 | `tools/catalog/quality.py::_review_template`；`tools/catalog/render_views.py` | `tools/catalog/tests/unit/test_sc_010.py::test_UT_028_RevisionManifestPolicy_VariantViews_RequiresSixDirections` | revision 必須有綁定同一 model hash 的完整六方向與 preview；逐檔 hash／byteLength／PNG bytes 重算，appearance review 同時綁 sixViews 與 source SHA；缺方向拒絕。 | 本項完成 |
+| UT-029／SC-010 | ✅ 符合 | `tools/catalog/quality.py::_validate_provenance`；`tools/catalog/sources.py::inspect_ldraw` | `tools/catalog/tests/unit/test_sc_010.py::test_UT_029_RevisionManifestPolicy_Attribution_RequiresProvenance` | 逐來源 author／license／hash／大小／官方 source、LDConfig 版本、Blender／ImportLDraw commit／coordinate profile／script SHA 與 modifications 均有正反例且 fail-closed。 | 本項完成 |
+| UT-030／SC-010 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/ReleaseFileIndex.cs::ValidateRuntimeBuildIdentity`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs::OpenAsync`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs::RuntimeManifestBuildIdentity_MismatchRejectsPack`；`RuntimeManifestBuildIdentity_SourceRevisionForeignKeyRejectsDrift` | manifest 與 runtime build 逐筆核對 Editor／package lock／coordinate profile／bundle content digest／validation digest；source revision 漂移由 SQLite FK 直接拒絕。 | 本項完成 |
+| UT-031／SC-011 | ✅ 符合 | `tools/catalog/repository.py::CatalogRepository.fork` | `tools/catalog/tests/unit/test_sc_011.py::test_UT_031_SetDrivenSuccessor_AllowsSameBaselineAndPreservesPublishedParent`；`tools/catalog/tests/integration/test_job_recovery.py::test_IT_006_RunJobRecovery_ScenarioMatrix_PreservesContract` | 指定盒組帶入的新 Element／Design 可在相同 catalog baseline 建立 successor；新 identity 只存在 successor，原 Published snapshot／entries 保持不變，完全不依賴推出日期、在產／停產或 production baseline 判定。 | 本項完成 |
 | UT-032／SC-011 | ✅ 已符合 | `tools/catalog/jobs.py:158`；`tools/catalog/building.py:167`；`tools/catalog/repository.py:105` | `tools/catalog/tests/integration/test_catalog_build.py:57`；`tools/catalog/tests/integration/test_catalog_cli.py:153`；`tools/catalog/tests/integration/test_catalog_build.py:113` | 同鍵同輸入重用，changed metadata／manifest回exit5且無重複結果。 | — |
-| UT-033／SC-011 | ⚠️ 部分符合 | `tools/catalog/jobs.py:158`；`tools/catalog/building.py:167`；`tools/catalog/repository.py:105` | `tools/catalog/tests/integration/test_catalog_build.py:57`；`tools/catalog/tests/integration/test_catalog_cli.py:153`；`tools/catalog/tests/integration/test_catalog_build.py:113` | input digest含來源／metadata／工具；尚缺三類變更各產生新revision的正例。 | 高；`RevisionBuildPolicy_ChangedSource_CreatesRevision_FullContractRegression` |
-| UT-034／SC-012 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 精確歷史引用能解析build；缺新目錄Retired條件下可載入的完整fixture。 | 高；`ModelReferenceResolver_ExactReference_PreservesRevision_FullContractRegression` |
-| UT-035／SC-012 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 查詢用快照投影，未測新舊名稱／分類差異及不可變歷史回讀。 | 高；`ModelReferenceResolver_HistoricalProjection_RemainsFrozen_FullContractRegression` |
-| UT-036／SC-012 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 讀取時有狀態過濾；未測正式新取得排除Retired且舊引用實際載入。 | 高；`ModelReferenceResolver_RetiredVariant_ExcludesNewAcquisition_FullContractRegression` |
-| UT-037／SC-013 | ⚠️ 部分符合 | `tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 缺來源使單件Failed；TEXMAP／曲面／缺子模型各類原因矩陣仍不足。 | 高；`ModelBuildPolicy_UnsupportedSource_RecordsFailure_FullContractRegression` |
+| UT-033／SC-011 | ✅ 符合 | `tools/catalog/building.py::revision_input_digest`；`tools/catalog/repository.py:105` | `tools/catalog/tests/unit/test_sc_011.py`；`tools/catalog/tests/integration/test_catalog_build.py::test_build_changed_identity_input_creates_immutable_successor_revision` | source／metadata／toolchain 三類變更皆產生不同 revision identity；真 SQLite／ObjectStore 整合另證明 predecessor manifest 不變、successor revision 另建且封存 bytes 均可重算。 | 本項完成；SC-011 仍待 UT-031／IT-006 |
+| UT-034／SC-012 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs::ResolveVariantAsync`；`ResolveModelAsync` | `ReadContractTests.ModelReferenceResolver_ExactReference_PreservesRevision` | 完整舊 snapshot／variant／revision 精確回到原 RuntimeBuild 與 address，不自動改成 current revision。 | 本項完成 |
+| UT-035／SC-012 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs::ResolveVariantAsync` | `ReadContractTests.ModelReferenceResolver_HistoricalProjection_RemainsFrozen` | current 與 historical 名稱／tier 故意不同；歷史讀取固定舊 snapshot projection，不 join 最新資料。 | 本項完成 |
+| UT-036／SC-012 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs::QueryAsync`；`ResolveVariantAsync`；`ResolveModelAsync` | `ReadContractTests.ModelReferenceResolver_OutOfScopeVariant_ExcludesNewAcquisition` | retired variant 不進目前盒組查詢，但完整舊引用仍可讀 frozen details 與模型。 | 本項完成 |
+| UT-037／SC-013 | ✅ 符合 | `tools/catalog/building.py::_source_failure_reason`；`prepare_toolchain`；`build_catalog`；`tools/catalog/sources.py::inspect_ldraw` | `tools/catalog/tests/unit/test_sc_013.py`；`tools/catalog/tests/unit/test_ldraw_sources.py` | 缺依賴、TEXMAP、provenance／license／malformed／其他來源失敗均映射穩定 reason code；真 build 不啟動 converter、revision=Failed 且不選件／不切 head。 | 本項完成 |
 | UT-038／SC-013 | ❌ 未符合 | `tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 尚無人工補模與尺寸／外觀參照歸檔流程。 | 高；`ModelBuildPolicy_CustomModel_KeepsEvidence_FullContractRegression` |
 | UT-039／SC-013 | ❌ 未符合 | `tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 尚無修補後通過全部品質並成為Ready的正例。 | 高；`ModelBuildPolicy_RepairedModel_RequiresFullValidation_FullContractRegression` |
-| UT-040／SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | RuntimeBuild結構獨立；缺引擎／套件改版保留source revision的重建測試。 | 高；`RuntimeBuildPolicy_EngineChange_PreservesSourceRevision_FullContractRegression` |
-| UT-041／SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 有精確resolver；未逐一重建所有受支援舊引用。 | 高；`RuntimeBuildPolicy_LegacyReference_RequiresCurrentBuild_FullContractRegression` |
-| UT-042／SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | hash與映射檢核已做；缺舊bundle不能作新引擎相容證據的反例。 | 高；`RuntimeBuildPolicy_OldBundleOnly_RejectsCompatibility_FullContractRegression` |
-| UT-043／SC-015 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | 真SQLite讀取同session已測；全部回應身分與Release固定快照矩陣未全驗。 | 高；`BrickCatalog_SessionQueries_KeepSnapshot_FullContractRegression` |
-| UT-044／SC-015 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | 名稱／revision／profile／coverage有回讀，錨點與車輛完整投影未驗。 | 高；`BrickCatalog_DetailsProfilesCoverage_ReturnFrozenData_FullContractRegression` |
-| UT-045／SC-015 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | 介面只有本地讀取；尚無所有方法零權益副作用與零HTTP的整組斷言。 | 高；`BrickCatalog_ReadOnlyCalls_DoNotGrantOwnership_FullContractRegression` |
+| UT-040／SC-014 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/RuntimeBuildPolicy.cs::ComputeIdentity`；`ToolchainProbeBuild.cs` | `ReadContractTests.RuntimeBuildPolicy_EngineChange_PreservesSourceRevision` | deterministic identity 綁 source revision＋工具鏈＋內容／驗證 digest；Editor／lock 改變形成新 build，source revision 保留。 | 本項完成 |
+| UT-041／SC-014 | ✅ 符合 | `BrickCatalog.ResolveVariantAsync`；`ResolveModelAsync`；`RuntimeBuildPolicy.ComputeIdentity` | `ReadContractTests.RuntimeBuildPolicy_LegacyReference_RequiresCurrentBuild` | 舊 exact source revision 在工具鏈升版後重新映射 current RuntimeBuild，歷史引用實際讀到新 build。 | 本項完成 |
+| UT-042／SC-014 | ✅ 符合 | `ReleaseFileIndex.ValidateRuntimeBuildIdentity`；`BrickCatalog.OpenAsync` | `ReadContractTests.RuntimeBuildPolicy_OldBundleOnly_RejectsCompatibility` | 新 manifest 若仍只有舊工具鏈 RuntimeBuild／bundle mapping，開包直接 AssetCorrupt；舊檔存在不等於相容。 | 本項完成 |
+| UT-043／SC-015 | ✅ 符合 | `BrickCatalog.OpenAsync`；`QueryAsync`；`GetVariantAsync`；`GetProfilesAsync`；`GetCoverageAsync` | `ReadContractTests.BrickCatalog_SessionQueries_KeepSnapshot` | session 開啟後 manifest current snapshot 漂移也不影響既有 session；所有回應仍固定原 pack／snapshot／schema，Success／Failure 互斥。 | 本項完成 |
+| UT-044／SC-015 | ✅ 符合 | `BrickCatalog.GetVariantAsync`；`GetProfilesAsync`；`GetCoverageAsync` | `ReadContractTests.BrickCatalog_DetailsProfilesCoverage_ReturnFrozenData` | selected revision、用途／anchor／vehicle metadata 與 profile／coverage 均由 session snapshot frozen projection 回讀，不受另一 snapshot 衝突資料污染。 | 本項完成 |
+| UT-045／SC-015 | ✅ 符合 | `IBrickCatalog`；`BrickCatalog`；`NativeSqlite` | `ReadContractTests.BrickCatalog_ReadOnlyCalls_DoNotGrantOwnership`；runtime source network API 稽核 | 五個公開 read calls 前後 pack 檔案集合／SHA 不變且無 WAL／SHM；API 無 ownership mutation surface，runtime source 無 HTTP client/listener 依賴。 | 本項完成 |
 | UT-046／SC-016 | ✅ 已符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35` | 實際唯讀SQLite拒寫，DB bytes不變且無WAL／SHM。 | — |
-| UT-047／SC-016 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35` | launcher診斷走獨立資料根；缺一般使用者唯讀安裝／所有可變資料寫入稽核。 | 高；`LocalStoragePolicy_WritableData_UsesUserRoot_FullContractRegression` |
-| UT-048／SC-016 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35` | launcher只記有限欄位；缺所有診斷入口的金鑰／完整存檔／上傳反例。 | 高；`LocalStoragePolicy_DiagnosticRecord_RedactsSecrets_FullContractRegression` |
+| UT-047／SC-016 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/LocalStoragePolicy.cs`；`tools/launcher/Program.cs` | `LocalStoragePolicyTests.LocalStoragePolicy_WritableData_UsesUserRoot`；job `72178e6a-7e17-42ec-bb90-f66746884a04` | Preview／Release 的 Profiles／Diagnostics 固定 user LocalLow root；install/data root 重疊、path traversal／nested filename 均拒絕；真寫入後 install workspace 保持無新增檔。 | 本項完成 |
+| UT-048／SC-016 | ✅ 符合 | `game/Assets/BrickHigh/Infrastructure/LocalStoragePolicy.cs::WriteStartupDiagnostic`；`tools/launcher/Program.cs` | `LocalStoragePolicyTests.LocalStoragePolicy_DiagnosticRecord_RedactsSecrets`；job `471b41b2-efe2-446d-996c-0b6ff07f14b9` | 診斷只允許 diagnosticId／failure／UTC time，無任意敏感 context；token／save／inventory 不入紀錄、非法輸入拒絕、automatic upload 明確 false。 | 本項完成 |
 | UT-049／SC-017 | ✅ 已符合 | `tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | 真正InstallerCore完成staging/hash後才切pointer，壞包與切換故障保留舊值。 | — |
 | UT-050／SC-017 | ✅ 已符合 | `tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | 安裝A/B及uninstall均比對人工profile bytes未變。 | — |
 | UT-051／SC-017 | ⚠️ 部分符合 | `tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | 實際包可離線啟動；缺新版session重新映射舊模型的升級矩陣。 | 高；`InstallUpdatePolicy_Restart_OpensNewSessionOffline_FullContractRegression` |
@@ -2245,7 +1996,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-059／SC-020 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:286` | 跨條件與另一session cursor明確InvalidCursor，不回首頁。 | — |
 | UT-060／SC-020 | ✅ 符合 | `game/Assets/BrickHigh/Domain/CatalogResult.cs:23`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogResultPolicyTests.cs:38`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32` | Success／Failure 互斥，任意 SQL／stack message 無法進入玩家文案；僅准固定審核字串。 | 本項完成；SC-020 整體仍部分符合 |
 | UT-061／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 429尊重Retry-After、至多三次重試、長等待及崩潰後預算持久化。 | — |
-| UT-062／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:45`；`tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 同DB成功候選與完成page保留，失敗不改Active成Retired。 | — |
+| UT-062／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:45`；`tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 同 DB 成功候選與完成 page 保留，失敗不刪除既有 identity 或改寫成功候選。 | — |
 | UT-063／SC-021 | ✅ 已符合 | `tools/catalog/jobs.py:50`；`tools/catalog/jobs.py:289` | `tools/catalog/tests/unit/test_sc_021.py:66`；`tools/catalog/tests/unit/test_sc_021.py:22`；`tools/catalog/tests/integration/test_catalog_jobs.py:83`；`tools/catalog/tests/integration/test_catalog_jobs.py:139` | 憑證由header提供、不存URL／DB；外部失敗status exit4，CLI輸入錯誤另為2。 | — |
 | UT-064／SC-022 | ✅ 已符合 | `tools/catalog/jobs.py:178`；`tools/catalog/jobs.py:261` | `tools/catalog/tests/unit/test_sc_022.py:18`；`tools/catalog/tests/integration/test_catalog_jobs.py:42` | timeout／失聯worker標記單件Failed，另一件能完成。 | — |
 | UT-065／SC-022 | ✅ 已符合 | `tools/catalog/jobs.py:178`；`tools/catalog/jobs.py:261` | `tools/catalog/tests/unit/test_sc_022.py:27`；`tools/catalog/tests/unit/test_sc_022.py:18`；`tools/catalog/tests/integration/test_catalog_jobs.py:42` | 同input hash完成項在重開DB及重試時不再執行。 | — |
@@ -2262,9 +2013,9 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-076／SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | DLL例外有修復訊息，缺乾淨Player原生通知與診斷完整矩陣。 | 高；`NativeDependencyPolicy_MissingNativeLibrary_ReportsRepair_FullContractRegression` |
 | UT-077／SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | StorageUnavailable文案存在，缺不可寫使用者資料根的精確回傳測試。 | 高；`NativeDependencyPolicy_ReadOnlyUserRoot_ReturnsStorageUnavailable_FullContractRegression` |
 | UT-078／SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 離線通知不安裝工具；缺故障時profile與全部診斷去敏斷言。 | 高；`NativeDependencyPolicy_DependencyFailure_PreservesProfiles_FullContractRegression` |
-| UT-079／SC-027 | ✅ 已符合 | `tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | A=0回null覆蓋率及尚無已確認基準，不能發布。 | — |
-| UT-080／SC-027 | ✅ 已符合 | `tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_sc_027.py:19`；`tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | 逐一注入U／G／非Ready／分類／品質／來源缺口阻擋發布政策。 | — |
-| UT-081／SC-027 | ✅ 已符合 | `tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_sc_027.py:28`；`tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | V/A=100%但scope未審查仍拒絕；有審查政策正例。 | — |
+| UT-079／SC-027 | ✅ 已符合 | `tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/unit/test_sc_027.py::test_UT_079_CatalogCoveragePolicy_ZeroCandidates_AvoidsFalseComplete` | C=0 回 null 覆蓋率及「尚無候選模型」，不能發布。 | — |
+| UT-080／SC-027 | ✅ 已符合 | `tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/unit/test_sc_027.py::test_UT_080_CatalogCoveragePolicy_SingleGap_BlocksPublish` | 逐一注入 G／非Ready／分類／品質／provenance 缺口均阻擋發布。 | — |
+| UT-081／SC-027 | ✅ 已符合 | `tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/unit/test_sc_027.py::test_UT_081_CatalogCoveragePolicy_CompleteKnownSet_RequiresScopeReview` | V=C 但 scope 未審查仍拒絕；C>0、G=0、V=C 且 scope_reviewed 才有正例。 | — |
 | UT-082／SC-028 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:8`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:30` | 預設50，1／100可用，0／負數／101明確拒絕。 | — |
 | UT-083／SC-028 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | 真SQLite遍歷101筆，排序與去重數量精確斷言。 | — |
 | UT-084／SC-028 | ✅ 已符合 | `game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:30` | 遍歷以末頁null結束；不匹配篩選回空集合。 | — |
@@ -2322,7 +2073,7 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | UT-136／SC-046 | ❌ 未符合 | `tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `tools/catalog/tests/unit/test_metadata_quality.py:75` | 無輪組模型／軸心／碰撞同倍率原型。 | 高；`VehicleMetadataPolicy_WorldScale_KeepsWheelGeometryAligned_FullContractRegression` |
 | UT-137／SC-046 | ⚠️ 部分符合 | `tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `tools/catalog/tests/unit/test_metadata_quality.py:75` | 來源metadata保存mass狀態；runtime投影與有限原型仍未貫通。 | 高；`VehicleMetadataPolicy_UnknownMass_PreservesEvidenceState_FullContractRegression` |
 | UT-138／SC-046 | ❌ 未符合 | `tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `tools/catalog/tests/unit/test_metadata_quality.py:75` | 無主要車身剛體與坡道／路肩動態接觸紀錄。 | 高；`VehicleMetadataPolicy_ContactFixture_DoesNotClaimRaceComplete_FullContractRegression` |
-| UT-139／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | Unknown及C/A/R/U/G/V顯示已驗，內部包非Ready合格子集合。 | 高；`SelectPreview_MixedStatuses_ExcludesRetiredAndLabelsUnknown_FullContractRegression` |
+| UT-139／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | C/G/V 與非完整 Preview 標記已有局部證據，內部包尚非 Ready 合格子集合。 | 高；`SelectPreview_ReadySubset_ExcludesIncompleteItems_FullContractRegression` |
 | UT-140／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | Release拒Preview文案與編譯身分已有局部證據；修改config繞過反例未全驗。 | 高；`OpenPackage_PreviewInRelease_ReturnsIncompatibleContent_FullContractRegression` |
 | UT-141／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 獨立資料根／Browse限制已做，正式profile匯入與head／權益不變整組未驗。 | 高；`AuthorizePreview_FormalPurpose_RejectsWithoutGrant_FullContractRegression` |
 | UT-142／SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | repository可記Frozen validation；缺真Unity BuildValidationContent及合格子集。 | 高；`ValidateCandidate_FrozenSnapshot_LeavesHeadUnchanged_FullContractRegression` |
@@ -2357,15 +2108,15 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 
 | ID／來源 | 狀態 | 實作位置 | 斷言／證據位置 | 判定與未完成原因 | 優先級／建議補測 |
 |---|---|---|---|---|---|
-| IT-001／SC-001、SC-002、SC-003 | ✅ 已符合 | `tools/catalog/importing.py:210`；`tools/catalog/policies.py:46`；`tools/catalog/resolving.py:77`；`tools/catalog/policies.py:68`；`tools/catalog/importing.py:195` | `tools/catalog/tests/unit/test_sc_001.py:39`；`tools/catalog/tests/integration/test_source_import.py:126`；`tools/catalog/tests/unit/test_sc_002.py:15`；`tools/catalog/tests/integration/test_catalog_resolve.py:80`；`tools/catalog/tests/unit/test_sc_003.py:8`；`tools/catalog/tests/integration/test_source_import.py:63`；`tools/catalog/tests/integration/test_catalog_resolve.py:178` | 真正CLI、來源檔與SQLite涵蓋三場景，FK／hash／alias／日期及rollback反例齊備。 | — |
+| IT-001／SC-001、SC-002、SC-003 | ✅ 已符合 | `tools/catalog/importing.py`；`tools/catalog/repository.py`；`tools/catalog/policies.py::VariantIdentityPolicy` | `tools/catalog/tests/unit/test_sc_001.py`；`tools/catalog/tests/unit/test_sc_002.py`；`tools/catalog/tests/unit/test_sc_003.py`；來源／resolve 整合測試 | 真 CLI、來源檔與 SQLite 涵蓋 set inventory、Design／Element identity、外觀 variant、hash／alias 及 rollback；不含任何 lifecycle 判定。 | — |
 | IT-002／SC-004、SC-005、SC-027 | ⚠️ 部分符合 | `tools/catalog/repository.py:131`；`tools/catalog/quality.py:321`；`tools/catalog/cli.py:94`；`tools/catalog/policies.py:94` | `tools/catalog/tests/unit/test_quality_report.py:159`；`tools/catalog/tests/integration/test_snapshot_repository.py:123`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | 快照／CAS、拒絕發布與單件合成報告正例已驗；仍無真實完整 SQLite 全量發布矩陣或成功切 head 正例。 | 高；`RunPublishGate_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-003／SC-006、SC-010、SC-013 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11`；`tools/catalog/building.py:114`；`tools/catalog/render_views.py:15`；`tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212`；`tools/catalog/tests/integration/test_six_views.py:12`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 真Blender／validator／六視圖可跑，缺補模與所有代表件完整品質及RuntimeBuild。 | 高；`RunModelPipeline_ScenarioMatrix_PreservesContract_FullContractRegression` |
-| IT-004／SC-007、SC-008、SC-029 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15`；`game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58`；`game/Assets/BrickHigh/Domain/Geometry.cs:50` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs`；`tools/catalog/tests/integration/test_transparent_conversion.py:69`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46`；`game/Assets/BrickHigh/Tests/EditMode/Unit/MetadataValidationPolicyTests.cs:9` | UPM blocker 已解除，真正 Unity PlayMode 非0測試已 Green：glTFast 實際匯入 3001／3298／3005，核對 3001 尺寸、3298 非對稱、3005 stud 與 3001 八個 cavity probes；最終 EditMode 亦進 Test Runner exit 0。仍缺 SC-007 的 mesh／normal／tangent／winding／metadata 全矩陣、SC-008 完整代表 profile 配對與 collider 組合，以及 SC-029 真實 texture／preview 預算與完整尺寸容差矩陣，因此保持部分符合。 | 高；`RunCoordinateAndConnectors_ScenarioMatrix_PreservesContract_FullContractRegression` |
+| IT-004／SC-007、SC-008、SC-029 | ✅ 符合 | `game/Assets/BrickHigh/Domain/Geometry.cs:15`；`game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58`；`game/Assets/BrickHigh/Domain/Geometry.cs:50` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`game/Assets/BrickHigh/Tests/PlayMode/CoordinateAndConnectorTests.cs`；`tools/catalog/tests/integration/test_transparent_conversion.py:69`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46`；`game/Assets/BrickHigh/Tests/EditMode/Unit/MetadataValidationPolicyTests.cs:9` | UPM blocker 已解除，真正 Unity PlayMode 非0測試已 Green。Gate 2 runner 以真 MeshCollider 驗證 **20/20 Verified collision fixtures**：既有 14417 `ball-v1` 三軸 solid probes、14418 `socket-v1` passage、2780 friction pin 的 Y／Z 橫切 solid probes、3705 axle 的 X／Y／Z 十字截面 solid probes，以及 3437 DUPLO 依 `stud7.dat` 9.6 mm 直徑以 4.66 mm probe 驗證四個 X/Z ±8 mm logical female sockets 開放，中央 `stud8.dat` clutch tube 僅作幾何證據；`973p06` 亦以真 glTFast／MeshCollider 驗證左右 arm socket 與 hips socket passage 保持開放、neck post solid probe 成立。canonical probes 皆先經 `CoordinatePolicy.ToUnity` 再比對匯入模型。最新 PlayMode job `77471e19-b5b8-4fb1-a43c-83496089832d` 確實進 Test Runner／exit 0，且同一 case 以 collision fixtures 對應的20個不同 model folders 逐件真實匯入，證明 **20/20 Renderer bounds 符合 SPEC 尺寸容差、20/20 GLB ≤20 MiB**；20件 runtime materials 實測皆 `textures=0`，所以只能證明本集合沒有超限 texture，不能作 texture-bearing pipeline 正例。immutable revision archive 的 preview 仍為 **12/20**，原8件 revision 不回寫；另以相同 `render_views.py` 綁定 exact model hash 建立獨立 Gate 2 acceptance evidence，補出原8件 preview，使固定20件可驗證 preview evidence 達 **20/20**，且 **20/20 ≤256 KiB**。acceptance job `adea623e-9198-4cbb-9ca2-1823e292a07f` exit 0；使用者於2026-10-03檢視 `artifacts/acceptance/gate2-fixed20-preview-completion/manual-visual-review.html` 後確認可繼續。此確認不產生正式 `visualBaselineId`、不把 `visualApproved` 改為 true、也不升格 Ready。其後補上兩個真 glTFast 正例：SC-029 test-only 32×16 texture fixture 在 PlayMode log 為 `IT004_TEXTURE_POSITIVE textures=1 target32x16=1`；SC-007 test-only tangent fixture log 為 `IT004_TANGENT_POSITIVE vertices=3 tangents=3 handedness=1 windingDot=1`。SC-008 原契約的 System stud/tube、Technic pin/hole、axle/hole、clip/bar、ball/socket 與跨系列 DUPLO 代表 profile／Collider 組合均已有真 MeshCollider fixture，加上版本化 profile contract 與跨系列拒絕。最終 PlayMode job `73aecfc4-eac3-40d4-9c13-c05c2f1aba2c` 確實 Green／exit 0，因此 SC-007／008／029 的 IT-004 矩陣閉環；fixed20 本身仍是 texture 0/20、archive preview 12/20，不能混同 test fixture 或 acceptance evidence。 | 本項完成；Ready／LEGO identity 與 ET-008 仍另追 |
 | IT-005／SC-009、SC-031 | ⚠️ 部分符合 | `tools/catalog/resolving.py:24`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105` | `tools/catalog/tests/integration/test_catalog_resolve.py:104`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192` | 分類及讀取過濾局部完成，缺六部位／同系統建材與Special用途完整矩陣。 | 高；`RunUsageProjection_ScenarioMatrix_PreservesContract_FullContractRegression` |
-| IT-006／SC-011、SC-022 | ⚠️ 部分符合 | `tools/catalog/jobs.py:158`；`tools/catalog/building.py:167`；`tools/catalog/repository.py:105`；`tools/catalog/jobs.py:178`；`tools/catalog/jobs.py:261` | `tools/catalog/tests/integration/test_catalog_build.py:57`；`tools/catalog/tests/integration/test_catalog_cli.py:153`；`tools/catalog/tests/integration/test_catalog_build.py:113`；`tools/catalog/tests/unit/test_sc_022.py:18`；`tools/catalog/tests/integration/test_catalog_jobs.py:42` | 真DB租約與Python worker timeout已驗；缺Published後新貨號與真Blender程序終止恢復。 | 高；`RunJobRecovery_ScenarioMatrix_PreservesContract_FullContractRegression` |
+| IT-006／SC-011、SC-022 | ✅ 符合 | `tools/catalog/repository.py::CatalogRepository.fork`；`tools/catalog/jobs.py`；`tools/catalog/building.py::revision_input_digest` | `tools/catalog/tests/integration/test_job_recovery.py`；`tools/catalog/tests/unit/test_sc_011.py`；`tools/catalog/tests/unit/test_sc_022.py`；`tools/catalog/tests/integration/test_catalog_build.py` | 真 SQLite 覆蓋 Published 後 same-baseline set-driven successor、新盒組 Element／Design 只進 successor、同鍵冪等／衝突、revision identity 變更、過期租約雙 worker 僅一人接手，以及真 Blender subprocess timeout 後獨立 item 可繼續；失敗 item 使整體 job 保持 Failed。 | 本項完成 |
 | IT-007／SC-012、SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 精確resolver有測，尚無跨引擎重建舊模型的實際Player流程。 | 高；`RunLegacyRuntime_ScenarioMatrix_PreservesContract_FullContractRegression` |
-| IT-008／SC-015、SC-028 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:30` | 101筆SQLite分頁已有測試，缺Release與完整錨點／車輛／版本化profile投影矩陣。 | 高；`RunReadContract_ScenarioMatrix_PreservesContract_FullContractRegression` |
-| IT-009／SC-016、SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 唯讀DB與本機原生探針已有證據，缺一般使用者ACL／不可寫使用者根完整Player矩陣。 | 高；`RunNativeStorage_ScenarioMatrix_PreservesContract_FullContractRegression` |
+| IT-008／SC-015、SC-028 | ✅ 符合 | `BrickCatalog.OpenAsync`／`QueryAsync`／`GetVariantAsync`／`GetProfilesAsync`／`GetCoverageAsync` | `ReadContractTests.RunReadContract_ScenarioMatrix_PreservesContract`；focused job `e191f4d4-265d-489c-8d0d-bdbed50bb34d` | 真 Release SQLite 101 筆分頁、用途、selected revision、anchor／vehicle metadata、System＋DUPLO profiles、C/G/V 與另一 snapshot 衝突隔離均已驗；全 pack SHA 前後不變且無 WAL／SHM。 | 本項完成；SC-028 仍依其其他追溯項判定 |
+| IT-009／SC-016、SC-026 | ✅ 符合 | `NativeSqlite`；`LocalStoragePolicy`；`tools/launcher/Program.cs`；`tools/acceptance/run_interactive_fixture.py` | fresh installed-Player job `3883ee7e-bcfc-4891-8b99-1b2f9c414e80` exit 0 | 真 packaged Player 在中文／空白路徑及目前帳號 RX ACL 下成功；install tree SHA 不變、無 WAL／SHM；不可寫獨立 LocalLow 明確 `StorageUnavailable` 且 profile 不變。Acceptance-only root override 由 compile flag 隔離，不存在正式包。 | 本項完成；SC-026 仍依其其他追溯項判定 |
 | IT-010／SC-017、SC-023 | ⚠️ 部分符合 | `tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175`；`tools/catalog/repository.py:190` | `tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100`；`tools/catalog/tests/integration/test_snapshot_repository.py:88`；`tools/acceptance/tests/integration/test_install_update.py:118` | 真InstallerCore故障与profile保留已驗；空間不足及舊模型相容更新未全驗。 | 高；`RunInstallerSwitch_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-011／SC-018、SC-025 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:50`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54` | checker與SQLite rollback各有單測，無一致備份／migration／組裝檔引用流程。 | 高；`RunSaveFixtures_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-012／SC-019、SC-024 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`tools/catalog/content.py:14`；`game/Assets/BrickHigh/Infrastructure/LocalAddressablesPolicy.cs:11` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`tools/catalog/tests/unit/test_sc_024.py:9`；`tools/catalog/tests/unit/test_ldraw_sources.py:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/LocalAddressablesPolicyTests.cs:42` | 包索引／遠端／越界局部反例已驗；完整安裝錯誤與存檔保留矩陣不齊。 | 高；`RunPackageValidation_ScenarioMatrix_PreservesContract_FullContractRegression` |
@@ -2376,8 +2127,8 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | IT-017／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 20樣本畫面存在；缺逐變體來源外觀比對、橡膠差異及使用者核准紀錄。 | 高；`RunVisualVariants_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-018／SC-043、SC-044、SC-045、SC-046 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28`；`tools/catalog/metadata_quality.py:90`；`game/Assets/BrickHigh/Domain/Geometry.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36`；`tools/catalog/tests/unit/test_metadata_quality.py:75` | 無完整效能／記憶體／輪組原型與原始量測。 | 中；`RunPerformanceFixtures_ScenarioMatrix_PreservesContract_FullContractRegression` |
 | IT-019／SC-047 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:23`；`game/Assets/BrickHigh/PreviewEntry/PreviewBootstrap.cs:15` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`game/Assets/BrickHigh/Tests/EditMode/Unit/PlayerStartupPolicyTests.cs:27`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:210` | 有內部F-Catalog建置，非Ready與使用條件通過的Frozen合格子集。 | 高；`BuildPreview_IncompleteCatalog_LabelsNonRelease_FullContractRegression` |
-| IT-020／SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | validation_builds資料表與helper存在，缺真正BuildValidationContent入口及Unity結果。 | 高；`BuildValidation_FrozenSnapshot_ProducesStagingOnly_FullContractRegression` |
-| IT-021／SC-048 | ⚠️ 部分符合 | `tools/catalog/repository.py:160`；`tools/catalog/cli.py:88` | `tools/catalog/tests/integration/test_snapshot_repository.py:56`；`tools/catalog/tests/integration/test_catalog_cli.py:81` | 只驗選件版本改動及CAS；缺toolchain/target逐欄與正式精確封裝正例。 | 高；`PromoteBuild_ChangedSourceDigest_RejectsPromotion_FullContractRegression` |
+| IT-020／SC-048 | ⚠️ 部分符合 | `tools/catalog/validation_content.py`；`game/Assets/BrickHigh/Editor/ValidationContentBuild.cs`；`game/Assets/BrickHigh/UnityRuntime/ValidationContentPlayer.cs` | `tools/catalog/tests/integration/test_validation_content.py`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ValidationContentTests.cs`；testOnly Windows Player六視圖 | 已有真正Frozen輸入、共用Unity／Player管線及不可變staging／RuntimeBuild索引；實際20件已核准、Ready及Frozen選件20/20；仍因fixture／正式來源身份未建立而阻擋，尚無合格正式來源子集的成功RuntimeBuild。 | 高；`BuildValidation_FrozenSnapshot_ProducesStagingOnly_FullContractRegression` |
+| IT-021／SC-048 | ⚠️ 部分符合 | `tools/catalog/validation_content.py`；`tools/catalog/repository.py` | `tools/catalog/tests/integration/test_validation_content.py` | snapshot version／選件、target／Editor／package lock／座標／builder摘要、模型與metadata換包、Player／bundle／六視圖綁定及提交交易內CAS均有正反測試；Published完全匹配之正式封裝正例仍待合格來源。 | 高；`PromoteBuild_ChangedSourceDigest_RejectsPromotion_FullContractRegression` |
 | IT-022／SC-049 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:11`；`tools/installer/InstallerCore.cs:53`；`tools/launcher/Program.cs:14` | `game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:17`；`tools/acceptance/tests/integration/test_install_update.py:184`；`tools/acceptance/tests/integration/test_install_update.py:118` | 真兩程序競爭及檔案鎖故障已有證據，缺原生訊息與真ACL故障完整驗收。 | 高；`Update_GameRestartsDuringStaging_DefersSwitch_FullContractRegression` |
 | IT-023／SC-050 | ❌ 未符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:15` | 沒有WAL一致備份及copy/validate/commit/migration故障注入流程。 | 高；`Backup_IncompleteCopy_DoesNotReplaceLastGood_FullContractRegression` |
 | IT-024／SC-051 | ⚠️ 部分符合 | `tools/catalog/runtime_schema.sql:3`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:270` | 真SQLite完整引用resolver已驗；複合FK／unique／target所有寫入反例不齊。 | 高；`Resolve_MixedReferenceTuple_RejectsModel_FullContractRegression` |
@@ -2391,11 +2142,11 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 
 | ID／來源 | 狀態 | 實作位置 | 斷言／證據位置 | 判定與未完成原因 | 優先級／建議補測 |
 |---|---|---|---|---|---|
-| CT-001／SC-015、SC-019、SC-026 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | Open部分錯誤可追溯，缺已發布正例、缺DLL與取消連線完整矩陣。 | 高；`OpenAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
-| CT-002／SC-015、SC-020、SC-028、SC-031 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:105`；`tools/catalog/resolving.py:24` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:9`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:30`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:192`；`tools/catalog/tests/integration/test_catalog_resolve.py:104` | 101筆分頁／字面查詢已驗，Release全部用途／Special／非法輸入仍缺。 | 高；`QueryAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
-| CT-003／SC-012、SC-015、SC-020 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`game/Assets/BrickHigh/Domain/CatalogInputPolicy.cs:36`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:23` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogInputPolicyTests.cs:32`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:236` | 正常詳情有測；未知UUID與錯快照／歷史投影差異完整矩陣不足。 | 高；`GetVariantAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
-| CT-004／SC-008、SC-015 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207` | profile 配對本體已驗版本化ID、明確雙向相容與跨系列拒絕；公開 `GetProfilesAsync` 仍缺同名不同系列、多快照版本的真 session 投影矩陣，因此保持部分符合。 | 高；`GetProfilesAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
-| CT-005／SC-005、SC-015、SC-027 | ⚠️ 部分符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100`；`tools/catalog/policies.py:94` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:207`；`tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | 只回讀U及單元count政策，缺API空基準／審查／完整分母整組。 | 高；`GetCoverageAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
+| CT-001／SC-015、SC-019、SC-026 | ✅ 符合 | `BrickCatalog.OpenAsync`；`CatalogSession`；`ReleaseFileIndex` | `ReadContractTests.OpenAsync_ContractMatrix_ReturnsSpecifiedOutcome`；job `0ed8016e-493c-4e98-8c76-0c829b5cdca9` | pre-cancel、缺 pack、正式 Release 正例、缺相依、unsupported schema、固定 session 身分與零 sidecar 均回指定結果。 | 本項完成；SC-019／026 仍依各自其他追溯項判定 |
+| CT-002／SC-015、SC-020、SC-028、SC-031 | ✅ 符合 | `BrickCatalog.QueryAsync`；`CatalogInputPolicy` | `ReadContractTests.QueryAsync_ContractMatrix_ReturnsSpecifiedOutcome`；job `9ef7c82a-f305-42dc-8cb1-230b8f059c43` | Release 101 筆分頁無重漏、exact/family/tier/slot/CharacterCreation/InitialBucket、Special 限制、非法輸入、跨 snapshot cursor 與取消完整矩陣 Green。 | 本項完成；其他場景仍依其其他追溯項判定 |
+| CT-003／SC-012、SC-015、SC-020 | ✅ 符合 | `BrickCatalog.GetVariantAsync`；`ResolveVariantAsync` | `ReadContractTests.GetVariantAsync_ContractMatrix_ReturnsSpecifiedOutcome`；job `04b27f57-d034-43fe-ad4f-d003510e6676` | current frozen projection/revision、其他 snapshot-only variant、未知／空 UUID、取消與 disposed session typed outcomes 全部已驗。 | 本項完成；SC-012／020 仍依其他追溯項判定 |
+| CT-004／SC-008、SC-015 | ✅ 符合 | `game/Assets/BrickHigh/Domain/ConnectorCompatibility.cs`；`tools/catalog/metadata_quality.py:58`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:100` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ConnectorCompatibilityTests.cs`；`tools/catalog/tests/unit/test_metadata_quality.py:37`；`tools/catalog/tests/unit/test_metadata_quality.py:46`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs`；Unity EditMode job `6703ec59-75cd-482d-8e01-e95ddfe6301b` | profile 配對本體已驗版本化ID、明確雙向相容與跨系列拒絕；真 SQLite contract fixture 同一 session 同時保留 System／DUPLO profiles，並在另一 snapshot 放入相同 `system-stud-v1` ID 的衝突定義，`GetProfilesAsync` 仍只回 session 綁定 snapshot。Unity 確實進 Test Runner 並 exit 0，因此本契約矩陣完成。 | 本項完成；IT-004 真實 Collider／配對矩陣另追 |
+| CT-005／SC-005、SC-015、SC-027 | ✅ 符合 | `BrickCatalog.GetCoverageAsync`；`CatalogCoverage`；`CatalogCoveragePolicy` | `ReadContractTests.GetCoverageAsync_ContractMatrix_ReturnsSpecifiedOutcome`；job `2c8a79c9-3452-488d-88d2-154f46b473f0` | API 空 scope、完整 C=V、含 G 三組皆精確回 C/G/V、ScopeReviewed 與 ratio；空分母保持 null 而非 100%。 | 本項完成；SC-005／027 仍依其他追溯項判定 |
 | CT-006／SC-012、SC-019、SC-024、SC-032 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`tools/catalog/content.py:14`；`game/Assets/BrickHigh/Infrastructure/LocalAddressablesPolicy.cs:11`；`game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125`；`game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`tools/catalog/tests/unit/test_sc_024.py:9`；`tools/catalog/tests/unit/test_ldraw_sources.py:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/LocalAddressablesPolicyTests.cs:42`；`game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159` | 真provider正常／取消已有證據；多包／全部故障／零權益寫入矩陣不足。 | 高；`AcquireAsync_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
 | CT-007／SC-018、SC-025 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:50`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54` | 純checker測schema與missing單引用；缺真adapter完整requiredModels與存檔bytes。 | 高；`Check_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
 | CT-008／SC-032、SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/UnityRuntime/ModelLease.cs:14`；`game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:53`；`game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:21`；`game/Assets/BrickHigh/UnityRuntime/ToolchainProbe.cs:159`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | session／lease可重複Dispose；真退出uGUI與共享資產矩陣不足。 | 高；`Dispose_ContractMatrix_ReturnsSpecifiedOutcome_FullContractRegression` |
@@ -2415,10 +2166,10 @@ ET-015～ET-022 同樣保存實際操作證據；ET-017僅人工存檔恢復harn
 | ET-003／SC-036 | ⚠️ 部分符合 | `tools/catalog/materials.py:9`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21` | `tools/catalog/tests/unit/test_material_conversion.py:9`；`artifacts/acceptance/pm-20260928-interactive-20-a/PlayerEvidence/result.json` | 有20樣本六方向Player圖；缺逐外觀來源比對及材質失敗反例與使用者核准。 | 高；`RunMaterialAcceptance_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-004／SC-038、SC-039、SC-040、SC-041 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Application/CatalogPreviewPresenter.cs:10`；`game/Assets/BrickHigh/Application/SelectionRequestPolicy.cs:8`；`game/Assets/BrickHigh/Application/RetryRequestPolicy.cs:6`；`game/Assets/BrickHigh/UnityRuntime/CatalogPreviewController.cs:13`；`game/Assets/BrickHigh/Presentation/CatalogPreviewView.cs:19` | `game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SelectionRequestPolicyTests.cs:17`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:247`；`game/Assets/BrickHigh/Tests/EditMode/Unit/RetryRequestPolicyTests.cs:10`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:209`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:231`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewViewTests.cs:193` | presenter與原生探針局部通過，未執行安裝版完整故障／快速切換／重入矩陣。 | 高；`RunRapidSelection_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-005／SC-019、SC-026、SC-042 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:236`；`game/Assets/BrickHigh/Domain/CatalogResult.cs:31`；`game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:240`；`tools/launcher/Program.cs:86`；`game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs:88` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:157`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CatalogPreviewPresenterTests.cs:160`；`game/Assets/BrickHigh/Tests/EditMode/Unit/InstallLifecyclePolicyTests.cs:64` | 原生啟動器存在，缺全部故障的原生通知與原profile保留證據。 | 高；`RunStartupFailure_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
-| ET-006／SC-016、SC-017 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/NativeSqlite.cs:18`；`tools/launcher/Program.cs:86`；`tools/installer/InstallerCore.cs:53`；`tools/installer/InstallerCore.cs:175` | `game/Assets/BrickHigh/Tests/EditMode/Integration/NativeSqliteTests.cs:35`；`tools/acceptance/tests/integration/test_install_update.py:72`；`tools/acceptance/tests/integration/test_install_update.py:100` | InstallerCore升級及uninstall保留fixture，缺一般帳號／唯讀安裝與实际重啟完整矩陣。 | 高；`RunInstallUpgradeUninstall_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
+| ET-006／SC-016、SC-017 | ✅ 符合 | `tools/installer/InstallerCore.cs`；`tools/launcher/Program.cs`；`LocalStoragePolicy`；`tools/acceptance/run_interactive_fixture.py` | fresh installed-Player job `3883ee7e-bcfc-4891-8b99-1b2f9c414e80` exit 0；既有 `test_install_update.py` unit/integration evidence | 真 packaged Installer 完成 A→B pointer 切換與歷史版本保留，真 Launcher／Player 在唯讀 install 下重啟成功，profile bytes 全程不變；預設 uninstall 移除 pointer／內容並只允許執行中 uninstaller 自身殘留。 | 本項完成；SC-017 仍依 UT-051／IT-010 判定 |
 | ET-007／SC-023、SC-025 | ⚠️ 部分符合 | `tools/catalog/repository.py:190`；`tools/installer/InstallerCore.cs:53`；`game/Assets/BrickHigh/Application/SaveCompatibilityChecker.cs:9` | `tools/catalog/tests/integration/test_snapshot_repository.py:88`；`tools/acceptance/tests/integration/test_install_update.py:118`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:28`；`game/Assets/BrickHigh/Tests/EditMode/Unit/SaveCompatibilityCheckerTests.cs:54` | 更新回滾及schema政策部分已測，缺安裝版空間不足／缺舊映射逐例訊息。 | 高；`RunFailedUpdateAndSave_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-008／SC-006、SC-007、SC-010、SC-013 | ⚠️ 部分符合 | `tools/catalog/glb.py:28`；`tools/catalog/glb.py:11`；`game/Assets/BrickHigh/Domain/Geometry.cs:15`；`tools/catalog/building.py:114`；`tools/catalog/render_views.py:15`；`tools/catalog/building.py:167`；`tools/catalog/sources.py:38` | `tools/catalog/tests/unit/test_glb_validation.py:35`；`tools/catalog/tests/unit/test_validator_binding.py:17`；`tools/catalog/tests/integration/test_catalog_build.py:212`；`game/Assets/BrickHigh/Tests/EditMode/Unit/CoordinatePolicyTests.cs:9`；`tools/catalog/tests/integration/test_transparent_conversion.py:69`；`tools/catalog/tests/integration/test_six_views.py:12`；`tools/catalog/tests/unit/test_ldraw_sources.py:22` | 真來源轉GLB／Player樣本已做，缺自建補件及完整品質鏈。 | 高；`RunSourceToPlayer_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
-| ET-009／SC-005、SC-027 | ❌ 未符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190`；`tools/catalog/policies.py:94` | `tools/catalog/tests/integration/test_catalog_cli.py:81`；`tools/catalog/tests/integration/test_catalog_cli.py:196`；`tools/catalog/tests/unit/test_sc_027.py:12`；`tools/catalog/tests/integration/test_catalog_cli.py:64` | 尚無真實全量生產來源、Ready資產及正式發布報告。 | 高；`RunFullCatalogRelease_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
+| ET-009／SC-005、SC-027 | ❌ 未符合 | `tools/catalog/cli.py:88`；`tools/catalog/repository.py:190`；`tools/catalog/policies.py::CatalogCoveragePolicy` | `tools/catalog/tests/integration/test_catalog_cli.py`；`tools/catalog/tests/unit/test_sc_027.py`；`tools/acceptance/tests/integration/test_set_inventory_identity_audit.py` | 10334 inventory／identity 已閉環為 276/276 rows、0 identity gap；仍缺全 Ready 資產、逐變體 RuntimeBuild／品質證據與正式發布報告。 | 高；`RunFullCatalogRelease_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-010／SC-012、SC-014 | ⚠️ 部分符合 | `game/Assets/BrickHigh/Infrastructure/BrickCatalog.cs:192`；`game/Assets/BrickHigh/Editor/ToolchainProbeBuild.cs:21`；`tools/catalog/runtime_schema.sql:3` | `game/Assets/BrickHigh/Tests/EditMode/Integration/ReadContractTests.cs:125` | 精確引用fixture能解析，沒有兩代引擎安裝包的舊外觀／尺寸驗收。 | 高；`RunLegacyModelUpgrade_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-011／SC-043 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無基準機1000次查詢P95與單件冷載首幀數據。 | 中；`RunQueryAndColdLoad_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |
 | ET-012／SC-044 | ❌ 未符合 | `game/Assets/BrickHigh/UnityRuntime/BrickAssetProvider.cs:28` | `game/Assets/BrickHigh/Tests/EditMode/Unit/ModelLeasePolicyTests.cs:36` | 無2026片8幾何固定場景的正式FPS／P95報告。 | 中；`RunFrameBenchmark_InstalledPlayer_SatisfiesAcceptance_FullContractRegression` |

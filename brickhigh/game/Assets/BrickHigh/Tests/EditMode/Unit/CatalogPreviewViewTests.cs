@@ -70,7 +70,7 @@ namespace BrickHigh.Tests
             Guid snapshot = Guid.NewGuid(), variant = Guid.NewGuid();
             using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
             {
-                var details = new VariantDetails(variant, "磚", "System", "Active", BrickTier.Basic,
+                var details = new VariantDetails(variant, "磚", "System", BrickTier.Basic,
                     new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
                 var search = state.BeginSearch(new VariantQuery());
                 state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, "next-cursor")));
@@ -154,7 +154,7 @@ namespace BrickHigh.Tests
             {
                 var rows = Enumerable.Range(0, 50).Select(i => {
                     Guid variant = Guid.NewGuid();
-                    return new VariantDetails(variant, "模型" + i, "System", "Active", BrickTier.Basic,
+                    return new VariantDetails(variant, "模型" + i, "System", BrickTier.Basic,
                         new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
                 }).ToArray();
                 var request = state.BeginSearch(new VariantQuery());
@@ -223,16 +223,16 @@ namespace BrickHigh.Tests
             Assert.That(view.GetComponentsInChildren<UnityEngine.UI.Text>(true).All(x => x.font == font), Is.True);
         }
 
-        /// <summary>完整引用的版本、來源公尺尺寸及 Unknown 生產狀態在技術預覽同時可讀。</summary>
+        /// <summary>完整引用的版本與來源公尺尺寸在技術預覽同時可讀。</summary>
         [Test, NUnit.Framework.Property("TDD", "UT-101"), NUnit.Framework.Property("TDD", "UT-139")]
-        public void RenderState_SelectedPreviewVariant_ShowsVersionDimensionsAndUnknown()
+        public void RenderState_SelectedPreviewVariant_ShowsVersionAndDimensions()
         {
             view = CatalogPreviewView.Create(font, camera, host.transform, events);
             Guid snapshot = Guid.NewGuid(), variant = Guid.NewGuid(), revision = Guid.NewGuid();
             using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Preview))
             {
                 var request = state.BeginSearch(new VariantQuery());
-                var rows = new[] { new VariantDetails(variant, "透明印刷件", "System", "Unknown", BrickTier.Special,
+                var rows = new[] { new VariantDetails(variant, "透明印刷件", "System", BrickTier.Special,
                     new ModelReference(snapshot, variant, revision), "{}",
                     "{\"widthMeters\":0.032,\"heightMeters\":0.0096,\"depthMeters\":0.016}", "build-7") };
                 state.CompleteSearch(request, CatalogResult<VariantPage>.Success(new VariantPage(rows, null)));
@@ -243,9 +243,8 @@ namespace BrickHigh.Tests
                 Assert.That(view.DetailsText.text, Does.Contain(revision.ToString("D")));
                 Assert.That(view.DetailsText.text, Does.Contain("build-7"));
                 Assert.That(view.DetailsText.text, Does.Contain("32 × 9.6 × 16 mm"));
-                Assert.That(view.DetailsText.text, Does.Contain("生產狀態待查"));
-                Assert.That(view.DetailsText.text.Split('\n')[1], Is.EqualTo("生產狀態待查"),
-                    "直式初始詳細資料前兩行必須直接顯示來源狀態。");
+                Assert.That(view.DetailsText.text.Split('\n')[1], Does.StartWith("尺寸："),
+                    "直式初始詳細資料前兩行應直接顯示來源尺寸。");
                 Assert.That(view.VisibleRowCount, Is.LessThanOrEqualTo(12));
             }
         }
@@ -265,7 +264,7 @@ namespace BrickHigh.Tests
                 Assert.That(view.ClearButton.interactable, Is.True);
                 var again = state.BeginSearch(new VariantQuery());
                 state.CompleteSearch(again, CatalogResult<VariantPage>.Success(new VariantPage(new[] {
-                    new VariantDetails(variant, "磚", "System", "Active", BrickTier.Basic,
+                    new VariantDetails(variant, "磚", "System", BrickTier.Basic,
                         new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1") }, null)));
                 var load = state.BeginSelect(variant);
                 state.CompleteModel(load, CatalogResult<ModelLease>.Failure(CatalogErrorCode.StorageUnavailable));
@@ -285,7 +284,7 @@ namespace BrickHigh.Tests
             using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
             {
                 var search = state.BeginSearch(new VariantQuery());
-                var details = new VariantDetails(variant, "模型", "System", "Active", BrickTier.Basic,
+                var details = new VariantDetails(variant, "模型", "System", BrickTier.Basic,
                     new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
                 state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, null)));
                 var load = state.BeginSelect(variant);
@@ -333,7 +332,7 @@ namespace BrickHigh.Tests
             using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Release))
             {
                 var search = state.BeginSearch(new VariantQuery());
-                var details = new VariantDetails(variant, "模型" + extendedCjk, "System", "Active", BrickTier.Basic,
+                var details = new VariantDetails(variant, "模型" + extendedCjk, "System", BrickTier.Basic,
                     new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "build-1");
                 state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, null)));
                 var load = state.BeginSelect(variant);
@@ -383,12 +382,12 @@ namespace BrickHigh.Tests
         public void SetCoverage_PreviewSummary_ShowsActualCountsAndSubset()
         {
             view = CatalogPreviewView.Create(font, camera, host.transform, events);
-            var coverage = new CatalogCoverage { C = 120, A = 90, R = 10, U = 20, G = 7, V = 65 };
+            var coverage = new CatalogCoverage { C = 120, G = 7, V = 65 };
             view.SetCoverage(coverage, 3);
             Assert.That(view.CoverageText.text, Does.Contain("C=120"));
-            Assert.That(view.CoverageText.text, Does.Contain("A=90"));
-            Assert.That(view.CoverageText.text, Does.Contain("R=10"));
-            Assert.That(view.CoverageText.text, Does.Contain("U=20"));
+            Assert.That(view.CoverageText.text, Does.Not.Contain("A="));
+            Assert.That(view.CoverageText.text, Does.Not.Contain("R="));
+            Assert.That(view.CoverageText.text, Does.Not.Contain("U="));
             Assert.That(view.CoverageText.text, Does.Contain("G=7"));
             Assert.That(view.CoverageText.text, Does.Contain("V=65"));
             Assert.That(view.CoverageText.text, Does.Contain("本包子集合：3"));
@@ -439,7 +438,7 @@ namespace BrickHigh.Tests
                 var items = Enumerable.Range(0, 50).Select(i =>
                 {
                     Guid variant = Guid.NewGuid();
-                    return new VariantDetails(variant, "模型" + i, "System", "Unknown", BrickTier.Basic,
+                    return new VariantDetails(variant, "模型" + i, "System", BrickTier.Basic,
                         new ModelReference(snapshot, variant, Guid.NewGuid()), "{}", "{}", "fixture");
                 }).ToArray();
                 state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(items, null)));
@@ -489,12 +488,12 @@ namespace BrickHigh.Tests
             using (var state = new CatalogPreviewPresenter<ModelLease>(snapshot, PackageKind.Preview))
             {
                 var search = state.BeginSearch(new VariantQuery());
-                var details = new VariantDetails(variant, "內部幾何探針 3001.dat 透明", "System", "Unknown", BrickTier.Basic,
+                var details = new VariantDetails(variant, "內部幾何探針 3001.dat 透明", "System", BrickTier.Basic,
                     new ModelReference(snapshot, variant, Guid.NewGuid()), "{}",
                     "{\"widthMeters\":0.032,\"heightMeters\":0.0112,\"depthMeters\":0.016}", Guid.NewGuid().ToString("D"));
                 state.CompleteSearch(search, CatalogResult<VariantPage>.Success(new VariantPage(new[] { details }, null)));
                 state.BeginSelect(variant);
-                view.SetCoverage(new CatalogCoverage { C = 8, A = 0, R = 0, U = 8, G = 8, V = 0 }, 8);
+                view.SetCoverage(new CatalogCoverage { C = 8, G = 8, V = 0 }, 8);
                 view.RenderState(state, null);
                 Canvas.ForceUpdateCanvases();
                 Assert.That(view.GetComponent<UnityEngine.UI.CanvasScaler>().uiScaleMode,
@@ -508,9 +507,8 @@ namespace BrickHigh.Tests
                     Assert.That(text.cachedTextGenerator.characterCountVisible, Is.GreaterThanOrEqualTo(text.text.Length - 1), text.name);
                 }
                 Assert.That(view.CoverageText.text, Does.Contain("本包子集合：8"));
-                Assert.That(view.DetailsText.text, Does.Contain("生產狀態待查"));
                 var scroll = view.DetailsText.GetComponentInParent<UnityEngine.UI.ScrollRect>();
-                Assert.That(scroll, Is.Not.Null, "完整 GUID 與 Unknown 必須可捲動讀取。");
+                Assert.That(scroll, Is.Not.Null, "完整 GUID 與尺寸資訊必須可捲動讀取。");
                 Assert.That(scroll.content.rect.height, Is.GreaterThanOrEqualTo(view.DetailsText.preferredHeight - .5f));
                 Assert.That(view.DetailsText.cachedTextGenerator.characterCountVisible,
                     Is.GreaterThanOrEqualTo(view.DetailsText.text.Length - 1));
@@ -518,7 +516,7 @@ namespace BrickHigh.Tests
                     "隨包 Noto 字型必須能顯示本場景中的繁中文字元。");
                 if (width == 1280)
                     Assert.That(scroll.viewport.rect.height, Is.GreaterThanOrEqualTo(view.DetailsText.preferredHeight - .5f),
-                        "橫向常用尺寸應直接看見 Unknown 生產狀態。");
+                        "橫向常用尺寸應直接看見完整模型詳細資料。");
             }
         }
     }

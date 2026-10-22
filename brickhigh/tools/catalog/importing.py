@@ -1,4 +1,4 @@
-"""把受控來源 adapter 頁匯入 Draft；原始候選不構成生產狀態證據。"""
+"""把指定盒組與 LEGO 元素身份的受控來源 adapter 頁匯入 Draft。"""
 
 from dataclasses import dataclass
 from hashlib import sha256
@@ -78,7 +78,7 @@ def _read_json(workspace, key):
 
 def _load(workspace, manifest_key):
     manifest_bytes, manifest = _read_json(workspace, manifest_key)
-    _object(manifest, ("schemaVersion", "baselineAt", "expectedFamilies", "sources"))
+    _object(manifest, ("schemaVersion", "baselineAt", "expectedFamilies", "sources"), ("parentSnapshot", "cohort"))
     if type(manifest["schemaVersion"]) is not int or manifest["schemaVersion"] != 1:
         raise CatalogError("來源 manifest schemaVersion 不支援。")
     baseline = _utc(manifest["baselineAt"])
@@ -96,7 +96,7 @@ def _load(workspace, manifest_key):
     source_names = set()
     for source in sources:
         _object(source, ("name", "sourceUri", "sourceVersion", "observedAt", "effectiveAt",
-                         "expectedPages", "pages"), ("license",))
+                         "expectedPages", "pages"), ("license", "provenance"))
         name = _name(source["name"])
         if name in source_names:
             raise CatalogError("來源名稱重複。")
@@ -139,7 +139,13 @@ def _load(workspace, manifest_key):
             parsed_pages.append({"number": number, "path": path, "sha256": actual_sha,
                                  "bytes": data, "records": document["records"]})
             fingerprints.append({"source": name, "number": number, "path": path, "sha256": actual_sha})
-        prepared.append({"name": name, "uri": uri, "version": version, "observed": observed,
+        provenance = []
+        for reference in source.get("provenance", []):
+            _object(reference, ("path", "sha256"))
+            data = ContentPathPolicy.read_verified(workspace, reference["path"], reference["sha256"])
+            provenance.append(dict(reference, bytes=data))
+            fingerprints.append({"source": name, "rawPath": reference["path"], "sha256": reference["sha256"]})
+        prepared.append({"provenance": provenance, "name": name, "uri": uri, "version": version, "observed": observed,
                          "effective": effective, "expected": expected, "pages": parsed_pages,
                          "license": license_value})
     input_digest = digest({"manifestSha256": sha256(manifest_bytes).hexdigest(), "pages": fingerprints})
@@ -152,26 +158,33 @@ def _record(record, families):
     kind = record["kind"]
     common = {"kind", "sourceId", "family"}
     if kind == "candidate":
-        required = common | {"partId", "name", "appearance"}
+        required = common | {"designId", "elementId", "name", "appearance"}
     elif kind == "excluded":
         required = common | {"reason"}
+    elif kind == "set":
+        required = common | {"setNumber", "componentElementIds"}
     else:
-        required = common | {"componentIds"}
+        required = common | {"componentElementIds"}
     _object(record, required)
     _name(record["sourceId"])
     if _name(record["family"]) not in families:
         raise CatalogError("來源系列不在 manifest 範圍內。")
     if kind == "candidate":
-        _name(record["partId"])
+        if record["designId"] is not None:
+            _name(record["designId"])
+        _name(record["elementId"])
         _name(record["name"])
         if not isinstance(record["appearance"], dict) or not record["appearance"]:
             raise CatalogError("候選外觀欄位無效。")
         canonical_json(record["appearance"])
     elif kind == "excluded":
         _name(record["reason"])
-    elif (not isinstance(record["componentIds"], list) or not record["componentIds"]
-          or any(not isinstance(item, str) or not item.strip() for item in record["componentIds"])):
-        raise CatalogError("組件展開清單無效。")
+    else:
+        if kind == "set":
+            _name(record["setNumber"])
+        if (not isinstance(record["componentElementIds"], list) or not record["componentElementIds"]
+                or any(not isinstance(item, str) or not item.strip() for item in record["componentElementIds"])):
+            raise CatalogError("組件 Element ID 展開清單無效。")
     return record
 
 
@@ -228,6 +241,8 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
     for source in sources:
         for page in source["pages"]:
             page["object"] = store.put(page["bytes"])
+        for raw_source in source["provenance"]:
+            raw_source["object"] = store.put(raw_source["bytes"])
 
     with repo.transaction():
         previous = repo.connection.execute("SELECT * FROM catalog_import_runs WHERE job_key=?", (job_key,)).fetchone()
@@ -236,7 +251,17 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
 
         scope = {"schemaVersion": 1, "expectedFamilies": families, "observedFamilies": [],
                  "sources": [], "expansions": [], "exclusions": []}
-        snapshot = repo.create_snapshot(baseline, scope)
+        _, source_manifest = _read_json(workspace, manifest_key)
+        parent = source_manifest.get("parentSnapshot")
+        if parent:
+            _object(parent, ("snapshotId", "version", "selectionDigest"))
+            current = repo._require(parent["snapshotId"], {"Frozen"})
+            if (type(parent["version"]) is not int or current["version"] != parent["version"]
+                    or repo.selection_digest(parent["snapshotId"]) != parent["selectionDigest"]):
+                raise CatalogConflict("來源父Frozen版本或selection digest已改變。")
+        if "cohort" in source_manifest:
+            scope["cohort"] = source_manifest["cohort"]
+        snapshot = repo.create_snapshot(baseline, scope, parent["snapshotId"] if parent else None)
         observed = set()
         gaps = []
         candidates = 0
@@ -256,7 +281,10 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
                                  page["number"], page["sha256"], source["observed"], source["effective"], source["license"])
                 metadata = {"schemaVersion": 1, "sourceName": name, "sourceVersion": source["version"],
                             "pageNumber": page["number"], "expectedPages": source["expected"],
-                            "relativePath": page["path"], "byteLength": len(page["bytes"])}
+                            "relativePath": page["path"], "byteLength": len(page["bytes"]),
+                            "rawSources": [{"path": r["path"], "sha256": r["sha256"],
+                                "storageKey": "artifacts/catalog/" + r["object"]["storage_key"]}
+                                for r in source["provenance"]]}
                 repo.connection.execute("""INSERT OR IGNORE INTO source_artifacts
                     VALUES(?,?,?,?,?,?,?,?)""", (artifact, source["uri"], source["observed"],
                     source["effective"], page["sha256"], "artifacts/catalog/" + page["object"]["storage_key"],
@@ -271,29 +299,37 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
                         continue
                     if kind in {"set", "minifigure"}:
                         expansion = {"source": name, "sourceId": record["sourceId"], "kind": kind,
-                                     "componentIds": record["componentIds"]}
+                                     "componentElementIds": record["componentElementIds"]}
+                        if kind == "set":
+                            expansion["setNumber"] = record["setNumber"]
                         scope["expansions"].append(expansion)
                         expansions.append((record["family"], expansion))
                         continue
-                    candidate_ids.add(record["sourceId"])
-                    part = repo.add_part(record["name"], record["family"], name + ":" + record["partId"])
-                    variant = repo.add_variant(part, record["appearance"])
+                    candidate_ids.add(record["elementId"])
+                    part = repo.add_part(record["name"], record["family"], ("LEGO-Design:" + record["designId"]) if record["designId"] else ("LEGO-Element:" + record["elementId"]))
+                    element_appearance = dict(record["appearance"])
+                    element_appearance["elementId"] = record["elementId"]
+                    variant = repo.add_variant(part, element_appearance)
                     evidence_id = _uuid("candidate", artifact, record["sourceId"], variant)
                     repo.connection.execute("""INSERT OR IGNORE INTO evidence
                         VALUES(?,?,?,?,?,?,?,?)""", (evidence_id, artifact, name + ":" + record["sourceId"],
                         "Candidate", source["effective"], None, "source-adapter",
-                        "來源候選；未提供基準日生產判定。"))
-                    for external_id, target_kind, target in ((record["partId"], "Part", part),
-                                                             (record["sourceId"], "Variant", variant)):
-                        if _bind_alias(repo, name, external_id, target_kind, target, evidence_id):
-                            gaps.append((name, record["family"], "MappingConflict:" + external_id))
+                        "來源盒組／元素身份候選；只用於身份與來源追溯。"))
+                    aliases = [("LEGO-Element", record["elementId"], "Variant", variant),
+                               (name, record["sourceId"], "Variant", variant)]
+                    if record["designId"]:
+                        aliases.append(("LEGO-Design", record["designId"], "Part", part))
+                    for alias_source, external_id, target_kind, target in aliases:
+                        if _bind_alias(repo, alias_source, external_id, target_kind, target, evidence_id):
+                            gaps.append((alias_source, record["family"], "MappingConflict:" + external_id))
                     old = repo.connection.execute("""SELECT evidence_ids_json FROM snapshot_entries
                         WHERE snapshot_id=? AND variant_id=?""", (snapshot, variant)).fetchone()
                     if old is None:
-                        repo.connection.execute("""INSERT INTO snapshot_entries VALUES(?,?,?,?,?,?,NULL)""",
-                            (snapshot, variant, "Unknown", canonical_json([evidence_id]), canonical_json({"schemaVersion": 1}),
+                        repo.connection.execute("""INSERT INTO snapshot_entries VALUES(?,?,?,?,?,NULL)""",
+                            (snapshot, variant, canonical_json([evidence_id]), canonical_json({"schemaVersion": 1}),
                              canonical_json({"schemaVersion": 1, "name": record["name"], "family": record["family"],
-                                             "source": name, "externalId": record["sourceId"]})))
+                                             "source": name, "externalId": record["sourceId"],
+                                             "designId": record["designId"], "elementId": record["elementId"]})))
                         candidates += 1
                     else:
                         ids = json.loads(old["evidence_ids_json"])
@@ -302,7 +338,7 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
                             repo.connection.execute("""UPDATE snapshot_entries SET evidence_ids_json=?
                                 WHERE snapshot_id=? AND variant_id=?""", (canonical_json(ids), snapshot, variant))
             for family, expansion in expansions:
-                for component in expansion["componentIds"]:
+                for component in expansion["componentElementIds"]:
                     if component not in candidate_ids:
                         gaps.append((name, family, "MissingComponent:" + expansion["sourceId"] + ":" + component))
         for family in families:
@@ -314,7 +350,7 @@ def import_catalog(repo: CatalogRepository, workspace: Path, manifest_key: str, 
         for source, family, kind in gaps:
             repo.connection.execute("INSERT INTO coverage_gaps VALUES(?,?,?,?,?,NULL)",
                                     (_uuid("gap", snapshot, source, family, kind), snapshot, source, family, kind))
-        coverage = {"C": candidates, "A": 0, "R": 0, "U": candidates, "G": len(gaps)}
+        coverage = {"C": candidates, "G": len(gaps)}
         repo.connection.execute("INSERT INTO catalog_import_runs VALUES(?,?,?,?)",
                                 (job_key, input_digest, snapshot, canonical_json(coverage)))
         return ImportResult(snapshot, input_digest, coverage)

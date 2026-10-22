@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified mixed System sockets, Technic axle-hole passage and compound collision proxy for fixed model 4032a",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/4032a-colour4",
+  "sourcePart": "4032a.dat",
+  "sourceDependencyDigest": "ba1685780ecd16f8795178eadd6fcfaf0e08a6efd383b0ca9293e2883f2cf983",
+  "modelSha256": "903f712e65ee35f56505e9155100f354c588a5f08d2717f340ed6a394a004a26",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0072]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [-0.004, -0.0032, -0.004]},
+    {"id": "runtime-socket-002", "position": [-0.004, -0.0032, 0.004]},
+    {"id": "runtime-socket-003", "position": [0.004, -0.0032, -0.004]},
+    {"id": "runtime-socket-004", "position": [0.004, -0.0032, 0.004]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof-left", "center": [-0.0054, 0.00125, 0.0], "size": [0.0052, 0.0007, 0.016]},
+    {"id": "roof-right", "center": [0.0054, 0.00125, 0.0], "size": [0.0052, 0.0007, 0.016]},
+    {"id": "roof-back", "center": [0.0, 0.00125, -0.0054], "size": [0.0056, 0.0007, 0.0052]},
+    {"id": "roof-front", "center": [0.0, 0.00125, 0.0054], "size": [0.0056, 0.0007, 0.0052]},
+    {"id": "rim-left", "center": [-0.00725, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "rim-right", "center": [0.00725, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "rim-back", "center": [0.0, -0.00115, -0.00725], "size": [0.016, 0.0041, 0.0015]},
+    {"id": "rim-front", "center": [0.0, -0.00115, 0.00725], "size": [0.016, 0.0041, 0.0015]},
+    {"id": "rib-x-back", "center": [0.0, -0.00115, -0.0055], "size": [0.0015, 0.0041, 0.005]},
+    {"id": "rib-x-front", "center": [0.0, -0.00115, 0.0055], "size": [0.0015, 0.0041, 0.005]},
+    {"id": "rib-z-left", "center": [-0.0055, -0.00115, 0.0], "size": [0.005, 0.0041, 0.0015]},
+    {"id": "rib-z-right", "center": [0.0055, -0.00115, 0.0], "size": [0.005, 0.0041, 0.0015]}
+  ],
+  "passageChecks": [
+    {"id": "axle-center", "start": [0.0, -0.00305, 0.0], "end": [0.0, -0.00015, 0.0], "radiusMeters": 0.00025},
+    {"id": "axle-arm-x-negative", "start": [-0.0016, -0.00305, 0.0], "end": [-0.0016, -0.00015, 0.0], "radiusMeters": 0.00025},
+    {"id": "axle-arm-x-positive", "start": [0.0016, -0.00305, 0.0], "end": [0.0016, -0.00015, 0.0], "radiusMeters": 0.00025},
+    {"id": "axle-arm-z-negative", "start": [0.0, -0.00305, -0.0016], "end": [0.0, -0.00015, -0.0016], "radiusMeters": 0.00025},
+    {"id": "axle-arm-z-positive", "start": [0.0, -0.00305, 0.0016], "end": [0.0, -0.00015, 0.0016], "radiusMeters": 0.00025}
+  ],
+  "specialConnectors": [
+    {
+      "id": "runtime-axle-hole-001",
+      "family": "axle-hole",
+      "profile": "technic-axle-hole-v1",
+      "compatibleProfile": "technic-axle-v1",
+      "side": "female",
+      "position": [0.0, -0.0032, 0.0],
+      "normal": [0.0, -1.0, 0.0],
+      "tangent": [1.0, 0.0, 0.0],
+      "degreesOfFreedom": ["axial-insert"],
+      "passageIds": ["axle-center", "axle-arm-x-negative", "axle-arm-x-positive", "axle-arm-z-negative", "axle-arm-z-positive"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job c0acc36b-667f-40c7-9924-600dc36bd406 verified 2026-09-30 against exact 4032a model hash: all four System logical sockets actualHit=false and proxyOpen=true; axle-center plus four rounded Technic axle-hole arm passages actualHit=false and proxyOpen=true; technic-axle-v1 pairs explicitly with technic-axle-hole-v1; outer-ring control actualHit=true and proxyOpen=false."
+}

@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile, rename, rm, stat, copyFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
+import { XMLParser } from 'fast-xml-parser';
 import { redact, safeEnvironment } from './core.js';
 
 const pause = ms => new Promise(done => setTimeout(done, ms));
@@ -13,6 +14,16 @@ const upmError = text => /Could not connect to IPC stream|Failed to start the Un
 const compileError = text => /(?:error CS\d{4}:|Compilation failed|Scripts have compiler errors|The project you are opening contains compilation errors|Assembly .* failed to compile)/i.test(text);
 const testFailure = text => /(?:<test-run\b[^>]*\bresult="Failed"|\bTests? failed\b|\bFailed tests?:\s*[1-9]|\bTest Run Failed\b)/i.test(text);
 const runnerReached = text => /(?:Test Runner|Running tests|Test run started|<test-run\b|Test run finished)/i.test(text);
+
+export function parseUnityTestSummary(xml) {
+  if (!xml) return null;
+  try {
+    const run = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' }).parse(xml)['test-run'];
+    if (!run || typeof run !== 'object') return null;
+    const counts = { total: Number(run.total), passed: Number(run.passed), failed: Number(run.failed), skipped: Number(run.skipped) };
+    return Object.values(counts).every(value => Number.isInteger(value) && value >= 0) ? counts : null;
+  } catch { return null; }
+}
 
 export function ownedProcessTree(snapshot, known, rootPid, since = 0) {
   const byPid = new Map(snapshot.map(p => [Number(p.pid), p]));
@@ -42,7 +53,9 @@ export function classifyUnityAttempt({ log, resultXml = '', exitCode, timedOut =
   if (timedOut) return 'timeout';
   if (upmError(log)) return 'unity-upm-startup-failure';
   if (compileError(log)) return 'unity-compile-failure';
-  if (testFailure(resultXml) || testFailure(log)) return 'unity-test-failure';
+  if (/FrozenSourceQualityBlocked/.test(log)) return 'unity-source-quality-blocked';
+  if ((parseUnityTestSummary(resultXml)?.failed ?? 0) > 0 || /<test-run\b[^>]*\bresult="Failed(?:\([^"]+\))?"/.test(resultXml) || testFailure(log)) return 'unity-test-failure';
+  if (requiresTestRunner && exitCode === 0 && (parseUnityTestSummary(resultXml)?.total ?? 0) === 0 && (runnerReached(log) || resultXml)) return 'unity-zero-tests';
   if (exitCode === 0) return requiresTestRunner && !runnerReached(log) && !resultXml ? 'unity-startup-failure' : 'success';
   return runnerReached(log) ? 'unity-test-failure' : 'unity-startup-failure';
 }
@@ -150,7 +163,7 @@ export class UnityRunner {
         await atomic(recordPath, job);
         const attempt = await this.attempt(task, job, number, args, logPath, resultPath, lock);
         attempts.push(attempt);
-        Object.assign(job, { attempts, lastLogPath: logPath, logPath, failureType: attempt.failureType, exitCode: attempt.exitCode });
+        Object.assign(job, { attempts, lastLogPath: logPath, logPath, failureType: attempt.failureType, exitCode: attempt.exitCode, testSummary: attempt.testSummary });
         await atomic(recordPath, job);
         if (attempt.failureType !== 'unity-upm-startup-failure' || number === 3 || this.cancelled.has(job.id)) break;
         await pause(this.backoffMs * number);
@@ -205,8 +218,9 @@ export class UnityRunner {
     const log = `${fileLog}\n${consoleOutput}`;
     if (consoleOutput) await writeFile(logPath, log);
     const resultXml = resultPath ? await readFile(resultPath, 'utf8').catch(() => '') : '';
+    const testSummary = resultPath ? parseUnityTestSummary(resultXml) : null;
     const failureType = spawnError ? 'unity-startup-failure' : classifyUnityAttempt({ log, resultXml, exitCode, timedOut, cancelled: this.cancelled.has(job.id), requiresTestRunner: !!resultPath });
-    return { number, failureType, exitCode, durationMs: Date.now() - started, logPath, resultPath, testRunnerReached: runnerReached(log) || !!resultXml, ...(spawnError ? { error: redact(spawnError.message) } : {}) };
+    return { number, failureType, exitCode, durationMs: Date.now() - started, logPath, resultPath, testRunnerReached: runnerReached(log) || !!resultXml, testSummary, ...(spawnError ? { error: redact(spawnError.message) } : {}) };
   }
   cancel(id) { this.cancelled.add(id); this.active.get(id)?.kill(); }
 }

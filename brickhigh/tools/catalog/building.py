@@ -1,7 +1,9 @@
 """Frozen 來源模型工作：轉換與封存後停在 Validating，完整品質檢核另行完成。"""
 
+from copy import deepcopy
 import hashlib
 import json
+import math
 from pathlib import Path
 import shutil
 import subprocess
@@ -52,10 +54,10 @@ def _plan(repo, workspace, snapshot_id, key):
         if variant in seen:
             raise CatalogError("建置變體重複。")
         seen.add(variant)
-        row = repo.connection.execute("SELECT production_status FROM snapshot_entries WHERE snapshot_id=? AND variant_id=?",
+        row = repo.connection.execute("SELECT 1 FROM snapshot_entries WHERE snapshot_id=? AND variant_id=?",
                                       (snapshot_id, variant)).fetchone()
-        if row is None or row[0] == "Retired":
-            raise CatalogError("變體不在本次允許建置範圍。")
+        if row is None:
+            raise CatalogError("變體不在本次指定盒組／目錄快照的建置範圍。")
         if (not isinstance(item["part"], str) or not item["part"].endswith(".dat")
                 or "/" in item["part"] or "\\" in item["part"]):
             raise CatalogError("LDraw 零件識別無效。")
@@ -69,6 +71,192 @@ def _plan(repo, workspace, snapshot_id, key):
         if not isinstance(metadata, dict) or type(metadata.get("schemaVersion")) is not int or metadata["schemaVersion"] != 1:
             raise CatalogError("metadata schemaVersion 不支援。")
     return plan
+
+
+def revision_input_digest(item, toolchain, source):
+    """建立 source revision 身分；模型、metadata、來源或工具鏈任一改變都必須形成新 revision。"""
+    return digest({"item": item, "toolchain": toolchain, "source": source})
+
+
+def _source_failure_reason(error):
+    """把來源解析失敗收斂成可持久化的安全 reason code，不保存本機路徑或例外文字。"""
+    message = str(error)
+    if "缺少 LDraw 依賴" in message:
+        return "MissingDependency"
+    if "TEXMAP" in message:
+        return "TexmapUnsupported"
+    if "來源缺少作者或使用條件" in message:
+        return "MissingProvenance"
+    if "來源使用條件尚未支援" in message:
+        return "UnsupportedLicense"
+    if any(token in message for token in ("語法錯誤", "幾何數值無效", "幾何數值非有限值", "循環依賴")):
+        return "MalformedSource"
+    return "UnsupportedSource"
+
+
+_SOURCE_CONNECTOR_FREEDOMS = {
+    "system-stud-v1": ("axial-insert",),
+    "system-tube-v1": ("axial-insert",),
+    "duplo-stud-v1": ("axial-insert",),
+    "duplo-tube-v1": ("axial-insert",),
+    "technic-friction-pin-v1": ("axial-insert", "axial-rotate"),
+    "technic-pin-hole-v1": ("axial-insert", "axial-rotate"),
+    "technic-axle-v1": ("axial-insert",),
+    "ball-v1": ("spherical-rotate",),
+    "socket-v1": ("spherical-rotate",),
+}
+
+
+def _finite_vector3(value):
+    return (isinstance(value, list) and len(value) == 3
+            and all(type(item) in (int, float) and math.isfinite(item) for item in value))
+
+
+def _unit_vector3(value):
+    return _finite_vector3(value) and abs(sum(item * item for item in value) - 1) <= 1e-6
+
+
+def _merge_source_connector_metadata(result, source, dependency_digest, source_part):
+    candidates = source.get("connectorCandidates") if isinstance(source, dict) else None
+    if candidates is None:
+        return
+    if not isinstance(candidates, list):
+        raise CatalogError("LDraw connector candidate 格式無效。")
+    if not candidates:
+        return
+    if result.get("connectorsRequired") is False:
+        raise CatalogError("metadata connectorsRequired=false 與 LDraw connector candidates 衝突。")
+
+    existing = result.get("connectors")
+    if existing is None:
+        existing = []
+    if not isinstance(existing, list):
+        raise CatalogError("metadata connectors 格式無效。")
+    compatibility_profiles = result.get("compatibilityProfiles")
+    if compatibility_profiles is None:
+        compatibility_profiles = []
+    if (not isinstance(compatibility_profiles, list)
+            or any(not isinstance(item, str) or not item.strip() for item in compatibility_profiles)):
+        raise CatalogError("metadata compatibilityProfiles 格式無效。")
+
+    promoted = []
+    seen_ids = set()
+    profiles = []
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            raise CatalogError("LDraw connector candidate 格式無效。")
+        required_text = ("id", "primitive", "sourceFile", "family", "profile", "side", "dependencyDigest")
+        if any(not isinstance(candidate.get(key), str) or not candidate[key].strip() for key in required_text):
+            raise CatalogError("LDraw connector candidate 缺少可追溯欄位。")
+        if candidate["id"] in seen_ids:
+            raise CatalogError("LDraw connector candidate ID 重複。")
+        seen_ids.add(candidate["id"])
+        freedoms = _SOURCE_CONNECTOR_FREEDOMS.get(candidate["profile"])
+        if freedoms is None:
+            raise CatalogError("LDraw connector candidate profile 尚未定義正式語意。")
+        if candidate["side"] not in {"male", "female"}:
+            raise CatalogError("LDraw connector candidate side 無效。")
+        if candidate["dependencyDigest"] != dependency_digest:
+            raise CatalogError("LDraw connector candidate dependencyDigest 與來源幾何不符。")
+        position, normal, tangent = candidate.get("position"), candidate.get("normal"), candidate.get("tangent")
+        if (not _finite_vector3(position) or not _unit_vector3(normal) or not _unit_vector3(tangent)
+                or abs(sum(a * b for a, b in zip(normal, tangent))) > 1e-6):
+            raise CatalogError("LDraw connector candidate frame 無效。")
+        evidence = ("LDraw standard primitive v1; sourcePart=" + source_part
+                    + "; primitive=" + candidate["primitive"]
+                    + "; sourceFile=" + candidate["sourceFile"]
+                    + "; dependencyDigest=" + dependency_digest)
+        promoted.append({
+            "id": candidate["id"],
+            "family": candidate["family"],
+            "profile": candidate["profile"],
+            "side": candidate["side"],
+            "position": list(position),
+            "referencePosition": list(position),
+            "normal": list(normal),
+            "tangent": list(tangent),
+            "degreesOfFreedom": list(freedoms),
+            "evidence": evidence,
+        })
+        if candidate["profile"] not in profiles:
+            profiles.append(candidate["profile"])
+
+    def same_connector_frame(left, right):
+        if (not isinstance(left, dict) or left.get("profile") != right["profile"]
+                or left.get("side") != right["side"] or not _finite_vector3(left.get("position"))
+                or not _unit_vector3(left.get("normal")) or not _unit_vector3(left.get("tangent"))):
+            return False
+        position_matches = math.sqrt(sum((a - b) ** 2 for a, b in zip(left["position"], right["position"]))) <= .00005 + 1e-12
+        normal_matches = sum(a * b for a, b in zip(left["normal"], right["normal"])) >= 1 - 1e-6
+        tangent_matches = sum(a * b for a, b in zip(left["tangent"], right["tangent"])) >= 1 - 1e-6
+        return position_matches and normal_matches and tangent_matches
+
+    merged = list(existing)
+    for connector in promoted:
+        if not any(same_connector_frame(item, connector) for item in merged):
+            merged.append(connector)
+    result["connectorsRequired"] = True
+    result["connectors"] = merged
+    result["compatibilityProfiles"] = list(dict.fromkeys([*compatibility_profiles, *profiles]))
+    result["sourceConnectorEvidence"] = {
+        "method": "ldraw-standard-primitives-v1",
+        "sourcePart": source_part,
+        "dependencyDigest": dependency_digest,
+        "candidateCount": len(candidates),
+        "promotedCount": len(promoted),
+        "profiles": profiles,
+    }
+
+
+def merge_source_reference_metadata(metadata, source):
+    """以原始 LDraw 幾何補齊尺寸與標準接點證據；衝突時拒絕而非覆寫。"""
+    result = deepcopy(metadata)
+    reference = source.get("referenceGeometry") if isinstance(source, dict) else None
+    if reference is None:
+        return result
+    if (not isinstance(reference, dict) or reference.get("method") != "ldraw-source-vertices-v1"
+            or reference.get("coordinateProfile") != "ldraw-canonical-metres-v1"):
+        raise CatalogError("LDraw referenceDimensions 來源格式無效。")
+    dimensions = reference.get("dimensionsMeters")
+    if (not isinstance(dimensions, list) or len(dimensions) != 3
+            or any(type(value) not in (int, float) or not math.isfinite(value) or value <= 0 for value in dimensions)):
+        raise CatalogError("LDraw referenceDimensions 必須是三個有限正公尺值。")
+    dependency_digest = reference.get("dependencyDigest")
+    if (not isinstance(dependency_digest, str) or len(dependency_digest) != 64
+            or any(character not in "0123456789abcdef" for character in dependency_digest)):
+        raise CatalogError("LDraw referenceDimensions dependencyDigest 無效。")
+    source_part = source.get("filename")
+    if not isinstance(source_part, str) or not source_part:
+        raise CatalogError("LDraw referenceDimensions 缺少來源零件識別。")
+
+    declared = result.get("referenceDimensions")
+    if declared is None:
+        result["referenceDimensions"] = list(dimensions)
+    else:
+        if (not isinstance(declared, list) or len(declared) != 3
+                or any(type(value) not in (int, float) or not math.isfinite(value) or value <= 0 for value in declared)):
+            raise CatalogError("metadata referenceDimensions 格式無效。")
+        tolerances = [max(.0001, .005 * value) + 1e-12 for value in dimensions]
+        if any(abs(actual - expected) > tolerance
+               for actual, expected, tolerance in zip(declared, dimensions, tolerances)):
+            raise CatalogError("metadata referenceDimensions 與 LDraw 來源幾何衝突。")
+
+    result["referenceDimensionSource"] = {
+        "method": reference["method"],
+        "sourcePart": source_part,
+        "dependencyDigest": dependency_digest,
+    }
+    source_note = ("LDraw source vertices v1; sourcePart=" + source_part
+                   + "; dependencyDigest=" + dependency_digest)
+    existing_note = result.get("dimensionEvidence")
+    if isinstance(existing_note, str) and existing_note.strip() and source_note not in existing_note:
+        result["dimensionEvidence"] = existing_note.rstrip() + " | " + source_note
+    else:
+        result["dimensionEvidence"] = source_note
+    if isinstance(result.get("remainingChecks"), list):
+        result["remainingChecks"] = [item for item in result["remainingChecks"] if item != "IndependentDimensions"]
+    _merge_source_connector_metadata(result, source, dependency_digest, source_part)
+    return result
 
 
 def _command(command, timeout):
@@ -104,9 +292,13 @@ def prepare_toolchain(workspace, plan):
     for item in plan["items"]:
         try:
             sources[item["variantId"]] = inspect_ldraw(library, item["part"])
-        except (CatalogError, OSError, UnicodeError):
-            # 來源缺件屬逐件失敗，不阻止其他獨立模型製作。
-            sources[item["variantId"]] = {"sourceError": "SourceUnavailable", "part": item["part"]}
+        except (CatalogError, OSError, UnicodeError) as error:
+            # 來源缺件／不支援格式屬逐件失敗；只保存穩定 reason code，不保存本機路徑或原始例外。
+            sources[item["variantId"]] = {
+                "sourceError": "SourceUnavailable",
+                "sourceFailureReason": _source_failure_reason(error),
+                "part": item["part"],
+            }
     return {"toolchain": {"importerCommit": commit, "scripts": hashes, "executables": tools,
                           "colourConfigSha256": colours}, "sources": sources}
 
@@ -188,7 +380,8 @@ def build_catalog(workspace, database, snapshot_id, job_key, plan_key):
                 for item in plan["items"]:
                     identity = {"item": item, "toolchain": prepared["toolchain"],
                                 "source": prepared["sources"][item["variantId"]]}
-                    input_hash = digest(identity)
+                    input_hash = revision_input_digest(item, prepared["toolchain"],
+                                                       prepared["sources"][item["variantId"]])
                     row = repo.connection.execute("SELECT * FROM model_revisions WHERE variant_id=? AND input_digest=?",
                                                   (item["variantId"], input_hash)).fetchone()
                     if row is not None and row["status"] in {"Validating", "Ready"}:
@@ -221,7 +414,11 @@ def build_catalog(workspace, database, snapshot_id, job_key, plan_key):
                                 failure_code = "SourceChanged"
                                 raise CatalogError("轉換時來源已改變，不可沿用先前版本身分。")
                             failure_code = "ArtifactValidationFailed"
-                            metadata = ContentPathPolicy.read_verified(workspace, item["metadata"]["path"], item["metadata"]["sha256"])
+                            metadata_input = ContentPathPolicy.read_verified(
+                                workspace, item["metadata"]["path"], item["metadata"]["sha256"])
+                            metadata_document = merge_source_reference_metadata(
+                                json.loads(metadata_input), prepared["sources"][item["variantId"]])
+                            metadata = canonical_json(metadata_document).encode("utf-8")
                             with (output / "metadata.json").open("xb") as stream:
                                 stream.write(metadata)
                             files = []
@@ -248,7 +445,7 @@ def build_catalog(workspace, database, snapshot_id, job_key, plan_key):
                             manifest = {"schemaVersion": 1, "variantId": item["variantId"], "revisionId": revision,
                                         "inputDigest": input_hash, "toolchain": prepared["toolchain"], "files": files}
                             validation = {"quality_passed": False, "provenance_passed": False,
-                                          "metadataChecks": inspect_metadata(json.loads(metadata), report["geometry"]),
+                                          "metadataChecks": inspect_metadata(metadata_document, report["geometry"]),
                                           "conversion": report, "remainingChecks": ["DimensionsAndConnectors",
                                           "SourceAppearance", "SixViews", "AttributionReview"]}
                             failure_code = "SnapshotChanged"
@@ -261,6 +458,11 @@ def build_catalog(workspace, database, snapshot_id, job_key, plan_key):
                         except Exception as error:
                             failure = {"quality_passed": False, "failureCode": "WorkerTimeout" if isinstance(error, TimeoutError)
                                        else failure_code, "attemptPath": output_key}
+                            source_state = prepared["sources"].get(item["variantId"], {})
+                            if failure["failureCode"] == "SourceUnavailable" and isinstance(source_state, dict):
+                                reason = source_state.get("sourceFailureReason")
+                                if isinstance(reason, str) and reason:
+                                    failure["sourceFailureReason"] = reason
                             with repo.transaction():
                                 _fence(repo, jobs, token)
                                 repo.connection.execute("UPDATE model_revisions SET status='Failed',validation_json=? WHERE revision_id=?",

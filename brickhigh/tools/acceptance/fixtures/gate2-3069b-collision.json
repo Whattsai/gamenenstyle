@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified logical sockets and compound collision proxy for fixed model 3069b",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/3069b-colour14",
+  "sourcePart": "3069b.dat",
+  "sourceDependencyDigest": "04162c933a0ad5c334a75c0d61c704d10a7d2a1037daa8697612ba5ac45c44f6",
+  "modelSha256": "4c5c68d59b1fbc7b7a6492d9132a8848bd76c9b76e2d9a0ae0bb7b9e322ea321",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0034]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [-0.004, -0.0032, 0.0]},
+    {"id": "runtime-socket-002", "position": [0.004, -0.0032, 0.0]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, -0.00035, 0.0], "size": [0.016, 0.0007, 0.008]},
+    {"id": "wall-x-left", "center": [-0.00725, -0.00195, 0.0], "size": [0.0015, 0.0025, 0.008]},
+    {"id": "wall-x-mid", "center": [0.0, -0.00195, 0.0], "size": [0.003, 0.0025, 0.008]},
+    {"id": "wall-x-right", "center": [0.00725, -0.00195, 0.0], "size": [0.0015, 0.0025, 0.008]},
+    {"id": "wall-z-back", "center": [0.0, -0.00195, -0.00325], "size": [0.016, 0.0025, 0.0015]},
+    {"id": "wall-z-front", "center": [0.0, -0.00195, 0.00325], "size": [0.016, 0.0025, 0.0015]}
+  ],
+  "evidence": "Unity PlayMode IT-004 verified 2026-09-30 against exact 3069b model hash: both bottom logical sockets actualHit=false and compound proxyOpen=true; outside control actualHit=true and proxyOpen=false. The tile itself receives only runtime female sockets; no male connector is inferred by this fixture."
+}

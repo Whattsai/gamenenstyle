@@ -10,6 +10,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <PackageKind Condition="'$(PackageKind)' == ''">Preview</PackageKind>
     <DefineConstants Condition="'$(PackageKind)' == 'Preview'">$(DefineConstants);BRICKHIGH_PREVIEW</DefineConstants>
+    <DefineConstants Condition="'$(AcceptanceStorageOverride)' == 'true'">$(DefineConstants);BRICKHIGH_ACCEPTANCE_STORAGE_OVERRIDE</DefineConstants>
     <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
@@ -17,6 +18,7 @@
     <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
     <Compile Include="../../game/Assets/BrickHigh/Infrastructure/SafeContent.cs" />
     <Compile Include="../../game/Assets/BrickHigh/Infrastructure/InstallLifecycle.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Infrastructure/LocalStoragePolicy.cs" />
     <Compile Include="../../game/Assets/BrickHigh/Infrastructure/ControlledLaunch.cs" />
   </ItemGroup>
 </Project>

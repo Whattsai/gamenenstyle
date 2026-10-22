@@ -60,8 +60,6 @@ namespace BrickHigh.Domain
         public string Name { get; }
         /// <summary>凍結系列。</summary>
         public string Family { get; }
-        /// <summary>生產狀態。</summary>
-        public string ProductionStatus { get; }
         /// <summary>款式分類。</summary>
         public BrickTier Tier { get; }
         /// <summary>來源模型引用。</summary>
@@ -72,9 +70,9 @@ namespace BrickHigh.Domain
         public string MetadataJson { get; }
         /// <summary>目前平台的執行期建置身分。</summary>
         public string RuntimeBuildId { get; }
-        internal VariantDetails(Guid variant, string name, string family, string status, BrickTier tier, ModelReference model,
+        internal VariantDetails(Guid variant, string name, string family, BrickTier tier, ModelReference model,
             string usage, string metadata, string build)
-        { VariantId = variant; Name = name; Family = family; ProductionStatus = status; Tier = tier; Model = model; UsageJson = usage; MetadataJson = metadata; RuntimeBuildId = build; }
+        { VariantId = variant; Name = name; Family = family; Tier = tier; Model = model; UsageJson = usage; MetadataJson = metadata; RuntimeBuildId = build; }
     }
 
     /// <summary>有界查詢頁與下一頁位置。</summary>
@@ -95,25 +93,19 @@ namespace BrickHigh.Domain
         internal CompatibilityProfiles(IReadOnlyDictionary<string, string> definitions) { Definitions = definitions; }
     }
 
-    /// <summary>來源全量覆蓋數字；待查與缺口不因 Preview 交付歸零。</summary>
+    /// <summary>指定盒組範圍的候選、缺口與可交付數字。</summary>
     public sealed class CatalogCoverage
     {
-        /// <summary>候選、未停產、停產、待查、缺口、交付數量。</summary>
+        /// <summary>指定盒組去重後的候選變體數。</summary>
         public int C { get; internal set; }
-        /// <summary>確認未停產數。</summary>
-        public int A { get; internal set; }
-        /// <summary>確認停產數。</summary>
-        public int R { get; internal set; }
-        /// <summary>生產狀態待查數。</summary>
-        public int U { get; internal set; }
-        /// <summary>來源涵蓋缺口數。</summary>
+        /// <summary>inventory、身份、來源或品質的未解缺口數。</summary>
         public int G { get; internal set; }
-        /// <summary>可交付的確認未停產變體數。</summary>
+        /// <summary>已驗證可交付變體數。</summary>
         public int V { get; internal set; }
-        /// <summary>是否具有完整來源涵蓋審查。</summary>
+        /// <summary>是否具有完整指定盒組涵蓋審查。</summary>
         public bool ScopeReviewed { get; internal set; }
         /// <summary>空分母為 null，不顯示 100%。</summary>
-        public double? Ratio => A == 0 ? (double?)null : (double)V / A;
+        public double? Ratio => C == 0 ? (double?)null : (double)V / C;
     }
 
     /// <summary>同一 Player 內的唯讀模型目錄介面。</summary>

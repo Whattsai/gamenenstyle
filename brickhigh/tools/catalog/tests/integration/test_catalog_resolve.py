@@ -1,4 +1,4 @@
-"""有證據的三態判定須經實際 CLI、檔案 hash 與 SQLite 交易。"""
+"""身份／來源判定須經實際 CLI、檔案 hash 與 SQLite 交易。"""
 
 import json
 import subprocess
@@ -25,19 +25,20 @@ def setup(workspace):
     artifact = str(uuid4())
     stored = ObjectStore(workspace / "artifacts" / "catalog").put(b"F-Catalog reviewed evidence")
     with CatalogRepository(workspace / "catalog.sqlite") as repo:
-        part = repo.add_part("基本磚", "System", "fixture-part")
+        part = repo.add_part("基本磚", "System", "LEGO-Design:3001")
         variant = repo.add_variant(part, {"color": "4"})
         snapshot = repo.create_snapshot("2026-09-08T15:59:59Z", {"families": ["System"]})
-        repo.put_entry(snapshot, variant, "Unknown", [], {}, {"name": "基本磚", "fixture": True})
+        repo.put_entry(snapshot, variant, [], {}, {"name": "基本磚", "fixture": True,
+                                                    "designId": "3001", "elementId": "300101"})
         repo.connection.execute("INSERT INTO source_artifacts VALUES(?,?,?,?,?,?,?,?)", (
             artifact, "https://example.invalid/evidence", "2026-09-09T00:00:00Z", None,
             stored["sha256"], "artifacts/catalog/" + stored["storage_key"], "{}", "{}"))
         version = repo.snapshot(snapshot)["version"]
     document = {"schemaVersion": 1, "expectedVersion": version, "entries": [{
         "variantId": variant,
-        "evidence": [{"artifactId": artifact, "claim": "Producing",
+        "evidence": [{"artifactId": artifact, "claim": "Identity",
                       "effectiveFrom": "2026-09-01T00:00:00Z", "effectiveTo": None,
-                      "reviewer": "fixture-reviewer", "reason": "人工測試資料，非真實生產證據"}],
+                      "reviewer": "fixture-reviewer", "reason": "人工測試身份證據"}],
         "classification": {"tier": "Basic", "reason": "人工分類 fixture",
                            "allowedAcquisitionSources": [], "characterSlots": [],
                            "creationEligible": False, "bucketEligible": False, "buildSystems": []},
@@ -56,46 +57,36 @@ def test_resolve_verified_claim_persists_and_exact_retry_does_not_increment_vers
     result = invoke(tmp_path, snapshot)
     assert result.returncode == 0, result.stderr
     report = json.loads(result.stdout)
-    assert report["counts"]["A"] == 1
-    assert report["counts"]["V"] == 0
+    assert report["counts"] == {"C": 0, "G": 0, "V": 0}  # fixture 不計入正式指定盒組分母
     assert invoke(tmp_path, snapshot).returncode == 0
     with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
         assert repo.snapshot(snapshot)["version"] == document["expectedVersion"] + 1
         entry = repo.entries(snapshot)[0]
-        assert entry["production_status"] == "Active"
         assert len(json.loads(entry["evidence_ids_json"])) == 1
         assert json.loads(entry["display_projection_json"])["fixture"] is True
         assert repo.connection.execute("SELECT target_id FROM external_refs").fetchone()[0] == variant
         assert repo.head()["snapshot_id"] is None
 
 
-@pytest.mark.parametrize("claim,start,end,expected", [
-    ("Discontinued", "2026-09-01T00:00:00Z", None, "Retired"),
-    ("Producing", None, None, "Unknown"),
-    ("Producing", "2026-09-09T00:00:00Z", None, "Unknown"),
-    ("Producing", "2026-09-01T00:00:00Z", "2026-09-07T00:00:00Z", "Unknown"),
-    ("InStock", "2026-09-01T00:00:00Z", None, "Unknown"),
-    ("OutOfStock", "2026-09-01T00:00:00Z", None, "Unknown"),
-])
-def test_resolve_uses_effective_production_evidence_only(tmp_path, claim, start, end, expected):
+@pytest.mark.parametrize("claim", ["Identity", "Geometry", "Appearance", "SetMembership", "Candidate", "Unknown"])
+def test_resolve_accepts_traceability_claims_without_lifecycle_classification(tmp_path, claim):
     snapshot, _, _, document, _ = setup(tmp_path)
-    document["entries"][0]["evidence"][0].update(claim=claim, effectiveFrom=start, effectiveTo=end)
+    document["entries"][0]["evidence"][0]["claim"] = claim
     write(tmp_path, document)
     assert invoke(tmp_path, snapshot).returncode == 0
     with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
-        assert repo.entries(snapshot)[0]["production_status"] == expected
+        assert len(json.loads(repo.entries(snapshot)[0]["evidence_ids_json"])) == 1
 
 
-def test_resolve_appends_contrary_claim_instead_of_silently_discarding_old_evidence(tmp_path):
+def test_resolve_appends_new_traceability_claim_instead_of_discarding_old_evidence(tmp_path):
     snapshot, _, _, document, _ = setup(tmp_path)
     assert invoke(tmp_path, snapshot).returncode == 0
     document["expectedVersion"] += 1
-    document["entries"][0]["evidence"][0]["claim"] = "Discontinued"
+    document["entries"][0]["evidence"][0]["claim"] = "Appearance"
     write(tmp_path, document)
     assert invoke(tmp_path, snapshot).returncode == 0
     with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
         entry = repo.entries(snapshot)[0]
-        assert entry["production_status"] == "Unknown"
         assert len(json.loads(entry["evidence_ids_json"])) == 2
 
 
@@ -126,7 +117,6 @@ def test_resolve_rejects_invalid_decisions_and_preserves_entire_transaction(tmp_
     assert str(tmp_path).encode() not in result.stderr
     with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
         assert repo.snapshot(snapshot)["version"] == before
-        assert repo.entries(snapshot)[0]["production_status"] == "Unknown"
         assert repo.connection.execute("SELECT COUNT(*) FROM evidence").fetchone()[0] == 0
 
 
@@ -137,12 +127,12 @@ def test_resolve_retry_reverifies_artifact_bytes(tmp_path):
     assert invoke(tmp_path, snapshot).returncode == 2
 
 
-def test_superseded_decision_retry_cannot_report_stale_active_result(tmp_path):
+def test_superseded_decision_retry_cannot_report_stale_result(tmp_path):
     snapshot, _, _, document, _ = setup(tmp_path)
     original = json.loads(json.dumps(document))
     assert invoke(tmp_path, snapshot).returncode == 0
     document["expectedVersion"] += 1
-    document["entries"][0]["evidence"][0]["claim"] = "Discontinued"
+    document["entries"][0]["evidence"][0]["claim"] = "Appearance"
     write(tmp_path, document)
     assert invoke(tmp_path, snapshot).returncode == 0
     write(tmp_path, original)
@@ -158,7 +148,6 @@ def test_validate_recognizes_resolved_evidence_but_still_requires_quality_and_re
                              "validate", "--snapshot", snapshot], cwd=ROOT, capture_output=True, timeout=20)
     assert result.returncode == 3
     issues = json.loads(result.stdout)["variants"][0]["issues"]
-    assert "unverified-production-claim" not in issues
     assert "fixture-content" in issues
     assert "missing-selected-revision" in issues
 
@@ -175,14 +164,14 @@ def test_resolved_evidence_is_immutable_even_before_freeze(tmp_path, table, colu
             repo.connection.execute(f"DELETE FROM {table}")
 
 
-def test_IT_001_source_import_to_resolve_keeps_variant_status_and_print_identity(tmp_path):
+def test_IT_001_source_import_to_resolve_keeps_design_and_element_identity(tmp_path):
     from tools.catalog.tests.integration.test_source_import import fixture
     import hashlib
     manifest = fixture(tmp_path)
     page = {"schemaVersion": 1, "records": [
-        {"kind": "candidate", "sourceId": "plain", "partId": "part-1", "name": "普通紅磚",
+        {"kind": "candidate", "sourceId": "plain", "designId": "3001", "elementId": "300101", "name": "普通紅磚",
          "family": "System", "appearance": {"color": "4", "print": None, "material": "plastic"}},
-        {"kind": "candidate", "sourceId": "printed", "partId": "part-1", "name": "印刷藍磚",
+        {"kind": "candidate", "sourceId": "printed", "designId": "3001", "elementId": "300123", "name": "印刷藍磚",
          "family": "System", "appearance": {"color": "1", "print": "pattern", "material": "plastic"}}
     ]}
     data = json.dumps(page).encode()
@@ -200,7 +189,7 @@ def test_IT_001_source_import_to_resolve_keeps_variant_status_and_print_identity
             "SELECT * FROM external_refs WHERE target_kind='Variant'")}
         version = repo.snapshot(snapshot)["version"]
     decisions = {"schemaVersion": 1, "expectedVersion": version, "entries": []}
-    for alias, claim in (("plain", "Discontinued"), ("printed", "Producing")):
+    for alias, claim in (("plain", "Identity"), ("printed", "Appearance")):
         decisions["entries"].append({"variantId": variants[alias], "evidence": [{
             "artifactId": artifact, "claim": claim, "effectiveFrom": "2026-09-01T00:00:00Z",
             "effectiveTo": None, "reviewer": "fixture-reviewer", "reason": "人工測試判定"}],
@@ -209,11 +198,9 @@ def test_IT_001_source_import_to_resolve_keeps_variant_status_and_print_identity
     write(tmp_path, decisions)
     result = invoke(tmp_path, snapshot)
     assert result.returncode == 0, result.stderr
-    assert json.loads(result.stdout)["counts"] == {"C": 2, "A": 1, "R": 1, "U": 0, "G": 0, "V": 0}
+    assert json.loads(result.stdout)["counts"] == {"C": 2, "G": 0, "V": 0}
     with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
         rows = {row["variant_id"]: row for row in repo.entries(snapshot)}
-        assert rows[variants["plain"]]["production_status"] == "Retired"
-        assert rows[variants["printed"]]["production_status"] == "Active"
         assert all(len(json.loads(row["evidence_ids_json"])) == 2 for row in rows.values())
         assert repo.connection.execute("SELECT COUNT(*) FROM parts").fetchone()[0] == 1
         assert repo.connection.execute("SELECT COUNT(*) FROM variants").fetchone()[0] == 2

@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { UnityRunner, ownedProcessTree, classifyUnityAttempt } from '../src/unity.js';
+import { UnityRunner, ownedProcessTree, classifyUnityAttempt, parseUnityTestSummary } from '../src/unity.js';
 import { safeEnvironment } from '../src/core.js';
 
 const script = `
@@ -24,11 +24,16 @@ const finish = () => {
   }
   if (mode === 'test-fail') {
     fs.writeFileSync(get('-logFile'), 'Test Runner\\nTest Run Failed');
-    fs.writeFileSync(get('-testResults'), '<test-run result="Failed" />');
+    fs.writeFileSync(get('-testResults'), '<test-run result="Failed" total="2" passed="1" failed="1" skipped="0" />');
     process.exit(1);
   }
+  if (mode === 'zero-tests') {
+    fs.writeFileSync(get('-logFile'), 'Test Runner\\nTest run finished');
+    fs.writeFileSync(get('-testResults'), '<test-run result="Passed" total="0" passed="0" failed="0" skipped="0" />');
+    process.exit(0);
+  }
   fs.writeFileSync(get('-logFile'), 'Test Runner\\nTest run finished');
-  fs.writeFileSync(get('-testResults'), '<test-run result="Passed" />');
+  fs.writeFileSync(get('-testResults'), '<test-run result="Passed" total="2" passed="1" failed="0" skipped="1" />');
   process.exit(0);
 };
 if (mode === 'slow') setTimeout(finish, 2000); else finish();
@@ -61,6 +66,7 @@ test('UPM IPC timeout retries with a fresh process and then succeeds', async () 
   try {
     const job = await f.run();
     assert.equal(job.status, 'succeeded');
+    assert.deepEqual(job.testSummary, { total: 2, passed: 1, failed: 0, skipped: 1 });
     assert.deepEqual(job.attempts.map(a => a.failureType), ['unity-upm-startup-failure', 'success']);
     assert.notEqual(job.attempts[0].logPath, job.attempts[1].logPath);
     assert.match(await readFile(job.attempts[0].logPath, 'utf8'), /IPC stream/);
@@ -88,6 +94,19 @@ test('real test failure never triggers UPM retry', async () => {
     assert.equal(job.failureType, 'unity-test-failure');
     assert.equal(job.attempts.length, 1);
     assert.equal(job.attempts[0].testRunnerReached, true);
+  } finally { await f.cleanup(); }
+});
+
+test('successful Test Runner with zero discovered tests fails the fixed task', async () => {
+  const f = await fixture('zero-tests');
+  try {
+    const job = await f.run();
+    assert.equal(job.status, 'failed');
+    assert.equal(job.failureType, 'unity-zero-tests');
+    assert.equal(job.exitCode, 0);
+    assert.deepEqual(job.testSummary, { total: 0, passed: 0, failed: 0, skipped: 0 });
+    assert.match(await readFile(f.originalResults, 'utf8'), /total="0"/);
+    assert.deepEqual(parseUnityTestSummary(await readFile(f.originalResults, 'utf8')), job.testSummary);
   } finally { await f.cleanup(); }
 });
 

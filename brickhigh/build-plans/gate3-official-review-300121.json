@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "3001",
+  "elementId": "300121",
+  "ldrawColour": "4",
+  "ldrawPart": "3001.dat",
+  "metadataSha256": "b8764e0c812ec8c9fb68ff255004bd14643af4bda0a65c8e33f42397cef67c82",
+  "modelSha256": "a4c11b4d5c56235d8f29d60f83949a0360ae92a17e2161c7998184246216bae9",
+  "mouldEquivalenceReason": "",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-300121/manifest.json",
+      "manifestSha256": "9f842e88e5ffe3f7b55c4bb4bee2c20662101abd38a480840c010a3ccc1b1d34",
+      "path": "artifacts/sources/gate3-official-image-300121/source.bin",
+      "sha256": "e31ba3d2135b09efe186227d2247aa08ecf4982308402340dfe88fb3e880281b"
+    }
+  ],
+  "reason": "使用者在本次對話中檢視九件 LEGO 官方 Element 圖片後，明確確認其形狀、顏色、印刷狀態與先前核准的模型外觀一致；本筆對應紅色 2×4 積木。原 Gate 2 的 GLB 尺寸與接點證據保持不變。此為使用者的本次來源外觀審查決策，不聲稱有額外的官方模具聲明。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "1f66fd3d-49c6-4925-9aad-237e310b022e"
+}

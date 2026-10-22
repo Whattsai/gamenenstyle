@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "4032",
+  "elementId": "403221",
+  "ldrawColour": "4",
+  "ldrawPart": "4032a.dat",
+  "metadataSha256": "3e36a49ba87a85e5784faba8406564d662d5d87346221f1a840cb98745af128b",
+  "modelSha256": "903f712e65ee35f56505e9155100f354c588a5f08d2717f340ed6a394a004a26",
+  "mouldEquivalenceReason": "使用者在本對話中特別確認既有 LDraw 4032a 模型與官方 Design 4032 所呈現外觀一致，並同意以本次建模、接合及互動驗收用途視為等價；此為使用者的用途核准，不聲稱 LEGO 官方證實所有歷史模具細節完全相同。",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-403221/manifest.json",
+      "manifestSha256": "058fbeee23275de59394df09f8e0f99d10c3771eb9c96b26e57d53e40e1fcb2b",
+      "path": "artifacts/sources/gate3-official-image-403221/source.bin",
+      "sha256": "8ca73f41b058e24a892af9676c61fb06c24f681c1da2f6cc9dd780cd405b6c6a"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 4032a.dat／色碼 4／官方 Element 403221，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "8ac2fbc7-ac17-48f1-92a3-bdc4b201916c"
+}

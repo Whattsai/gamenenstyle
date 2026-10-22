@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified mixed System sockets, source Technic pin-hole passage and compound collision proxy for fixed model 3700",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/3700-colour7",
+  "sourcePart": "3700.dat",
+  "sourceDependencyDigest": "73243fb595e5a4d89b2e11d0fd47af465ce1212399d26cd8762f4743913cf48e",
+  "modelSha256": "91878df24b3e7c1792df875ad017c5aa0aed2c1e37e6573937e1174f8681f024",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0034]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [-0.004, -0.0096, 0.0]},
+    {"id": "runtime-socket-002", "position": [0.004, -0.0096, 0.0]}
+  ],
+  "proxyBoxes": [
+    {"id": "hole-top-cap", "center": [0.0, -0.0008, 0.0], "size": [0.016, 0.0016, 0.008]},
+    {"id": "hole-left-body", "center": [-0.0053, -0.004, 0.0], "size": [0.0054, 0.0048, 0.008]},
+    {"id": "hole-right-body", "center": [0.0053, -0.004, 0.0], "size": [0.0054, 0.0048, 0.008]},
+    {"id": "bottom-x-left", "center": [-0.00725, -0.008, 0.0], "size": [0.0015, 0.0032, 0.008]},
+    {"id": "bottom-x-mid", "center": [0.0, -0.008, 0.0], "size": [0.003, 0.0032, 0.008]},
+    {"id": "bottom-x-right", "center": [0.00725, -0.008, 0.0], "size": [0.0015, 0.0032, 0.008]},
+    {"id": "bottom-z-back", "center": [0.0, -0.008, -0.00325], "size": [0.016, 0.0032, 0.0015]},
+    {"id": "bottom-z-front", "center": [0.0, -0.008, 0.00325], "size": [0.016, 0.0032, 0.0015]}
+  ],
+  "passageChecks": [
+    {"id": "technic-pin-hole-through", "start": [0.0, -0.004, -0.00385], "end": [0.0, -0.004, 0.00385], "radiusMeters": 0.0022}
+  ],
+  "sourceConnectorChecks": [
+    {
+      "connectorId": "source-technic-pin-hole-003",
+      "profile": "technic-pin-hole-v1",
+      "compatibleProfile": "technic-friction-pin-v1",
+      "passageIds": ["technic-pin-hole-through"]
+    },
+    {
+      "connectorId": "source-technic-pin-hole-004",
+      "profile": "technic-pin-hole-v1",
+      "compatibleProfile": "technic-friction-pin-v1",
+      "passageIds": ["technic-pin-hole-through"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job 88a01f98-6f5a-4f59-b4ca-98a78d6b1525 verified 2026-10-01 against exact 3700 model hash: both bottom System sockets actualHit=false and proxyOpen=true; technic-pin-hole-through actualHit=false and proxyOpen=true; source technic-pin-hole-v1 entrances pair explicitly with technic-friction-pin-v1; bottom control actualHit=true and proxyOpen=false."
+}

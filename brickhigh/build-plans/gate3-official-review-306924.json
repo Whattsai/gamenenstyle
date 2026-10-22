@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "3069",
+  "elementId": "306924",
+  "ldrawColour": "14",
+  "ldrawPart": "3069b.dat",
+  "metadataSha256": "f99368b9676951edaa6300ffd4df75d7a6c750f867ffc7739023d2d6792f227f",
+  "modelSha256": "4c5c68d59b1fbc7b7a6492d9132a8848bd76c9b76e2d9a0ae0bb7b9e322ea321",
+  "mouldEquivalenceReason": "使用者在本對話確認 LDraw 3069b 的既有模型外觀與官方 Design 3069 圖片一致，本案依既有已通過幾何及外觀驗收採用此等價對應；不宣稱兩種歷史模具完全相同。",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-306924/manifest.json",
+      "manifestSha256": "dbe09df2a384a9627d58f53154a6109b8a51e1967260fdca3caa4092f1496c2b",
+      "path": "artifacts/sources/gate3-official-image-306924/source.bin",
+      "sha256": "474f4ae2b04f4a117d052c35a3b59ec927231f36f5b2cd8eda589c45436e315d"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 3069b.dat／色碼 14／官方 Element 306924，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "e8528619-39c4-4e87-8e44-6c5967983ccb"
+}

@@ -13,7 +13,7 @@
     <Compile Include="../../game/Assets/BrickHigh/Domain/**/*.cs" />
     <Compile Include="../../game/Assets/BrickHigh/Application/**/*.cs" />
     <Compile Include="../../game/Assets/BrickHigh/Infrastructure/**/*.cs" />
-    <Compile Include="../../game/Assets/BrickHigh/Tests/EditMode/**/*.cs" />
+    <Compile Include="../../game/Assets/BrickHigh/Tests/EditMode/**/*.cs" Exclude="../../game/Assets/BrickHigh/Tests/EditMode/Integration/RealGltfConnectorIntegrationTests.cs" />
     <None Include="../../game/Assets/Plugins/x86_64/sqlite3.dll" Link="sqlite3.dll" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../catalog/runtime_schema.sql" Link="runtime_schema.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

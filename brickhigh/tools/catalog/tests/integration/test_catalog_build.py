@@ -22,9 +22,11 @@ def prepare(workspace, *, frozen=True, count=1):
         snapshot = repo.create_snapshot("2026-09-08T15:59:59Z", {})
         items = []
         for i in range(count):
-            part = repo.add_part("fixture", "System", "part-" + str(i))
+            design_id = "3001" if i == 0 else "3005"
+            part = repo.add_part("fixture", "System", "LEGO-Design:" + design_id)
             variant = repo.add_variant(part, {"color": "4"})
-            repo.put_entry(snapshot, variant, "Unknown", [], {}, {"fixture": True})
+            repo.put_entry(snapshot, variant, [], {}, {"fixture": True, "designId": design_id,
+                                                       "elementId": design_id + "01"})
             items.append({"variantId": variant, "part": "3001.dat", "colour": "4",
                           "metadata": {"path": "metadata.json", "sha256": hashlib.sha256(
                               (workspace / "metadata.json").read_bytes()).hexdigest()}})
@@ -84,6 +86,89 @@ def test_build_persists_validating_revision_and_reuses_successful_geometry(tmp_p
             assert len(ContentPathPolicy.read_verified(tmp_path, file["storageKey"], file["sha256"])) == file["byteLength"]
         assert repo.entries(snapshot)[0]["selected_revision_id"] is None
         assert repo.head()["snapshot_id"] is None
+
+
+@pytest.mark.parametrize("change_kind", ["source", "metadata", "toolchain"])
+def test_build_changed_identity_input_creates_immutable_successor_revision(tmp_path, monkeypatch, change_kind):
+    snapshot, plan = prepare(tmp_path)
+    identity = {"toolchain_sha": "a" * 64, "source_sha": "b" * 64}
+
+    def versioned_prepare(_workspace, current_plan):
+        return {
+            "toolchain": {"fixture": True, "converterSha256": identity["toolchain_sha"]},
+            "sources": {
+                item["variantId"]: {"sha256": identity["source_sha"]}
+                for item in current_plan["items"]
+            },
+        }
+
+    def versioned_convert(*args):
+        report = fake_convert(*args)
+        return dict(report, source={"sha256": identity["source_sha"]})
+
+    monkeypatch.setattr("tools.catalog.building.prepare_toolchain", versioned_prepare)
+    monkeypatch.setattr("tools.catalog.building.convert_item", versioned_convert)
+
+    first = build_catalog(tmp_path, tmp_path / "catalog.sqlite", snapshot, "build-predecessor", "plan.json")
+    with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
+        predecessor = dict(repo.connection.execute("SELECT rowid,* FROM model_revisions").fetchone())
+        predecessor_manifest = predecessor["manifest_json"]
+        predecessor_files = {
+            item["name"]: item for item in json.loads(predecessor_manifest)["files"]
+        }
+
+    if change_kind == "source":
+        identity["source_sha"] = "c" * 64
+    elif change_kind == "toolchain":
+        identity["toolchain_sha"] = "c" * 64
+    else:
+        changed_metadata = {
+            "schemaVersion": 1,
+            "fixture": True,
+            "boundsMeters": {"min": [0, 0, 0], "max": [.032, .0112, .016]},
+            "connectors": [],
+            "remainingChecks": ["SourceAppearance"],
+            "revisionMarker": "changed-metadata",
+        }
+        (tmp_path / "metadata.json").write_text(json.dumps(changed_metadata), encoding="utf-8")
+        plan["items"][0]["metadata"]["sha256"] = hashlib.sha256(
+            (tmp_path / "metadata.json").read_bytes()
+        ).hexdigest()
+        (tmp_path / "plan.json").write_text(json.dumps(plan), encoding="utf-8")
+
+    successor = build_catalog(
+        tmp_path,
+        tmp_path / "catalog.sqlite",
+        snapshot,
+        "build-successor-" + change_kind,
+        "plan.json",
+    )
+
+    assert first["revisions"][0]["revisionId"] != successor["revisions"][0]["revisionId"]
+    with CatalogRepository(tmp_path / "catalog.sqlite") as repo:
+        rows = [dict(row) for row in repo.connection.execute(
+            "SELECT rowid,* FROM model_revisions ORDER BY rowid"
+        )]
+        assert len(rows) == 2
+        assert rows[0]["revision_id"] == predecessor["revision_id"]
+        assert rows[0]["manifest_json"] == predecessor_manifest
+        assert rows[0]["input_digest"] != rows[1]["input_digest"]
+        assert rows[0]["status"] == rows[1]["status"] == "Validating"
+
+        successor_files = {
+            item["name"]: item for item in json.loads(rows[1]["manifest_json"])["files"]
+        }
+        assert "preview.png" in predecessor_files
+        assert "preview.png" in successor_files
+        assert predecessor_files["model.glb"]["sha256"] == successor_files["model.glb"]["sha256"]
+        assert predecessor_files["preview.png"]["sha256"] == successor_files["preview.png"]["sha256"]
+        if change_kind == "metadata":
+            assert predecessor_files["metadata.json"]["sha256"] != successor_files["metadata.json"]["sha256"]
+        for manifest_files in (predecessor_files, successor_files):
+            for file in manifest_files.values():
+                assert len(ContentPathPolicy.read_verified(
+                    tmp_path, file["storageKey"], file["sha256"]
+                )) == file["byteLength"]
 
 
 def test_build_failed_item_does_not_abort_other_items_and_retry_only_rebuilds_failure(tmp_path, monkeypatch):

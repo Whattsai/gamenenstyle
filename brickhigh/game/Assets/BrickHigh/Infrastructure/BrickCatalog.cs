@@ -18,8 +18,10 @@ namespace BrickHigh.Infrastructure
     {
         private readonly string root;
         private readonly PackageKind kind;
+        private readonly string nativeSqlitePath;
         private readonly object owner = new object();
         private const string Target = "windows-x64";
+        private const string CoordinateProfile = "canonical-rh-to-unity-lh-v1";
         private const string PreviewMessage = "此資產包僅供技術預覽，不能作為正式遊戲資料。";
         private const string SelectVariant = @"SELECT v.*,m.metadata_json,m.runtime_build_id,
             CASE WHEN json_extract(v.display_json,'$.partNumber')=? THEN 0 ELSE 1 END AS match_rank
@@ -27,10 +29,17 @@ namespace BrickHigh.Infrastructure
             AND m.variant_id=v.variant_id AND m.revision_id=v.selected_revision_id AND m.build_target=?";
 
         /// <summary>種類來自編譯時的 bootstrap，不由玩家設定指定。</summary>
-        public BrickCatalog(string root, PackageKind kind)
+        public BrickCatalog(string root, PackageKind kind, string nativeSqlitePath = null)
         {
             if (!Enum.IsDefined(typeof(PackageKind), kind)) throw new ArgumentOutOfRangeException(nameof(kind));
-            this.root = Path.GetFullPath(root); this.kind = kind;
+            this.root = Path.GetFullPath(root);
+            this.kind = kind;
+            if (nativeSqlitePath != null)
+            {
+                if (string.IsNullOrWhiteSpace(nativeSqlitePath) || !Path.IsPathRooted(nativeSqlitePath))
+                    throw new ArgumentException("Bundled sqlite3 path must be absolute.", nameof(nativeSqlitePath));
+                this.nativeSqlitePath = Path.GetFullPath(nativeSqlitePath);
+            }
         }
 
         /// <summary>先驗 manifest、實際 DB hash、schema 與完整引用，再交出 session。</summary>
@@ -51,7 +60,8 @@ namespace BrickHigh.Infrastructure
                     return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.IncompatibleContent,
                         kind == PackageKind.Release && (string)manifest["packageKind"] == "Preview" ? PreviewMessage : null);
                 string applicationId = kind == PackageKind.Preview ? "com.gamenenstyle.brickhigh.preview" : "com.gamenenstyle.brickhigh";
-                if ((string)manifest["applicationId"] != applicationId || (string)manifest["buildTarget"] != Target)
+                if ((string)manifest["applicationId"] != applicationId || (string)manifest["buildTarget"] != Target
+                    || (string)manifest["coordinateProfile"] != CoordinateProfile)
                     return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.IncompatibleContent);
                 if ((string)manifest["sourceSnapshotStatus"] != (kind == PackageKind.Preview ? "Frozen" : "Published"))
                     return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.CatalogNotPublished);
@@ -67,6 +77,7 @@ namespace BrickHigh.Infrastructure
                         if (hash != (string)manifest["catalogDbSha256"]) throw new InvalidDataException();
                     }
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (nativeSqlitePath != null) NativeSqlite.EnsureBundledLibrary(nativeSqlitePath);
                     using (var db = new NativeSqlite(Path.Combine(root, "catalog.db")))
                     {
                         if (db.Query("PRAGMA integrity_check").Any(row => row["integrity_check"] != "ok") || db.Query("PRAGMA foreign_key_check").Count != 0)
@@ -84,6 +95,7 @@ namespace BrickHigh.Infrastructure
                             ON v.snapshot_id=m.snapshot_id AND v.variant_id=m.variant_id AND v.selected_revision_id=m.revision_id
                             AND m.build_target=? WHERE m.runtime_build_id IS NULL LIMIT 1", Target).Count != 0)
                             throw new InvalidDataException();
+                        ReleaseFileIndex.ValidateRuntimeBuildIdentity(manifest, db);
                         if (!ReleaseFileIndex.ValidateFiles(root, manifest, db))
                             return CatalogResult<CatalogSession>.Failure(CatalogErrorCode.AssetMissing);
                     }
@@ -124,7 +136,6 @@ namespace BrickHigh.Infrastructure
             {
                 var args = new List<object> { copy.QueryText ?? "", Target, session.SnapshotId.ToString() };
                 var sql = new StringBuilder(SelectVariant + " WHERE v.snapshot_id=?");
-                sql.Append(kind == PackageKind.Preview ? " AND v.production_status<>'Retired'" : " AND v.production_status='Active'");
                 if (!string.IsNullOrEmpty(copy.QueryText))
                 {
                     sql.Append(" AND (json_extract(v.display_json,'$.partNumber')=? OR json_extract(v.display_json,'$.name') LIKE ? ESCAPE '\\')");
@@ -179,14 +190,29 @@ namespace BrickHigh.Infrastructure
         {
             var row = db.Query("SELECT coverage_json FROM runtime_snapshots WHERE snapshot_id=?", session.SnapshotId.ToString()).Single();
             var value = JObject.Parse(row["coverage_json"]);
-            var result = new CatalogCoverage { C = (int)value["C"], A = (int)value["A"], R = (int)value["R"], U = (int)value["U"],
-                G = (int)value["G"], V = (int)value["V"], ScopeReviewed = (bool?)value["scope_reviewed"] == true };
-            if (result.C != result.A + result.R + result.U || new[] { result.C, result.A, result.R, result.U, result.G, result.V }.Any(n => n < 0) || result.V > result.A)
+            var result = new CatalogCoverage { C = (int)value["C"], G = (int)value["G"], V = (int)value["V"],
+                ScopeReviewed = (bool?)value["scope_reviewed"] == true };
+            if (new[] { result.C, result.G, result.V }.Any(n => n < 0) || result.V > result.C)
                 throw new InvalidDataException();
             return CatalogResult<CatalogCoverage>.Success(result);
         });
 
         private bool Valid(CatalogSession session) => session != null && !session.IsDisposed && ReferenceEquals(session.Owner, owner);
+
+        /// <summary>歷史投影同樣依完整引用讀取，不使用目前快照名稱、分類或用途覆寫舊內容。</summary>
+        internal Task<CatalogResult<VariantDetails>> ResolveVariantAsync(CatalogSession session, ModelReference model, CancellationToken token)
+        {
+            if (token.IsCancellationRequested) return Cancelled<VariantDetails>();
+            if (model == null || !model.IsValid) return Task.FromResult(CatalogResult<VariantDetails>.Failure(CatalogErrorCode.InvalidQuery));
+            return Read(session, token, db =>
+            {
+                var rows = db.Query(SelectVariant + " WHERE v.snapshot_id=? AND v.variant_id=? AND v.selected_revision_id=?",
+                    "", Target, model.SnapshotId.ToString(), model.VariantId.ToString(), model.RevisionId.ToString());
+                return rows.Count == 1
+                    ? CatalogResult<VariantDetails>.Success(ToDetails(rows[0]))
+                    : CatalogResult<VariantDetails>.Failure(CatalogErrorCode.IncompatibleContent);
+            });
+        }
 
         /// <summary>歷史讀取不經新取得篩選；必須整組引用與當前平台一致，禁止回退最新版。</summary>
         internal Task<CatalogResult<ResolvedModel>> ResolveModelAsync(CatalogSession session, ModelReference model, CancellationToken token)
@@ -249,7 +275,7 @@ namespace BrickHigh.Infrastructure
         private static VariantDetails ToDetails(Dictionary<string, string> row)
         {
             var display = JObject.Parse(row["display_json"]);
-            return new VariantDetails(Guid.Parse(row["variant_id"]), (string)display["name"], (string)display["family"], row["production_status"],
+            return new VariantDetails(Guid.Parse(row["variant_id"]), (string)display["name"], (string)display["family"],
                 (BrickTier)Enum.Parse(typeof(BrickTier), row["tier"]), new ModelReference(Guid.Parse(row["snapshot_id"]), Guid.Parse(row["variant_id"]),
                 Guid.Parse(row["selected_revision_id"])), row["usage_json"], row["metadata_json"], row["runtime_build_id"]);
         }

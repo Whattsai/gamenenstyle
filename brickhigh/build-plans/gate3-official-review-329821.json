@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "3298",
+  "elementId": "329821",
+  "ldrawColour": "4",
+  "ldrawPart": "3298.dat",
+  "metadataSha256": "2ae767fc05ec69658b0556829ddd19f1d88a446f9763ec00c0f4e311f25c70b4",
+  "modelSha256": "ce1a16e98492945427e45bb5df4b7590b7b04a7f90f044de94843396e3a986e1",
+  "mouldEquivalenceReason": "",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-329821/manifest.json",
+      "manifestSha256": "46c34f00dc1074333eebbc5dcb72a07b059553cccba6965a8c2cfb81f50eada0",
+      "path": "artifacts/sources/gate3-official-image-329821/source.bin",
+      "sha256": "cfa7d84475f80e28e29dfe35c6506ea7728d61ff3d652fa28a5ffc64c7c7b414"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 3298.dat／色碼 4／官方 Element 329821，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "ccab9b94-70f4-4a39-8c92-897f8d70cebe"
+}

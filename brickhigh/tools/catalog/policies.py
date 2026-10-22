@@ -1,6 +1,5 @@
 """不依賴 IO 的目錄判定規則；測試報告不能替代實際資產驗收。"""
 
-from collections import Counter
 from datetime import datetime
 import hashlib
 import json
@@ -43,28 +42,6 @@ def utc_time(value):
     return parsed
 
 
-class ProductionStatusPolicy:
-    """只依適用於基準日的明確生產或停產證據判定。"""
-
-    @staticmethod
-    def classify(records, baseline):
-        claims = set()
-        for record in records:
-            if not record.get("artifact_id") or not record.get("effective_from"):
-                continue
-            try:
-                start = utc_time(record["effective_from"])
-                end = utc_time(record["effective_to"]) if record.get("effective_to") else None
-                if start > baseline or (end is not None and end < baseline):
-                    continue
-            except (ValueError, TypeError):
-                continue
-            if record.get("claim") in ("Producing", "Discontinued"):
-                claims.add(record["claim"])
-        return {frozenset({"Producing"}): "Active",
-                frozenset({"Discontinued"}): "Retired"}.get(frozenset(claims), "Unknown")
-
-
 class VariantIdentityPolicy:
     """只從已觀測組合建立穩定識別；別名衝突不合併。"""
 
@@ -92,7 +69,7 @@ class VariantIdentityPolicy:
 
 
 class CatalogCoveragePolicy:
-    """逐變體計算 C/A/R/U/G/V，全量需另外具備來源涵蓋審查。"""
+    """依指定盒組候選、未解缺口與逐件品質計算 C/G/V。"""
 
     @staticmethod
     def evaluate(entries, unresolved_gaps, scope_reviewed):
@@ -100,19 +77,14 @@ class CatalogCoveragePolicy:
         ids = [row["variant_id"] for row in rows]
         if len(set(ids)) != len(ids):
             raise CatalogConflict("候選變體重複，不能重複計算分母。")
-        if any(row["production_status"] not in {"Active", "Retired", "Unknown"} for row in rows):
-            raise CatalogError("生產狀態無效。")
-        counts = Counter(row["production_status"] for row in rows)
-        ready = [row for row in rows if row["production_status"] == "Active"
-                 and all(row.get(key) is True for key in
-                         ("ready", "classified", "quality_passed", "provenance_passed"))
-                 and not row.get("fixture", False)]
-        active = counts["Active"]
+        required = [row for row in rows if not row.get("fixture", False)]
+        ready = [row for row in required if all(row.get(key) is True for key in
+                 ("identity_verified", "ready", "classified", "quality_passed", "provenance_passed"))]
         gaps = len(unresolved_gaps)
-        allowed = (active > 0 and counts["Unknown"] == 0 and gaps == 0
-                   and len(ready) == active and scope_reviewed is True)
-        return {"C": len(rows), "A": active, "R": counts["Retired"], "U": counts["Unknown"],
-                "G": gaps, "V": len(ready), "coverage": len(ready) / active if active else None,
-                "label": f"{len(ready)}/{active}" if active else "尚無已確認基準",
+        total = len(required)
+        allowed = total > 0 and gaps == 0 and len(ready) == total and scope_reviewed is True
+        return {"C": total, "G": gaps, "V": len(ready),
+                "coverage": len(ready) / total if total else None,
+                "label": f"{len(ready)}/{total}" if total else "尚無候選模型",
                 "release_allowed": allowed, "scope_reviewed": scope_reviewed,
                 "variants": rows, "gaps": list(unresolved_gaps)}

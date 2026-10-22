@@ -68,6 +68,7 @@ export function loadConfig(path = CONFIG_PATH) {
   for (const task of raw.tasks) {
     if (!namePattern.test(task.id ?? '') || taskIds.has(task.id) || !['build','test','restore','skill'].includes(task.kind) || !repos[task.alias]) fail('invalid task');
     taskIds.add(task.id);
+    if(task.timeoutSeconds!==undefined&&(!Number.isInteger(task.timeoutSeconds)||task.timeoutSeconds<1||task.timeoutSeconds>7200))fail(`task timeout invalid: ${task.id}`);
     if (task.purpose !== undefined && (typeof task.purpose !== 'string' || !task.purpose.trim() || task.purpose.length > 300)) fail(`task purpose invalid: ${task.id}`);
     if (!isAbsolute(task.executable ?? '') || !existsSync(task.executable) || /\.(?:cmd|bat|ps1|sh)$/i.test(task.executable) || /^(?:cmd|powershell|pwsh|bash|sh|wsl)\.exe$/i.test(basename(task.executable))) fail(`task executable invalid: ${task.id}`);
     if (!Array.isArray(task.args) || task.args.some(x => typeof x !== 'string' || /(?:password|secret|token|api.?key)=/i.test(x))) fail(`task args invalid: ${task.id}`);
@@ -82,6 +83,7 @@ export function loadConfig(path = CONFIG_PATH) {
       if (!Number.isInteger(unity.timeoutSeconds) || unity.timeoutSeconds < 30 || unity.timeoutSeconds > 7200) fail(`Unity timeout invalid: ${task.id}`);
       if (!task.args.includes('-projectPath') || task.args[task.args.indexOf('-projectPath') + 1] !== unity.projectPath) fail(`Unity project argument mismatch: ${task.id}`);
       if (unity.resultsPath !== undefined && (task.args[task.args.indexOf('-testResults') + 1] !== unity.resultsPath || !isAbsolute(unity.resultsPath))) fail(`Unity results argument mismatch: ${task.id}`);
+      if (unity.assemblyName !== undefined && (!/^[A-Za-z][A-Za-z0-9.]+$/.test(unity.assemblyName) || task.args[task.args.indexOf('-assemblyNames') + 1] !== unity.assemblyName)) fail(`Unity assembly argument mismatch: ${task.id}`);
       if (!task.args.includes('-batchmode')) fail(`Unity batchmode required: ${task.id}`);
     }
   }
@@ -105,6 +107,64 @@ export function loadConfig(path = CONFIG_PATH) {
   if (raw.modules.web.enabled && (!Array.isArray(raw.modules.web.allowedOrigins) || raw.modules.web.allowedOrigins.length === 0 || raw.modules.web.allowedOrigins.some(x => !/^https?:\/\/[^/]+$/.test(x)))) fail('web allowedOrigins required');
   if (raw.modules.android.enabled && (!isAbsolute(raw.modules.android.adbExecutable ?? '') || !existsSync(raw.modules.android.adbExecutable))) fail('Android adbExecutable required');
   if (raw.modules.offlineMedia.enabled && (!isAbsolute(raw.modules.offlineMedia.transcriberExecutable ?? '') || !existsSync(raw.modules.offlineMedia.transcriberExecutable) || !Array.isArray(raw.modules.offlineMedia.args))) fail('offline transcriber required');
+  if (raw.sourceArchive?.enabled) {
+    const archive = raw.sourceArchive;
+    if (!repos[archive.alias] || !safeRelative(archive.relativeRoot) || !within(repos[archive.alias].root, resolve(repos[archive.alias].root, archive.relativeRoot))) fail('sourceArchive root invalid');
+    if (!Array.isArray(archive.allowedDomains) || !archive.allowedDomains.length || archive.allowedDomains.some(domain => typeof domain !== 'string' || !/^[a-z0-9.-]+$/.test(domain) || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..'))) fail('sourceArchive domains invalid');
+    if (!Array.isArray(archive.allowedPorts) || !archive.allowedPorts.length || archive.allowedPorts.some(port => !Number.isInteger(port) || port < 1 || port > 65535)) fail('sourceArchive ports invalid');
+    if (!Number.isInteger(archive.maxBytes) || archive.maxBytes < 1 || archive.maxBytes > 100_000_000 || !Number.isInteger(archive.timeoutSeconds) || archive.timeoutSeconds < 1 || archive.timeoutSeconds > 120) fail('sourceArchive bounds invalid');
+  }
+  if (raw.httpExchange?.enabled) {
+    const exchange = raw.httpExchange, archive = raw.sourceArchive;
+    if (!archive?.enabled || !Array.isArray(exchange.allowedTargets) || !exchange.allowedTargets.length || exchange.allowedTargets.length > 16 ||
+      exchange.allowedTargets.some(target => !target || typeof target !== 'object' || !archive.allowedDomains.includes(target.domain) ||
+        typeof target.path !== 'string' || !/^\/[A-Za-z0-9_./-]+$/.test(target.path) || target.path.includes('..'))) fail('HTTP exchange targets invalid');
+    const allowed = exchange.allowedRequestHeaders;
+    if (!allowed || typeof allowed !== 'object' || Array.isArray(allowed) || !Object.keys(allowed).length || Object.keys(allowed).length > 8 ||
+      Object.entries(allowed).some(([name, values]) => !/^[a-z0-9-]{1,64}$/.test(name) || /(?:authorization|cookie|proxy|token|secret|password|passwd|api.?key|credential|signature|session|bearer)/i.test(name) ||
+        ['origin','referer','user-agent'].includes(name) ||
+        !Array.isArray(values) || !values.length || values.length > 8 || values.some(value => typeof value !== 'string' || !value || value.length > 256 || /[\r\n\0]/.test(value)))) fail('HTTP exchange headers invalid');
+    const fixed = exchange.fixedHeadersByTarget ?? [];
+    if (!Array.isArray(fixed) || fixed.length > 1 || fixed.some(profile =>
+      !profile || profile.domain !== 'www.lego.com' || profile.path !== '/api/graphql/PickABrickQuery' ||
+      !exchange.allowedTargets.some(target => target.domain === profile.domain && target.path === profile.path) ||
+      !profile.headers || Object.keys(profile.headers).sort().join(',') !== 'origin,referer,user-agent' ||
+      profile.headers.origin !== 'https://www.lego.com' ||
+      !['https://www.lego.com/en-us/pick-and-build/pick-a-brick', 'https://www.lego.com/en-us/pick-and-build/pick-a-brick/'].includes(profile.headers.referer) ||
+      typeof profile.headers['user-agent'] !== 'string' || profile.headers['user-agent'].length > 256 ||
+      !/^Mozilla\/5\.0 .+ AppleWebKit\/[0-9.]+ .+ Chrome\/[0-9.]+ Safari\/[0-9.]+$/.test(profile.headers['user-agent']) ||
+      /[\r\n\0]/.test(profile.headers['user-agent']))) fail('HTTP exchange fixed target headers invalid');
+    if (!Array.isArray(exchange.requiredRequestHeaders) || exchange.requiredRequestHeaders.some(name => !Object.hasOwn(allowed, name))) fail('HTTP exchange required headers invalid');
+    if (!Number.isInteger(exchange.requestMaxBytes) || exchange.requestMaxBytes < 1 || exchange.requestMaxBytes > 1048576 ||
+      !Number.isInteger(exchange.maxRedirects) || exchange.maxRedirects < 0 || exchange.maxRedirects > 5) fail('HTTP exchange bounds invalid');
+  }
+  if (raw.legoReplacementParts?.enabled) {
+    const lego = raw.legoReplacementParts;
+    if (!raw.sourceArchive?.enabled || !raw.httpExchange?.enabled ||
+      !raw.sourceArchive.allowedDomains.includes('www.lego.com') || !raw.sourceArchive.allowedPorts.includes(443) ||
+      lego.origin !== 'https://www.lego.com' ||
+      lego.endpointPath !== '/api/graphql/CustomerServiceReplacementPartsSetPiecesSearch' ||
+      lego.nextDataPathPattern !== '/_next/data/{buildId}/en-us/service/replacement-parts/missing/{setId}/pieces.json' ||
+      lego.pagePathPattern !== '/en-us/service/replacement-parts/missing/{setId}/pieces' ||
+      !Array.isArray(lego.methods) || lego.methods.join(',') !== 'GET,POST') fail('LEGO replacement parts allowlist invalid');
+  }
+  if (raw.pdfInspection?.enabled) {
+    if (!raw.sourceArchive?.enabled) fail('PDF inspection requires source archive');
+    for (const key of ['pdfinfo','pdftotext','pdftoppm']) {
+      const file = raw.pdfInspection[key];
+      if (!isAbsolute(file ?? '') || !existsSync(file) || !statSync(file).isFile() || !file.toLowerCase().endsWith(`${key}.exe`)) fail(`PDF executable invalid: ${key}`);
+    }
+  }
+  if (raw.pythonTests?.enabled) {
+    const python = raw.pythonTests;
+    if (!repos[python.alias] || !isAbsolute(python.executable ?? '') || (!existsSync(python.executable) && !/[\\/]WindowsApps[\\/]python\.exe$/i.test(python.executable)) || !/python(?:3)?\.exe$/i.test(python.executable)) fail('Python test executable invalid');
+    if (!safeRelative(python.cwd) || !within(repos[python.alias].root, resolve(repos[python.alias].root, python.cwd)) || !statSync(resolve(repos[python.alias].root, python.cwd)).isDirectory()) fail('Python test cwd invalid');
+    for (const key of ['catalog','acceptance']) {
+      const root = python.roots?.[key];
+      if (!safeRelative(root) || !within(resolve(repos[python.alias].root, python.cwd), resolve(repos[python.alias].root, python.cwd, root)) || !statSync(resolve(repos[python.alias].root, python.cwd, root)).isDirectory()) fail(`Python test root invalid: ${key}`);
+    }
+    if (!Number.isInteger(python.timeoutSeconds) || python.timeoutSeconds < 1 || python.timeoutSeconds > 7200) fail('Python test timeout invalid');
+  }
   if (!namePattern.test(raw.plugin?.name ?? '') || blockedNames.has(raw.plugin.name)) fail('unique plugin name required');
   return { ...raw, toolRoot, projectRoot, runtimeRoot, repos, skillsRoot, skillsRoots };
 }

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified bar connector and solid collision evidence for fixed model 30374",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/30374-colour4",
+  "sourcePart": "30374.dat",
+  "sourceDependencyDigest": "10bc800d5f21deb56254d257f85c6b070c2321c97a92199eceb90617ae3d8124",
+  "modelSha256": "d39fc37a85882044d12e56e39cb1e8cee3dc25f72b153be8914b4bbc2df6711a",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "bar-v1",
+  "femaleProfile": "clip-v1",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-connector-v1",
+  "sockets": [],
+  "proxyBoxes": [
+    {"id": "bar-body", "center": [0.0, -0.016, 0.0], "size": [0.0032, 0.032, 0.0032]}
+  ],
+  "solidChecks": [
+    {"id": "bar-surface-x-positive", "connectorIds": ["runtime-bar-001"], "start": [0.00165, -0.0318, 0.0], "end": [0.00165, -0.0002, 0.0], "radiusMeters": 0.00012},
+    {"id": "bar-surface-z-positive", "connectorIds": ["runtime-bar-001"], "start": [0.0, -0.0318, 0.00165], "end": [0.0, -0.0002, 0.00165], "radiusMeters": 0.00012}
+  ],
+  "specialConnectors": [
+    {
+      "id": "runtime-bar-001",
+      "family": "bar",
+      "profile": "bar-v1",
+      "compatibleProfile": "clip-v1",
+      "side": "male",
+      "position": [0.0, -0.016, 0.0],
+      "normal": [0.0, -1.0, 0.0],
+      "tangent": [1.0, 0.0, 0.0],
+      "degreesOfFreedom": ["axial-insert", "axial-rotate", "axial-slide"],
+      "solidCheckIds": ["bar-surface-x-positive", "bar-surface-z-positive"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job ef22d75a-3056-4cdc-8c6a-72ffff7957c8 verified 2026-10-01 against exact 30374 model hash: bar-surface-x-positive and bar-surface-z-positive both actualHit=true/proxyOpen=false. Official LDraw 30374.dat is a 4L cylindrical bar with radius 4 LDU and length 80 LDU, equivalent to diameter 3.2 mm and length 32 mm in canonical metres."
+}

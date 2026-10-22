@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified logical socket and compound collision proxy for fixed model 6141",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/6141-colour4",
+  "sourcePart": "6141.dat",
+  "sourceDependencyDigest": "272d18e24e2e81878b1af54d9d5507b8eea752f428dc9532a67afe335ad6958f",
+  "modelSha256": "8cdd826e3b98c546147b4be3d00e311350477e89c0de3658095c8244501fdc94",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0034]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [0.0, -0.0032, 0.0]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, 0.00125, 0.0], "size": [0.008, 0.0007, 0.008]},
+    {"id": "ring-left", "center": [-0.00325, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "ring-right", "center": [0.00325, -0.00115, 0.0], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "ring-back", "center": [0.0, -0.00115, -0.00325], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "ring-front", "center": [0.0, -0.00115, 0.00325], "size": [0.008, 0.0041, 0.0015]}
+  ],
+  "evidence": "Unity PlayMode IT-004 verified 2026-09-29 against exact 6141 model hash: central logical socket actualHit=false and compound proxyOpen=true; outside control actualHit=true and proxyOpen=false."
+}

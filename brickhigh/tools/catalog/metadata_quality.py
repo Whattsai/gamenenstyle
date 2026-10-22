@@ -28,6 +28,39 @@ def _bounds(value):
             and all(high > low for low, high in zip(value["min"], value["max"])))
 
 
+def _character_attachment_issues(metadata):
+    """角色組裝 anchor 與一般積木 connector 分開驗證；只採信具來源證據的明確座標。"""
+    required = metadata.get("characterAttachmentsRequired")
+    attachments = metadata.get("characterAttachments")
+    if required is None and attachments in (None, []):
+        return []
+    if type(required) is not bool or not isinstance(attachments, list):
+        return ["missing-character-attachment-contract"]
+    if required and not attachments:
+        return ["missing-required-character-attachments"]
+    if not required and attachments:
+        return ["unexpected-character-attachments"]
+
+    issues, ids, slots = [], set(), set()
+    for attachment in attachments:
+        if (not isinstance(attachment, dict)
+                or any(not _text(attachment.get(key)) for key in ("id", "slot", "evidence"))):
+            issues.append("invalid-character-attachment")
+            continue
+        if attachment["id"] in ids:
+            issues.append("duplicate-character-attachment-id")
+        ids.add(attachment["id"])
+        if attachment["slot"] in slots:
+            issues.append("duplicate-character-attachment-slot")
+        slots.add(attachment["slot"])
+        position, reference = attachment.get("position"), attachment.get("referencePosition")
+        if not _vector(position) or not _vector(reference):
+            issues.append("invalid-character-attachment-position")
+        elif math.sqrt(sum((a - b) ** 2 for a, b in zip(position, reference))) > .00005 + 1e-12:
+            issues.append("character-attachment-position-mismatch")
+    return list(dict.fromkeys(issues))
+
+
 def _collision_issues(value, connectors, connectors_required):
     issues = []
     if (not isinstance(value, dict) or type(value.get("schemaVersion")) is not int
@@ -64,12 +97,14 @@ def _collision_issues(value, connectors, connectors_required):
                 issues.append("unsupported-collision-shape")
 
     cavity_checks = value.get("cavityChecks")
+    solid_checks = value.get("solidChecks", [])
+    connector_ids = {item.get("id") for item in connectors if isinstance(item, dict) and _text(item.get("id"))}
     if not isinstance(cavity_checks, list):
         issues.append("missing-cavity-check-contract")
     elif connectors_required is True:
-        if not cavity_checks:
+        # 接收端需要 cavity/passage 實證；只有 male connector 的實體件可用 solidChecks，不能硬造不存在的 cavity。
+        if not cavity_checks and not solid_checks:
             issues.append("missing-cavity-checks")
-        connector_ids = {item.get("id") for item in connectors if isinstance(item, dict) and _text(item.get("id"))}
         seen = set()
         for check in cavity_checks:
             if (not isinstance(check, dict) or not _text(check.get("id")) or not _text(check.get("evidence"))
@@ -82,6 +117,22 @@ def _collision_issues(value, connectors, connectors_required):
             seen.add(check["id"])
     elif connectors_required is False and not cavity_checks and not _text(value.get("noCavityReason")):
         issues.append("missing-no-cavity-reason")
+
+    if not isinstance(solid_checks, list):
+        issues.append("invalid-solid-check-contract")
+    else:
+        seen = set()
+        for check in solid_checks:
+            if (not isinstance(check, dict) or not _text(check.get("id")) or not _text(check.get("evidence"))
+                    or check.get("result") != "Pass" or not isinstance(check.get("connectorIds"), list)
+                    or not check["connectorIds"] or any(item not in connector_ids for item in check["connectorIds"])
+                    or not _vector(check.get("start")) or not _vector(check.get("end"))
+                    or not _positive(check.get("radiusMeters"))):
+                issues.append("invalid-solid-check")
+                continue
+            if check["id"] in seen:
+                issues.append("duplicate-solid-check-id")
+            seen.add(check["id"])
     return list(dict.fromkeys(issues))
 
 
@@ -154,6 +205,7 @@ def inspect_metadata(metadata, geometry):
 
     geometry_issues.extend(_collision_issues(metadata.get("collisionProxy"),
                                              connectors if isinstance(connectors, list) else [], required))
+    geometry_issues.extend(_character_attachment_issues(metadata))
 
     vehicle = metadata.get("vehicleMetadata")
     if vehicle is not None:

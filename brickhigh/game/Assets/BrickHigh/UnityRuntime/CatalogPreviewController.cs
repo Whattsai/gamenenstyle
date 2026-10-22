@@ -38,7 +38,7 @@ namespace BrickHigh.UnityRuntime
             if (cancellationToken.IsCancellationRequested) return CatalogResult<CatalogPreviewController>.Failure(CatalogErrorCode.Cancelled);
             if (catalog == null) return CatalogResult<CatalogPreviewController>.Failure(CatalogErrorCode.InvalidQuery);
             var opened = await catalog.OpenAsync(cancellationToken).ConfigureAwait(false);
-            if (!opened.IsSuccess) return CatalogResult<CatalogPreviewController>.Failure(opened.Error.Code);
+            if (!opened.IsSuccess) return CatalogResult<CatalogPreviewController>.Failure(opened.Error.Code, opened.Error.Message);
             bool transferred = false;
             try
             {

@@ -37,7 +37,6 @@ CREATE TABLE IF NOT EXISTS model_revisions (
     UNIQUE(variant_id, input_digest), UNIQUE(variant_id, revision_id));
 CREATE TABLE IF NOT EXISTS snapshot_entries (
     snapshot_id TEXT NOT NULL REFERENCES snapshots, variant_id TEXT NOT NULL REFERENCES variants,
-    production_status TEXT NOT NULL CHECK(production_status IN ('Active','Retired','Unknown')),
     evidence_ids_json TEXT NOT NULL, classification_json TEXT NOT NULL,
     display_projection_json TEXT NOT NULL, selected_revision_id TEXT,
     PRIMARY KEY(snapshot_id,variant_id),
@@ -62,7 +61,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE TABLE IF NOT EXISTS job_items (
     job_id TEXT NOT NULL REFERENCES jobs, input_digest TEXT NOT NULL, status TEXT NOT NULL,
     result_json TEXT NOT NULL DEFAULT '{}', PRIMARY KEY(job_id,input_digest));
-CREATE INDEX IF NOT EXISTS ix_entries_status ON snapshot_entries(snapshot_id,production_status,variant_id);
+CREATE INDEX IF NOT EXISTS ix_entries_variant ON snapshot_entries(snapshot_id,variant_id);
 
 -- 原始附件與判定只能追加；後繼草稿亦不可改寫舊快照引用的證據。
 CREATE TRIGGER IF NOT EXISTS source_artifacts_immutable_update BEFORE UPDATE ON source_artifacts
@@ -106,8 +105,7 @@ CREATE TRIGGER IF NOT EXISTS entries_frozen_update BEFORE UPDATE ON snapshot_ent
 WHEN (SELECT status FROM snapshots WHERE snapshot_id=OLD.snapshot_id) <> 'Draft' AND (
     (SELECT status FROM snapshots WHERE snapshot_id=OLD.snapshot_id) = 'Published'
     OR NEW.snapshot_id IS NOT OLD.snapshot_id OR NEW.variant_id IS NOT OLD.variant_id
-    OR NEW.production_status IS NOT OLD.production_status OR NEW.evidence_ids_json IS NOT OLD.evidence_ids_json
-    OR NEW.classification_json IS NOT OLD.classification_json
+    OR NEW.evidence_ids_json IS NOT OLD.evidence_ids_json OR NEW.classification_json IS NOT OLD.classification_json
     OR NEW.display_projection_json IS NOT OLD.display_projection_json)
 BEGIN SELECT RAISE(ABORT, '凍結候選僅允許選擇已驗證模型版本。'); END;
 CREATE TRIGGER IF NOT EXISTS revision_ready_update BEFORE UPDATE ON model_revisions
@@ -141,3 +139,11 @@ CREATE TRIGGER IF NOT EXISTS validation_build_update BEFORE UPDATE ON validation
 BEGIN SELECT RAISE(ABORT, '驗證證據不可覆寫。'); END;
 CREATE TRIGGER IF NOT EXISTS validation_build_delete BEFORE DELETE ON validation_builds
 BEGIN SELECT RAISE(ABORT, '驗證證據不可刪除。'); END;
+
+-- 正式來源匯入與後繼品質／Frozen在同一交易內提交；不改原QA與head。
+CREATE TABLE IF NOT EXISTS source_onboarding_runs (
+    run_key TEXT PRIMARY KEY, input_digest TEXT NOT NULL, result_json TEXT NOT NULL);
+CREATE TRIGGER IF NOT EXISTS source_onboarding_runs_update BEFORE UPDATE ON source_onboarding_runs
+BEGIN SELECT RAISE(ABORT, '來源匯入紀錄不可覆寫。'); END;
+CREATE TRIGGER IF NOT EXISTS source_onboarding_runs_delete BEFORE DELETE ON source_onboarding_runs
+BEGIN SELECT RAISE(ABORT, '來源匯入紀錄不可刪除。'); END;

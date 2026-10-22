@@ -12,7 +12,7 @@ internal static class InstallerHarness
         if (args.Length < 2) return 2;
         InstallResult result;
         if ((args[0] == "install" || args[0] == "install-fail-before-switch"
-            || args[0] == "install-denied" || args[0] == "install-pause"
+            || args[0] == "install-out-of-space" || args[0] == "install-denied" || args[0] == "install-pause"
             || args[0] == "install-tamper-before-switch" || args[0] == "install-replace-index"
             || args[0] == "install-lock-pointer-before-switch")
             && (args.Length == 3 || (args[0] == "install-pause" && args.Length == 5)))
@@ -20,6 +20,11 @@ internal static class InstallerHarness
             Action<InstallPhase> callback = args[0] == "install-fail-before-switch"
                 ? phase => { if (phase == InstallPhase.BeforeSwitch) throw new IOException("測試中斷"); }
                 : null;
+            if (args[0] == "install-out-of-space") callback = phase =>
+            {
+                if (phase == InstallPhase.BeforeSwitch)
+                    throw new IOException("There is not enough space on the disk. (acceptance injection)");
+            };
             if (args[0] == "install-denied") callback = phase => { throw new UnauthorizedAccessException("測試權限失敗"); };
             if (args[0] == "install-tamper-before-switch") callback = phase =>
                 File.WriteAllBytes(Path.Combine(args[2], "versions", "build-b", "Player", "BrickHigh.exe"),

@@ -16,7 +16,7 @@ namespace BrickHigh.Tests
         private VariantDetails Row(string name = "測試磚", Guid? sourceSnapshot = null)
         {
             var variant = Guid.NewGuid();
-            return new VariantDetails(variant, name, "System", "Unknown", BrickTier.Basic,
+            return new VariantDetails(variant, name, "System", BrickTier.Basic,
                 new ModelReference(sourceSnapshot ?? snapshot, variant, Guid.NewGuid()), "{}",
                 "{\"bounds\":[0.032,0.0096,0.016]}", Guid.NewGuid().ToString());
         }
@@ -86,7 +86,6 @@ namespace BrickHigh.Tests
                 var request = p.BeginSelect(row.VariantId);
                 Assert.That(request.Model, Is.SameAs(row.Model));
                 Assert.That(p.SelectedDetails, Is.SameAs(row));
-                Assert.That(p.ProductionStatusText, Is.EqualTo("生產狀態待查"));
                 Assert.That(p.SelectedDetails.MetadataJson, Does.Contain("0.032"));
             }
             using (var p = Presenter(Row(sourceSnapshot: Guid.NewGuid())))

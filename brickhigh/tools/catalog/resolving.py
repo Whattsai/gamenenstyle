@@ -1,15 +1,15 @@
-"""Draft 判定交易：保留原始證據，以基準日推導三態而非接受狀態旗標。"""
+"""Draft 判定交易：保留身份／來源證據與分類，不處理停產或在產狀態。"""
 
 import json
 from uuid import UUID, uuid5
 
 from .content import ContentPathPolicy
 from .importing import _name, _object, _read_json, _utc
-from .policies import CatalogConflict, CatalogError, ProductionStatusPolicy, canonical_json, digest, utc_time
+from .policies import CatalogConflict, CatalogError, canonical_json, digest, utc_time
 
 
 _NAMESPACE = UUID("759e885a-f5a7-47e4-bcf3-5039fdf93b79")
-_CLAIMS = {"Producing", "Discontinued", "InStock", "OutOfStock", "Candidate", "Unknown"}
+_CLAIMS = {"Identity", "Geometry", "Appearance", "SetMembership", "Candidate", "Unknown"}
 
 
 def _uuid(value):
@@ -54,24 +54,6 @@ def verified_artifact(repo, workspace, artifact_id):
     except OSError as error:
         raise CatalogError("判定來源附件無法讀取。") from error
     return row
-
-
-def verified_claims(repo, workspace, evidence_ids, variant):
-    """候選證據只供追溯；正式判定必須精確屬於該外觀變體。"""
-    records = []
-    for evidence_id in evidence_ids:
-        row = repo.connection.execute("SELECT * FROM evidence WHERE evidence_id=?", (evidence_id,)).fetchone()
-        if row is None:
-            raise CatalogError("判定證據不存在。")
-        verified_artifact(repo, workspace, row["artifact_id"])
-        if row["claim"] == "Candidate":
-            continue
-        if row["subject_ref"] != variant or not row["reviewer"] or not row["reason"]:
-            raise CatalogError("判定證據與變體不符。")
-        _utc(row["effective_from"], optional=True)
-        _utc(row["effective_to"], optional=True)
-        records.append(dict(row))
-    return records
 
 
 def resolve_catalog(repo, workspace, snapshot_id, decisions_key):
@@ -131,8 +113,6 @@ def resolve_catalog(repo, workspace, snapshot_id, decisions_key):
                         evidence_id, artifact, variant, record["claim"], start, end, reviewer, reason))
                 if evidence_id not in ids:
                     ids.append(evidence_id)
-            status = ProductionStatusPolicy.classify(verified_claims(repo, workspace, ids, variant),
-                                                      utc_time(snapshot["baseline_at"]))
             aliases = item.get("aliases", [])
             if not isinstance(aliases, list):
                 raise CatalogError("別名清單無效。")
@@ -152,15 +132,15 @@ def resolve_catalog(repo, workspace, snapshot_id, decisions_key):
                     repo.connection.execute("INSERT OR IGNORE INTO external_refs VALUES(?,?,?,?,?)",
                                             (source, external, kind, target, evidence_id))
             if previous is None:
-                repo.connection.execute("""UPDATE snapshot_entries SET production_status=?,evidence_ids_json=?,
+                repo.connection.execute("""UPDATE snapshot_entries SET evidence_ids_json=?,
                     classification_json=? WHERE snapshot_id=? AND variant_id=?""",
-                    (status, canonical_json(ids), canonical_json(classification), snapshot_id, variant))
+                    (canonical_json(ids), canonical_json(classification), snapshot_id, variant))
         if previous is not None:
             return json.loads(previous[0])
         repo.connection.execute("UPDATE snapshots SET version=version+1 WHERE snapshot_id=?", (snapshot_id,))
         coverage = repo.coverage(snapshot_id)
         result = {"snapshotId": snapshot_id, "version": snapshot["version"] + 1, "inputDigest": input_digest,
-                  "counts": {key: coverage[key] for key in ("C", "A", "R", "U", "G", "V")}}
+                  "counts": {key: coverage[key] for key in ("C", "G", "V")}}
         repo.connection.execute("INSERT INTO catalog_resolution_runs VALUES(?,?,?)",
                                 (snapshot_id, input_digest, canonical_json(result)))
         return result

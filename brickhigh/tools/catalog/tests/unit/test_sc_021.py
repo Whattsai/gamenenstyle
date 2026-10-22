@@ -45,10 +45,11 @@ def test_UT_061_SourceRetryPolicy_RateLimitedSource_RespectsRetryLimit(tmp_path)
 def test_UT_062_SourceRetryPolicy_InterruptedImport_PreservesCandidates(tmp_path):
     db = tmp_path / "jobs.db"
     with CatalogRepository(db) as repo:
-        part = repo.add_part("fixture", "System", "fixture-geometry")
+        part = repo.add_part("fixture", "System", "LEGO-Design:3001")
         variant = repo.add_variant(part, {"color": "red"})
         snapshot = repo.create_snapshot("2026-09-23T00:00:00Z", {"families": ["System"]})
-        repo.put_entry(snapshot, variant, "Active", [], {"tier": "Basic"}, {"name": "fixture"})
+        repo.put_entry(snapshot, variant, [], {"tier": "Basic"},
+                       {"name": "fixture", "fixture": True, "designId": "3001", "elementId": "300101"})
     with CatalogJobs(db) as jobs:
         job = jobs.submit("source-2", "import", {"release": 1})
         token = jobs.claim(job)
@@ -60,7 +61,8 @@ def test_UT_062_SourceRetryPolicy_InterruptedImport_PreservesCandidates(tmp_path
         assert [item["status"] for item in items] == ["Done", "Failed"]
         assert items[0]["output_digest"]
     with CatalogRepository(db) as repo:
-        assert repo.entries(snapshot)[0]["production_status"] == "Active"
+        assert len(repo.entries(snapshot)) == 1
+        assert repo.entries(snapshot)[0]["variant_id"] == variant
 
 
 def test_UT_063_SourceRetryPolicy_CredentialFailure_RedactsOutput(tmp_path):

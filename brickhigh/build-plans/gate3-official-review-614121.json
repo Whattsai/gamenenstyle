@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "6141",
+  "elementId": "614121",
+  "ldrawColour": "4",
+  "ldrawPart": "6141.dat",
+  "metadataSha256": "f4d30b9dd5410e6b6cf89da62f626d00c8168c761ff89cdf39d4b107c9b0165d",
+  "modelSha256": "8cdd826e3b98c546147b4be3d00e311350477e89c0de3658095c8244501fdc94",
+  "mouldEquivalenceReason": "",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-614121/manifest.json",
+      "manifestSha256": "19b2bac95f151b61caa1ccf5bc440ff4c2b0abe0d27ec5ee139e9870520482f2",
+      "path": "artifacts/sources/gate3-official-image-614121/source.bin",
+      "sha256": "b77f933338c7a82da406da6df20685da0ca225318e3f1642f1792fc79cb2a9b5"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 6141.dat／色碼 4／官方 Element 614121，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "5e9af417-79b6-42e4-a619-a4c2a516a087"
+}

@@ -12,7 +12,9 @@ sys.path.insert(0, str(WORKSPACE))
 
 from tools.catalog.content import ContentPathPolicy
 from tools.catalog.glb import inspect_glb
-from tools.catalog.materials import describe_ldraw_material, ldraw_colour_code_from_material_name
+from tools.catalog.materials import (describe_ldraw_material, ldraw_colour_code_from_material_name,
+                                     verify_exported_materials, verify_printed_source_surfaces,
+                                     verify_printed_source_geometry)
 from tools.catalog.policies import CatalogError
 from tools.catalog.sources import inspect_ldraw
 
@@ -121,10 +123,17 @@ def convert(args):
                               export_animations=False, export_skins=False, export_morph=False,
                               export_cameras=False, export_lights=False, export_extras=False,
                               export_copyright='Per-source attribution: conversion.json')
-    geometry = inspect_glb((output / 'model.glb').read_bytes())
+    exported_glb = (output / 'model.glb').read_bytes()
+    geometry = inspect_glb(exported_glb)
+    verify_exported_materials(exported_glb, comparisons)
+    root_bytes = ContentPathPolicy.read_bytes(library, 'parts/' + args.part)
+    surface_evidence = verify_printed_source_surfaces(exported_glb, root_bytes)
+    geometry_evidence = verify_printed_source_geometry(exported_glb, root_bytes)
     report = {'schemaVersion': 1, 'purpose': 'GeometryProbe', 'variantEvidencePending': True,
-              'productionStatus': 'Unknown', 'qualityPassed': False,
+              'qualityPassed': False,
               'source': source, 'geometry': geometry, 'materialComparisons': comparisons,
+              'sourceSurfaceEvidence': surface_evidence,
+              'sourceGeometryEvidence': geometry_evidence,
               'toolchain': {'blenderVersion': bpy.app.version_string, 'importerCommit': commit,
                             'coordinateProfile': 'ldraw-canonical-metres-v1',
                             'scriptSha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()},
@@ -134,7 +143,7 @@ def convert(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='轉換單一來源幾何，不判定未停產或品質核准。')
+    parser = argparse.ArgumentParser(description='轉換單一來源幾何；LEGO 身份與品質核准由 catalog／驗收流程分開判定。')
     parser.add_argument('--library', required=True)
     parser.add_argument('--importer', required=True)
     parser.add_argument('--part', required=True)

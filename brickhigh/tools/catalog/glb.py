@@ -95,6 +95,77 @@ def _inspect(data):
         return [struct.unpack_from('<' + code * count, binary, start + local + i * stride)
                 for i in range(entry['count'])]
 
+    # 不以 GLB 自含 buffer 推定紋理可用；逐張核對內嵌影像及材質引用。
+    images = doc.get('images', [])
+    textures = doc.get('textures', [])
+    for image in images:
+        view = index(doc['bufferViews'], image['bufferView'])
+        start = view.get('byteOffset', 0)
+        length = view['byteLength']
+        if (view['buffer'] != 0 or type(start) is not int or type(length) is not int
+                or start < 0 or length <= 0 or start + length > doc['buffers'][0]['byteLength']
+                or start + length > len(binary)):
+            raise CatalogError("GLB 內嵌紋理超出 buffer 範圍。")
+        content = binary[start:start + length]
+        mime = image.get('mimeType')
+        if mime == 'image/png':
+            if len(content) < 24 or not content.startswith(bytes.fromhex('89504e470d0a1a0a')) or content[12:16] != b'IHDR':
+                raise CatalogError("GLB 內嵌 PNG 資料無效。")
+        elif mime == 'image/jpeg':
+            if not content.startswith(bytes.fromhex('ffd8')) or not content.endswith(bytes.fromhex('ffd9')):
+                raise CatalogError("GLB 內嵌 JPEG 資料無效。")
+        else:
+            raise CatalogError("GLB 內嵌紋理格式無法確認。")
+    for texture in textures:
+        index(images, texture['source'])
+        if 'sampler' in texture:
+            index(doc.get('samplers', []), texture['sampler'])
+
+    def material_uv_requirements(material):
+        requirements = []
+        pbr = material.get('pbrMetallicRoughness', {})
+        for slot in (pbr.get('baseColorTexture'), pbr.get('metallicRoughnessTexture'),
+                     material.get('normalTexture'), material.get('occlusionTexture'),
+                     material.get('emissiveTexture')):
+            if slot is None:
+                continue
+            index(textures, slot['index'])
+            uv = slot.get('texCoord', 0)
+            if type(uv) is not int or uv < 0:
+                raise CatalogError("GLB 材質紋理座標索引無效。")
+            requirements.append('TEXCOORD_' + str(uv))
+        return requirements
+
+
+    def validate_uv_accessor(number, vertex_count):
+        uv = index(doc['accessors'], number)
+        if (uv.get('type') != 'VEC2' or type(uv.get('count')) is not int
+                or uv['count'] != vertex_count or uv.get('sparse')):
+            raise CatalogError("GLB 紋理 UV accessor 型別或頂點數不符。")
+        component = uv.get('componentType')
+        normalized = uv.get('normalized', False)
+        if component == 5126 and normalized is False:
+            size = 4
+        elif component in (5121, 5123) and normalized is True:
+            size = 1 if component == 5121 else 2
+        else:
+            raise CatalogError("GLB 紋理 UV componentType 或 normalized 不符。")
+        view = index(doc['bufferViews'], uv['bufferView'])
+        start = view.get('byteOffset', 0)
+        local = uv.get('byteOffset', 0)
+        stride = view.get('byteStride', 2 * size)
+        length = view.get('byteLength')
+        if (view.get('buffer') != 0 or any(type(n) is not int for n in (start, local, stride, length))
+                or start < 0 or local < 0 or stride < 2 * size
+                or local + (vertex_count - 1) * stride + 2 * size > length
+                or start + local + (vertex_count - 1) * stride + 2 * size > len(binary)):
+            raise CatalogError("GLB 紋理 UV accessor 超出 buffer 範圍。")
+        if component == 5126:
+            for i in range(vertex_count):
+                coords = struct.unpack_from('<ff', binary, start + local + i * stride)
+                if any(not math.isfinite(value) for value in coords):
+                    raise CatalogError("GLB 紋理 UV 座標包含非有限值。")
+
     points = []
     triangles = 0
     used_meshes = set()
@@ -125,7 +196,11 @@ def _inspect(data):
                            if 'indices' in primitive else list(range(len(positions))))
                 if len(indices) % 3 or max(indices) >= len(positions):
                     raise CatalogError("GLB 三角形索引無效。")
-                index(doc['materials'], primitive['material'])
+                material = index(doc['materials'], primitive['material'])
+                for uv_key in material_uv_requirements(material):
+                    if uv_key not in primitive['attributes']:
+                        raise CatalogError("GLB 紋理缺少對應 UV 座標。")
+                    validate_uv_accessor(primitive['attributes'][uv_key], len(positions))
                 triangles += len(indices) // 3
                 points.extend(positions)
         for child in entry.get('children', []):

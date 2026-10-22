@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 pending source Technic friction-pin solid evidence and collision proxy for fixed model 2780",
+  "validationStatus": "Verified",
+  "folder": "pm-20260923-technic-pin-2780",
+  "sourcePart": "2780.dat",
+  "sourceDependencyDigest": "22e4856b2b0a2bfba75e9f6ad8421ddea471937969962497724aac7a569a14ff",
+  "modelSha256": "2e8dd470e90093ec7974494d5661153e22e7114d00544a6ff8d80209a8ed4ac1",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "technic-friction-pin-v1",
+  "femaleProfile": "technic-pin-hole-v1",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-connector-v1",
+  "sockets": [],
+  "proxyBoxes": [
+    {"id": "pin-body", "center": [0.0, 0.0, 0.0], "size": [0.016, 0.00623, 0.0064]}
+  ],
+  "solidChecks": [
+    {"id": "pin-solid-y", "connectorIds": ["source-technic-pin-001", "source-technic-pin-002"], "start": [0.0, -0.00335, 0.0025], "end": [0.0, 0.00335, 0.0025], "radiusMeters": 0.00012},
+    {"id": "pin-solid-z", "connectorIds": ["source-technic-pin-001", "source-technic-pin-002"], "start": [0.0, 0.0025, -0.00345], "end": [0.0, 0.0025, 0.00345], "radiusMeters": 0.00012}
+  ],
+  "sourceConnectorChecks": [
+    {
+      "connectorId": "source-technic-pin-001",
+      "profile": "technic-friction-pin-v1",
+      "compatibleProfile": "technic-pin-hole-v1",
+      "solidCheckIds": ["pin-solid-y", "pin-solid-z"]
+    },
+    {
+      "connectorId": "source-technic-pin-002",
+      "profile": "technic-friction-pin-v1",
+      "compatibleProfile": "technic-pin-hole-v1",
+      "solidCheckIds": ["pin-solid-y", "pin-solid-z"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job b7e773fb-1197-4650-aa09-e33a9e90a273 verified 2026-10-02 against the exact 2780 model hash: pin-solid-y and pin-solid-z both actualHit=true/proxyOpen=false. The two source Technic friction-pin connector directions are derived from official LDraw confric5.dat, and the probes intentionally cross the outer shell away from the hollow/slotted center axis. No female cavity is invented for this male connector asset."
+}

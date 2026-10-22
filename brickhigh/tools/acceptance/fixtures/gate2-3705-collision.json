@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 pending source Technic axle solid evidence and cross-section collision proxy for fixed model 3705",
+  "validationStatus": "Verified",
+  "folder": "pm-20260923-technic-axle-3705",
+  "sourcePart": "3705.dat",
+  "sourceDependencyDigest": "d2fac8eb5b6b4299664b764f001df12b4dec19ffcf683f0a2e67e80e67b25f6f",
+  "modelSha256": "0fe5c10db2552ba6f14afb6bd2e5f22c394050ff64acbfee3ec519802544d213",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "technic-axle-v1",
+  "femaleProfile": "technic-axle-hole-v1",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-connector-v1",
+  "sockets": [],
+  "proxyBoxes": [
+    {"id": "axle-cross-y", "center": [0.0, 0.0, 0.0], "size": [0.0316, 0.0048, 0.0018]},
+    {"id": "axle-cross-z", "center": [0.0, 0.0, 0.0], "size": [0.0316, 0.0018, 0.0048]}
+  ],
+  "solidChecks": [
+    {"id": "axle-solid-x", "connectorIds": ["source-technic-axle-001", "source-technic-axle-002"], "start": [-0.0161, 0.0, 0.0], "end": [0.0161, 0.0, 0.0], "radiusMeters": 0.00012},
+    {"id": "axle-solid-y", "connectorIds": ["source-technic-axle-001", "source-technic-axle-002"], "start": [0.0, -0.0026, 0.0], "end": [0.0, 0.0026, 0.0], "radiusMeters": 0.00012},
+    {"id": "axle-solid-z", "connectorIds": ["source-technic-axle-001", "source-technic-axle-002"], "start": [0.0, 0.0, -0.0026], "end": [0.0, 0.0, 0.0026], "radiusMeters": 0.00012}
+  ],
+  "sourceConnectorChecks": [
+    {
+      "connectorId": "source-technic-axle-001",
+      "profile": "technic-axle-v1",
+      "compatibleProfile": "technic-axle-hole-v1",
+      "solidCheckIds": ["axle-solid-x", "axle-solid-y", "axle-solid-z"]
+    },
+    {
+      "connectorId": "source-technic-axle-002",
+      "profile": "technic-axle-v1",
+      "compatibleProfile": "technic-axle-hole-v1",
+      "solidCheckIds": ["axle-solid-x", "axle-solid-y", "axle-solid-z"]
+    }
+  ],
+  "evidence": "Unity PlayMode IT-004 job b7e773fb-1197-4650-aa09-e33a9e90a273 verified 2026-10-02 against the exact 3705 model hash: axle-solid-x, axle-solid-y and axle-solid-z all actualHit=true/proxyOpen=false. The two source Technic axle connector directions are derived from official LDraw axleend2.dat, while the two-box cross proxy preserves the axle cross-section instead of replacing it with one full rectangular block. No female cavity is invented for this male connector asset."
+}

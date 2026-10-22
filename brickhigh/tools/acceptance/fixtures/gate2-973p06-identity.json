@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "sourcePart": "973p06",
+  "claimScope": "identity-only",
+  "rebrickableExactMatch": false,
+  "legoDesignId": null,
+  "legoElementIds": [],
+  "ldraw": {
+    "provider": "LDraw Parts Library",
+    "basePart": "973",
+    "patternPart": "973p06",
+    "title": "Minifig Torso with Blue V-Neck, Pockets and 3 Buttons Pattern",
+    "url": "https://library.ldraw.org/parts/search/suffix?basepart=973"
+  },
+  "externalAliases": [
+    {
+      "provider": "BrickLink",
+      "externalId": "973pb0069",
+      "title": "Torso Vest with Pockets and Buttons over Blue Shirt Pattern",
+      "url": "https://www.bricklink.com/catalogList.asp?catID=150&catType=P&catXrefLevel=0&pg=135&v=1&viewWanted=Y"
+    }
+  ],
+  "review": {
+    "observedAt": "2026-10-02",
+    "rationale": "LDraw 973p06 and BrickLink 973pb0069 independently describe the same torso print identity: a blue V-neck/shirt beneath a vest with pockets and buttons. This resolves the decorated-part identity only; it does not establish an official LEGO Design ID or Element ID."
+  },
+  "disallowedClaims": [
+    "RebrickableExactMatch",
+    "OfficialLegoDesignId",
+    "OfficialLegoElementId",
+    "Ready"
+  ]
+}

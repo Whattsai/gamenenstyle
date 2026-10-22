@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified multi-plane logical sockets and open-arch collision proxy for fixed model 6060",
+  "validationStatus": "Verified",
+  "folder": "pm-20260927-expansion-v1/6060-colour4",
+  "sourcePart": "6060.dat",
+  "sourceDependencyDigest": "b3d0684b6af0dcecf1a6fe76f94851b8f47ae821239682ded3ca9123f963a6f2",
+  "modelSha256": "94540a235c8aff26377b13c975623b24b658c925082d6f285a4ca747989f7069",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0, 0.0],
+    "referencePlane": "socket-y",
+    "useControlReferenceY": true,
+    "controlReferenceY": -0.00655
+  },
+  "sockets": [
+    {"id": "runtime-socket-top-001", "position": [0.0, -0.0096, -0.004]},
+    {"id": "runtime-socket-top-002", "position": [0.0, -0.0096, 0.004]},
+    {"id": "runtime-socket-foot-001", "position": [0.0, -0.032, 0.036]}
+  ],
+  "proxyBoxes": [
+    {"id": "top-roof", "center": [0.0, -0.00355, 0.0], "size": [0.008, 0.0039, 0.016]},
+    {"id": "top-wall-x-left", "center": [-0.00325, -0.00755, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "top-wall-x-right", "center": [0.00325, -0.00755, 0.0], "size": [0.0015, 0.0041, 0.016]},
+    {"id": "top-wall-z-back", "center": [0.0, -0.00755, -0.00725], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "top-wall-z-mid", "center": [0.0, -0.00755, 0.0], "size": [0.008, 0.0041, 0.003]},
+    {"id": "top-wall-z-front", "center": [0.0, -0.00755, 0.00725], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "curve-upper", "center": [0.0, -0.007, 0.012], "size": [0.008, 0.004, 0.008]},
+    {"id": "curve-mid", "center": [0.0, -0.0105, 0.020], "size": [0.008, 0.005, 0.008]},
+    {"id": "curve-lower", "center": [0.0, -0.016, 0.027], "size": [0.008, 0.007, 0.006]},
+    {"id": "curve-foot-transition", "center": [0.0, -0.022, 0.032], "size": [0.008, 0.008, 0.006]},
+    {"id": "foot-roof", "center": [0.0, -0.02435, 0.036], "size": [0.008, 0.0071, 0.008]},
+    {"id": "foot-wall-x-left", "center": [-0.00325, -0.02995, 0.036], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "foot-wall-x-right", "center": [0.00325, -0.02995, 0.036], "size": [0.0015, 0.0041, 0.008]},
+    {"id": "foot-wall-z-back", "center": [0.0, -0.02995, 0.03275], "size": [0.008, 0.0041, 0.0015]},
+    {"id": "foot-wall-z-front", "center": [0.0, -0.02995, 0.03925], "size": [0.008, 0.0041, 0.0015]}
+  ],
+  "passageChecks": [
+    {"id": "arch-opening-width", "start": [-0.0055, -0.020, 0.020], "end": [0.0055, -0.020, 0.020], "radiusMeters": 0.001}
+  ],
+  "evidence": "Unity PlayMode IT-004 job 1a5ce69c-e9c9-4c0f-acaa-0a303c1ff652 verified 2026-09-30 against the exact 6060 model hash: both horizontal-end sockets and the curved-foot socket actualHit=false/proxyOpen=true; arch-opening-width actualHit=false/proxyOpen=true; solid-tube control actualHit=true/proxyOpen=false. Multi-plane socket support preserves the large arch opening instead of filling it with a generic brick proxy."
+}

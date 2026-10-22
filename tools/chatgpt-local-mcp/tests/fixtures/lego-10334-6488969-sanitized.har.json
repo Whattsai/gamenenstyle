@@ -1,0 +1,21 @@
+{
+  "log": {
+    "entries": [
+      {
+        "request": {
+          "method": "GET",
+          "url": "https://www.lego.com/_next/data/O8QbqEm4mK_6tvobEDqek/en-us/service/replacement-parts/missing/10334/pieces.json?locale=en-us&setId=10334&search=6488969",
+          "headers": []
+        },
+        "response": {
+          "status": 200,
+          "redirectURL": "",
+          "content": {
+            "mimeType": "text/html",
+            "text": "<!DOCTYPE html><html><script id=\"__NEXT_DATA__\" type=\"application/json\">{\"page\":\"/[locale]/service/replacement-parts/missing/[setId]/pieces\",\"query\":{\"locale\":\"en-us\",\"search\":\"6488969\",\"setId\":\"10334\"},\"buildId\":\"O8QbqEm4mK_6tvobEDqek\",\"props\":{\"pageProps\":{\"initProps\":{\"locale\":\"en-us\"}}}}</script></html>"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -13,15 +13,18 @@ from .policies import (CatalogConflict, CatalogCoveragePolicy, CatalogError, Gat
 class CatalogRepository:
     """管理來源快照；不讀取或建立任何玩家資料庫。"""
 
-    def __init__(self, path, workspace=None):
+    def __init__(self, path, workspace=None, read_only=False):
         self.path = Path(path).absolute()
         self.workspace = Path(workspace).absolute() if workspace is not None else self.path.parent
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(self.path, timeout=10, isolation_level=None)
+        if not read_only:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.connection = sqlite3.connect(self.path.as_uri() + '?mode=ro' if read_only else self.path,
+                                         uri=read_only, timeout=10, isolation_level=None)
         self.connection.row_factory = sqlite3.Row
         self.connection.execute("PRAGMA foreign_keys=ON")
         self.connection.execute("PRAGMA busy_timeout=10000")
-        self.connection.executescript(Path(__file__).with_name("schema.sql").read_text(encoding="utf-8"))
+        if not read_only:
+            self.connection.executescript(Path(__file__).with_name("schema.sql").read_text(encoding="utf-8"))
 
     def __enter__(self):
         return self
@@ -32,12 +35,18 @@ class CatalogRepository:
     @contextmanager
     def transaction(self):
         """單一寫入者交易；錯誤時保留原 head 與所有已提交資料。"""
-        self.connection.execute("BEGIN IMMEDIATE")
+        nested = self.connection.in_transaction
+        point = "catalog_" + uuid4().hex
+        self.connection.execute("SAVEPOINT " + point if nested else "BEGIN IMMEDIATE")
         try:
             yield
-            self.connection.execute("COMMIT")
+            self.connection.execute("RELEASE SAVEPOINT " + point if nested else "COMMIT")
         except BaseException:
-            self.connection.execute("ROLLBACK")
+            if nested:
+                self.connection.execute("ROLLBACK TO SAVEPOINT " + point)
+                self.connection.execute("RELEASE SAVEPOINT " + point)
+            else:
+                self.connection.execute("ROLLBACK")
             raise
 
     def add_part(self, name, family, geometry_identity):
@@ -72,14 +81,14 @@ class CatalogRepository:
             raise CatalogConflict("快照狀態不允許此變更，請建立後繼草稿。")
         return row
 
-    def put_entry(self, snapshot, variant, status, evidence_ids, classification, projection):
+    def put_entry(self, snapshot, variant, evidence_ids, classification, projection):
         with self.transaction():
             self._require(snapshot, {"Draft"})
-            self.connection.execute("""INSERT INTO snapshot_entries VALUES(?,?,?,?,?,?,NULL)
-                ON CONFLICT(snapshot_id,variant_id) DO UPDATE SET production_status=excluded.production_status,
+            self.connection.execute("""INSERT INTO snapshot_entries VALUES(?,?,?,?,?,NULL)
+                ON CONFLICT(snapshot_id,variant_id) DO UPDATE SET
                 evidence_ids_json=excluded.evidence_ids_json,classification_json=excluded.classification_json,
                 display_projection_json=excluded.display_projection_json""",
-                (snapshot, variant, status, canonical_json(evidence_ids), canonical_json(classification), canonical_json(projection)))
+                (snapshot, variant, canonical_json(evidence_ids), canonical_json(classification), canonical_json(projection)))
             self.connection.execute("UPDATE snapshots SET version=version+1 WHERE snapshot_id=?", (snapshot,))
 
     def review_scope(self, snapshot, review):
@@ -110,7 +119,7 @@ class CatalogRepository:
             raise CatalogError("後繼快照基準日不可早於原快照。")
         with self.transaction():
             successor = self.create_snapshot(baseline, json.loads(original["scope_manifest_json"]), snapshot)
-            self.connection.execute("""INSERT INTO snapshot_entries SELECT ?,variant_id,production_status,
+            self.connection.execute("""INSERT INTO snapshot_entries SELECT ?,variant_id,
                 evidence_ids_json,classification_json,display_projection_json,selected_revision_id
                 FROM snapshot_entries WHERE snapshot_id=?""", (successor, snapshot))
             self.connection.execute("""UPDATE snapshots SET compatibility_profiles_json=? WHERE snapshot_id=?""",
@@ -142,9 +151,11 @@ class CatalogRepository:
             self.connection.execute("UPDATE model_revisions SET status=?,validation_json=?,manifest_json=? WHERE revision_id=?",
                                     (target, canonical_json(report or {}), canonical_json(manifest), revision))
 
-    def select_revision(self, snapshot, variant, revision):
+    def select_revision(self, snapshot, variant, revision, *, expected_version=None):
         with self.transaction():
-            self._require(snapshot, {"Frozen"})
+            current = self._require(snapshot, {"Frozen"})
+            if expected_version is not None and current["version"] != expected_version:
+                raise CatalogConflict("Frozen選件版本已改變。")
             row = self.connection.execute("SELECT * FROM model_revisions WHERE revision_id=? AND variant_id=?", (revision, variant)).fetchone()
             if row is None or row["status"] != "Ready":
                 raise GateNotMet("所選版本不屬於此變體或尚未通過驗證。")
@@ -163,10 +174,15 @@ class CatalogRepository:
                        "review": row["coverage_review_json"], "profiles": row["compatibility_profiles_json"],
                        "entries": self.entries(snapshot)})
 
-    def record_validation(self, snapshot, target, toolchain_digest, result_digest, revisions):
+    def record_validation(self, snapshot, target, toolchain_digest, result_digest, revisions,
+                          *, expected_version=None, expected_selection_digest=None):
         from .quality import verify_persisted_quality
         with self.transaction():
             row = self._require(snapshot, {"Frozen"})
+            if ((expected_version is not None and row['version'] != expected_version)
+                    or (expected_selection_digest is not None
+                        and self.selection_digest(snapshot) != expected_selection_digest)):
+                raise CatalogConflict('Frozen建置輸入在驗證期間變更。')
             selected = set()
             for entry in self.entries(snapshot):
                 if entry["revision_status"] != "Ready":
@@ -191,7 +207,13 @@ class CatalogRepository:
             quality_verified = verify_persisted_quality(self.workspace, entry)
             classification = json.loads(entry["classification_json"])
             projection = json.loads(entry["display_projection_json"])
-            rows.append(dict(entry, ready=entry["revision_status"] == "Ready",
+            identity_verified = (
+                (projection.get("designId") is None or
+                 isinstance(projection["designId"], str) and bool(projection["designId"].strip()))
+                and isinstance(projection.get("elementId"), str) and bool(projection["elementId"].strip())
+            )
+            rows.append(dict(entry, identity_verified=identity_verified,
+                             ready=entry["revision_status"] == "Ready",
                              classified=classification.get("tier") in {"Basic", "Advanced", "Special"} and bool(classification.get("reason")),
                              quality_passed=quality_verified,
                              provenance_passed=quality_verified, fixture=projection.get("fixture", False)))
@@ -215,8 +237,29 @@ class CatalogRepository:
                 "snapshot_id": snapshot, "snapshot_version": row["version"], "selection_digest": self.selection_digest(snapshot),
                 "toolchain_digest": toolchain_digest, "target": target, "status": "Passed"}.items()):
                 raise GateNotMet("建置驗證的版本、選件、工具或平台不相符。")
-            required = {entry["selected_revision_id"] for entry in self.entries(snapshot) if entry["production_status"] == "Active"}
+            required = {entry["selected_revision_id"] for entry in self.entries(snapshot)
+                        if not json.loads(entry["display_projection_json"]).get("fixture", False)}
             if not required.issubset(set(json.loads(validation["revisions_json"]))):
                 raise GateNotMet("正式平台仍有未驗證模型。")
             self.connection.execute("UPDATE snapshots SET status='Published',published_build_id=? WHERE snapshot_id=?", (build, snapshot))
             self.connection.execute("UPDATE catalog_head SET snapshot_id=?,version=version+1 WHERE id=1 AND version=?", (snapshot, expected_head_version))
+
+    def source_onboarding_run(self, run_key):
+        """讀取已原子提交的來源匯入；舊唯讀資料庫未建新表時回空。"""
+        exists = self.connection.execute("SELECT 1 FROM sqlite_master WHERE name='source_onboarding_runs'").fetchone()
+        if not exists:
+            return None
+        row = self.connection.execute("SELECT * FROM source_onboarding_runs WHERE run_key=?", (run_key,)).fetchone()
+        return dict(row) if row else None
+
+    def record_source_onboarding(self, run_key, input_digest, result):
+        """必須隨來源、品質與Frozen同一外層交易提交；結果只能追加。"""
+        if not self.connection.in_transaction:
+            raise CatalogError("來源匯入結果必須在原子交易內提交。")
+        old = self.source_onboarding_run(run_key)
+        if old:
+            if old["input_digest"] != input_digest or old["result_json"] != canonical_json(result):
+                raise CatalogConflict("來源工作鍵已綁定不同輸入或結果。")
+            return
+        self.connection.execute("INSERT INTO source_onboarding_runs VALUES(?,?,?)",
+                                (run_key, input_digest, canonical_json(result)))

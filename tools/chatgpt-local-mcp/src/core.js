@@ -1,9 +1,10 @@
 import { randomUUID, createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile, rename, rm, lstat, realpath, readdir, copyFile, stat } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, rm, lstat, realpath, readdir, copyFile, stat, open } from 'node:fs/promises';
 import { basename, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import fg from 'fast-glob';
+import { fileURLToPath } from 'node:url';
 import { UnityRunner } from './unity.js';
 
 const sha = value => createHash('sha256').update(value).digest('hex');
@@ -12,9 +13,23 @@ const fail = (code, message) => { throw new Error(`${code}: ${message}`); };
 const blockedSegments = new Set(['.git','.vs','.ssh','.gnupg','credentials','secrets','node_modules','bin','obj']);
 const textExt = new Set(['.md','.txt','.json','.jsonc','.yaml','.yml','.js','.mjs','.cjs','.ts','.tsx','.jsx','.css','.html','.xml','.cs','.csproj','.sln','.sql','.py','.ps1','.sh','.feature','.toml','.ini','.config','.gitignore']);
 const sensitive = name => /^\.env(?:\.|$)/i.test(name) || /(?:^|[-_.])(secret|password|credential|private[-_]?key)(?:[-_.]|$)/i.test(name) || /\.(?:pem|pfx|p12|key)$/i.test(name);
-export function redact(value) { return String(value).replace(/(?:sk|sess|rk|pk)-[A-Za-z0-9_-]{16,}/g,'[REDACTED_KEY]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi,'$1[REDACTED]').replace(/((?:Password|Pwd|AccountKey|SharedAccessSignature)\s*[=:]\s*)[^;\s'\"]+/gi,'$1[REDACTED]').replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]'); }
-export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramData','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];return env;}
+export function redact(value) { return String(value).replace(/(https:\/\/[^\s"'?#]+)\?[^\s"'#]*/gi,'$1?[REDACTED_QUERY]').replace(/(?:sk|sess|rk|pk)-[A-Za-z0-9_-]{16,}/g,'[REDACTED_KEY]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi,'$1[REDACTED]').replace(/((?:Password|Pwd|AccountKey|SharedAccessSignature)\s*[=:]\s*)[^;\s'\"]+/gi,'$1[REDACTED]').replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]'); }
+export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramData','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];env.PYTHONUTF8='1';env.PYTHONIOENCODING='utf-8';return env;}
 function assertText(path) { if (!textExt.has(extname(path).toLowerCase()) && !textExt.has(basename(path).toLowerCase())) fail('TEXT_TYPE_BLOCKED','unsupported text file'); }
+// 來源例外只供讀取，不加入共用的可寫副檔名集合；涵蓋 parts/s 與 p/8、p/48。
+const isLDrawSource = path => /^brickhigh\/artifacts\/sources\/ldraw-release\/ldraw\/(?:parts|p)\/[a-z0-9_./-]+\.dat$/i.test(path);
+function assertReadableText(path) { if (!isLDrawSource(path)) assertText(path); }
+function assertMutableSource(path) { if (isLDrawSource(path)) fail('READ_ONLY_SOURCE','LDraw source files are read-only'); }
+function validateLDrawText(path, bytes) {
+  if (!isLDrawSource(path)) return;
+  let content;
+  try { content = new TextDecoder('utf-8',{fatal:true}).decode(bytes); }
+  catch { fail('TEXT_TYPE_BLOCKED','LDraw source must be UTF-8 plain text'); }
+  // 完整檔案先驗文字性質，不能藉分段只讀取二進位檔開頭的 ASCII。
+  if (/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/u.test(content)
+      || content.split(/\r?\n/).some(line => line.trim() && !/^[ \t]*[0-5](?:[ \t]|$)/.test(line)))
+    fail('TEXT_TYPE_BLOCKED','LDraw source must contain plain-text LDraw lines');
+}
 function normalize(path) {
   if (typeof path !== 'string' || !path || path.includes('\0') || isAbsolute(path) || /^[A-Za-z]:/.test(path)) fail('PATH_NOT_RELATIVE','use a relative path');
   const parts = path.replaceAll('\\','/').split('/');
@@ -90,22 +105,24 @@ export class ProjectService {
     return hits;
   }
   async read(alias,path,sessionId) {
-    const repo=this.repo(alias); const target=await safePath(repo.root,path,this.config.toolRoot); assertText(path);
+    const repo=this.repo(alias); const target=await safePath(repo.root,path,this.config.toolRoot); assertReadableText(target.relative);
     const bytes=await readFile(target.absolute); if(bytes.length>8192) fail('TEXT_TOO_LARGE','use read_workspace_text_chunk');
+    validateLDrawText(target.relative,bytes);
     const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes); const hash=sha(bytes);
     if(JSON.stringify(redact(text)).length>16000)fail('RESULT_TOO_LARGE','use read_workspace_text_chunk');
     if(sessionId)await this.updateSession(sessionId,alias,false,session=>{session.reads[alias]??={};session.reads[alias][target.relative]=hash;delete session.partialReads?.[alias]?.[target.relative];});
     return {path:target.relative,sha256:hash,size:bytes.length,text:redact(text)};
   }
   async readChunk(alias,path,offset,maxBytes,sessionId,expectedSha256){
-    const repo=this.repo(alias),target=await safePath(repo.root,path,this.config.toolRoot);assertText(path);
+    const repo=this.repo(alias),target=await safePath(repo.root,path,this.config.toolRoot);assertReadableText(target.relative);
     const bytes=await readFile(target.absolute);if(bytes.length>1024*1024)fail('TEXT_TOO_LARGE','file exceeds limit');
+    validateLDrawText(target.relative,bytes);
     const hash=sha(bytes);if(expectedSha256&&expectedSha256!==hash)fail('SHA_CONFLICT','file changed between chunks');
-    if(offset<0||offset>bytes.length||maxBytes<4||maxBytes>4096)fail('INVALID_CHUNK','invalid offset or size');
+    if(offset<0||offset>bytes.length||maxBytes<4||maxBytes>131072)fail('INVALID_CHUNK','invalid offset or size');
     let end=Math.min(bytes.length,offset+maxBytes),text=bytes.length===0?'':undefined;
     while(end>offset){try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(offset,end));break;}catch{end--;}}
     if(text===undefined)fail('INVALID_CHUNK','UTF-8 boundary or binary file');
-    if(JSON.stringify(redact(text)).length>16000)fail('RESULT_TOO_LARGE','use smaller max_bytes');
+    if(JSON.stringify(redact(text)).length>280000)fail('RESULT_TOO_LARGE','use smaller max_bytes');
     if(sessionId)await this.updateSession(sessionId,alias,false,session=>{session.partialReads??={};session.partialReads[alias]??={};const prior=session.partialReads[alias][target.relative];
       if(offset!==0&&(!prior||prior.sha256!==hash||prior.nextOffset!==offset))fail('CHUNK_SEQUENCE_CONFLICT','restart at offset 0');
       if(end===bytes.length){session.reads[alias]??={};session.reads[alias][target.relative]=hash;delete session.partialReads[alias][target.relative];}
@@ -113,8 +130,21 @@ export class ProjectService {
     });
     return {path:target.relative,sha256:hash,offset,nextOffset:end,eof:end===bytes.length,text:redact(text)};
   }
+  async readRange(alias,path,startLine,endLine,sessionId,expectedSha256){
+    const repo=this.repo(alias),target=await safePath(repo.root,path,this.config.toolRoot);assertReadableText(target.relative);
+    if(!Number.isInteger(startLine)||!Number.isInteger(endLine)||startLine<1||endLine<startLine||endLine-startLine>=2000)fail('INVALID_LINE_RANGE','invalid line bounds');
+    const bytes=await readFile(target.absolute);if(bytes.length>1024*1024)fail('TEXT_TOO_LARGE','file exceeds limit');
+    validateLDrawText(target.relative,bytes);
+    const hash=sha(bytes);if(hash!==expectedSha256)fail('SHA_CONFLICT','file changed');
+    const content=new TextDecoder('utf-8',{fatal:true}).decode(bytes),lines=content.split(/\r?\n/);
+    if(startLine>lines.length)fail('INVALID_LINE_RANGE','start line past EOF');
+    const selected=lines.slice(startLine-1,endLine),output=redact(selected.map((line,index)=>`${startLine+index}: ${line}`).join('\n'));
+    if(Buffer.byteLength(output)>131072)fail('RESULT_TOO_LARGE','narrow line range');
+    if(sessionId){await this.requireSession(sessionId,alias,false);if(startLine===1&&endLine>=lines.length)await this.updateSession(sessionId,alias,false,session=>{session.reads[alias]??={};session.reads[alias][target.relative]=hash;});}
+    return {path:target.relative,sha256:hash,startLine,endLine:Math.min(endLine,lines.length),totalLines:lines.length,eof:endLine>=lines.length,text:output};
+  }
   async patch({sessionId,alias,path,expectedSha256,createContent,changes}) {
-    const session=await this.requireSession(sessionId,alias,true);const repo=this.repo(alias);const target=await safePath(repo.root,path,this.config.toolRoot);assertText(path);
+    const session=await this.requireSession(sessionId,alias,true);const repo=this.repo(alias);const target=await safePath(repo.root,path,this.config.toolRoot);assertMutableSource(target.relative);assertText(path);
     const old=existsSync(target.absolute)?await readFile(target.absolute,'utf8'):null;const current=old===null?null:sha(old);
     if(current!==expectedSha256 || (old!==null && session.reads[alias]?.[target.relative]!==current)) fail('SHA_CONFLICT','target changed or was not read in this session');
     if(old===null && typeof createContent!=='string') fail('CREATE_CONTENT_REQUIRED','new file needs content');
@@ -127,11 +157,13 @@ export class ProjectService {
   }
   async move(sessionId,alias,from,to,expectedSha256) {
     const session=await this.requireSession(sessionId,alias,true),repo=this.repo(alias);const source=await safePath(repo.root,from,this.config.toolRoot),dest=await safePath(repo.root,to,this.config.toolRoot);
+    assertMutableSource(source.relative);assertMutableSource(dest.relative);
     const bytes=await readFile(source.absolute);if(sha(bytes)!==expectedSha256||session.reads[alias]?.[source.relative]!==expectedSha256) fail('SHA_CONFLICT','source changed');
     if(existsSync(dest.absolute)) fail('DESTINATION_EXISTS','destination exists');await mkdir(resolve(dest.absolute,'..'),{recursive:true});await rename(source.absolute,dest.absolute);return {from:source.relative,to:dest.relative};
   }
   async trash(sessionId,alias,path,expectedSha256) {
     const session=await this.requireSession(sessionId,alias,true),repo=this.repo(alias),target=await safePath(repo.root,path,this.config.toolRoot);
+    assertMutableSource(target.relative);
     const bytes=await readFile(target.absolute);if(sha(bytes)!==expectedSha256||session.reads[alias]?.[target.relative]!==expectedSha256) fail('SHA_CONFLICT','source changed');
     const recoveryId=randomUUID();await copyFile(target.absolute,join(this.state,'trash',recoveryId));await rm(target.absolute);return {path:target.relative,recoveryId};
   }
@@ -154,12 +186,52 @@ export class ProjectService {
       })();
       return job;
     }
-    const child=spawn(task.executable,task.args,{cwd:task.resolvedCwd,shell:false,windowsHide:true,env:safeEnvironment()});this.children.set(id,child);
-    let output='';const append=chunk=>{output+=chunk;if(output.length>2_000_000){output=output.slice(-2_000_000);child.kill();}};child.stdout.on('data',append);child.stderr.on('data',append);
-    child.on('error',async error=>{job.status='failed';job.error=redact(error.message);await atomicJson(recordPath,job);});
-    child.on('close',async code=>{this.children.delete(id);job.status=code===0?'succeeded':'failed';job.exitCode=code;job.completed=new Date().toISOString();await writeFile(logPath,redact(output));await atomicJson(recordPath,job);await this.recordValidation(sessionId,{jobId:id,taskId,alias:task.alias,status:job.status}).catch(()=>{});});
+    return this.launchJob(sessionId,task,job,recordPath);
+  }
+  async launchJob(sessionId,task,job,recordPath=join(this.state,'jobs',`${job.id}.json`)){
+    const id=job.id,logPath=job.logPath??join(this.state,'logs',`${id}.txt`);
+    Object.assign(job,{runner:'project-worker-v1',sessionId,startedAt:job.started,logPath,cancelPath:join(this.state,'jobs',`${id}.cancel`),timeoutSeconds:task.timeoutSeconds??1800,lastActivityAt:job.started,lastHeartbeatAt:job.started,stage:'queued',exitCode:null});
+    const launchPath=join(this.state,'jobs',`${id}.launch.json`);
+    await writeFile(logPath,'');
+    await atomicJson(launchPath,{executable:task.executable,args:task.args,cwd:task.resolvedCwd,env:safeEnvironment()});
+    await atomicJson(recordPath,job);
+    const supervisorLog=await open(logPath,'a');
+    const worker=spawn(process.execPath,[fileURLToPath(new URL('./project-job-worker.js',import.meta.url)),recordPath,launchPath],{cwd:task.resolvedCwd,shell:false,windowsHide:true,detached:true,stdio:['ignore',supervisorLog.fd,supervisorLog.fd]});
+    await supervisorLog.close();
+    worker.once('error',async error=>{Object.assign(job,{status:'failed',failureType:'infrastructure_error',error:redact(error.message),completedAt:new Date().toISOString()});await atomicJson(recordPath,job);});
+    worker.unref();
     return job;
   }
-  async getJob(id) {if(!/^[0-9a-f-]{36}$/.test(id))fail('INVALID_JOB_ID','invalid job ID');const job=await json(join(this.state,'jobs',`${id}.json`));if(!job)fail('JOB_NOT_FOUND',id);let log='';try{log=await readFile(job.logPath??join(this.state,'logs',`${id}.txt`),'utf8');}catch{}return {...job,logTail:redact(log.slice(job.logPath?-6000:-24000))};}
-  async cancelJob(id){const job=await this.getJob(id);if(job.status==='running')this.unity.cancel(id);this.children.get(id)?.kill();return job;}
+  async getJob(id) {
+    if(!/^[0-9a-f-]{36}$/.test(id))fail('INVALID_JOB_ID','invalid job ID');
+    const job=await json(join(this.state,'jobs',`${id}.json`));if(!job)fail('JOB_NOT_FOUND',id);
+    if(job.runner==='project-worker-v1'&&job.status==='running'&&Date.now()-Date.parse(job.lastHeartbeatAt)>15000){
+      let alive=false;try{process.kill(job.workerPid,0);alive=true;}catch{}
+      if(!alive)Object.assign(job,{status:'orphaned',failureType:'infrastructure_error',error:`Supervisor stopped at ${job.stage}; process cleanup cannot be confirmed`});
+    }
+    const tail=await this.jobLogTail(id,30,3000,job);
+    return {...job,durationMs:job.durationMs??Math.max(0,Date.parse(job.completedAt??job.completed??new Date().toISOString())-Date.parse(job.startedAt??job.started)),logTail:tail.logTail};
+  }
+  async jobLogTail(id,lines=200,maxChars=7000,record){
+    if(!/^[0-9a-f-]{36}$/.test(id))fail('INVALID_JOB_ID','invalid job ID');
+    const job=record??await json(join(this.state,'jobs',`${id}.json`));if(!job)fail('JOB_NOT_FOUND',id);
+    const path=job.logPath??join(this.state,'logs',`${id}.txt`);
+    // 只讀尾端，不隨完整 log 大小增加記憶體或回應尺寸。
+    const {open}=await import('node:fs/promises');let log='';
+    try{const handle=await open(path,'r');try{const size=(await handle.stat()).size,buffer=Buffer.alloc(Math.min(size,32768));await handle.read(buffer,0,buffer.length,Math.max(0,size-buffer.length));log=buffer.toString('utf8');}finally{await handle.close();}}catch(error){if(error.code!=='ENOENT')throw error;}
+    let selected=redact(log).split(/\r?\n/).slice(-lines).join('\n').slice(-maxChars);
+    while(JSON.stringify(selected).length>18000)selected=selected.slice(Math.ceil(selected.length/4));
+    return {jobId:id,linesReturned:selected?selected.split('\n').length:0,logTail:selected};
+  }
+  async cancelJob(id){
+    const job=await this.getJob(id);
+    if(job.status!=='running')return job;
+    if(job.runner==='project-worker-v1'){
+      await writeFile(job.cancelPath,new Date().toISOString());
+      const deadline=Date.now()+10000;
+      while(Date.now()<deadline){const current=await this.getJob(id);if(current.status!=='running')return current;await new Promise(resolve=>setTimeout(resolve,100));}
+      return {...await this.getJob(id),cancellationPending:true};
+    }
+    this.unity.cancel(id);return this.getJob(id);
+  }
 }

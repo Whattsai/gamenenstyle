@@ -2,16 +2,29 @@
 
 **功能 ID**: `MVP-001`
 **優先級**: 高
-**狀態**: MVP基線已確認；第一份SPEC階段成果已收尾，依使用者要求停下待視覺驗收，其餘模組未開始
-**最後更新**: 2026-09-27
-**本輪階段**: `well-done` Phase 4全項現況稽核完成；僅處理 `SPEC-001-BrickModelCatalog`。已有來源匯入／判定、可恢復模型建置、來源與六視圖封存，以及可安裝操作的8樣本Unity預覽。尚未完成合格Preview、全量模型或完整驗收。現況見 [TDD](../tdd/SPEC-001-BrickModelCatalog-TDD.md)。
+**狀態**: MVP基線已確認；SPEC-001 Gate 3 固定20件技術驗收完成、進入Gate4真實盒組與擴大驗收；其餘MVP模組尚未完成
+**最後更新**: 2026-10-22
+**本輪階段**: 固定20件Gate2幾何／接合20/20、Gate3 QA Ready／Frozen 20/20，內部Windows安裝及Player真操作、更新／唯讀／故障矩陣通過；另真LEGO官方來源9件完成正式Catalog、Frozen、RuntimeBuild與Player驗證。其餘11件僅保留為QA測試，不是正式來源合格。Gate4才以使用者指定盒組清單驗收完整inventory、官方身分、實際模型規模與代表硬體效能；SPEC其它條款及MVP未完成。見最新TDD。
 
-### 目前實作與驗收進度（2026-09-27）
+**2026-10-22 現行SPEC-001實際勾選與進度（已核對所有原始ID）**：TDD **111/233（47.6%）**、BDD **13/56（23.2%）**、UX **1/20（5.0%）**、SPEC AC **3/36（8.3%）**。BDD由原誤記11/56，核對9個既勾選及SC-008/020/028/029有完整對應TDD證據的漏勾後修正為13/56；SPEC AC完整3、部分28、未符合5。Gate3技術里程碑完成，Gate4只接續使用者指定盒組資料全集及尚未驗收的正式來源／Preview／Release／規模/效能；這些完成率不是整體MVP完成率。
 
-- 第一份SPEC經全項稽核後：TDD 70/233（30.0%；68 UT、2 IT、0 CT、0 ET）；BDD 5/56（8.9%）；UX 1/20（5.0%）；SPEC 完整驗收條款 2/36（5.6%）。這不是整個MVP的完成率；其他模組未開始。逐項判定與補測清單見TDD，完整AC判定見SPEC第14節。
-- 最新Python回歸173項、Unity EditMode 129項通過。內部Player版本`20260926T025815-ef8f8371`已經原生安裝器／啟動器實際驗證，8樣本、154張畫面，並通過鍵盤導覽／提交／旋轉／重設、搜尋清除及直式重排。證據位於`artifacts/test-results/wd-20260926-stage-final.xml`、`wd-20260926-ui-verified.xml`與`artifacts/acceptance/wd-20260926-interactive-c/run.json`（相對brickhigh）。
-- 可人工視覺驗收：`C:/bh-qa-wd/20260926-c/BrickHighLauncher.exe`。此為F-Catalog內部幾何樣本，尚無使用者外觀核准；正式來源全量、逐資產品質、完整故障／效能／輪組矩陣仍未完成；本次全項現況深度稽核已完成，缺漏尚未修復。人物、庫存、購買與收藏屋不因模型預覽可操作而視為完成。
-- 使用者要求本階段完成後停下，待視覺驗收回饋再繼續；本次全項稽核及文件同步完成，不恢復功能開發。22項補記、2項撤回，變動均來自既有證據重新判定。
+### 2026-10-21 Gate 3 與 Gate 4 交付邊界（使用者決策，沿用）
+
+固定20件自始為系統建模能力及管線QA樣本，不以它們是否剛好對應某個LEGO盒組生產過的指定顏色為Gate3結案必要條件。**Gate3只驗20件QA尺寸、連接、品質Frozen、隔離Windows安裝／更新／唯讀／Player操作矩陣，並證明取得官方身分的真實9件可走正式Catalog→RuntimeBuild→Player及獨立verify**。QA20件不冒充20件正式來源／Preview或Release，不修改正式發布限制。Gate4才根據**使用者實際指定盒組**的inventory擴大真實Element分母、精確顏色印刷及模具、共用幾何去重、增加模型、正式來源全量驗收與代表硬體效能，避免重做Gate3的20件既有幾何。整份SPEC、BDD/TDD未完成條目與§§3.4、13.1～13.2正式發行前提仍維持。Gate3階段結案不等於MVP或SPEC全部完成，依最新TDD分開計數。
+
+### 2026-10-19 Gate 2 驗收範圍更正
+
+`10334` 是使用者未來可指定盒組編號的舉例，非 Gate 2 固定20件模型的必要來源。Gate 2 對這20件的驗收以真實來源尺寸容差（逐軸 `max(0.1mm, 0.5%)`）和已驗證合理接合／碰撞為準；符合即標記 `gate2Ready`，不再由與10334的 part/color crosswalk 或缺官方Element身分阻擋。正式 catalog revision `Ready`、外觀核准與 RuntimeBuild/Release 是獨立工作流程，不可混為此階段的尺寸／接合完成率。本次更正不自動切換下一個 Gate。
+
+### 2026-10-18 歷史實作與驗收進度（已由上方最新Gate3決策取代）
+
+- 第一份 SPEC 目前：TDD **110/233（47.2%；95 UT、6 IT、7 CT、2 ET）**；BDD **11/56（19.6%）**；UX 1/20（5.0%）；SPEC 完整驗收條款 **3/36（8.3%）**。這不是整個 MVP 的完成率；人物、庫存、購買與收藏屋仍未開始。新增來源 parser／audit 測試不直接提高 checklist 完成度。
+- Gate 2 fixed20 仍為 **20/20 reference dimensions、20/20 collision Verified、20/20 acceptance preview evidence、Ready 0/20**。fixed20 是品質樣本，不是 10334 的正式建模分母；與 10334 僅 7/20 part 型態重疊，且 0/20 為同 part+同顏色外觀。
+- 指定盒組 10334 的 authoritative identity 已閉環：PAB 提供 **276 Element identities／184 official Design IDs**；唯一 `B` sub-part bridge 安全對齊 `36752a`；官方 Building Instructions 第198頁另證明特殊音效件 Element `6488969` 屬於 10334。依「Element 必填、Design 僅在官方有提供時作 geometry dedup」契約，最終為 **276/276 inventory rows、277 Element identities、184 Design-based + 1 Element fallback = 185 geometry identities、0 identity gaps**。Pinned `6488969 → 109006` 僅保留為第三方 candidate，不升格成官方 Design。
+- 本階段仍維持 fail-closed：`36752a`→`36752` 只在唯一 pinned `B` relationship 成立時橋接；特殊件未公開官方 Design 時以 Element isolated fallback，不用 BrickLink／Brickset／pinned candidate 冒充官方 Design，也不重新引入 production／停產狀態。指定盒組 identity coverage 已達 100%，但逐資產 Ready／RuntimeBuild、正式發布、完整故障／效能／輪組矩陣仍未完成，因此 Gate 2 不結束、也不進 Gate 3。
+- **2026-10-18 最新回歸**：Catalog **234/234**（`69102445-b0dc-4b0f-a5f2-de6dfdfe1552`）、Acceptance **70/70**（`f11eec41-e20a-4f8a-9adf-bca314377957`）、完整 Python **304/304 passed / exit 0**（`798f4d27-95ca-4a42-9afe-a9f33467dd10`）、.NET Core.Tests **168/168**（`61379679-bc26-45c4-b4c3-5814aee03d93`）、netstandard compatibility build **exit 0**（`114c77bc-b0c6-4848-bf6b-8ad2e5641f94`）。僅更新回歸證據，TDD **110/233**、BDD **11/56**、UX **1/20**、SPEC **3/36**、fixed20 **Ready 0/20** 不變，仍不進 Gate 3。
+- 2026-10-10 歷史基線：catalog 全回歸 **232/232 passed**（job `8b9aa67f-aa15-4c24-8a1d-f57a57e6c1f4`）、acceptance 全回歸 **68/68 passed**（job `936a497a-faf6-49b0-99d4-af562f3635d7`）、完整 Python regression **300/300 passed / exit 0**（job `8eda617c-209e-4f6f-af38-32e3f94fb064`，207.30s）；fresh installed-Player storage／upgrade acceptance **exit 0**（job `3883ee7e-bcfc-4891-8b99-1b2f9c414e80`），因此 SC-016、IT-009、ET-006 已閉環。SC-011、SC-022 與 SPEC AC-010 既有完成判定維持不變。
+
 
 ## 需求概述
 
@@ -21,10 +34,11 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 ## 已確認補充決策
 
-| 決策 ID | 使用者原文（2026-09-08） | 本文件套用方式 |
+| 決策 ID | 使用者決策 | 本文件套用方式 |
 |---|---|---|
-| `DEC-001` | 不包含停產。 | 「所有積木模塊」排除已停產積木；未另行排除其他系列、人物零件、顏色或印刷版本。目錄基準日及停產判定來源仍須在模型規格中定義。 |
+| `DEC-001` | 2026-10-10 更新：由使用者直接指定 LEGO 盒組編號（例如 10334），依盒組 inventory 建立 authoritative Element identity；官方來源有 Design ID 時保存並用於 geometry dedup，官方未公開 Design 時仍以 Element identity 建模。 | 指定盒組 inventory 是唯一模型收錄分母；同一 Element 在多盒組重複出現時不重複建模；只有 authoritative Design 相同時才可跨 Element 共用核心幾何，否則以 Element isolated fallback 保守處理。 |
 | `DEC-002` | 模擬購買但實際完成流程進行驗收測試 | 第一版使用模擬付款結果，實際執行應用程式內的購買、訂單狀態及道具／人物名額發放流程，透過驗收測試確認完整結果。適用於本 MVP 的進階款購買與額外人物建立資格。 |
+| `DEC-010` | 2026-10-10 更新：LEGO 同一形狀的不同顏色若有不同 Element ID，系統必須比照 LEGO 分開保存料號身份；不得假設每個 Element 都一定有可公開驗證的 Design ID。 | `Element ID` 是必要的精確變體身份；`Design ID` 是**可選**的 geometry dedup identity，只在 authoritative source 實際提供時使用。不同 Element 若有同一 authoritative Design 可重用核心 Mesh；若某 Element 沒有官方 Design，仍是完整 identity，geometry key 退回該 Element 本身且不得跨 Element 去重。印刷／材質等外觀另保存在 Element/appearance 層。 |
 
 後續使用者於 2026-09-08 回覆「三項皆同意」，確認 `PLAN-001` 至 `PLAN-003`。依此將三項提案納入規劃基線，沿既有 SPEC 切分進入第一份 SDD；本次同意不代表尚未產出的 SPEC 細節已確認。
 
@@ -47,7 +61,7 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 | 決策 ID | 已確認安排 | 不變的邊界 |
 |---|---|---|
-| `DEC-007` | 先交付明確標示「技術預覽・非完整模型庫」的可安裝原生預覽包；與正式版資料隔離，不提供正式進度或道具發放。 | 不縮減最終全量未停產需求，不把樣本當全量；已知停產仍排除，待查狀態不假稱已確認未停產。 |
+| `DEC-007` | 先交付明確標示「技術預覽・非完整模型庫」的可安裝原生預覽包；與正式版資料隔離，不提供正式進度或道具發放。 | 不縮減最終「使用者已指定盒組全集」需求，不把樣本當全集；Preview 與 Release 都必須保留盒組→Element，以及存在時的 authoritative Design／geometry provenance；沒有官方 Design 的 Element 必須保留 isolated fallback provenance。 |
 | `DEC-008` | 先核准實際Player代表模型畫面，再凍結外觀基準；本機Iris Xe先做操作／探索量測，正式效能依原指定基準機分開驗收。 | 不默改1080p Medium／60FPS目標，不要求現在購買設備，也不把概念圖當成可操作畫面。 |
 | `DEC-009` | 更新互斥、穩定資料根、整組模型引用／輸入／資產完整性驗證；降版不擅自回退創作進度。 | 本份用人工存檔fixture驗證共用保護；不提前實作人物／交易／房屋資料表或完整賽車。 |
 
@@ -59,8 +73,8 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 未來需可共用：
 1. 樂高積木建模：
-- 請先找出樂高釋出的**所有積木模塊**，實際建立模型
-- 未來可持續建立樂高新推出的積木貨號
+- 由使用者指定要支援的 LEGO 盒組編號，取得該盒組 inventory 中的 authoritative Element ID、顏色／印刷身份；官方來源有 Design ID 時一併保存，沒有公開 Design ID 也不得把合法 Element 排除，並實際建立模型
+- 多個盒組重複出現相同 LEGO Element 時不得重複建立變體；不同 Element 只有在 authoritative Design ID 相同時才可重用同一核心幾何；沒有官方 Design 的 Element 使用自身 Element ID 作 isolated geometry key。新增盒組時只補建目前目錄尚缺的 Element 變體、可證明可共用的 Design 幾何或必要外觀資產
 
 2. 人物建置與管理：人物道具的模型分成-基本款/進階款/特殊款
 - 依據建模結果，玩家初次進入系統可以選擇基本款 頭/身體/手/腳/頭飾/手上裝備 各一個，讓玩家建立專屬人物
@@ -83,8 +97,8 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 | 需求 ID | 對應原始需求 | 可驗收責任 |
 |---|---|---|
-| `REQ-001` | 所有積木模塊實際建模 | 依 `DEC-001` 建立可核對的未停產積木清單及實際模型；僅有目錄紀錄不算模型完成。 |
-| `REQ-002` | 持續建立新貨號 | 模型庫可持續新增貨號，既有模型及引用可持續使用。 |
+| `REQ-001` | 指定盒組中的積木實際建模 | 依 `DEC-001` 保存使用者指定盒組清單，完整展開 inventory 的 authoritative LEGO Element ID／外觀身份並建立實際模型；Design ID 僅在 authoritative source 有提供時保存。沒有公開 Design ID 不得讓已證實 Element 失去 identity；僅有盒組或零件目錄紀錄仍不算模型完成。 |
+| `REQ-002` | 持續新增盒組並去重建模 | 新指定盒組展開後，以 Element ID 去重精確變體；只有 authoritative Design ID 相同時才以 Design／geometry revision 去重核心幾何。沒有官方 Design 的 Element 以自身 Element ID 作 isolated geometry key，不與其他 Element 猜測合併；只補建真正缺少的變體、幾何或外觀資產，既有模型及歷史引用可持續使用。 |
 | `REQ-003` | 基本／進階／特殊分類及基本人物選擇 | 建立人物時可由基本款頭、身體、手、腳、頭飾、手上裝備各選一個。 |
 | `REQ-004` | 進階款半價購買 | 人物建立流程提供頭、身體、手、腳、配飾的半價購買，依 `DEC-002` 驗收。 |
 | `REQ-005` | 初始積木桶 | 初始發放隨機共 2026 片積木，進入收藏屋建置流程。 |
@@ -111,16 +125,18 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 ### 001：建立與擴充積木模型庫
 
-**身為** 模型維護者，**我想要** 建立範圍內的所有積木模型並持續新增貨號，**以便** 人物、收藏屋及後續遊戲共用。
+**身為** 模型維護者，**我想要** 依使用者指定盒組完整建立其中積木模型並在新增盒組時只補缺件，**以便** 人物、收藏屋及後續遊戲共用。
 
 **需求來源**：`REQ-001`、`REQ-002`、`DEC-001`。
 
 **驗收標準**：
 
-- 有可核對的目錄基準與貨號清單；已停產項目不計入本版需建模範圍。
-- 範圍內每個項目皆能對應可載入、可在 3D 場景呈現的模型；只有名稱、圖片或未完成占位模型不算完成。
-- 可新增樂高新推出的積木貨號及模型，並由後續共用模組取得。
-- 模型完成度以確認後的目錄為分母逐項核對，不以少數示範模型代表全量完成。
+- 保存可核對的指定盒組清單與各盒組 inventory；每個 inventory 元素必須保留 authoritative LEGO Element ID 與顏色／印刷身份；Design ID 僅在 authoritative source 實際提供時保存，不得要求所有 Element 必定有公開 Design ID。
+- 範圍內每個唯一項目皆能對應可載入、可在 3D 場景呈現的模型；只有名稱、圖片或未完成占位模型不算完成。
+- 新增盒組時先以 Element ID 去重；同一 Element 的重複數量或跨盒組重複不得建立第二份變體紀錄。
+- 有 authoritative Design ID 時，同一 Design 的不同顏色 Element 必須保留不同 Element／外觀身份，但核心 Mesh 可依 Design／geometry revision 共用；不能只因顏色不同重建相同幾何。
+- 沒有 authoritative Design ID 的 Element 仍是完整 identity，核心 geometry 以該 Element ID isolated fallback，不得採第三方 Design candidate 或外觀相似度跨 Element 合併；任何額外共用幾何都必須有可追溯的幾何等價證據。
+- 模型完成度以使用者已指定盒組全集展開後的唯一身份為分母逐項核對，不以少數示範模型代表全集完成。
 
 ### 002：選擇基本款建立人物
 
@@ -324,11 +340,11 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 ### 4. 模型維護流程
 
 ```text
-建立範圍與日期明確的零件清單 → 核對停產狀態
+使用者指定 LEGO 盒組編號 → 取得盒組 inventory 的 Element ID／數量
   ↓
-逐項建立與驗證 3D 模型 → 關聯貨號與變體 → 供共用模組載入
+Element ID 反查精確 Design ID、顏色／印刷 → Element ID 去重變體、Design ID 去重核心幾何
   ↓
-發現新貨號 → 加入清單與建模流程 → 更新目錄版本
+只對缺少的 Element 變體、Design／geometry revision 或必要外觀資產建模與驗證 → 關聯 Element ID → 更新目錄版本
 ```
 
 此為維護流程，不預先要求另建模型後台 UI。
@@ -346,14 +362,14 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 ## 模型資料來源調查
 
-以下僅是已查得的資料入口，尚未選定為完整目錄或停產判定依據，也尚未取得全量模型。
+以下資料入口用來解析使用者指定盒組與 LEGO 零件身份；正式建模分母完全由使用者指定盒組 inventory 決定。
 
 | 來源 | 已核對用途 | 尚待模型 SPEC 驗證 |
 |---|---|---|
-| [LEGO Pick a Brick](https://www.lego.com/en-us/pick-and-build/pick-a-brick?query=6x8) | 可依零件類型與顏色查找積木。 | 能否涵蓋需求中的全部未停產零件、地區差異，以及缺貨與停產的區分；不可直接把查不到或缺貨當成停產。 |
-| [Rebrickable API v3](https://rebrickable.com/api/v3/docs/?key=xxxxxxxxxx) | 官方文件指示，全量套裝／零件／人物清單應使用 Downloads 的 CSV。 | 貨號對照、各系列／顏色／印刷變體的涵蓋程度、停產資訊及模型來源的可用性。 |
+| [LEGO Pick a Brick](https://www.lego.com/en-us/pick-and-build/pick-a-brick?query=6x8) | 可依零件類型與顏色查找積木。 | 指定盒組 inventory 與 authoritative Element identity 是否完整；官方有提供 Design 時核對其 provenance。未公開 Design 不等於 Element identity 缺口，採 Element geometry fallback；任何 Design 都不得自行猜測。 |
+| [Rebrickable API v3](https://rebrickable.com/api/v3/docs/?key=xxxxxxxxxx) | 官方文件指示，全量套裝／零件／人物清單應使用 Downloads 的 CSV。 | 第三方 part number 與 LEGO Design ID 的映射歧義、各顏色／印刷 Element 的身份涵蓋，以及可用幾何來源。 |
 
-查核日期為 2026-09-08。目錄資料不等於可用的 3D 模型；來源涵蓋率、使用條件及模型缺漏需在 `SPEC-001-BrickModelCatalog` 評估。若來源不足以證明「全部未停產」，應列明缺口再確認，不自行改成少量積木的交付。
+初始查核日期為 2026-09-08，身份策略於 2026-10-10 更新。目錄資料不等於可用的 3D 模型；指定盒組 inventory 完整度、authoritative LEGO Element identity、可選 Design provenance、來源使用條件及模型缺漏需在 `SPEC-001-BrickModelCatalog` 評估。若某盒組無法解析完整 inventory 或某 Element identity／set membership 無法核對，應列明 identity 缺口；若只是官方未公開 Design ID，保留 `designId=null` 與 Element geometry fallback，不可自行猜測、依顏色推論或縮小盒組範圍。
 
 ## 已確認規劃
 
@@ -365,7 +381,7 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 | `PLAN-002` | 每個人物重用初次建立條件，但收藏屋與道具又涉及玩家共用，需確定是否重新建屋。 | 每次新人物建立皆享建立期半價與一桶 2026 片；收藏屋由玩家共用，已有收藏屋時新桶直接存入，不再要求重新建屋。此方案會讓每個額外人物增加玩家共用積木數量。 | 已確認，2026-09-08 |
 | `PLAN-003` | 必須有可判斷的建屋完成條件，才能驗收遊戲入口解鎖。 | 至少有相連結構、地板、牆面、出入口及屋頂；檢查方式、尺寸及容許誤差由 SPEC 定義。此限制會影響可接受的自由造型。 | 已確認，2026-09-08 |
 
-模型目錄暫不自行排除 `DUPLO`、`Technic`、人物零件、顏色與印刷版本，因本次僅明確排除停產。模型 SPEC 須提出具體系列範圍、目錄基準日及停產證據規則供確認，避免把短期缺貨或套裝停產直接推定為零件停產。
+模型目錄不因 `DUPLO`、`Technic`、人物零件、顏色或印刷自行排除；唯一收錄範圍來自使用者指定盒組 inventory 與明確附件排除規則。模型 SPEC 必須保存盒組→authoritative Element 的可追溯映射；官方來源有 Design 時再保存 Element→Design provenance，沒有官方 Design 時保存 Element fallback。不得將第三方 part number、Design candidate、顏色或 LDraw 後綴誤當官方 LEGO Design 身份。
 
 ### 階段確認與接續條件
 
@@ -380,7 +396,7 @@ brickhigh 是一款享受樂高自由的3d畫面開放式自由地圖遊戲，�
 
 | 建議 SPEC | 包含功能與需求 | 建議順序 | 依賴關係 | 說明 |
 |---|---|---|---|---|
-| `SPEC-001-BrickModelCatalog` | 未停產零件範圍、實際建模、新貨號擴充及款式分類；`REQ-001`、`REQ-002`，支援 `REQ-003`、`REQ-006`；承擔 `REQ-016` 的 Unity 安裝基礎、`REQ-018` 的模型畫面及 `REQ-017`／`REQ-019` 的資產版本契約。 | 第 1 順位 | 無 | 建立 Unity 原生模型預覽、離線模型包與可銜接人物／建屋／車輛的模型契約；不提前實作其他玩法。 |
+| `SPEC-001-BrickModelCatalog` | 指定盒組 inventory、LEGO Element/Design 身份、去重實際建模、新盒組增量及款式分類；`REQ-001`、`REQ-002`，支援 `REQ-003`、`REQ-006`；承擔 `REQ-016` 的 Unity 安裝基礎、`REQ-018` 的模型畫面及 `REQ-017`／`REQ-019` 的資產版本契約。 | 第 1 順位 | 無 | 建立 Unity 原生模型預覽、離線模型包與可銜接人物／建屋／車輛的模型契約；不提前實作其他玩法。 |
 | `SPEC-001-PlayerInventory` | 玩家識別、玩家道具庫存、取得紀錄、人物建立資格的共用記錄、初始桶配置與 2026 片發放；`REQ-005`、`REQ-013`，支援 `REQ-006`、`REQ-007`、`REQ-011`、`REQ-012`、`REQ-014`。 | 第 2 順位 | `SPEC-001-BrickModelCatalog` | 定義所有權與數量，人物、交易及收藏屋依賴同一庫存規則。發桶由後續人物流程觸發。 |
 | `SPEC-001-PurchaseEntitlements` | 進階款半價、額外人物資格商品、模擬付款與完整交易發放流程；`REQ-004`、`REQ-007` 的購買部分、`DEC-002`。 | 第 3 順位 | `SPEC-001-BrickModelCatalog`、`SPEC-001-PlayerInventory` | 先驗收購買及發放共用能力，再由人物 UI 整合；活動只處理資格／道具發放邊界，不擴大為活動平台。 |
 | `SPEC-001-CharacterManagement` | 基本人物建立、進階購買整合、特殊款選項排除、多人物建立及選擇、人物成就歸屬與編輯；`REQ-003`、`REQ-004`、`REQ-006`、`REQ-007`、`REQ-008`、`REQ-009`，支援 `REQ-014`。 | 第 4 順位 | `SPEC-001-BrickModelCatalog`、`SPEC-001-PlayerInventory`、`SPEC-001-PurchaseEntitlements` | 完成人物生命週期、裝備與領桶觸發；提供後續收藏屋可使用的人物編輯能力。 |

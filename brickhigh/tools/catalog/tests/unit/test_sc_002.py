@@ -1,33 +1,35 @@
-"""SC-002：生產狀態必須由變體的有效證據決定。"""
+"""SC-002：LEGO Design ID 與 Element ID／顏色身份必須分層。"""
 
-from datetime import datetime, timezone
-
-from tools.catalog.policies import ProductionStatusPolicy
-
-BASELINE = datetime(2026, 9, 8, 15, 59, 59, tzinfo=timezone.utc)
+from tools.catalog.repository import CatalogRepository
 
 
-def evidence(claim, **changes):
-    return dict(claim=claim, effective_from="2026-01-01T00:00:00Z",
-                effective_to=None, artifact_id="evidence-1", **changes)
+def test_UT_004_LegoDesignIdentity_SameDesign_ReusesGeometryPart(tmp_path):
+    with CatalogRepository(tmp_path / "catalog.db") as repo:
+        first = repo.add_part("BRICK 1X2 W. 2 KNOBS", "System", "LEGO-Design:11211")
+        second = repo.add_part("BRICK 1X2 W. 2 KNOBS", "System", "LEGO-Design:11211")
+        assert first == second
+        assert repo.connection.execute("SELECT COUNT(*) FROM parts").fetchone()[0] == 1
 
 
-def test_UT_004_ProductionStatusPolicy_DatedEvidence_ClassifiesStatus():
-    assert ProductionStatusPolicy.classify([evidence("Producing")], BASELINE) == "Active"
-    assert ProductionStatusPolicy.classify([evidence("Discontinued")], BASELINE) == "Retired"
+def test_UT_005_LegoElementIdentity_DifferentColour_CreatesElementVariants_SharingDesignGeometry(tmp_path):
+    with CatalogRepository(tmp_path / "catalog.db") as repo:
+        part = repo.add_part("BRICK 1X2 W. 2 KNOBS", "System", "LEGO-Design:11211")
+        medium_nougat = repo.add_variant(part, {"elementId": "6411587", "colour": "Medium Nougat"})
+        earth_blue = repo.add_variant(part, {"elementId": "6135606", "colour": "Earth Blue"})
+        assert medium_nougat != earth_blue
+        assert repo.connection.execute("SELECT COUNT(*) FROM parts").fetchone()[0] == 1
+        assert repo.connection.execute("SELECT COUNT(*) FROM variants").fetchone()[0] == 2
+        appearances = [row[0] for row in repo.connection.execute("SELECT appearance_json FROM variants ORDER BY appearance_json")]
+        assert any('"elementId":"6411587"' in value for value in appearances)
+        assert any('"elementId":"6135606"' in value for value in appearances)
 
 
-def test_UT_005_ProductionStatusPolicy_AmbiguousEvidence_RemainsUnknown():
-    for records in ([], [evidence("OutOfStock")], [evidence("InStock")],
-                    [{"claim": "Producing"}],
-                    [evidence("Producing"), evidence("Discontinued")],
-                    [dict(evidence("Producing"), effective_from="2027-01-01T00:00:00Z")],
-                    [dict(evidence("Producing"), effective_to="2026-01-02T00:00:00Z")]):
-        assert ProductionStatusPolicy.classify(records, BASELINE) == "Unknown"
-
-
-def test_UT_006_ProductionStatusPolicy_RetiredColor_PreservesOtherVariant():
-    variants = {"red": [evidence("Discontinued")], "blue": [evidence("Producing")]}
-    actual = {key: ProductionStatusPolicy.classify(value, BASELINE) for key, value in variants.items()}
-    assert actual == {"red": "Retired", "blue": "Active"}
+def test_UT_006_LegoElementIdentity_SameElement_ReusesSameVariant(tmp_path):
+    with CatalogRepository(tmp_path / "catalog.db") as repo:
+        part = repo.add_part("BRICK 1X2 W. 2 KNOBS", "System", "LEGO-Design:11211")
+        appearance = {"elementId": "6135606", "colour": "Earth Blue"}
+        first = repo.add_variant(part, appearance)
+        second = repo.add_variant(part, appearance)
+        assert first == second
+        assert repo.connection.execute("SELECT COUNT(*) FROM variants").fetchone()[0] == 1
 

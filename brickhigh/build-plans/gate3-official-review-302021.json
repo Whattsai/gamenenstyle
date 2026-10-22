@@ -1,0 +1,28 @@
+{
+  "checks": {
+    "shape": true,
+    "colour": true,
+    "print": true,
+    "mould": true
+  },
+  "decision": "Approved",
+  "designId": "3020",
+  "elementId": "302021",
+  "ldrawColour": "4",
+  "ldrawPart": "3020.dat",
+  "metadataSha256": "7b5b6077b882272f5c33bbb57f606c317946fd2004b72a45dcdb8a13d2cd3a73",
+  "modelSha256": "6d56c7aad41c7f7e45c6908eb62182c9f2adc1b53bc88ade0acf8e4c5f0ad868",
+  "mouldEquivalenceReason": "",
+  "officialEvidence": [
+    {
+      "manifestPath": "artifacts/sources/gate3-official-image-302021/manifest.json",
+      "manifestSha256": "0bb12c9711b44548dfe16f8a3eb04274ace00b0fabadfba4d7f6b55db7bbf89b",
+      "path": "artifacts/sources/gate3-official-image-302021/source.bin",
+      "sha256": "b7dab10232d45917740c9b1df72aeaa1571e63187092ee9c907c779b29660ec4"
+    }
+  ],
+  "reason": "使用者已檢視九件官方 Element 照片並在本次對話明確確認皆與先前核准的 QA 模型外觀一致；本筆為 3020.dat／色碼 4／官方 Element 302021，涵蓋形狀、顏色、印刷（無印刷亦須一致）與本次用途的模具審查。沿用原模型 GLB／metadata SHA 與既有 Gate2 幾何、接點證據，不宣稱官方給過額外認證。",
+  "reviewer": "本對話使用者（真實身分未驗證）",
+  "schemaVersion": 1,
+  "sourceRevisionId": "0b4ce893-0b93-4775-96d8-66365a0bc482"
+}

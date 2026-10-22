@@ -26,11 +26,11 @@ def invoke(workspace, *args):
 def draft(workspace):
     workspace.mkdir()
     with CatalogRepository(workspace / "catalog.sqlite") as repo:
-        part = repo.add_part("基本磚", "System", "3001")
+        part = repo.add_part("基本磚", "System", "LEGO-Design:3001")
         variant = repo.add_variant(part, {"color": "4"})
         snapshot = repo.create_snapshot("2026-09-08T15:59:59Z", {"families": ["System"]})
-        repo.put_entry(snapshot, variant, "Active", ["unknown-evidence"], {"tier": "Basic", "reason": "人工"},
-                       {"name": "基本磚"})
+        repo.put_entry(snapshot, variant, ["unknown-evidence"], {"tier": "Basic", "reason": "人工"},
+                       {"name": "基本磚", "designId": "3001", "elementId": "300101"})
         repo.review_scope(snapshot, {"reviewer": "test", "artifact": "unknown-scope"})
         return snapshot, variant, repo.snapshot(snapshot)["version"]
 
@@ -41,7 +41,7 @@ def import_fixture(workspace, *, expected_pages=1):
         pass
     page = workspace / "page.json"
     page.write_text(json.dumps({"schemaVersion": 1, "records": [{"kind": "candidate", "sourceId": "v1",
-        "partId": "part-1", "name": "基本磚", "family": "System", "appearance": {"color": "4"}}]}),
+        "designId": "3001", "elementId": "300101", "name": "基本磚", "family": "System", "appearance": {"color": "4"}}]}),
         encoding="utf-8")
     manifest = {"schemaVersion": 1, "baselineAt": "2026-09-08T15:59:59Z",
                 "expectedFamilies": ["System"], "sources": [{"name": "catalog",
@@ -90,7 +90,7 @@ def test_boolean_ready_claim_is_rejected_without_quality_report_bytes(tmp_path):
                                 ("source-a", "offline-source", "2026-09-08T00:00:00Z", None,
                                  source["sha256"], source["storage_key"], "{}", "{}"))
         repo.connection.execute("""INSERT INTO evidence VALUES(?,?,?,?,?,?,?,?)""",
-                                ("evidence-a", "source-a", variant, "Producing", None, None, "reviewer", "source"))
+                                ("evidence-a", "source-a", variant, "Identity", None, None, "reviewer", "source"))
         repo.connection.execute("UPDATE snapshot_entries SET evidence_ids_json=? WHERE snapshot_id=?",
                                 (json.dumps(["evidence-a"]), snapshot))
         repo.review_scope(snapshot, {"reviewer": "reviewer", "artifact": "source-a"})
@@ -106,7 +106,7 @@ def test_boolean_ready_claim_is_rejected_without_quality_report_bytes(tmp_path):
     code, stdout, _ = invoke(workspace, "validate", "--snapshot", snapshot)
     assert code == 3
     report = json.loads(stdout)
-    assert "unverified-production-claim" in report["variants"][0]["issues"]
+    assert "missing-source-evidence" not in report["variants"][0]["issues"]
     assert "missing-selected-revision" in report["variants"][0]["issues"]
     assert invoke(workspace, "publish", "--snapshot", snapshot, "--expected-head-version", 0)[0] == 3
     with CatalogRepository(workspace / "catalog.sqlite") as repo:
@@ -212,12 +212,12 @@ def test_validation_does_not_count_boolean_ready_as_verified_delivery(tmp_path):
     assert json.loads(stdout)["counts"]["V"] == 0
 
 
-def test_validation_rejects_retired_without_evidence_instead_of_silently_excluding(tmp_path):
+def test_validation_rejects_missing_lego_identity_instead_of_silently_excluding(tmp_path):
     workspace = tmp_path / "workspace"
     snapshot, variant, _ = draft(workspace)
     with CatalogRepository(workspace / "catalog.sqlite") as repo:
-        repo.put_entry(snapshot, variant, "Retired", [], {}, {"name": "基本磚"})
+        repo.put_entry(snapshot, variant, [], {"tier": "Basic", "reason": "人工"}, {"name": "基本磚"})
         repo.freeze(snapshot, repo.snapshot(snapshot)["version"])
     code, stdout, _ = invoke(workspace, "validate", "--snapshot", snapshot)
     assert code == 3
-    assert "unverified-production-claim" in json.loads(stdout)["variants"][0]["issues"]
+    assert "missing-lego-identity" in json.loads(stdout)["variants"][0]["issues"]

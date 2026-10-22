@@ -7,6 +7,7 @@ namespace BrickHigh.Tests
     public class ConnectorCompatibilityTests
     {
         [TestCase("system-stud-v1", "system-tube-v1")]
+        [TestCase("duplo-stud-v1", "duplo-tube-v1")]
         [TestCase("technic-pin-v1", "technic-hole-v1")]
         [TestCase("technic-axle-v1", "technic-axle-hole-v1")]
         [TestCase("clip-v1", "bar-v1")]
@@ -59,6 +60,26 @@ namespace BrickHigh.Tests
             };
             Assert.That(CollisionProxyPolicy.InsertionPathRemainsOpen(cavityProxy, insertion), Is.True,
                 "簡化碰撞代理保留中央空腔時，插入 fixture 應可成立。 ");
+        }
+
+        [Test, Property("TDD", "UT-023")]
+        public void ConnectorCompatibility_ShallowCavity_DoesNotInflateAlongInsertionAxis()
+        {
+            var insertion = new InsertionProbe(
+                new Vector3d(0, 0, 0), new Vector3d(0, .001, 0), .002);
+            var shallowCeiling = new[]
+            {
+                new CollisionBox(new Vector3d(0, .003, 0), new Vector3d(.016, .001, .016))
+            };
+            Assert.That(CollisionProxyPolicy.InsertionPathRemainsOpen(shallowCeiling, insertion), Is.True,
+                "平端圓柱探針不可沿插入軸額外膨脹，否則淺 plate 空腔會被誤判封死。 ");
+
+            var radialWall = new[]
+            {
+                new CollisionBox(new Vector3d(.0025, .0005, 0), new Vector3d(.001, .001, .016))
+            };
+            Assert.That(CollisionProxyPolicy.InsertionPathRemainsOpen(radialWall, insertion), Is.False,
+                "半徑仍必須擴張徑向兩軸，不能為了淺空腔而放寬側壁碰撞。 ");
         }
 
         [Test, Property("TDD", "UT-024")]

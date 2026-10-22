@@ -10,9 +10,9 @@ from uuid import UUID
 from .content import ContentPathPolicy
 from .jobs import CatalogJobs
 from .importing import import_catalog
-from .resolving import resolve_catalog, verified_claims
+from .resolving import resolve_catalog
 from .building import build_catalog
-from .policies import CatalogConflict, CatalogError, GateNotMet, ProductionStatusPolicy, utc_time
+from .policies import CatalogConflict, CatalogError, GateNotMet
 from .quality import complete_revision_quality, quality_review_template, verify_persisted_quality
 from .repository import CatalogRepository
 
@@ -98,10 +98,8 @@ def _validation(repo, workspace, snapshot_id):
     global_issues = []
     if snapshot["status"] != "Frozen":
         global_issues.append("snapshot-not-frozen")
-    if coverage["A"] == 0:
-        global_issues.append("no-active-variants")
-    if coverage["U"]:
-        global_issues.append("unknown-production-status")
+    if coverage["C"] == 0:
+        global_issues.append("no-catalog-variants")
     if coverage["G"]:
         global_issues.append("unresolved-coverage-gaps")
     review = json.loads(snapshot["coverage_review_json"])
@@ -112,32 +110,28 @@ def _validation(repo, workspace, snapshot_id):
     variants = []
     for entry in repo.entries(snapshot_id):
         issues = []
-        if entry["production_status"] == "Unknown":
-            issues.append("unknown-production-status")
-        if entry["production_status"] in {"Active", "Retired"}:
-            evidence_ids = json.loads(entry["evidence_ids_json"])
-            try:
-                if not isinstance(evidence_ids, list) or not evidence_ids or any(
-                        not isinstance(item, str) for item in evidence_ids):
-                    raise CatalogError("來源證據清單無效。")
-                claims = verified_claims(repo, workspace, evidence_ids, entry["variant_id"])
-                if ProductionStatusPolicy.classify(claims, utc_time(snapshot["baseline_at"])) != entry["production_status"]:
-                    issues.append("unverified-production-claim")
-            except (CatalogError, OSError, TypeError, ValueError):
-                issues.append("missing-source-evidence")
-                issues.append("unverified-production-claim")
-        if entry["production_status"] == "Active":
-            classification = json.loads(entry["classification_json"])
-            if not isinstance(classification, dict) or classification.get("tier") not in {
-                    "Basic", "Advanced", "Special"} or not classification.get("reason"):
-                issues.append("missing-classification")
-            projection = json.loads(entry["display_projection_json"])
-            if not isinstance(projection, dict) or projection.get("fixture"):
-                issues.append("fixture-content")
-            if not entry["selected_revision_id"] or entry["revision_status"] != "Ready":
-                issues.append("missing-selected-revision")
-            elif not verify_persisted_quality(workspace, entry):
-                issues.append("unverifiable-quality-report")
+        evidence_ids = json.loads(entry["evidence_ids_json"])
+        if not isinstance(evidence_ids, list) or not evidence_ids or any(not isinstance(item, str) for item in evidence_ids):
+            issues.append("missing-source-evidence")
+        else:
+            for evidence_id in evidence_ids:
+                evidence = repo.connection.execute("SELECT artifact_id FROM evidence WHERE evidence_id=?", (evidence_id,)).fetchone()
+                if evidence is None or not _verified_artifact(repo, workspace, evidence["artifact_id"]):
+                    issues.append("missing-source-evidence")
+                    break
+        classification = json.loads(entry["classification_json"])
+        if not isinstance(classification, dict) or classification.get("tier") not in {
+                "Basic", "Advanced", "Special"} or not classification.get("reason"):
+            issues.append("missing-classification")
+        projection = json.loads(entry["display_projection_json"])
+        if not isinstance(projection, dict) or projection.get("fixture"):
+            issues.append("fixture-content")
+        elif not projection.get("designId") or not projection.get("elementId"):
+            issues.append("missing-lego-identity")
+        if not entry["selected_revision_id"] or entry["revision_status"] != "Ready":
+            issues.append("missing-selected-revision")
+        elif not verify_persisted_quality(workspace, entry):
+            issues.append("unverifiable-quality-report")
         variants.append({"variantId": entry["variant_id"], "issues": issues})
 
     matched_builds = repo.connection.execute("""SELECT COUNT(*) FROM validation_builds
@@ -146,10 +140,9 @@ def _validation(repo, workspace, snapshot_id):
     if matched_builds == 0:
         global_issues.append("missing-runtime-build")
     allowed = not global_issues and all(not item["issues"] for item in variants)
-    counts = {key: coverage[key] for key in ("C", "A", "R", "U", "G", "V")}
+    counts = {key: coverage[key] for key in ("C", "G", "V")}
     # DB 的 Ready 旗標不是實際品質證據；輸出僅計入本次完整核對的變體。
-    counts["V"] = sum(not item["issues"] and entry["production_status"] == "Active"
-                      for item, entry in zip(variants, repo.entries(snapshot_id)))
+    counts["V"] = sum(not item["issues"] for item in variants)
     return {"snapshotId": snapshot_id, "status": snapshot["status"],
             "counts": counts,
             "issues": global_issues, "variants": variants, "releaseAllowed": allowed}

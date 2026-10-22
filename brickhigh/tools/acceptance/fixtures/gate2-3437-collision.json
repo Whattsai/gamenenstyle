@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified DUPLO logical sockets and compound collision proxy for fixed model 3437",
+  "validationStatus": "Verified",
+  "folder": "pm-20260923-duplo-3437",
+  "sourcePart": "3437.dat",
+  "sourceDependencyDigest": "76208e14b450d0cd119ff73e0361fe50afaec8a557ad013a849834efa63c0f46",
+  "modelSha256": "b2543e0d86404d473834bcabe70fda4cd3575998d379f3177af502ea300ef607",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "duplo-stud-v1",
+  "femaleProfile": "duplo-tube-v1",
+  "socketFamily": "duplo-tube",
+  "runtimeEvidenceMethod": "unity-playmode-meshcollider-duplo-v1",
+  "probe": {
+    "radiusMeters": 0.00466,
+    "sourceStudDiameterMeters": 0.0096,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.0056, 0.0],
+    "useControlReferenceY": true,
+    "controlReferenceY": -0.0176
+  },
+  "sockets": [
+    {"id": "runtime-duplo-socket-001", "position": [-0.008, -0.0192, -0.008]},
+    {"id": "runtime-duplo-socket-002", "position": [-0.008, -0.0192, 0.008]},
+    {"id": "runtime-duplo-socket-003", "position": [0.008, -0.0192, -0.008]},
+    {"id": "runtime-duplo-socket-004", "position": [0.008, -0.0192, 0.008]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, -0.0008, 0.0], "size": [0.032, 0.0016, 0.032]},
+    {"id": "wall-x-left", "center": [-0.0152, -0.0104, 0.0], "size": [0.0016, 0.0176, 0.032]},
+    {"id": "wall-x-right", "center": [0.0152, -0.0104, 0.0], "size": [0.0016, 0.0176, 0.032]},
+    {"id": "wall-z-back", "center": [0.0, -0.0104, -0.0152], "size": [0.032, 0.0176, 0.0016]},
+    {"id": "wall-z-front", "center": [0.0, -0.0104, 0.0152], "size": [0.032, 0.0176, 0.0016]},
+    {"id": "clutch-x-left", "center": [-0.0056, -0.0096, 0.0], "size": [0.0016, 0.016, 0.006]},
+    {"id": "clutch-x-right", "center": [0.0056, -0.0096, 0.0], "size": [0.0016, 0.016, 0.006]},
+    {"id": "clutch-z-back", "center": [0.0, -0.0096, -0.0056], "size": [0.006, 0.016, 0.0016]},
+    {"id": "clutch-z-front", "center": [0.0, -0.0096, 0.0056], "size": [0.006, 0.016, 0.0016]}
+  ],
+  "evidence": "Unity PlayMode IT-004 job 2b074c37-9336-4ab8-9238-333ac37c641b verified 2026-10-02 against the exact 3437 model hash: all four DUPLO logical sockets at X/Z ±8 mm returned actualHit=false/proxyOpen=true with a 4.66 mm radial probe bound to the LDraw stud7.dat 9.6 mm source diameter; the central clutch control inside the stud8.dat vertical range returned actualHit=true/proxyOpen=false. The central stud8.dat primitive remains clutch-tube geometry evidence only and is not treated as a logical socket anchor."
+}

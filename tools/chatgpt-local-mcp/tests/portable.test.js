@@ -245,3 +245,36 @@ test('multi-root skills configuration bundles and validates skills across multip
     assert.match(await readFile(join(output,'skills','extra-skill','references','extra.md'),'utf8'),/Extra guide/);
   }finally{await rm(f.base,{recursive:true,force:true});}
 });
+
+test('configured job survives actual MCP disconnect, live queries and cancellation after reconnect',async()=>{
+  const f=await fixture();let client,id;
+  const parse=r=>{assert.notEqual(r.isError,true,JSON.stringify(r));return JSON.parse(r.content[0].text);};
+  const connect=async()=>{
+    const c=new Client({name:'reconnect-test',version:'1.0'});
+    await c.connect(new StdioClientTransport({command:process.execPath,args:[join(template,'src','index.js')],cwd:template,env:{...process.env,PROJECT_MCP_CONFIG:f.configPath},stderr:'pipe'}));return c;
+  };
+  try{
+    await writeFile(join(f.project,'Demo.Tests.csproj'),'<Project />');
+    f.config.dotnet={enabled:true,executable:process.execPath,targets:[{id:'demo-tests',alias:'main',relativeProjectPath:'Demo.Tests.csproj',allowedActions:['test']}]};
+    f.config.tasks[0].args=['-e',`console.log('@@JOB '+JSON.stringify({stage:'load_model',timeoutSeconds:20}));console.error('live stderr');setInterval(()=>{},1000)`];
+    await writeFile(f.configPath,JSON.stringify(f.config));
+    client=await connect();
+    const session=parse(await client.callTool({name:'begin_workspace_session',arguments:{aliases:['main']}}));
+    parse(await client.callTool({name:'read_workspace_text',arguments:{alias:'main',path:'AGENTS.md',session_id:session.id}}));
+    id=parse(await client.callTool({name:'start_project_job',arguments:{session_id:session.id,task_id:'build-demo'}})).id;
+    await client.close();client=await connect();
+    let live;
+    for(let i=0;i<50;i++){
+      live=parse(await client.callTool({name:'get_project_job',arguments:{job_id:id}}));
+      if(live.stage==='load_model')break;await new Promise(r=>setTimeout(r,50));
+    }
+    assert.equal(live.status,'running');assert.equal(live.stage,'load_model');assert.ok(live.lastActivityAt);
+    const tail=parse(await client.callTool({name:'get_job_log_tail',arguments:{job_id:id,lines:10}}));assert.match(tail.logTail,/live stderr/);
+    const cancelled=parse(await client.callTool({name:'cancel_project_job',arguments:{job_id:id}}));assert.equal(cancelled.status,'cancelled');
+    await client.close();client=await connect();
+    assert.equal(parse(await client.callTool({name:'get_project_job',arguments:{job_id:id}})).status,'cancelled');
+  }finally{
+    if(id&&client)await client.callTool({name:'cancel_project_job',arguments:{job_id:id}}).catch(()=>{});
+    await client?.close();await new Promise(r=>setTimeout(r,200));await rm(f.base,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+  }
+});

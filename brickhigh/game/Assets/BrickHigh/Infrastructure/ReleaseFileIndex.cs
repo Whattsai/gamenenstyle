@@ -11,7 +11,7 @@ namespace BrickHigh.Infrastructure
     {
         internal static void ValidateHeader(JObject manifest)
         {
-            foreach (var key in new[] { "appVersion", "editorVersion" })
+            foreach (var key in new[] { "appVersion", "editorVersion", "coordinateProfile" })
                 if (manifest[key]?.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)manifest[key]))
                     throw new InvalidDataException();
             foreach (var key in new[] { "readerVersion", "catalogSchemaVersion", "assetContractVersion" })
@@ -28,6 +28,42 @@ namespace BrickHigh.Infrastructure
                     || (bool)preview["incomplete"] != true) throw new InvalidDataException();
             }
             else if (manifest["previewCompleteness"]?.Type != JTokenType.Null) throw new InvalidDataException();
+        }
+
+        internal static void ValidateRuntimeBuildIdentity(JObject manifest, NativeSqlite db)
+        {
+            string editorVersion = (string)manifest["editorVersion"];
+            string packageLockDigest = (string)manifest["packageLockDigest"];
+            string coordinateProfile = (string)manifest["coordinateProfile"];
+            string buildTarget = (string)manifest["buildTarget"];
+            var builds = db.Query(@"SELECT b.runtime_build_id,b.source_revision_id,b.build_target,b.editor_version,
+                b.package_lock_digest,b.coordinate_profile,b.content_digest,b.validation_digest,
+                b.bundle_key,f.sha256 AS bundle_sha256
+                FROM runtime_builds b JOIN runtime_files f ON f.storage_key=b.bundle_key
+                WHERE f.kind='AssetBundle'");
+            if (builds.Count == 0) throw new InvalidDataException();
+            foreach (var build in builds)
+            {
+                string expectedIdentity;
+                try
+                {
+                    expectedIdentity = RuntimeBuildPolicy.ComputeIdentity(
+                        build["source_revision_id"], build["build_target"], build["editor_version"],
+                        build["package_lock_digest"], build["coordinate_profile"],
+                        build["content_digest"], build["validation_digest"]);
+                }
+                catch (ArgumentException)
+                {
+                    throw new InvalidDataException();
+                }
+                if (build["runtime_build_id"] != expectedIdentity
+                    || build["build_target"] != buildTarget
+                    || build["editor_version"] != editorVersion
+                    || build["package_lock_digest"] != packageLockDigest
+                    || build["coordinate_profile"] != coordinateProfile
+                    || build["content_digest"] != build["bundle_sha256"])
+                    throw new InvalidDataException();
+            }
         }
 
         internal static bool ValidateFiles(string root, JObject manifest, NativeSqlite db)
@@ -81,11 +117,12 @@ namespace BrickHigh.Infrastructure
             if (value?.Type != JTokenType.Integer || (long)value < 1 || (long)value > int.MaxValue)
                 throw new InvalidDataException();
         }
+        private static bool IsDigest(string text) =>
+            text != null && text.Length == 64 && text.All(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'));
+
         private static void Digest(JToken value)
         {
-            if (value?.Type != JTokenType.String) throw new InvalidDataException();
-            string text = (string)value;
-            if (text.Length != 64 || text.Any(c => !(c >= '0' && c <= '9') && !(c >= 'a' && c <= 'f')))
+            if (value?.Type != JTokenType.String || !IsDigest((string)value))
                 throw new InvalidDataException();
         }
     }

@@ -76,7 +76,7 @@ namespace BrickHigh.Presentation
         public RenderTexture RenderTexture => texture;
         /// <summary>技術預覽固定提示。</summary>
         public Text BannerText { get; private set; }
-        /// <summary>版本、尺寸及生產狀態摘要。</summary>
+        /// <summary>版本與尺寸摘要。</summary>
         public Text DetailsText { get; private set; }
         /// <summary>載入、空狀態及固定錯誤文案。</summary>
         public Text StatusText { get; private set; }
@@ -114,11 +114,9 @@ namespace BrickHigh.Presentation
         {
             if (disposed) throw new ObjectDisposedException(nameof(CatalogPreviewView));
             if (coverage == null) throw new ArgumentNullException(nameof(coverage));
-            if (packagedVariantCount < 0 || coverage.C < 0 || coverage.A < 0 || coverage.R < 0 ||
-                coverage.U < 0 || coverage.G < 0 || coverage.V < 0)
+            if (packagedVariantCount < 0 || coverage.C < 0 || coverage.G < 0 || coverage.V < 0)
                 throw new ArgumentOutOfRangeException(nameof(packagedVariantCount));
-            CoverageText.text = "來源 C=" + coverage.C + "  A=" + coverage.A + "  R=" + coverage.R +
-                "  U=" + coverage.U + "  G=" + coverage.G + "  V=" + coverage.V +
+            CoverageText.text = "來源 C=" + coverage.C + "  G=" + coverage.G + "  V=" + coverage.V +
                 "\n本包子集合：" + packagedVariantCount + (coverage.ScopeReviewed ? "" : " ・來源範圍待審查");
             RefreshFontWarning();
         }
@@ -139,7 +137,7 @@ namespace BrickHigh.Presentation
             string message = state.Message;
             StatusText.text = string.IsNullOrEmpty(state.DiagnosticId) || string.IsNullOrEmpty(message)
                 ? message : message + "  診斷 ID：" + state.DiagnosticId;
-            DetailsText.text = FormatDetails(state.SelectedDetails, state.ProductionStatusText);
+            DetailsText.text = FormatDetails(state.SelectedDetails);
             FitDetailsContent(true);
             modelImage.enabled = instance != null && state.Model != null;
             if (boundInstance != instance)
@@ -631,11 +629,11 @@ namespace BrickHigh.Presentation
             return true;
         }
 
-        private static string FormatDetails(VariantDetails details, string production)
+        private static string FormatDetails(VariantDetails details)
         {
             if (details == null) return "請從清單選取模型。";
             var size = Dimensions.From(details.MetadataJson);
-            return "名稱：" + details.Name + "\n" + production + "\n尺寸：" + size +
+            return "名稱：" + details.Name + "\n尺寸：" + size +
                 "\n變體：" + details.VariantId.ToString("D") +
                 "\n版本：" + details.Model.RevisionId.ToString("D") +
                 "\nRuntimeBuild：" + details.RuntimeBuildId;

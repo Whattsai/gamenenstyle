@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Gate 2 verified logical sockets and compound collision proxy for fixed model 3298",
+  "validationStatus": "Verified",
+  "folder": "pm-20260923-asymmetric-slope-3298-materials-v2",
+  "sourcePart": "3298.dat",
+  "sourceDependencyDigest": "f029d0f4840c98b1268077db9174cde49481ae2b5be7dce145939f89e9303f96",
+  "modelSha256": "ce1a16e98492945427e45bb5df4b7590b7b04a7f90f044de94843396e3a986e1",
+  "coordinateProfile": "canonical-rh-metres-v1",
+  "maleProfile": "system-stud-v1",
+  "femaleProfile": "system-tube-v1",
+  "probe": {
+    "radiusMeters": 0.00235,
+    "startOffsetFromMinY": 0.00015,
+    "endOffsetFromMinY": 0.00145,
+    "controlXZ": [0.003, 0.004]
+  },
+  "sockets": [
+    {"id": "runtime-socket-001", "position": [-0.004, -0.0096, 0.0]},
+    {"id": "runtime-socket-002", "position": [0.004, -0.0096, 0.0]},
+    {"id": "runtime-socket-003", "position": [-0.004, -0.0096, 0.008]},
+    {"id": "runtime-socket-004", "position": [0.004, -0.0096, 0.008]},
+    {"id": "runtime-socket-005", "position": [-0.004, -0.0096, 0.016]},
+    {"id": "runtime-socket-006", "position": [0.004, -0.0096, 0.016]}
+  ],
+  "proxyBoxes": [
+    {"id": "roof", "center": [0.0, -0.00195, 0.008], "size": [0.016, 0.0071, 0.024]},
+    {"id": "wall-x-left", "center": [-0.00725, -0.00755, 0.008], "size": [0.0015, 0.0041, 0.024]},
+    {"id": "wall-x-mid", "center": [0.0, -0.00755, 0.008], "size": [0.003, 0.0041, 0.024]},
+    {"id": "wall-x-right", "center": [0.00725, -0.00755, 0.008], "size": [0.0015, 0.0041, 0.024]},
+    {"id": "wall-z-back", "center": [0.0, -0.00755, -0.00325], "size": [0.016, 0.0041, 0.0015]},
+    {"id": "wall-z-1", "center": [0.0, -0.00755, 0.004], "size": [0.016, 0.0041, 0.003]},
+    {"id": "wall-z-2", "center": [0.0, -0.00755, 0.012], "size": [0.016, 0.0041, 0.003]},
+    {"id": "wall-z-front", "center": [0.0, -0.00755, 0.01925], "size": [0.016, 0.0041, 0.0015]}
+  ],
+  "evidence": "Unity PlayMode IT-004 verified 2026-09-30 against exact 3298 model hash: all six bottom logical sockets actualHit=false and compound proxyOpen=true; solid-geometry control actualHit=true and proxyOpen=false. The asymmetric slope remains separately covered by mesh/winding checks."
+}

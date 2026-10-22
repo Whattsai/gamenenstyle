@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -20,6 +21,33 @@ namespace BrickHigh.Infrastructure
         private IntPtr handle;
         private readonly object gate = new object();
         private const int Row = 100, Done = 101;
+        private static readonly object LibraryGate = new object();
+        private static IntPtr bundledLibraryHandle;
+        private static string bundledLibraryPath;
+
+        /// <summary>Windows Player 明確載入隨包 sqlite3.dll，避免依賴 cwd／PATH 的隱含搜尋順序。</summary>
+        internal static void EnsureBundledLibrary(string absolutePath)
+        {
+            if (string.IsNullOrWhiteSpace(absolutePath) || !Path.IsPathRooted(absolutePath))
+                throw new DllNotFoundException("Bundled sqlite3 path is invalid.");
+            string path = Path.GetFullPath(absolutePath);
+            if (!File.Exists(path)) throw new DllNotFoundException("Bundled sqlite3 is missing.");
+            lock (LibraryGate)
+            {
+                if (bundledLibraryHandle != IntPtr.Zero)
+                {
+                    if (!string.Equals(path, bundledLibraryPath, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Bundled sqlite3 path changed after load.");
+                    return;
+                }
+                if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    throw new PlatformNotSupportedException("Bundled sqlite3 preload is Windows-only.");
+                bundledLibraryHandle = NativeLoader.LoadLibraryW(path);
+                if (bundledLibraryHandle == IntPtr.Zero)
+                    throw new DllNotFoundException("Bundled sqlite3 could not be loaded.");
+                bundledLibraryPath = path;
+            }
+        }
 
         /// <summary>開啟原生連線；只有製作／人工存檔測試可指定可寫。</summary>
         public NativeSqlite(string path, bool readOnly = true)
@@ -90,6 +118,12 @@ namespace BrickHigh.Infrastructure
             {
                 if (handle != IntPtr.Zero) { Native.sqlite3_close_v2(handle); handle = IntPtr.Zero; }
             }
+        }
+
+        private static class NativeLoader
+        {
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            internal static extern IntPtr LoadLibraryW(string path);
         }
 
         private static class Native

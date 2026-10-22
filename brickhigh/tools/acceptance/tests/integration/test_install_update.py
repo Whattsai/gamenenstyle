@@ -154,6 +154,30 @@ def test_failed_pointer_commit_and_busy_lock_keep_old_install(tmp_path, harness)
     assert profile.read_bytes() == b"keep"
 
 
+def test_out_of_space_before_switch_preserves_previous_version_profile_and_staged_content(tmp_path, harness):
+    install = tmp_path / "install"
+    profile = tmp_path / "profiles" / "save.db"
+    profile.parent.mkdir()
+    profile.write_bytes(b"private-progress")
+    package(tmp_path / "a", "build-a", player=b"player-a")
+    package(tmp_path / "b", "build-b", player=b"player-b")
+    assert call(harness, "install", tmp_path / "a", install) == (0, "Installed")
+    old_pointer = (install / "installation.json").read_bytes()
+    old_remove = tmp_path / "shortcuts" / "解除安裝 BrickHigh Preview.lnk"
+    old_remove_bytes = old_remove.read_bytes()
+
+    assert call(harness, "install-out-of-space", tmp_path / "b", install) == (5, "StorageUnavailable")
+
+    # B 已完整 staged/validated 才注入磁碟空間不足，但可啟動 pointer 與 profile 必須仍指向 A。
+    assert (install / "installation.json").read_bytes() == old_pointer
+    assert pointer(install)["buildId"] == "build-a"
+    assert profile.read_bytes() == b"private-progress"
+    assert (install / "versions" / "build-a" / "Player" / "BrickHigh.exe").read_bytes() == b"player-a"
+    # 未切換的 B 內容不得為了 rollback 被無聲刪除；後續可由明確 housekeeping 處理。
+    assert (install / "versions" / "build-b" / "Player" / "BrickHigh.exe").read_bytes() == b"player-b"
+    assert old_remove.read_bytes() == old_remove_bytes
+
+
 def test_locked_pointer_causes_real_filesystem_failure_without_switch(tmp_path, harness):
     install = tmp_path / "install"
     profile = tmp_path / "profile.db"

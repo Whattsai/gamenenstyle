@@ -347,14 +347,21 @@
         "timeoutSeconds": 1800
       },
       "args": [
-        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
-        "-runTests", "-testPlatform", "EditMode", "-testResults", "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-editmode-results.xml",
-        "-logFile", "-"
+        "-batchmode",
+        "-projectPath",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-editmode-results.xml",
+        "-logFile",
+        "-"
       ]
     },
     {
       "id": "brickhigh-unity-playmode-test",
-      "purpose": "Run Unity PlayMode tests; currently no PlayMode test assembly is configured, so verify the result count before treating this as coverage.",
+      "purpose": "Run BrickHigh.Tests.PlayMode in Unity PlayMode and report nonzero test counts with XML results.",
       "kind": "test",
       "alias": "main",
       "cwd": "brickhigh",
@@ -363,12 +370,22 @@
         "projectPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
         "upmExecutable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe",
         "resultsPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-playmode-results.xml",
+        "assemblyName": "BrickHigh.Tests.PlayMode",
         "timeoutSeconds": 1800
       },
       "args": [
-        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
-        "-runTests", "-testPlatform", "PlayMode", "-testResults", "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-playmode-results.xml",
-        "-logFile", "-"
+        "-batchmode",
+        "-projectPath",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-assemblyNames",
+        "BrickHigh.Tests.PlayMode",
+        "-testResults",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\artifacts\\test-results\\mcp-playmode-results.xml",
+        "-logFile",
+        "-"
       ]
     },
     {
@@ -384,12 +401,19 @@
         "timeoutSeconds": 3600
       },
       "args": [
-        "-batchmode", "-projectPath", "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
-        "-executeMethod", "BrickHigh.Editor.ToolchainProbeBuild.BuildInteractiveFixture", "-quit", "-logFile", "-"
+        "-batchmode",
+        "-projectPath",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-executeMethod",
+        "BrickHigh.Editor.ToolchainProbeBuild.BuildInteractiveFixture",
+        "-quit",
+        "-logFile",
+        "-"
       ]
     },
     {
       "id": "brickhigh-unity-player-acceptance",
+      "timeoutSeconds": 900,
       "purpose": "Install the latest internal F-Catalog package into a fresh runtime directory and run the real Player interaction acceptance probe.",
       "kind": "test",
       "alias": "main",
@@ -398,6 +422,65 @@
       "args": [
         "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\run-brickhigh-player-acceptance.js"
       ]
+    },
+    {
+      "id": "brickhigh-unity-validation-content-build",
+      "purpose": "Build SPEC-001 Frozen validation content from pinned snapshot/version/selection and verified Ready revisions; run the real Windows validation Player and preserve immutable RuntimeBuild evidence. Pending or QA fixture sources fail closed without publishing.",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "brickhigh",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Unity.com",
+      "unity": {
+        "projectPath": "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "upmExecutable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.3.18f1\\Editor\\Data\\Resources\\PackageManager\\Server\\UnityPackageManager.exe",
+        "timeoutSeconds": 3600
+      },
+      "args": [
+        "-batchmode",
+        "-projectPath",
+        "C:\\GitProjects\\gamenenstyle\\brickhigh\\game",
+        "-executeMethod",
+        "BrickHigh.Editor.ValidationContentBuild.BuildValidationContent",
+        "-quit",
+        "-logFile",
+        "-"
+      ]
+    },
+    {
+      "id": "brickhigh-gate3-source-onboard",
+      "purpose": "固定20件官方來源匯入：核對MCP原始封存SHA、完整分頁、精確形狀/色/印刷/模具；以原Catalog API建立後繼Draft及同SHA品質修訂，原子Frozen選件、可恢復build-plan CAS；不改QA或Published。",
+      "kind": "build",
+      "alias": "main",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\onboard-brickhigh-sources.js"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 900
+    },
+    {
+      "id": "brickhigh-gate3-quality-submit",
+      "purpose": "正式提交固定20件使用者已核准的品質報告；沿用complete_revision_quality，重驗模型與附件SHA，安全重試並保留證據，使用既有Frozen選件API；不偽造官方身分、不變更fixture隔離、不發布。",
+      "kind": "build",
+      "alias": "main",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\submit-brickhigh-quality-reviews.js"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 600
+    },
+    {
+      "id": "brickhigh-validation-content-verify",
+      "purpose": "Verify the latest sealed Frozen RuntimeBuild evidence, source digests, bundles and real Player captures; never accepts an internal F-Catalog package.",
+      "kind": "test",
+      "alias": "main",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\tools\\chatgpt-local-mcp\\scripts\\verify-brickhigh-validation-content.js"
+      ],
+      "cwd": ".",
+      "timeoutSeconds": 300
     }
   ],
   "taskDiscovery": {
@@ -480,6 +563,87 @@
       "enabled": false,
       "allowedOrigins": []
     }
+  },
+  "sourceArchive": {
+    "enabled": true,
+    "alias": "main",
+    "relativeRoot": "brickhigh/artifacts/sources",
+    "allowedDomains": [
+      "www.lego.com",
+      "rebrickable.com",
+      "cdn.rebrickable.com",
+      "library.ldraw.org"
+    ],
+    "allowedPorts": [
+      443
+    ],
+    "maxBytes": 100000000,
+    "timeoutSeconds": 30
+  },
+  "httpExchange": {
+    "enabled": true,
+    "allowedTargets": [
+      {
+        "domain": "www.lego.com",
+        "path": "/api/graphql/PickABrickQuery"
+      }
+    ],
+    "allowedRequestHeaders": {
+      "content-type": [
+        "application/json"
+      ],
+      "accept": [
+        "application/json"
+      ],
+      "x-locale": [
+        "en-US"
+      ]
+    },
+    "fixedHeadersByTarget": [
+      {
+        "domain": "www.lego.com",
+        "path": "/api/graphql/PickABrickQuery",
+        "headers": {
+          "origin": "https://www.lego.com",
+          "referer": "https://www.lego.com/en-us/pick-and-build/pick-a-brick",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        }
+      }
+    ],
+    "requiredRequestHeaders": [
+      "content-type",
+      "accept"
+    ],
+    "requestMaxBytes": 1048576,
+    "maxRedirects": 3
+  },
+  "legoReplacementParts": {
+    "enabled": true,
+    "origin": "https://www.lego.com",
+    "endpointPath": "/api/graphql/CustomerServiceReplacementPartsSetPiecesSearch",
+    "nextDataPathPattern": "/_next/data/{buildId}/en-us/service/replacement-parts/missing/{setId}/pieces.json",
+    "pagePathPattern": "/en-us/service/replacement-parts/missing/{setId}/pieces",
+    "methods": [
+      "GET",
+      "POST"
+    ]
+  },
+  "pdfInspection": {
+    "enabled": true,
+    "pdfinfo": "C:\\Users\\kola-\\AppData\\Local\\Microsoft\\WinGet\\Packages\\oschwartz10612.Poppler_Microsoft.Winget.Source_8wekyb3d8bbwe\\poppler-25.07.0\\Library\\bin\\pdfinfo.exe",
+    "pdftotext": "C:\\Users\\kola-\\AppData\\Local\\Microsoft\\WinGet\\Packages\\oschwartz10612.Poppler_Microsoft.Winget.Source_8wekyb3d8bbwe\\poppler-25.07.0\\Library\\bin\\pdftotext.exe",
+    "pdftoppm": "C:\\Users\\kola-\\AppData\\Local\\Microsoft\\WinGet\\Packages\\oschwartz10612.Poppler_Microsoft.Winget.Source_8wekyb3d8bbwe\\poppler-25.07.0\\Library\\bin\\pdftoppm.exe"
+  },
+  "pythonTests": {
+    "enabled": true,
+    "alias": "main",
+    "executable": "C:\\Users\\kola-\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe",
+    "cwd": "brickhigh",
+    "roots": {
+      "catalog": "tools/catalog/tests",
+      "acceptance": "tools/acceptance/tests"
+    },
+    "timeoutSeconds": 3600
   },
   "plugin": {
     "name": "gamenenstyle-local-workspace"

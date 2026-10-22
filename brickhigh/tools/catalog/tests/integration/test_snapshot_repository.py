@@ -14,12 +14,12 @@ def repo(tmp_path):
         yield value
 
 
-def draft(repo, status="Active", fixture=False):
-    part = repo.add_part("基本磚", "System", "3001")
+def draft(repo, fixture=False):
+    part = repo.add_part("基本磚", "System", "LEGO-Design:3001")
     variant = repo.add_variant(part, {"color": "4", "print": None, "material": "plastic"})
     snapshot = repo.create_snapshot("2026-09-08T15:59:59Z", scope={"families": ["System"]})
-    repo.put_entry(snapshot, variant, status, ["e1"], {"tier": "Basic", "reason": "fixture"},
-                   {"name": "基本磚", "fixture": fixture})
+    repo.put_entry(snapshot, variant, ["e1"], {"tier": "Basic", "reason": "fixture"},
+                   {"name": "基本磚", "fixture": fixture, "designId": "3001", "elementId": "300101"})
     repo.review_scope(snapshot, {"reviewer": "test", "artifact": "scope-evidence"})
     return snapshot, variant
 
@@ -38,14 +38,14 @@ def test_IT_002_RunSnapshotPublish_ScenarioMatrix_PreservesContract(repo):
     version = repo.snapshot(snapshot)["version"]
     repo.freeze(snapshot, version)
     with pytest.raises(CatalogConflict):
-        repo.put_entry(snapshot, variant, "Retired", [], {}, {})
+        repo.put_entry(snapshot, variant, [], {}, {})
     with pytest.raises(GateNotMet):
         repo.publish(snapshot, 0, "missing", "windows-x64", "c" * 64)
     assert repo.head() == {"snapshot_id": None, "version": 0}
     successor = repo.fork(snapshot, "2026-09-09T15:59:59Z")
-    repo.put_entry(successor, variant, "Unknown", [], {"tier": "Basic", "reason": "new"}, {"name": "新版"})
-    assert repo.entries(snapshot)[0]["production_status"] == "Active"
-    assert repo.entries(successor)[0]["production_status"] == "Unknown"
+    repo.put_entry(successor, variant, [], {"tier": "Basic", "reason": "new"},
+                   {"name": "新版", "designId": "3001", "elementId": "300101"})
+    assert repo.entries(snapshot)[0]["classification_json"] != repo.entries(successor)[0]["classification_json"]
 
 
 def test_IT_021_Publish_ChangedSourceDigest_RejectsPromotion(repo):
@@ -76,7 +76,7 @@ def test_publication_commit_failure_preserves_head_and_staging(repo):
     assert repo.connection.execute("SELECT COUNT(*) FROM validation_builds").fetchone()[0] == 0
 
 
-def test_fixture_or_unknown_cannot_publish(repo):
+def test_fixture_cannot_publish(repo):
     snapshot, _, revision = validating(repo, fixture=True)
     with pytest.raises(GateNotMet):
         repo.transition_revision(revision, "Ready", report={"quality_passed": True,
@@ -114,7 +114,6 @@ def test_boolean_quality_flags_cannot_move_validating_revision_to_ready(repo):
 
 
 @pytest.mark.parametrize('statement', [
-    "UPDATE snapshot_entries SET production_status='Retired' WHERE snapshot_id=?",
     "UPDATE snapshot_entries SET evidence_ids_json='[]' WHERE snapshot_id=?",
     "UPDATE snapshot_entries SET classification_json='{}' WHERE snapshot_id=?",
     "DELETE FROM snapshot_entries WHERE snapshot_id=?",

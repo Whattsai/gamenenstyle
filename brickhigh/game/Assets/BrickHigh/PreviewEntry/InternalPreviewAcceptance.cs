@@ -34,8 +34,21 @@ namespace BrickHigh.PreviewEntry
             MarkInternal();
             directory = Environment.GetEnvironmentVariable("BRICKHIGH_ACCEPTANCE_OUTPUT");
             if (string.IsNullOrWhiteSpace(directory)) return;
-            if (!Path.IsPathRooted(directory) || Directory.Exists(directory)) throw new InvalidOperationException("驗證需新的明確輸出位置。");
+            // 只讓明確指定輸出目錄的內部驗收在失焦時繼續，避免截圖 coroutine 永久暫停。
+            UnityEngine.Application.runInBackground = true;
+            // 只在已授權內部驗收期間接收失焦時的合成輸入事件；
+            // 正常 Player 不執行此元件，仍使用 Unity Input System 的原生焦點政策。
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            if (!Path.IsPathRooted(directory)) throw new InvalidOperationException("驗證需新的明確輸出位置。");
+            // PreviewBootstrap 會先在同一 acceptance root 寫 bootstrap/diagnostic；這不應被誤判成舊驗證證據。
+            // 真正會被本探針產生的 frames/result/progress 必須保持全新，避免覆寫上一輪結果。
+            if (Directory.Exists(Path.Combine(directory, "frames"))
+                || File.Exists(Path.Combine(directory, "result.json"))
+                || File.Exists(Path.Combine(directory, "progress.json")))
+                throw new InvalidOperationException("驗證輸出已包含既有探針證據。");
+            Directory.CreateDirectory(directory);
             Directory.CreateDirectory(Path.Combine(directory, "frames"));
+            WriteProgress("AcceptanceStarted");
             StartCoroutine(Guarded(Run()));
         }
         private void MarkInternal() => view.BannerText.text = "內部幾何測試・品質未核准";
@@ -57,7 +70,8 @@ namespace BrickHigh.PreviewEntry
         private IEnumerator Run()
         {
             Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
-            while (controller.State.IsLoading) yield return null;
+            float deadline = BeginWait("InitialCatalogLoad");
+            while (controller.State.IsLoading) { GuardWait(deadline, "InitialCatalogLoad"); yield return null; }
             Require(controller.State.Rows.Count > 0, "EmptyInitialCatalog");
             Require(UnityEngine.Application.companyName == "GameNenStyle" && UnityEngine.Application.productName == "BrickHighPreview", "ApplicationIdentity");
             var variants = controller.State.Rows.ToArray();
@@ -70,34 +84,53 @@ namespace BrickHigh.PreviewEntry
                 EventSystem.current.SetSelectedGameObject(null);
                 foreach (var target in new[] { view.SearchInput.gameObject, view.FamilyInput.gameObject, view.TierDropdown.gameObject })
                 {
-                    InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Tab));
-                    yield return null;
-                    yield return new WaitForEndOfFrame();
-                    Require(EventSystem.current.currentSelectedGameObject == target, "KeyboardTab:" + target.name);
-                    InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-                    yield return null;
+                    // 在新 Player 視窗失焦或首幀 InputSystem 尚未接收事件時，
+                    // 只對「沒有任何選取」重送最多三次實體 Update 經過的 Tab。
+                    // 若焦點落在錯誤元件，仍立即判定失敗，不能直接指定正確焦點。
+                    GameObject selected = null;
+                    for (int attempt = 0; attempt < 3; attempt++)
+                    {
+                        keyboard.MakeCurrent();
+                        InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Tab));
+                        yield return null;
+                        yield return new WaitForEndOfFrame();
+                        selected = EventSystem.current.currentSelectedGameObject;
+                        keyboard.MakeCurrent();
+                        InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                        yield return null;
+                        if (selected != null) break;
+                        yield return new WaitForEndOfFrame();
+                    }
+                    Require(selected == target, "KeyboardTab:" + target.name
+                        + ":actual=" + (selected == null ? "null" : selected.name));
                 }
+                keyboard.MakeCurrent();
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Tab, Key.LeftShift));
                 yield return null;
                 yield return new WaitForEndOfFrame();
                 Require(EventSystem.current.currentSelectedGameObject == view.FamilyInput.gameObject, "KeyboardReverseTab");
+                keyboard.MakeCurrent();
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState());
                 yield return null;
-                while (controller.State.IsLoading) yield return null;
+                deadline = BeginWait("KeyboardFilterLoad");
+                while (controller.State.IsLoading) { GuardWait(deadline, "KeyboardFilterLoad"); yield return null; }
                 EventSystem.current.SetSelectedGameObject(view.ResultViewport.content.GetChild(0).gameObject);
                 for (int i = 1; i < variants.Length; i++)
                 {
+                    keyboard.MakeCurrent();
                     InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.DownArrow));
                     yield return null;
                     yield return new WaitForEndOfFrame();
                     var selectedRow = EventSystem.current.currentSelectedGameObject;
                     Require(selectedRow != null && selectedRow.transform.parent == view.ResultViewport.content, "KeyboardRowFocus");
                     Require(selectedRow.GetComponentInChildren<Text>().text.StartsWith(variants[i].Name + " · "), "KeyboardRowIdentity");
+                    keyboard.MakeCurrent();
                     InputSystem.QueueStateEvent(keyboard, new KeyboardState());
                     yield return null;
                 }
                 yield return PressKeys(keyboard, Key.Enter);
-                while (controller.State.IsLoading) yield return null;
+                deadline = BeginWait("KeyboardSubmitVariant");
+                while (controller.State.IsLoading) { GuardWait(deadline, "KeyboardSubmitVariant"); yield return null; }
                 Require(controller.Instance != null && controller.State.SelectedDetails?.VariantId == variants.Last().VariantId,
                     "KeyboardSubmitVariant");
                 var resetPosition = camera.transform.position;
@@ -116,11 +149,18 @@ namespace BrickHigh.PreviewEntry
             foreach (var variant in variants)
             {
                 Task<bool> selected = controller.SelectAsync(variant.VariantId);
-                while (!selected.IsCompleted) yield return null;
-                Require(selected.GetAwaiter().GetResult() && controller.Instance != null, "ModelLoad:" + variant.Name + ":" + controller.State.ErrorCode);
+                string loadStage = "ModelLoad:" + variant.Name;
+                deadline = BeginWait(loadStage);
+                while (!selected.IsCompleted) { GuardWait(deadline, loadStage); yield return null; }
+                Require(selected.GetAwaiter().GetResult() && controller.Instance != null, loadStage + ":" + controller.State.ErrorCode);
                 yield return new WaitForEndOfFrame();
                 CheckGlyphs();
-                Require(controller.Instance.GetComponentsInChildren<Renderer>().All(r => r.sharedMaterials.All(m => m != null && m.shader != null && m.shader.isSupported)), "MissingMaterial");
+                var modelRenderers = controller.Instance.GetComponentsInChildren<Renderer>(true);
+                Require(modelRenderers.Length > 0 && modelRenderers.All(r =>
+                    r.sharedMaterials != null && r.sharedMaterials.Length > 0
+                    && r.sharedMaterials.All(m => m != null && m.shader != null
+                        && m.shader.isSupported && m.shader.name != "Hidden/InternalErrorShader")),
+                    "MissingMaterial");
                 Capture(variant, "initial");
                 var bounds = BoundsOf(controller.Instance);
                 float distance = Mathf.Max(bounds.extents.magnitude * 3.4f, .02f);
@@ -149,23 +189,46 @@ namespace BrickHigh.PreviewEntry
             }
             view.SearchInput.SetTextWithoutNotify("__沒有此模型__");
             view.SearchInput.onEndEdit.Invoke(view.SearchInput.text);
-            while (controller.State.IsLoading) yield return null;
+            deadline = BeginWait("EmptySearchState");
+            while (controller.State.IsLoading) { GuardWait(deadline, "EmptySearchState"); yield return null; }
             Require(controller.State.Rows.Count == 0 && view.StatusText.text.Contains("找不到"), "EmptySearchState");
             yield return new WaitForEndOfFrame();
             Capture(null, "empty-search");
             view.ClearButton.onClick.Invoke();
-            while (controller.State.IsLoading) yield return null;
+            deadline = BeginWait("ClearFilters");
+            while (controller.State.IsLoading) { GuardWait(deadline, "ClearFilters"); yield return null; }
             Require(controller.State.Rows.Count == variants.Length, "ClearFilters");
             var first = controller.SelectAsync(variants[0].VariantId);
-            while (!first.IsCompleted) yield return null;
+            deadline = BeginWait("ReloadAfterClear");
+            while (!first.IsCompleted) { GuardWait(deadline, "ReloadAfterClear"); yield return null; }
             Require(first.GetAwaiter().GetResult() && controller.Instance != null, "ReloadAfterClear");
             Screen.SetResolution(720, 960, FullScreenMode.Windowed);
             for (int i = 0; i < 4; i++) yield return new WaitForEndOfFrame();
             CheckGlyphs(); Capture(variants[0], "portrait");
             operations.Add("empty-search-clear-portrait");
+            WriteProgress("Completed");
             File.WriteAllText(Path.Combine(directory, "result.json"), Report(true, null).ToString());
             view.Dispose();
             UnityEngine.Application.Quit(0);
+        }
+        private float BeginWait(string stage, float timeoutSeconds = 30f)
+        {
+            WriteProgress(stage);
+            return Time.realtimeSinceStartup + timeoutSeconds;
+        }
+        private static void GuardWait(float deadline, string stage)
+        {
+            if (Time.realtimeSinceStartup > deadline) throw new TimeoutException(stage);
+        }
+        private void WriteProgress(string stage)
+        {
+            if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory)) return;
+            File.WriteAllText(Path.Combine(directory, "progress.json"), new JObject {
+                ["stage"] = stage, ["frameCount"] = frame, ["captureCount"] = captures.Count,
+                ["operationCount"] = operations.Count, ["realtimeSeconds"] = Time.realtimeSinceStartup,
+                ["lastActivityAt"] = DateTime.UtcNow.ToString("O"),
+                ["isFocused"] = UnityEngine.Application.isFocused, ["runInBackground"] = UnityEngine.Application.runInBackground
+            }.ToString());
         }
         private JObject Report(bool success, string error) => new JObject {
             ["success"] = success, ["error"] = error, ["purpose"] = "F-Catalog", ["readyAsset"] = false, ["visualApproved"] = false,
@@ -181,15 +244,18 @@ namespace BrickHigh.PreviewEntry
             ["operations"] = operations, ["captures"] = captures };
         private static IEnumerator PressKeys(Keyboard keyboard, params Key[] keys)
         {
+            keyboard.MakeCurrent();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys));
             yield return null;
             yield return new WaitForEndOfFrame();
+            keyboard.MakeCurrent();
             InputSystem.QueueStateEvent(keyboard, new KeyboardState());
             yield return null;
             yield return new WaitForEndOfFrame();
         }
         private void Capture(VariantDetails variant, string name)
         {
+            WriteProgress("Capture:" + (variant?.Name ?? "none") + ":" + name);
             var image = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
             var previousTarget = RenderTexture.active;
             RenderTexture.active = null;
