@@ -66,3 +66,7 @@
 3. DB：sqllite、檔案庫：clourflare R2 Object
 
 4. 佈署環境：全部都在 cloudflare 上
+
+### 設計需求
+
+1. 本地也要能有localdb可以測試、查看修改資料
