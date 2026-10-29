@@ -4,7 +4,7 @@
 > **SPEC 來源**: [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md)
 > **MVP 來源**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 > **生成日期**: 2026-10-25
-> **修訂日期**: 2026-10-29；補記 MVP D-029～D-031 的名片業務邊界；2026-10-27 D-017／D-018 及認證機制精簡決策 D-019～D-028 的場景維持。
+> **修訂日期**: 2026-10-29；現行版本已由使用者確認並完成開發交接，補記 MVP D-029～D-031 的名片業務邊界；D-017～D-028 的 92 個場景維持。
 > **階段**: 依使用者確認 SDD 產生規劃文件；未實作、未執行應用測試。
 
 ---
@@ -1697,5 +1697,5 @@ Feature: PlatformFoundation 帳號、Session、資料及部署基礎
 - [實作前風險稽核](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) — 文件包缺漏與風險決策。
 
 **生成者**: AI
-**最後更新**: 2026-10-27
-**狀態**: ✅ 已依 D-019～D-028 精簡修訂規劃文件；⏸️ 實作與測試未開始；尚未宣告 Ready for well-done。
+**最後更新**: 2026-10-29
+**狀態**: ✅ 現行版本已由使用者確認，Ready for well-done；92 個場景規劃維持；⏸️ 實作與測試未開始。

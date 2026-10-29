@@ -2,9 +2,9 @@
 
 **功能 ID**: MVP-001
 **優先級**: 高
-**狀態**: 需求與八份 SPEC 切分／原 SDD 已確認；2026-10-29 親密度更名及交換名片（D-029 至 D-031）已依使用者確認回寫；PlatformFoundation 認證修訂的既有交接狀態維持
-**最後更新**: 2026-10-29（親密度更名、25 分交換名片與需求追溯同步）
-**規劃範圍**: `datinghigh`；本次更新 MVP 的名稱、交換名片需求與八份 SPEC 分工，並同步既有 PlatformFoundation 文件包的責任邊界及追溯統計。D-017／D-018 已回寫、D-019 至 D-028 精簡已同步回寫，認證修訂交接仍為 Blocked（待該次修訂確認）；尚未進入程式碼實作。
+**狀態**: 2026-10-29 使用者以「同意目前版本」確認現行文件包；需求與八份 SPEC 切分、D-017 至 D-031 的修訂已確認；PlatformFoundation 為 Ready for well-done
+**最後更新**: 2026-10-29（現行版本確認、PlatformFoundation 開發交接就緒）
+**規劃範圍**: `datinghigh`；MVP 的親密度名稱、交換名片需求及八份 SPEC 分工已回寫，既有 PlatformFoundation 文件包的責任邊界與追溯統計已同步。D-017 至 D-028 認證修訂及風險取捨已獲現行版本確認，交接為 Ready for well-done；尚未進入程式碼實作。
 
 ## 需求概述
 
@@ -518,11 +518,12 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 - 來源：`datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md`。
 - 進入 SDD 前已依完整名稱檢查文件包，沒有 `SPEC-001-PlatformFoundation` 的進行中或已歸檔文件可沿用，無已歸檔 SPEC 需要跳過。
 - 2026-10-24 使用者確認整份 MVP 與八份 SPEC 的切分順序；D-001 至 D-003 亦已確認。
-- 本輪產出 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md)，SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 修訂，並依 D-019 至 D-028 精簡認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄），待本次修訂文件確認；其他七份 SPEC 尚未生成。
+- 本輪產出 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md)，SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 修訂，並依 D-019 至 D-028 精簡認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄）；現行修訂版已於 2026-10-29 由使用者確認。其他七份 SPEC 尚未生成。
 - [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md) 與 [TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md) 已依 D-019 至 D-028 完成同步精簡重整，定稿為 **92 個唯一 BDD 場景**（含 25 個 `@frontend`；`PF-BDD-006`、`PF-BDD-073` 已依 D-023 移除不重編）與 **227 個唯一 TDD 測試案例**（117 Unit、35 Integration、51 API、24 E2E；`PF-API-007..009` 已依 D-023 移除不重編），100% 雙向追溯；實作與應用測試進度為 0%。
-- [實作前風險稽核](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) 原列 3 高／8 中／2 低及 14 組位置；2026-10-27 依 D-017／D-018 回寫，其後依 D-019 至 D-028 完成全套同步更新（對齊 37 條 `PF-AC`、92 個 BDD 場景、227 個 TDD 案例、17 組端點、6 表 54 欄）：被移除機制對應的項目已改寫為精簡後契約，並納入 Refresh 30 秒寬限重放、背景分頁 409 重讀、Google 非 gmail 網域與單一 HMAC 秘密等取捨說明。Q1／Q2 皆已明確，交接 `Blocked` 僅因本次修訂文件需最終檢視確認。
+- [實作前風險稽核](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) 原列 3 高／8 中／2 低及 14 組位置；2026-10-27 依 D-017／D-018 回寫，其後依 D-019 至 D-028 完成全套同步更新（對齊 37 條 `PF-AC`、92 個 BDD 場景、227 個 TDD 案例、17 組端點、6 表 54 欄）：被移除機制對應的項目已改寫為精簡後契約，並納入 Refresh 30 秒寬限重放、背景分頁 409 重讀、Google 非 gmail 網域與單一 HMAC 秘密等取捨說明。Q1／Q2 及現行修訂版均已確認；2026-10-29 交接更新為 `Ready for well-done`，無待使用者確認的產品／風險議題。
 - 2026-10-27 認證修訂僅處理 `SPEC-001-PlatformFoundation`；該次修訂確認後完成交接，不自動規劃下一份 SPEC 或進入程式實作。
 - 2026-10-29 依使用者確認新增 D-029 至 D-031 與 `US-020`／六條驗收，統一親密度名稱，補齊 25 分交換名片、配對前資料來源、雙方同意、可重送與拒絕不改分。MVP 現為 20 個故事／61 條驗收；既有 PlatformFoundation 文件包僅同步責任邊界與總體需求統計，仍為 37 條 PF-AC／92 個 BDD／227 個 TDD，尚不涵蓋名片業務驗收。名片由後續既定 SPEC 承接，未產生新業務 SPEC／BDD／TDD 或程式碼。
+- 2026-10-29 使用者以「同意目前版本」確認現行五份文件包及已記錄風險取捨；確認紀錄已持久化於 TDD「規劃交接紀錄」，PlatformFoundation 交接為 `Ready for well-done`，規劃阻斷項為無。下一階段由 `well-done` 接手本份平台基礎的實作與驗收，Google／真寄信／iOS 等環境證據仍須實作期間取得。
 - 後續每份 SPEC 需逐條引用本表的用戶故事與驗收條件，再連到完整名稱相符的 BDD Scenario 與 TDD 測試；共用編號 `001` 不代表同一份文件包。
 
 ## 建議 SPEC 切分

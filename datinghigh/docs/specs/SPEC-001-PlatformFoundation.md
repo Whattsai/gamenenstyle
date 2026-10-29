@@ -4,8 +4,8 @@
 **關聯需求**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 **優先級**: 高
 **負責人**: 後續由 `well-done` 承接實作；產品方案由使用者確認
-**狀態**: 原SDD已於2026-10-25確認；2026-10-27單一登入／不加固定等待修訂及認證機制精簡（D-019～D-028）已回寫，待本次修訂確認；未實作
-**最後更新**: 2026-10-29（同步 MVP 親密度更名與交換名片責任邊界；認證契約不變）
+**狀態**: 原 SDD 及 D-017～D-028 修訂已確認；2026-10-29 使用者以「同意目前版本」確認現行文件包，Ready for well-done；未實作
+**最後更新**: 2026-10-29（現行版本確認與開發交接；親密度／名片責任邊界維持）
 **建議實作順序**: 本 MVP 第 1 順位
 **前置 SPEC**: 無
 **本輪邊界**: 本份 SDD 已由使用者確認，本輪續作同名 BDD／TDD 與實作前風險稽核；風險確認與交接後停止，不自動進入其他 SPEC。
@@ -800,7 +800,7 @@ Google 按鈕遵守品牌要求；SDK 結果經後端驗證並完成登入／建
 
 後續測試依 TDD 文件執行；本份先規定必要邊界，不把預期測試數或未執行測試寫成 Passed。
 
-## 風險與待確認的 SDD 決策
+## 風險與已確認的 SDD 決策
 
 下表是本份 SDD 的初步風險，並非已完成的 `pre-implementation-risk-gap-audit`。2026-10-25 已完成同名 [實作前風險稽核](SPEC-001-PlatformFoundation-RiskAudit.md)，並於 2026-10-27 依 D-017～D-028 重新評估（詳見該檔）。
 
@@ -833,14 +833,14 @@ Google 按鈕遵守品牌要求；SDK 結果經後端驗證並完成登入／建
 - **D-022 原子性簡化**：移除額外 marker／version 欄位與故意違反約束的 guard，改為同 batch 寫入共用前置條件、消耗挑戰放最後一句。
 - **D-023～D-025 Google 與第三方簡化**：首次 Google 登入（Email 為 gmail.com 或 hd 相符）直接建帳回 201，不再收驗證碼；identity 僅 `(provider, subject)`、每 provider 一個 validator；連結不需密碼、不增加 cv、不踢登出，解除仍需密碼並增加 cv。
 - **D-026～D-028 驗證碼、限流與傳輸簡化**：移除投遞狀態機（註冊寄送失敗回 503，忘記密碼仍回通用 202）、單一 `EMAIL_CODE_HMAC_KEY` 與 `RATE_LIMIT_HMAC_KEY`、限流政策改靜態常數且不預建未來業務政策、傳輸判定縮為兩條規則。六表合計由 66 欄降為 54 欄。
-- 本次修訂已回寫，依 perfect-plan 等待確認後交接；未實作、未執行應用測試。
+- 本次修訂已回寫；2026-10-29 使用者以「同意目前版本」完成修訂版及已記錄風險取捨的確認，交接為 `Ready for well-done`；未實作、未執行應用測試。
 
 ## 相依、後續文件與階段狀態
 
 - 來源 MVP 已於 2026-10-24 確認需求與八份切分，並於 2026-10-27 同步回寫 D-001～D-028。
 - 所有後續功能依賴本份的 `AccountId`、`CurrentUser`、UUIDv7 第一欄主鍵與功能前綴命名規則、provider 通用模型、私人資料契約、本地環境、`IRateLimiter` 介面及部署方式；不得用共用 `SPEC-001` 編號混淆文件包。
 - 本份完成後的下一個實作依賴為 `SPEC-001-AvatarAndPreferences`，但本輪不自動產出其 SDD。
-- 已同步更新 [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md)、[TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md) 及 [RiskAudit](SPEC-001-PlatformFoundation-RiskAudit.md)；37 條 PF-AC（編號不變）與精簡後的 BDD／TDD 場景具測試規劃追溯。狀態為 `Blocked：待本次修訂確認`，不自行開始開發。
+- 已同步更新 [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md)、[TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md) 及 [RiskAudit](SPEC-001-PlatformFoundation-RiskAudit.md)；37 條 PF-AC（編號不變）與精簡後的 92 個 BDD／227 個 TDD 具測試規劃追溯。2026-10-29 現行版本已確認，狀態為 `Ready for well-done`，規劃阻斷項為無，由 `well-done` 接手本份實作與驗收。
 - 本輪只更新規劃 Markdown，未建立應用程式碼、資料表、雲端資源，未執行應用測試或部署。
 
 ## 參考資料

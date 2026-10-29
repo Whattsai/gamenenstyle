@@ -3,7 +3,7 @@
 > **來源 BDD**：[SPEC-001-PlatformFoundation-BDD.md](../bdd/SPEC-001-PlatformFoundation-BDD.md)
 > **來源 SPEC**：[SPEC-001-PlatformFoundation.md](../specs/SPEC-001-PlatformFoundation.md)
 > **來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)
-> **生成／更新日期**：2026-10-29（同步 MVP D-029～D-031 名片業務邊界；2026-10-27 D-017／D-018 及認證精簡 D-019～D-028 的案例維持）
+> **生成／更新日期**：2026-10-29（現行版本已確認，Ready for well-done；MVP D-029～D-031 名片業務邊界及 D-017～D-028 的 227 個案例維持）
 > **範圍**：僅 SPEC-001-PlatformFoundation。測試案例為規劃，未建立程式、未執行應用測試。既有測試編號不重編（`PF-API-007..009` 因移除外部註冊收件碼端點而刪減，缺號不補）。
 
 2026-10-29 MVP 新增 `US-020`／`AC-020-01..06`，並將總體好感度更名為「親密度」。名片沿用配對前資料，25 分只控制入口顯示，邀請可重送，雙方同意才揭露，拒絕不改分，終止後不得完成待處理交換。欄位、交換／揭露及終止邊界由後續 AvatarAndPreferences／AffectionAndFeedback／StoryDialogueAndExit 文件包驗收；本份維持 227 個認證與平台基礎案例，不宣稱涵蓋 US-020，不新增名片端點、業務表或登入帳號資料揭露。
@@ -1372,21 +1372,26 @@
 
 ## 規劃交接紀錄
 
-**交接狀態**：Blocked（待本次 D-019～D-028 精簡修訂文件確認）
-**最後決策日期**：2026-10-27（D-017／D-018 及 D-019～D-028「全套精簡」已明確；五份文件已同步更新待檢視確認）
+**交接狀態**：Ready for well-done
+**最後確認日期**：2026-10-29
+**最後決策日期**：2026-10-29（使用者以「同意目前版本」確認現行五份文件包及已記錄風險取捨；D-017～D-028 認證修訂及 D-029～D-031 需求回寫已確認）
 **本輪成果**：92 個 BDD 場景（25 個 `@frontend`）、227 個唯一測試規劃（117 Unit＋35 Integration＋51 API＋24 E2E）、37 條 PF-AC、17 組 API 端點、6 張表 54 欄；實作與應用測試執行 0%。
+
+本次開發基準為 `SPEC-001-PlatformFoundation`，僅涵蓋平台／認證基礎。`US-020` 交換名片仍由後續業務文件包承接，不計入本份 227 案的完成度。既有技術假設須以實作與測試驗證，確認設計不等於測試已通過。
 
 ### 文件包
 
 | 類型 | 路徑 | 狀態 |
 |---|---|---|
-| MVP | [MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md) | 原需求／八份切分已確認；D-017～D-028 已回寫 |
-| SPEC | [SPEC-001-PlatformFoundation.md](../specs/SPEC-001-PlatformFoundation.md) | 本 MVP 第 1 順位、無前置 SPEC；已同步 D-017～D-028 精簡契約（6 表 54 欄、17 組端點） |
-| BDD | [SPEC-001-PlatformFoundation-BDD.md](../bdd/SPEC-001-PlatformFoundation-BDD.md) | 92 個唯一 ID（`006`、`073` 已移除不重編）／25 個 frontend／九路由；已同步本次精簡行為 |
-| TDD | 本文件 | 117 Unit＋35 Integration＋51 API＋24 E2E＝227 案（`PF-API-007..009` 已移除不重編）；92 場景映射更新 |
-| RiskAudit | [SPEC-001-PlatformFoundation-RiskAudit.md](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) | 已同步 D-017～D-028 風險重評與統計數據 |
+| MVP | [MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md) | 2026-10-29 已確認現行需求／八份切分及 D-017～D-031 回寫（20 故事／61 驗收） |
+| SPEC | [SPEC-001-PlatformFoundation.md](../specs/SPEC-001-PlatformFoundation.md) | 2026-10-29 已確認修訂版；本 MVP 第 1 順位、無前置 SPEC；D-017～D-028 精簡契約為開發基準（6 表 54 欄、17 組端點） |
+| BDD | [SPEC-001-PlatformFoundation-BDD.md](../bdd/SPEC-001-PlatformFoundation-BDD.md) | 已生成並追溯；92 個唯一 ID（`006`、`073` 已移除不重編）／25 個 frontend／九路由；實作未開始 |
+| TDD | 本文件 | 已補強；117 Unit＋35 Integration＋51 API＋24 E2E＝227 案（`PF-API-007..009` 已移除不重編）；92 場景映射維持，未執行 |
+| RiskAudit | [SPEC-001-PlatformFoundation-RiskAudit.md](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) | 2026-10-29 已確認處理方案及已記錄風險取捨；13 組缺漏已補回、1 組接受剩餘風險 |
 
-### 決策與風險處理紀錄
+### 已確認風險與決策處理紀錄
+
+2026-10-29 使用者已確認現行版本；以下方案、回寫位置及已列明的取捨均為開發依據，無待確認項目。實作時仍須驗證安全不變條件，不能因設計已確認而省略失敗／競態測試。
 
 | 風險／決策 | 使用者決策或處理依據 | 文件回寫位置 | 開發注意事項 |
 |---|---|---|---|
@@ -1398,6 +1403,11 @@
 | D-026／D-027／D-028 | 移除投遞狀態機（sender 逾時 10 秒，註冊失敗回 503 `EMAIL_DELIVERY_FAILED`）；單一 HMAC 秘密全由 .NET 雜湊＋靜態 `RateLimitPolicies`；兩條傳輸規則 | SPEC 寄信／限流／傳輸節；BDD 002/036/040/056..059；UT 017/018/043/044/055..060、IT 017..020/033 | Worker 以 `X-DatingHigh-Internal-Client-Ip` 傳正規化 IP；帶 `Origin` 必為 `web`，依 `clientPlatform` 讀取對應來源並忽略另一來源 |
 | PF-AUD-L1／L2 | 記錄為實作驗收注意事項 | RiskAudit 低風險表、Schema、平台／staging 驗收 | 保留版本鎖定、六表 54 欄、第一欄 UUIDv7 與 `idx_auth_sessions_active_account` partial UNIQUE |
 
+### 已補回缺漏
+
+- `PF-GAP-01..13`：13 組技術缺漏已補回對應 SPEC／BDD／TDD；逐項位置及斷言見本文件「2026-10-27 實作前稽核補強與 D-019～D-028 精簡回寫」表與 RiskAudit 第三節。這是測試規劃已補強，應用測試尚未執行。
+- `PF-GAP-14`：依 D-018 接受忘記密碼的剩餘時間差風險，已回寫通用回應／不加人為等待的驗收及測試斷言；位置見同表第 14 組。
+
 ### 實作注意事項
 
 - 六表 54 欄、首欄 UUIDv7、`auth_`／`common_` 前綴、provider 通用性維持；保留 `idx_auth_sessions_active_account` partial UNIQUE，不導入 Identity／EF，不恢復 `auth_challenges`／`platform_metadata`。
@@ -1408,4 +1418,6 @@
 
 ### 不得進入開發的阻斷項
 
-1. 本次 D-019～D-028 認證機制精簡已同步五份規劃文件，待使用者檢視確認修訂版。確認後即可將本交接更新為 Ready for well-done 並由 well-done 接手實作。
+- 無
+
+2026-10-29「同意目前版本」已解除修訂文件最終確認的交接阻斷，下一階段由 `well-done` 接手本份實作與驗收。Google client／簽章、Cloudflare 資源／真寄信、iOS build 與真裝置等為實作期間的環境檢查及驗收工作，不是未決產品選項，也不代表已取得對應驗證證據。
