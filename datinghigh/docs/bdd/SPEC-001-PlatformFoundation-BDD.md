@@ -4,7 +4,7 @@
 > **SPEC 來源**: [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md)
 > **MVP 來源**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 > **生成日期**: 2026-10-25
-> **修訂日期**: 2026-10-27；依 D-017／D-018 及認證機制精簡決策 D-019～D-028 同步修訂。
+> **修訂日期**: 2026-10-29；補記 MVP D-029～D-031 的名片業務邊界；2026-10-27 D-017／D-018 及認證機制精簡決策 D-019～D-028 的場景維持。
 > **階段**: 依使用者確認 SDD 產生規劃文件；未實作、未執行應用測試。
 
 ---
@@ -16,6 +16,8 @@
 作為使用者，我想在 iOS、Android、Web 使用同一份可復原帳號；作為開發者與維護者，我想在自己磁碟查改本地資料並以真實 Cloudflare 接線驗收，以便後續功能沿用可信身分與持久化邊界。
 
 本份只承接 PlatformFoundation。US-002／US-006 僅驗權限及私人資料契約，US-013 僅驗帳號基本流程與視覺骨架；其餘七份 SPEC 的化身、配對、劇情、分數、問卷、遊戲、約會與告白仍未完成，不建立可誤認為完成的 demo。
+
+MVP 於 2026-10-29 依 D-029～D-031 統一將總體好感度更名為「親密度」，新增 `US-020` 的 25 分交換名片、配對前個人資料、雙方同意、可重送及拒絕不改分。欄位由 AvatarAndPreferences、交換／揭露由 AffectionAndFeedback、終止邊界由 StoryDialogueAndExit 承接；本份 92 個場景不含名片業務驗收，既有登入 Email 與私人資料保護不因新增需求而放寬。
 
 **閱讀規則**：PF-BDD ID 為穩定追溯 ID，**既有編號不重編**；其中 `PF-BDD-006` 與 `PF-BDD-073` 因 D-023 決定首次 Google 登入直接建帳（不再走外部註冊收件碼驗證）而移除，缺號不補，全文件共 **92 個唯一 Scenario**（含 **25 個 `@frontend` Scenario**）。每個場景均為未實作 checklist。「逐一」列出的輸入／故障是全部必驗資料列，後續 TDD 不能只測一例。BDD 的繁中 UI 文案是呈現層細化，不新增未定義 API code。技術故障場景以精確 HTTP／code／副作用驗收，產品文案見相應前端場景。
 

@@ -3,8 +3,10 @@
 > **來源 BDD**：[SPEC-001-PlatformFoundation-BDD.md](../bdd/SPEC-001-PlatformFoundation-BDD.md)
 > **來源 SPEC**：[SPEC-001-PlatformFoundation.md](../specs/SPEC-001-PlatformFoundation.md)
 > **來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)
-> **生成／更新日期**：2026-10-27（依 D-017／D-018 及認證機制精簡決策 D-019～D-028 修訂）
+> **生成／更新日期**：2026-10-29（同步 MVP D-029～D-031 名片業務邊界；2026-10-27 D-017／D-018 及認證精簡 D-019～D-028 的案例維持）
 > **範圍**：僅 SPEC-001-PlatformFoundation。測試案例為規劃，未建立程式、未執行應用測試。既有測試編號不重編（`PF-API-007..009` 因移除外部註冊收件碼端點而刪減，缺號不補）。
+
+2026-10-29 MVP 新增 `US-020`／`AC-020-01..06`，並將總體好感度更名為「親密度」。名片沿用配對前資料，25 分只控制入口顯示，邀請可重送，雙方同意才揭露，拒絕不改分，終止後不得完成待處理交換。欄位、交換／揭露及終止邊界由後續 AvatarAndPreferences／AffectionAndFeedback／StoryDialogueAndExit 文件包驗收；本份維持 227 個認證與平台基礎案例，不宣稱涵蓋 US-020，不新增名片端點、業務表或登入帳號資料揭露。
 
 ---
 
