@@ -1,0 +1,333 @@
+{
+  "web": {
+    "status": "passed",
+    "kind": "account-flow",
+    "executedAt": "2026-10-31T15:36:09.280Z",
+    "reference": "tests/e2e/web; .local/evidence/web-final-local-summary.json; .local/evidence/web-final-local-initial.json; .local/evidence/web-screen-final-passed.json",
+    "notes": "Final export: full suite82 passed, one accessibility focus test failed and reproduced. Corrected test to wait for destination heading before same-labelled field focus; independently passed. No production source changed between runs, all83 distinct cases now have pass evidence. Original failure retained; not a clean full83 run. Actual Cookie/local API/Worker/D1 plus isolated controlled SDK/sender faults; real Google separately recorded. No iOS/inbox claim.",
+    "regression": {
+      "status": "passed",
+      "executedAt": "2026-10-30T15:15:33.351Z",
+      "reference": "tests/e2e/web/google-recovery.spec.ts; tests/e2e/web/worker-cors.spec.ts; .local/evidence/web-strict-eight-passed.json",
+      "notes": "6 controlled Google recovery/race cases and 2 browser CORS cases passed individually and in final full60."
+    },
+    "pendingForms": {
+      "status": "passed",
+      "executedAt": "2026-10-30T21:47:59.958Z",
+      "reference": "tests/e2e/web/pending-navigation.spec.ts; .local/evidence/web-pending-navigation-passed.json",
+      "notes": "Register, verify, login and reset each suppress duplicate submission and navigation while a real API operation is pending."
+    },
+    "backGuardRegression": {
+      "status": "passed",
+      "executedAt": "2026-10-30T22:15:06.346Z",
+      "reference": ".local/evidence/web-back-guard-15-of-16.json; .local/evidence/web-visual-final-passed.json; tests/e2e/web/foundation.spec.ts; tests/e2e/web/google-recovery.spec.ts; tests/e2e/web/pending-navigation.spec.ts",
+      "notes": "15 cases passed after the Android back guard; initial visual case timed out waiting 5s for real cold restore, then separately passed with a wait covering the 45s first request plus one 30s read retry. Original failure retained."
+    },
+    "accessibilityScreens": {
+      "status": "passed",
+      "kind": "small-screen-label-focus-reachability",
+      "executedAt": "2026-10-31T02:56:10.528Z",
+      "reference": "tests/e2e/web/screen-accessibility.spec.ts; .local/evidence/web-screen-accessibility.log",
+      "notes": "Chrome 360x640 reduced motion: labelled fields, focus, reachability and button dimensions across account screens."
+    },
+    "googleStorage": {
+      "status": "passed",
+      "kind": "controlled-sdk-browser-sinks",
+      "executedAt": "2026-10-31T02:56:10.528Z",
+      "reference": "tests/e2e/web/google-recovery.spec.ts; .local/evidence/web-google-storage.log",
+      "notes": "Controlled Google credential marker absent from browser storage, URL, resource URL and console. Not proof about third-party SDK internal storage."
+    },
+    "recoveryScreen": {
+      "status": "passed",
+      "kind": "cold-account-error-retry",
+      "executedAt": "2026-10-31T03:22:00.000Z",
+      "reference": "tests/e2e/web/restore-recovery.spec.ts; .local/evidence/bdd-085-web-recovery-final.log; .local/evidence/web-recovery-regression.log",
+      "notes": "Controlled 503 on actual browser and isolated API: trace and retry shown, no fabricated account, successful retry restores existing owner."
+    },
+    "dependencyRegression": {
+      "status": "passed",
+      "kind": "updated-sdk-core-account-flow",
+      "executedAt": "2026-10-31T16:12:22.205Z",
+      "reference": ".local/evidence/web-security-final-eight-passed.json; .local/evidence/web-security-20261101-final.log",
+      "cases": 8,
+      "notes": "Final Expo/router versions exported and actual local Cookie/register/reset/refresh/logout/replacement and keyboard/reachability passed. Earlier full83 evidence remains separately recorded."
+    }
+  },
+  "android": {
+    "status": "passed",
+    "kind": "development-account-flow",
+    "executedAt": "2026-10-29T16:55:15.625Z",
+    "reference": "tests/e2e/android/smoke.mjs; .local/evidence/android-smoke.json; .local/android-build.log",
+    "notes": "API36 emulator: registration, SecureStore cold restore, logout, password login and replacement clear passed; real Google and full native UX matrix excluded",
+    "controlledFaults": {
+      "status": "passed",
+      "executedAt": "2026-10-30T03:56:25.681Z",
+      "reference": "tests/e2e/android/faults.test.mjs; tests/native/secure-store.js; .local/evidence/native-faults.json",
+      "notes": "Development-only SDK boundary fault profile delegates successful operations to actual SecureStore; real API/Worker/D1 with controlled response faults. Does not cover iOS, Google or all native UX parameters."
+    },
+    "resetMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T15:12:06.945Z",
+      "reference": "tests/e2e/android/forms-matrix.test.mjs; .local/evidence/native-reset-partial.json; .local/evidence/native-reset-seven-passed-one-cancelled.json; .local/evidence/native-reset-none-success-passed.json",
+      "notes": "All nine local/Google-only/unknown account x success/failure/timeout request/resend cases passed via actual API/Worker/D1 and SecureStore. Prior cancellation remains recorded; final none/success independently passed."
+    },
+    "recoveryMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T13:05:29.918Z",
+      "reference": "tests/e2e/android/recovery-matrix.test.mjs; .local/evidence/native-recovery-matrix.json",
+      "notes": "4 actual native normal/pending/lost/manual/cold logout and replacement preservation cases passed."
+    },
+    "retryMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T21:37:56.899Z",
+      "reference": "tests/e2e/android/retry-matrix.test.mjs; .local/evidence/native-retry-17-passed-one-failed.json; .local/evidence/native-warm-mutation-final.json",
+      "notes": "17 cases from initial run plus one independent warm mutation rerun passed. Initial UI-read failure and first failed rerun retained. Server measures abort from request arrival with bounded transport allowance; exact 45/30-second client timers verified separately on both platforms using fake timers."
+    },
+    "layout": {
+      "status": "passed",
+      "executedAt": "2026-10-30T21:56:43.042Z",
+      "reference": "tests/e2e/android/forms-matrix.test.mjs; .local/evidence/native-layout-retry.json; .local/evidence/native-layout-retry.log",
+      "notes": "API36 emulator: 1.3/2.0 font scales and landscape; actual keyboard visibility, scroll reachability and 44dp touch target. Original ENOBUFS results kept separately; OS settings restored after each."
+    },
+    "accountMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T22:00:00.704Z",
+      "reference": "tests/e2e/android/account-matrix.test.mjs; .local/evidence/native-account-reset-passed-login-failed.json; .local/evidence/native-account-login-retry.json",
+      "notes": "Controlled real API/D1: same invalid/unknown login wording and owner/empty identity; invalid/expired reset, committed-lost response not replayed, historical Access/Refresh rejected and new password login. Initial input failure retained."
+    },
+    "identityMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T22:07:05.389Z",
+      "reference": "tests/e2e/android/identity-matrix.test.mjs; .local/evidence/native-identity-first-run.json; .local/evidence/native-identity-link-rerun.json",
+      "notes": "Controlled SDK boundary with actual native Screen, API and D1: direct link preserves family; wrong password rejects, valid unlink increments credential version, old family becomes invalid and replacement login revokes old row. Google-only flow requires setting Email password and preserves the Google identity. Initial incorrect physical-revocation assertion retained."
+    },
+    "pendingMatrix": {
+      "status": "passed",
+      "executedAt": "2026-10-30T22:21:26.773Z",
+      "reference": "tests/e2e/android/pending-matrix.test.mjs; frontend/client/src/pending-back-guard.ts; .local/evidence/native-pending-after-back-fix.json; .local/evidence/native-pending-before-back-fix.json",
+      "notes": "Real Android UI/API/D1 registration, verification, login and reset: double taps and hardware back during delayed request do not cancel or replay; first run reproduced login activity exit/cancellation, corrected with a temporary back guard."
+    },
+    "accessibilityScreens": {
+      "status": "passed",
+      "kind": "label-and-reachability",
+      "executedAt": "2026-10-31T02:53:35.215Z",
+      "reference": "tests/e2e/android/forms-matrix.test.mjs; .local/evidence/native-accessibility-screens-passed.json",
+      "notes": "API36 emulator: labels, scroll reachability and minimum button height on register, verification, account, password, connections, login, recovery and reset screens. Does not claim TalkBack or iOS."
+    },
+    "talkback": {
+      "status": "deferred-by-user",
+      "kind": "screen-reader",
+      "notes": "2026-10-31 user chose to skip TalkBack for now. Accessibility-node checks are recorded separately and do not claim a screen-reader run."
+    },
+    "recoveryScreen": {
+      "status": "passed",
+      "kind": "cold-account-error-retry",
+      "executedAt": "2026-10-31T03:26:57.000Z",
+      "reference": "tests/e2e/android/forms-matrix.test.mjs; .local/evidence/bdd-085-native-passed.json",
+      "notes": "API36 emulator and isolated API: cold read 503 displays trace and no owner, retry after cleared credential returns to login with invalid-session notice."
+    },
+    "crossPlatformEmail": {
+      "status": "passed",
+      "kind": "same-owner-web-android-email",
+      "executedAt": "2026-10-31T15:21:27.453Z",
+      "reference": "tests/e2e/android/cross-platform-email.test.mjs; .local/evidence/cross-platform-email.json; .local/evidence/cross-platform-email.log",
+      "notes": "Actual Web login then Android password login use one owner; D1 has only the native active family and Web foreground clears revoked account."
+    },
+    "secureStoreLogoutRace": {
+      "status": "passed",
+      "kind": "real-store-delayed-successor-logout",
+      "executedAt": "2026-10-31T12:09:53.888Z",
+      "reference": "tests/e2e/android/recovery-matrix.test.mjs; .local/evidence/bdd-054-native-race-passed.json; .local/evidence/bdd-054-native-race-final.log",
+      "notes": "Actual Android SecureStore successor delayed during logout: hide private UI, wait then revoke, cold restart never restores old session. Failure/timeout/new-family branches additionally covered by client unit tests."
+    },
+    "dependencyRegression": {
+      "status": "passed",
+      "kind": "updated-apk-real-sdk-lifecycle",
+      "executedAt": "2026-10-31T16:46:37.513Z",
+      "reference": ".local/evidence/android-security-apk.json; .local/evidence/android-security-build-20261101-final.log; .local/evidence/native-google-security-20261101.json",
+      "apkSha256": "9d308f2a8e5c2173275f1e8572d6c8db830d5429f01154c7762bbf0227f1fcc1",
+      "notes": "Updated APK installed with unchanged Debug certificate. Initial -r update lacked emulator storage; keep-data replacement only for com.datinghigh.app succeeded. Three Google UI attempts cancelled with no API; emulator had no network route/DNS. Reconnected its existing virtual Wi-Fi, then same APK passed real Google first201, cold refresh200, logout204 and no cold revival. No Google account or other app data removed; failures retained."
+    }
+  },
+  "ios": {
+    "status": "deferred-by-user",
+    "kind": "development-account-flow",
+    "notes": "2026-10-30 user explicitly deferred iOS acceptance (D-033); no iOS run is claimed."
+  },
+  "staging": {
+    "status": "deferred-by-user",
+    "kind": "worker-container-d1-r2",
+    "executedAt": "2026-10-29T10:00:00Z",
+    "reference": "cloudflare/wrangler.staging.jsonc",
+    "notes": "D-035: user limited this round to local acceptance; cloud deployment deferred without upgrading the account. Previous D1/R2 setup is not container acceptance."
+  },
+  "google": {
+    "status": "unverified",
+    "kind": "real-first-and-existing",
+    "notes": "User confirmed real Web first/repeated and Android existing native SDK Google sign-in locally. Original staging first-registration/other platform and identity-management acceptance remains unverified; iOS deferred D-033.",
+    "localKeyBridge": {
+      "status": "passed",
+      "executedAt": "2026-10-30T15:18:56.718Z",
+      "reference": "cloudflare/tests/google-keys.test.ts; backend/tests/DatingHigh.Unit.Tests/Security/GoogleCredentialValidatorTests.cs; .local/evidence/google-redirect-green.log; .local/evidence/google-readiness.json",
+      "notes": "Fixed HTTPS GET, manual redirect rejection, no caller URL/credential; actual private bridge returned200 with public keys; actual API rejects invalid proof401. Not a real login."
+    },
+    "web": {
+      "status": "passed",
+      "kind": "real-account-login",
+      "executedAt": "2026-10-30T15:26:59.727Z",
+      "reference": "docs/verification/SPEC-001-PlatformFoundation-Verification.md#真-google-web-人工驗收",
+      "notes": "User previously confirmed first Google login displayed account information; after the fixed JWKS bridge/CORS/session recovery changes, user explicitly confirmed both Google login and logout then repeated login were normal (都正常了). No Google proof, account email, Cookie or private token recorded."
+    },
+    "android": {
+      "status": "passed",
+      "kind": "real-existing",
+      "executedAt": "2026-10-30T21:29:06.880Z",
+      "reference": "docs/verification/SPEC-001-PlatformFoundation-Verification.md#真-google-android-人工驗收",
+      "notes": "User confirmed existing Google account sign-in via Android emulator native SDK displayed the account and linked Google; reported 都很正常. No email, proof, Cookie, or token stored.",
+      "identityManagement": {
+        "status": "passed",
+        "kind": "real-sdk-isolated-account",
+        "executedAt": "2026-10-31T02:40:41.745Z",
+        "reference": "tests/e2e/android/real-identity.test.mjs; .local/evidence/native-real-identity-first-passed.json; .local/evidence/native-real-identity-retry.log",
+        "notes": "Real Android SDK cancellation caused no link request; a real Google credential linked the isolated local-password account, then password unlink invalidated the old session and local password login succeeded. Two extra Google login requests returned 503 after unlink; an independently reproduced test bridge conflict-mapping bug has been fixed, but the original responses did not retain codes so their cause is not conclusively established."
+      },
+      "secureStore": {
+        "status": "passed",
+        "kind": "real-sdk-secure-store-fields",
+        "executedAt": "2026-10-31T03:04:30.000Z",
+        "reference": "tests/e2e/android/real-identity.test.mjs; .local/evidence/native-real-identity.json; .local/evidence/native-real-google-storage-auto.log",
+        "notes": "Real SDK direct link with actual SecureStore adapter: persisted refresh entry observed and inspected field names exclude proof, access token, password and code. This does not observe third-party SDK internals or arbitrary logs."
+      },
+      "lifecycle": {
+        "status": "passed",
+        "kind": "real-first-cold-refresh-logout",
+        "executedAt": "2026-10-31T16:46:37.513Z",
+        "reference": "tests/e2e/android/real-google-lifecycle.test.mjs; .local/evidence/native-google-security-20261101.json; .local/evidence/native-google-security-20261101-network-restored.log; .local/evidence/android-security-apk.json",
+        "notes": "Revalidated after Expo58.0.22/dev-client58.0.18/router58.0.29 and patched glob/minimatch: actual SDK/Google keys/isolated D1 first201, cold refresh200 retains family, logout204, next reopen no refresh. Three no-API cancellations retained; device network route/DNS restored by reconnecting existing virtual Wi-Fi before passing. Previous passed artifact preserved as native-real-google-lifecycle-before-security.json."
+      }
+    },
+    "crossPlatform": {
+      "status": "passed",
+      "kind": "same-account-first-web-existing-android-local",
+      "executedAt": "2026-10-30T21:42:03.422Z",
+      "reference": ".local/evidence/google-cross-platform-verified.log; .local/google-cross-platform-summary.sql; docs/verification/SPEC-001-PlatformFoundation-Verification.md",
+      "notes": "Fixed read-only local D1 aggregate: one passwordless Google Account has identity and first Web session with its account creation timestamp, plus a later Android session on the same Account. Results contain count only; user confirmed manual real SDK login."
+    }
+  },
+  "email": {
+    "status": "unverified",
+    "kind": "real-registration-and-reset",
+    "notes": "Local dedicated-log flow passed; EMAIL/sender domain and real inbox receipt unavailable",
+    "localLog": {
+      "status": "passed",
+      "kind": "real-local-log-code-lifecycle",
+      "executedAt": "2026-10-31T16:47:05.821Z",
+      "reference": "tests/integration/local-email-log.test.mjs; .local/evidence/local-email-log-20261101.log; README.md",
+      "notes": "Actual Worker/Container/API/D1: register and reset initial generation0, early resend429, after61s resend202 with generation1, codes read from dedicated category in memory, confirm201/reset204, old credentials rejected, new password login same owner. Reports have no raw codes/passwords/tokens; unknown reset does not emit a code."
+    }
+  },
+  "restart": {
+    "status": "passed",
+    "kind": "persistent-artifacts",
+    "executedAt": "2026-10-29T16:31:50.687Z",
+    "reference": "tests/integration/restart-data.test.mjs; tests/integration/key-rotation.test.mjs; .local/evidence/restart-data.json; .local/evidence/key-rotation.json",
+    "notes": "Actual local container rebuild, active/revoked families, pending challenge, R2 probe, export/restore and key replacement passed; not staging evidence",
+    "latestLive": {
+      "status": "passed",
+      "executedAt": "2026-10-30T15:32:20.170Z",
+      "reference": ".local/evidence/live-fixed-bridge-final.log",
+      "notes": "Actual Worker/Container/private bridge/D1/R2 and refresh/replay/ownership3 passed; no restart/key rotation repeated in this run."
+    }
+  },
+  "production": {
+    "status": "not-released",
+    "notes": "No production deployment performed"
+  },
+  "acceptanceScope": {
+    "requiredPlatforms": [
+      "web",
+      "android"
+    ],
+    "deferred": [
+      {
+        "area": "ios",
+        "userDecision": "D-033",
+        "recordedAt": "2026-10-30",
+        "reference": "docs/requirements/MVP-001-LoveGameDatingApp.md"
+      },
+      {
+        "area": "staging",
+        "userDecision": "D-035",
+        "recordedAt": "2026-10-30",
+        "reference": "docs/requirements/MVP-001-LoveGameDatingApp.md"
+      }
+    ],
+    "environment": "local"
+  },
+  "automated": {
+    "executedAt": "2026-10-31T16:47:05.821Z",
+    "reference": ".local/evidence/foundation-security-20261101.log",
+    "scripts": 21,
+    "dotnet": {
+      "unit": 67,
+      "api": 53,
+      "integration": 22
+    },
+    "worker": 58,
+    "client": 106,
+    "typechecks": "passed",
+    "notes": "Full327 and both typechecks passed with Expo58.0.22; after aligning dev-client/router patches, client typecheck+106 tests and native profile3 passed again. Web8 and actual native Google lifecycle additionally passed. Original full83 browser evidence retained separately.",
+    "publicBundleScan": {
+      "files": 15,
+      "secretValueMatches": 0,
+      "reference": ".local/evidence/public-secret-scan-security-20261101.log"
+    },
+    "publicFixtureScan": {
+      "files": 15,
+      "testFixtureMatches": 0,
+      "reference": ".local/evidence/public-fixture-scan-security-20261101.json"
+    },
+    "additionalClientReference": ".local/evidence/client-test-security-final.log; .local/evidence/client-typecheck-security-final.log"
+  },
+  "localMatrix": {
+    "status": "passed",
+    "kind": "web-android-local-matrix",
+    "executedAt": "2026-10-31T15:36:49.910Z",
+    "reference": "docs/verification/PlatformFoundation-LocalMatrix.md",
+    "notes": "All24 planned E2E entries and all92 BDD scenarios reviewed for the authorized local Web/Android scope:80 original full scenarios passed plus explicit local subparts/exclusions for12. Local Log substitutes only sender transport; no claim of cloud/inbox/iOS/TalkBack/third-party SDK internals. Full original acceptance remains incomplete."
+  },
+  "dependencies": {
+    "status": "passed",
+    "kind": "npm-and-nuget-security-audit",
+    "executedAt": "2026-10-31T16:47:05.821Z",
+    "reference": "docs/verification/PlatformFoundation-LocalEmailAndDependencies.md",
+    "npm": {
+      "root": {
+        "total": 0,
+        "reference": ".local/evidence/audit-root-20261101-final.json"
+      },
+      "client": {
+        "total": 0,
+        "reference": ".local/evidence/audit-client-20261101-final.json"
+      },
+      "worker": {
+        "total": 0,
+        "reference": ".local/evidence/audit-worker-20261101-final.json"
+      }
+    },
+    "nuget": {
+      "projects": 9,
+      "vulnerablePackages": 0,
+      "reference": ".local/evidence/dotnet-audit-20261101.json"
+    },
+    "versions": {
+      "expo": "58.0.22",
+      "devClient": "58.0.18",
+      "router": "58.0.29",
+      "glob": "14.0.2",
+      "minimatch": "11.0.1"
+    },
+    "lockSha256": "c9d974a8107444d92f2e34121b8e4c398156af89acbbfa2c16f33c0a9a4463c3",
+    "notes": "Fresh before audit13 client advisories; official Expo patch removes old zod/deepmerge, patched glob/minimatch overrides. No audit suppression or SDK downgrade. Expo compatibility, config/export, fingerprint/Android build, client106, Web8 and real native SDK regression passed; Gradle deprecation messages are distinct."
+  }
+}

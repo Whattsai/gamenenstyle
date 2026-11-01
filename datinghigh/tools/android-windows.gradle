@@ -1,0 +1,14 @@
+// Windows Ninja 的路徑上限：保留套件原始碼，以 CMake 的正式選項縮短 object 路徑。
+gradle.beforeProject { project ->
+    ['com.android.application', 'com.android.library'].each { plugin ->
+        project.plugins.withId(plugin) {
+            def android = project.extensions.findByName('android')
+            android.defaultConfig.externalNativeBuild.cmake.arguments.add('-DCMAKE_OBJECT_PATH_MAX=240')
+            def ninja = new File(project.rootDir, '../../../.local/toolchain/ninja/ninja.exe').canonicalFile
+            if (!ninja.exists()) throw new GradleException('Run tools/build-android.ps1 to install the pinned Ninja toolchain')
+            android.defaultConfig.externalNativeBuild.cmake.arguments.add("-DCMAKE_MAKE_PROGRAM=${ninja.path.replace('\\', '/')}".toString())
+            def key = Integer.toHexString(project.name.hashCode())
+            android.externalNativeBuild.cmake.buildStagingDirectory = new File(project.rootDir, "../../../.local/cxx/${key}").canonicalFile
+        }
+    }
+}

@@ -1,0 +1,87 @@
+# 本地操作與部署檢查
+
+本文件整理現有 wrappers、Docker／Wrangler 與 runbooks；不是發布授權或新驗收證據。2026-11-01 的既有紀錄顯示本地 Web／Android 已結案；iOS、TalkBack、雲端／真收信仍保留界限。D-033／D-035 暫緩 iOS／staging，不啟用付費、不部署；production 未配置／發布。詳見 [本地範圍](../../docs/verification/PlatformFoundation-LocalAcceptance.md) 與 [逐平台紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)。
+
+## 本地啟動與資料
+
+安裝／首次啟動命令見 [README](../../README.md)。Windows 使用 Node24、PowerShell7、.NET SDK10.0.204、Docker Desktop Linux containers、Ubuntu WSL integration；`setup:wsl` 在本專案 `.local/toolchain` 安裝固定 Linux Node／Wrangler，不能用其他專案的程序替代。
+
+- [ ] 三個 npm 專案各自 `npm ci`，.NET solution restore；Worker 相依變更後更新 WSL toolchain。
+- [ ] 先 export Web，確保 `frontend/client/dist` 存在，再使用 wrappers migrate／seed／R2 probe。
+- [ ] `npm run dev:platform` 啟動 loopback8787，`node tools/serve-web.mjs` 提供 http://localhost:8081。
+- [ ] 驗 `/health/live` 與 `/health/ready`；前者只表示程序存活，不能代替 ready。
+- [ ] 沿用忽略的 `.dev.vars` 三個秘密；重啟不刪 state，不把工具檔或備份提交。
+
+| 操作 | 命令 |
+|---|---|
+| Migration／無登入能力種子 | `npm run db:migrate:local`、`npm run db:seed:local` |
+| 固定非秘密欄位查詢 | `npm run db:query:local -- --view accounts` 或 `--view sessions` |
+| 本地 SQL 檔 | `npm run db:execute:local -- --file <sql-file>` |
+| R2 probe 讀回 | `npm run storage:probe:local` |
+| 新名稱備份 | `npm run db:backup:local -- --name before-change` |
+| 還原至新 instance | `npm run db:restore:local -- --file .local/backups/before-change.sql --target restored-copy` |
+| 查還原副本 | `npm run db:query:local -- --instance restored-copy --view accounts` |
+| 平台重啟 | `npm run dev:platform:restart` |
+
+default 的 cwd 固定 `cloudflare/`，state 位於 `cloudflare/.wrangler/state`；其他已知 instance 位於 `.local/instances/<name>/`。工具限制 local、config 與允許參數，拒未知 instance／remote 旗標／覆寫目標。migrate／seed／execute／backup 在本 instance 有服務運行時先透過帶憑證的 loopback control 暫停寫入，再恢復。restore 只新建目錄並檢查 FK，不能覆蓋原資料；既有 token 的驗證還需安全配置相同秘密。
+
+查詢 view 仍含帳號 Email 等本地私人資料，不貼入公開報告。備份含私人資料且保持忽略；不要直接修改活躍 emulator 的 SQLite WAL。詳細持久性與還原流程見 [local data runbook](../../tests/e2e/runbooks/foundation-local-data.md)。
+
+## 本地驗證碼
+
+只有 `APP_ENV=local` 且 `EmailDeliveryMode=Log` 時，.NET category `LocalEmailVerification` 可輸出碼。啟動平台並開啟登入頁後，在另一個 PowerShell 終端：
+
+```powershell
+$taskContainer = docker ps --filter name=workerd-datinghigh-local-ApiContainer --format '{{.ID}} {{.Names}}' |
+    Where-Object { $_ -notmatch '-proxy' } | Select-Object -First 1
+if (!$taskContainer) { throw '請先啟動本地平台並開啟登入頁' }
+$taskContainerId = ($taskContainer -split ' ')[0]
+docker logs --since 10m --follow $taskContainerId
+```
+
+`Purpose=register_email` 是註冊，`reset_password` 是忘記密碼；依 Recipient／Challenge 選正確流程與最新 Generation，六位 Code 保留前導零。這是僅供本地終端取碼的例外，不把日誌行、碼、密碼或 token 保存到測試報告／Git。Ctrl+C 結束追蹤；容器重建後重新取 ID，舊碼 log 遺失則等冷卻後重寄。不要新增查碼 API。
+
+未知 Email 的 reset 仍回同形成功但不寄碼，沒有對應 log；既有 Google-only 帳號可透過 reset 設本地密碼。`npm run test:email:local` 只在記憶體讀碼、驗證註冊／reset／60秒冷卻與重寄，不能代替真收信。補驗紀錄見 [LocalEmailAndDependencies](../../docs/verification/PlatformFoundation-LocalEmailAndDependencies.md)。
+
+## Android development build
+
+需要 JDK17、Android SDK／emulator、可用的本地平台；以下以指定 emulator-5554 示範，換裝置時先確認對象。
+
+```powershell
+npm run build:android
+adb -s emulator-5554 install -r frontend/client/android/app/build/outputs/apk/debug/app-debug.apk
+npm --prefix frontend/client start -- --dev-client --localhost --port 8082
+```
+
+另開終端執行 `adb -s emulator-5554 reverse tcp:8082 tcp:8082`，在該裝置開啟 `datinghigh://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8082`。emulator API 預設 `http://10.0.2.2:8787`；硬體裝置另設可達的 EXPO_PUBLIC_API_ORIGIN，cloud 一律 HTTPS。
+
+build 腳本使用專案內固定 Ninja1.13.2 與 CMake staging，避免 Windows 舊 Ninja 路徑限制，不修改套件原始碼／全機 registry。`plugins/with-no-network-retry.cjs` 以可重現 Expo plugin 關閉 Android OkHttp 連線失敗自動重送，避免已提交的密碼變更被底層再送；plugin 變更必須重建／安裝 APK，不能只更新 Metro。
+
+iOS 的 `com.datinghigh.app`／scheme 設定已存在，但目前沒有可驗收 build，也沒有既存 EAS 配置；需要另行具備 macOS／Xcode 或已配置的簽署建置環境。
+
+目前 Android E2E 的 fixture／真 Google／smoke 仍有搬移前路徑；裝置命令的重跑限制見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md#目前重跑限制)。APK建置入口已使用新路徑，但不能據此推論測試腳本也已全部更新。
+
+## 既有故障判讀
+
+- 本地熱重載後 ready 正常、Google 503：先確認固定 JWKS bridge 與本專案容器網路。2026-10-30 曾重啟 wrapper 後恢復，但尚未證明上游確切根因；可用 `dev:platform:restart`，保留 D1／R2，不動其他專案。
+- Android Google UI 取消且沒送登入 API：先查 emulator 路由／DNS。2026-11-01 曾無網路，重連原有 AndroidWifi 後相同 APK 真 Google／冷啟／登出通過；ADB reverse 能連 Metro 不代表 emulator 對外有網路。
+- WSL／Docker outbound 位址由本專案 `wsl-egress.mjs` 的 loopback relay 處理，不開 LAN、不設公開 SQL 管理端點。
+
+## 雲端部署前後（目前暫緩）
+
+現有 staging 設定／D1／私人 R2／migration／probe 已建立，先前 Worker／assets 上傳不能證明 Container 已部署。最後部署證據為 Containers 資格／Workers Paid 未就緒；設定也缺 EMAIL binding／sender。目前 `preflight:staging` 預期拒絕，不得改 Log 模式過關。這些是既有紀錄，不是本次重新查詢帳號的結果。
+
+若未來取得明確的具體版本／環境授權，依 [staging runbook](../../tests/e2e/runbooks/foundation-staging.md) 完成：
+
+- [ ] 核對 `deployment-targets.json` 與 `wrangler.staging.jsonc` 的 account／worker／D1／私人 R2／HTTPS origin，確認 Containers 資格及已驗證 sender。
+- [ ] 配置 EMAIL binding／EMAIL_FROM、cloud模式、三個環境獨立秘密與 Google audiences／native簽章；不得放 client secret 到前端。
+- [ ] `npm run preflight:staging` 通過，再記 D1 checkpoint 與相容 migration。以 cloud API origin（同源可為空字串）匯出至 `.local/staging-web`，不直接重用 local bundle。
+- [ ] `backend/Dockerfile` 以 backend 為 build context；SDK與ASP.NET映像固定digest，非root8080。記錄映像／Worker／assets版本，不擅自升版或發布。
+- [ ] 只向前套用相容 migration，完成 probe、必要測試與部署；失敗停止後續步驟。repo 沒有 CI/CD pipeline 可視為已自動執行。
+- [ ] 實測 live／ready、未知API JSON404、公網internal404、偽造可信標頭失效、真.NET outbound、D1／R2持久性與兩owner隔離。
+- [ ] 以真SDK／Google及可控制信箱完成登入／連結／解除與註冊／reset實收；202／message ID不證明收件。逐平台、環境記錄未驗項目。
+- [ ] 驗同帳號依序登入、Refresh寬限／重放、舊裝置登出及重建不復活；回寫 `docs/verification` 的去敏證據。
+
+rollback 只允許與現有 schema 相容的舊 Worker／image／assets，不自動清空或還原 D1；資料復原另按具體操作處理。production target 目前為 null，沒有現成 production 配置；只在具體版本已獲授權時發布。
+
+驗證矩陣、序列執行限制與交付格式見 [AI 工作流](../02-development-guidelines/03-ai-workflow-stages.md)。

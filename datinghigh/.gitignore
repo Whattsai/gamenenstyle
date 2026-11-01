@@ -1,0 +1,14 @@
+node_modules/
+bin/
+obj/
+.expo/
+frontend/client/dist/
+frontend/client/android/
+frontend/client/ios/
+.wrangler/
+.local/
+.dev.vars
+.env.local
+TestResults/
+playwright-report/
+test-results/

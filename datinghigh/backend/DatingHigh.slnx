@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DatingHigh.Api/DatingHigh.Api.csproj" />
+    <Project Path="src/DatingHigh.Application/DatingHigh.Application.csproj" />
+    <Project Path="src/DatingHigh.Domain/DatingHigh.Domain.csproj" />
+    <Project Path="src/DatingHigh.Infrastructure/DatingHigh.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DatingHigh.Api.Tests/DatingHigh.Api.Tests.csproj" />
+    <Project Path="tests/DatingHigh.Integration.Tests/DatingHigh.Integration.Tests.csproj" />
+    <Project Path="tests/DatingHigh.E2eHost/DatingHigh.E2eHost.csproj" />
+    <Project Path="tests/DatingHigh.Unit.Tests/DatingHigh.Unit.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/DatingHigh.PlatformProbe/DatingHigh.PlatformProbe.csproj" />
+  </Folder>
+</Solution>

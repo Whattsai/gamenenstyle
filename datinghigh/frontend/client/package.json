@@ -1,0 +1,44 @@
+{
+  "name": "datinghigh-client",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "export:web": "expo export --platform web",
+    "typecheck": "tsc --noEmit",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "expo": "58.0.22",
+    "expo-constants": "~58.0.14",
+    "expo-dev-client": "~58.0.18",
+    "expo-linking": "~58.0.15",
+    "expo-router": "~58.0.29",
+    "expo-secure-store": "~58.0.2",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-nitro-google-signin": "2.3.0",
+    "react-native-nitro-modules": "0.37.1",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.30.0",
+    "react-native-web": "^0.21.4"
+  },
+  "overrides": {
+    "glob": "14.0.2",
+    "minimatch": "11.0.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@testing-library/react": "16.3.3",
+    "@types/react": "19.3.0",
+    "jsdom": "28.1.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  }
+}

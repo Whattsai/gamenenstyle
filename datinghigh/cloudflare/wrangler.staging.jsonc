@@ -1,0 +1,81 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "datinghigh-staging",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-24",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "vars": {
+    "APP_ENV": "staging",
+    "WEB_ORIGIN": "https://datinghigh-staging.orick.workers.dev",
+    "ACCESS_TOKEN_ISSUER": "datinghigh-staging",
+    "ACCESS_TOKEN_AUDIENCE": "datinghigh-staging-client",
+    "EmailDeliveryMode": "Cloudflare",
+    "EXPECTED_MIGRATION": "0001_foundation.sql"
+  },
+  "assets": {
+    "directory": "../.local/staging-web",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api",
+      "/api/*",
+      "/health",
+      "/health/*",
+      "/internal",
+      "/internal/*",
+      "/v1/commands/*"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "datinghigh-staging",
+      "database_id": "a367561e-b9a3-495b-be8a-bd3a1b837ce6",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "datinghigh-staging-private"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "API",
+        "class_name": "ApiContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "ApiContainer"
+      ]
+    }
+  ],
+  "containers": [
+    {
+      "class_name": "ApiContainer",
+      "image": "../backend/Dockerfile",
+      "max_instances": 1,
+      "instance_type": "basic"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "0 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "invocation_logs": false
+    }
+  },
+  "account_id": "9c4353055ae969a9d62e4a6754e100d7"
+}

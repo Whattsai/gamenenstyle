@@ -4,8 +4,8 @@
 **關聯需求**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 **優先級**: 高
 **負責人**: 後續由 `well-done` 承接實作；產品方案由使用者確認
-**狀態**: 原 SDD 及 D-017～D-028 修訂已確認；2026-10-29 使用者以「同意目前版本」確認現行文件包，Ready for well-done；未實作
-**最後更新**: 2026-10-29（現行版本確認與開發交接；親密度／名片責任邊界維持）
+**狀態**: SDD已確認；2026-10-30基礎實作與稽核已執行，TDD完整覆核207/227，必要跨平台／真服務驗收仍未全關閉
+**最後更新**: 2026-10-30（實作、驗證與安全503 recovery細化；親密度／名片責任邊界維持）
 **建議實作順序**: 本 MVP 第 1 順位
 **前置 SPEC**: 無
 **本輪邊界**: 本份 SDD 已由使用者確認，本輪續作同名 BDD／TDD 與實作前風險稽核；風險確認與交接後停止，不自動進入其他 SPEC。
@@ -105,18 +105,18 @@ flowchart LR
 
 ```text
 datinghigh/
-  apps/client/                     Expo Router、三平台畫面與 API client
-  server/DatingHigh.sln
-  server/src/DatingHigh.Domain/
-  server/src/DatingHigh.Application/
-  server/src/DatingHigh.Infrastructure/
-  server/src/DatingHigh.Api/
-  server/tests/
+  frontend/client/                     Expo Router、三平台畫面與 API client
+  backend/DatingHigh.sln
+  backend/src/DatingHigh.Domain/
+  backend/src/DatingHigh.Application/
+  backend/src/DatingHigh.Infrastructure/
+  backend/src/DatingHigh.Api/
+  backend/tests/
   cloudflare/src/                  Worker、Container wrapper、固定資料指令
   cloudflare/migrations/
   cloudflare/wrangler.jsonc
   cloudflare/.wrangler/state/      預設本地 D1／R2 磁碟狀態，不納入 Git
-  scripts/                        本地啟動、查改、備份、部署與 smoke 操作
+  tools/                        本地啟動、查改、備份、部署與 smoke 操作
   .local/instances/                還原時建立的新本地 instance，不納入 Git
   .local/backups/                  本地備份，不納入 Git
 ```
@@ -157,6 +157,8 @@ datinghigh/
 4. 使用者輸入碼與密碼，呼叫 `POST /accounts`。同一個 D1 batch 在「challenge 仍為 active 且 generation／code MAC 相符、Email 尚未存在」的共同前置條件下建立已驗證 Account、family 與 generation 0 Refresh，最後一句才將 challenge 標為 consumed；任何失敗不得消耗未完成的碼或留下半套帳號。並行 Email／Google 確認同地址，最多一份 Account 成功（UNIQUE `email_normalized` 為最終防線）。
 5. 寄碼流程：先持久化新 generation 與 code MAC，再呼叫 sender（逾時 10 秒）。sender 成功才回 202；Email 註冊與其重寄遇 sender 失敗或逾時，回 503 `EMAIL_DELIVERY_FAILED`，challenge 保留，冷卻後重寄會產生新 generation，因此未送達的舊碼自然失效；忘記密碼的失敗處理見下節。不盲目重送舊碼。
 6. `POST /email-challenges/{id}/resend` 需 flowToken，不能改目的／收件人；重寄開始使舊 generation 失效。建立／重寄回應不含 code。
+
+2026-10-29 實作稽核補充：首次註冊寄送失敗的 503 `EMAIL_DELIVERY_FAILED` 以 `recovery` extension 回傳本次流程的 `challengeId, flowToken, expiresAt, absoluteExpiresAt, resendAfter`，不含 code、密碼或平台 Access／Refresh。否則原發起者拿不到 server 產生的 flowToken，無法實現既定冷卻後重寄。只有已持久化註冊挑戰的 sender 失敗可帶此 extension；D1／設定失敗及 reset 不帶。前端依既有有效期白名單保存流程，顯示寄送失敗，於 server 冷卻後以同流程重寄新 generation，不顯示已寄達。此為 D-026 既定復原流程的必要契約補全，沒有新增端點、資料欄位或產品範圍。
 
 ### 忘記密碼與重設
 
@@ -223,7 +225,7 @@ Web 使用 Google Identity Services popup／JavaScript callback，iOS／Android 
 - 同 Account 的 Email／Google 登入並行，以成功 commit 先後判定：最後一個成功交易是唯一有效登入，先成功者即使 HTTP 晚回也已失效；不依 client 點擊時間或 HTTP 回應順序判定。
 - 「新登入失敗保留舊登入」指驗證、SQL 在 commit 前失敗；commit 成功但回應遺失時，舊 family 已撤銷，不假裝回滾。舊端下一次 API 或回前景重驗時清私人畫面，顯示「帳號已在其他裝置登入，請重新登入」；後端撤銷立即生效，不承諾離線／閒置畫面同毫秒更新，不新增 push 端點。
 - 舊 family 的 refresh／重放撤銷／logout 僅作用於其識別的 family，不能撤銷或復活新 family。
-- **Web 不限制分頁數**：同一瀏覽器的多個分頁共用 Cookie，即同一個 family。client 於分頁 focus／pageshow／visibilitychange 與每次已登入回應，比對回應標頭 `X-DatingHigh-Session`（目前 family ID，非秘密，CORS 暴露）與畫面所屬 family；不符或收到 401 `SESSION_REVOKED` 即清除私人畫面，唯讀 `GET /session` 重驗後回登入。**已知接受風險**：同瀏覽器另一分頁以不同帳號登入後，舊分頁在重驗前送出的請求會帶新 Cookie 以新帳號執行；本份受保護寫入（改密碼、解除連結）皆需目前密碼，連結／登出僅影響本人，因此不新增請求前置條件。後續含敏感寫入的 SPEC 須自行加上前置條件。
+- **Web 不限制分頁數**：同一瀏覽器的多個分頁共用 Cookie，即同一個 family。client 於分頁 focus／pageshow／visibilitychange 與每次已登入回應，比對回應標頭 `X-DatingHigh-Session`（目前 family ID，非秘密，CORS 暴露）與畫面所屬 family；不符或收到 401 `SESSION_REVOKED` 即清除私人畫面，唯讀 `GET /session` 重驗後回登入。**已知接受風險**：同瀏覽器另一分頁以不同帳號登入後，舊分頁在重驗前送出的請求會帶新 Cookie 以新帳號執行；本份受保護寫入（改密碼、解除連結）皆需目前密碼，連結僅影響本人，不新增全域請求前置條件。D-032 對登出增補body的sessionId撤銷條件，避免舊分頁或待撤銷重試撤到新Cookie登入。後續含敏感寫入的 SPEC 須自行加上前置條件。
 
 | 項目 | 契約 |
 |------|------|
@@ -256,6 +258,8 @@ Web 使用 Google Identity Services popup／JavaScript callback，iOS／Android 
 - 正式 Web 同源；本地 origin 列明白名單，禁止 wildcard credentialed CORS。OPTIONS 僅放行指定來源／方法／header（含暴露 `X-DatingHigh-Session`），不要求 Access Token。開發 HTTP 使用獨立 `datinghigh_access_dev`／`datinghigh_refresh_dev`；雲端平台 Cookie 一律 Secure。
 - 登出以任一仍可識別 family 的平台憑證處理：有效 Access JWT，或該 family 的 Refresh（含過期／已消耗者，僅供撤銷）。兩者指向不同 family 時拒絕。撤銷持久化後才清本次對應憑證；舊裝置的 logout 只撤舊 family，不能影響後來已接手的新 family。
 - 登出撤銷與 refresh 同時發生時，以 D1 的原子有效性檢查決定先後；撤銷提交後，不論 refresh 是否先回應，該 family 的新舊 Access／Refresh 都不可使用。改密碼、Email 重設密碼、Google 解除或停用使所有舊 family 失效（cv 不符）。
+
+- **D-032（2026-10-30 使用者確認）**：DELETE /session 可選body.sessionId為UUIDv7，只作條件，絕不以它單獨定位並授權撤銷。所有可驗證的Access與可查得的Refresh所屬family均須相符，不符回409 SESSION_CHANGED，無revoke及Set-Cookie副作用。既有未帶條件caller保留原冪等契約；Web client在登出／待撤銷重試必帶原family ID，不refresh。匹配時即使Access過期仍可用原Refresh撤銷；Cookie已換家時409只代表該意圖已不對應目前登入，client移除舊marker並清舊私人畫面，保留新Cookie，不把409宣稱為原family已撤銷。
 - 登出連線失敗可隱藏本機私人畫面，保留只供撤銷重試的憑證並顯示尚未完成伺服器登出；下次啟動不得先自動 refresh 待撤銷 family。登出不登出 Google 本身，也不自動解除 Google 綁定。
 
 ### 固定資料操作、交易與一致性
@@ -280,6 +284,7 @@ Cloudflare 文件允許容器經 outbound handlers 使用 D1／R2 bindings。本
 | `identity.external.unlink` | 本人有效 Access、已驗證的本地密碼、預期 cv | 同 batch：先條件 cv+1（需 `password_hash IS NOT NULL`），再依其結果刪除指定 provider identity；零列不刪除 |
 | `platform.cleanup` | Worker scheduled handler的受信時鐘／固定清理種類／batch≤1000 | 直接執行受限D1清理實作，依期限及FK順序分批；不經公開HTTP、不依賴container timer，記錄backlog／可重試 |
 | `platform.ready` | build 預期 migration／必要 schema 與環境 R2 probe key | 查 D1 migration history／schema、probe digest、受信任 Worker 執行設定；不讀寫平台 metadata 表、不寫使用者資料 |
+| `external.google-jwks` | 空物件；僅 `.NET` 私有 bridge 使用，不接受來源 URL、credential 或額外欄位 | Worker 固定以 HTTPS GET 讀取 `https://www.googleapis.com/oauth2/v3/certs`，10 秒逾時、拒絕 redirect／失敗／無效 keyset；只回公開 JWKS。.NET 以成熟元件保留 issuer／audience／期限／演算法／簽章驗證，Google proof 不經此指令，不新增資料表或公網端點 |
 | `object.private.put`、`object.private.get`、`object.private.delete` | 已驗簽 Access claims、受限用途、隨機 object ID；put 另含受限長度的 bytes／metadata | handler 檢查 Access exp／family／cv 並衍生 owner，組合 `private/{accountId}/{purpose}/{objectId}`；Refresh／Google token 不可替代 Access；本份只有內部 adapter，沒有公開媒體 API |
 
 - 指令 endpoint 為內部 `POST http://platform.internal/v1/commands/{command}`，要求符合 DTO 的 JSON；未知 command、額外權限欄位或任意 SQL／table／bucket 名稱皆拒絕。
@@ -312,7 +317,7 @@ Cloudflare 文件允許容器經 outbound handlers 使用 D1／R2 bindings。本
 | `POST /sessions` | 無；Web Origin 檢查 | `email, password, clientPlatform` | 201：`account, session, tokens` | 400、401 `INVALID_CREDENTIALS`、409 `CREDENTIAL_CHANGED`、429、503 |
 | `POST /session/refresh` | Web Refresh Cookie；原生 body Refresh，禁止 Authorization | `clientPlatform`；原生另傳 `refreshToken` | 200：新 `session, tokens`；輪替 Refresh，Web 更新兩個 Cookie | 400、401 `REFRESH_EXPIRED/INVALID/REVOKED` 或 `REFRESH_TOKEN_REUSE`、409 `REFRESH_RETRY`、429、503 |
 | `GET /session` | 有效 Access＋family | 無 | 200：`account, session, tokenMetadata`；不回 raw token | 400、401、503 |
-| `DELETE /session` | Web pair／原生 Access 或 body Refresh，允許識別已失效 family | Web 空 JSON；原生 `{}` 或 `{refreshToken}`；Web Origin 檢查 | 204，撤銷 family 後清除兩種憑證；無憑證／已撤銷亦 204 | 400、403、503 |
+| `DELETE /session` | Web pair／原生 Access 或 body Refresh，允許識別已失效 family | Web `{sessionId?}`，原生 `{}` 或 `{refreshToken,sessionId?}`；UUIDv7條件與Web Origin檢查 | 204，僅撤可識別且符合條件的family並清Cookie；無憑證／已撤銷仍204，單獨sessionId不授權；條件不符409不撤銷、不清Cookie | 400、403、409 SESSION_CHANGED、503 |
 | `GET /me` | 有效 Access＋family | 無 | 200：`AccountDto`，含登入方式摘要 | 401、503 |
 | `PUT /me/password` | 有效 Access＋family | `currentPassword, newPassword` | 204；全部舊 family 失效，清除兩個 Web Cookie | 400、401、409 `PASSWORD_NOT_SET/CREDENTIAL_CHANGED`、429、503 |
 | `POST /password-reset-requests` | 無；Web Origin 檢查 | `email, clientPlatform` | 202：通用訊息與同形 `challengeId, flowToken, expiresAt, resendAfter`，不表示是否已註冊／寄達 | 400 格式錯誤、429、查帳號前一致的全域未就緒 503 |
@@ -573,7 +578,7 @@ CREATE TABLE auth_sessions (
   revocation_reason TEXT
 );
 CREATE INDEX idx_auth_sessions_account ON auth_sessions(account_id);
-CREATE UNIQUE INDEX idx_auth_sessions_single_active ON auth_sessions(account_id) WHERE revoked_at IS NULL;
+CREATE UNIQUE INDEX idx_auth_sessions_active_account ON auth_sessions(account_id) WHERE revoked_at IS NULL;
 CREATE INDEX idx_auth_sessions_expiry ON auth_sessions(absolute_expires_at);
 
 CREATE TABLE auth_refresh_tokens (
@@ -664,7 +669,7 @@ CREATE INDEX idx_common_rate_limit_buckets_expiry ON common_rate_limit_buckets(e
 | `/account/password` | 有本地密碼時驗證目前密碼再更新；成功回登入並說明全部裝置需重新登入 | 錯密碼、版本衝突、依賴故障分別提示；不假裝已更新 |
 | `/account/connections` | 已登入帳號連結同 Email 的 Google（不需再填密碼、不踢登出）；已有本地密碼者可驗證目前密碼後解除 Google | Email 不同／identity 已占用／最後登入方式不可解除有明確訊息，不搬移或自動合併 |
 
-前端對寄碼／確認／登入／重設在請求中禁止重複提交，冷卻以 server 時間為準；切頁不取消已提交交易。碼／密碼不進分析事件、錄影或持久草稿；Email 流程的 flowToken／challenge metadata 僅於有效期內存 Web sessionStorage／原生 SecureStore，完成／到期後移除。一般畫面不顯示 D1／Docker／Log mode 等實作資訊，開發者在後端終端讀取本機碼。
+前端對寄碼／確認／登入／重設在請求中禁止重複提交，冷卻以 server 時間為準；切頁不取消已提交交易。Android 畫面在請求進行中處理系統返回鍵，避免返回導致 Activity 關閉而中斷進行中的請求；完成或失敗後恢復正常返回。這不保證強制結束程式或系統中斷時交易一定完成，結果不明仍依既定唯讀確認／重新登入規則處理。碼／密碼不進分析事件、錄影或持久草稿；Email 流程的 flowToken／challenge metadata 僅於有效期內存 Web sessionStorage／原生 SecureStore，完成／到期後移除。一般畫面不顯示 D1／Docker／Log mode 等實作資訊，開發者在後端終端讀取本機碼。
 
 Google 按鈕遵守品牌要求；SDK 結果經後端驗證並完成登入／建帳才算成功。Web 不限制分頁數；Client 使用進行中旗標及本機操作序號；取消／登出／換帳號使舊 SDK 結果失效，送出連結前核對原本機 Account／Session。HTTP 已送出時等待完成或結果確認，不以忽略回應假設 server 或 Cookie 未改；失敗／到期 credential 重新取 SDK 證明，不建立 server 第三方挑戰。
 
@@ -786,7 +791,7 @@ Google 按鈕遵守品牌要求；SDK 結果經後端驗證並完成登入／建
 
 ## 測試策略
 
-本份定義測試策略；SDD 已確認，詳細案例見 [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md) 及 [TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md)（數量以精簡後各文件現況為準）。文件追溯不是測試通過，實作進度為 0%。
+本份定義測試策略；詳細案例見 [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md) 及 [TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md)。2026-10-30已建立程式與測試，完整覆核207/227（91.2%）；文件追溯不是測試通過，詳見[驗證紀錄](../verification/SPEC-001-PlatformFoundation-Verification.md)。
 
 | 層級 | 主要測試內容 | 必須使用的真實邊界 |
 |------|--------------|------------------|

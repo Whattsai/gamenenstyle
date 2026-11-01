@@ -2,7 +2,7 @@
 
 **日期**：2026-10-25（初審）；2026-10-27（依使用者決策 D-017／D-018 修訂；同日依「認證機制精簡」D-019～D-028 重新評估並同步更新）；2026-10-29（同步 MVP D-029～D-031 責任邊界，並完成現行版本確認與開發交接）
 **範圍**：僅 `SPEC-001-PlatformFoundation`；繼承來源 MVP 編號 `001`。
-**狀態**：D-017～D-028 的風險／缺漏已依精簡契約回寫五份文件；2026-10-29 使用者以「同意目前版本」確認現行文件包與已記錄風險取捨，Ready for well-done。未實作、未執行應用測試。
+**狀態**：原規劃及風險取捨已確認，2026-10-30已執行實作與測試；本文件保留實作前基線，現行207/227案例與46/92場景完整覆核結果見[深度稽核](../verification/SPEC-001-PlatformFoundation-DeepAudit.md)。尚未達100%，不以原規劃結論代替執行證據。
 **決策狀態**：D-017 新登入成功踢舊、D-018 不加固定等待、D-019～D-028 精簡方案及現行修訂版均已確認；D-029～D-031 的親密度／名片需求亦已回寫，無待使用者確認議題。
 
 ## 一、來源與需求追溯
@@ -87,6 +87,8 @@
 2. Web **不限制開啟分頁數**，不顯示第二分頁阻擋頁。單一分頁內多個並行 401 以 single-flight 合併 refresh；當多個分頁共用 Cookie 同時觸發 refresh 時，依 D-020 提供 `consumed_at` 起 **30 秒寬限窗**：緊接前一代（`generation = current_generation - 1`）於 30 秒內重試視為網路回應遺失並從目前 head 再輪替一次回 200；30 秒內並行落敗回 409 `REFRESH_RETRY`（不撤銷 family），client 以最新 Cookie／Refresh 重試一次即可恢復；超過 30 秒重放則回 401 `REFRESH_TOKEN_REUSE` 並持久撤銷整個 family。
 3. 所有已登入 API 回應均附帶 `X-DatingHigh-Session: <sessionId>`（目前有效 family ID，並透過 `Access-Control-Expose-Headers: X-DatingHigh-Session` 暴露給 Web）。client 記錄 `currentSessionId`，並在每次回應及 `focus`、`pageshow`、`visibilitychange`（回前景）時比對；一旦發現 `X-DatingHigh-Session` 改變或收到 401 `SESSION_REVOKED`，舊分頁立即清除私人畫面並導向登入頁（或重新以 `/session` 同步最新身分）。
 4. **已知接受之剩餘風險**：① 因移除前端預期工作階段請求標頭，若使用者在同一瀏覽器另一分頁改登不同帳號 B，原分頁 A 在尚未觸發回前景核驗前送出之首個Cookie請求會以新 Cookie 身分執行（單人戀愛交友遊戲可接受此極端操作取捨）；② D-020 的 30 秒 Refresh 寬限窗使前一代被竊 Refresh Token 在 `consumed_at` 後 30 秒內被重放時不會觸發整條 family 撤銷，超過 30 秒則立即觸發 `REFRESH_TOKEN_REUSE` 撤銷整條 family。
+
+**2026-10-30 補充決策 D-032（使用者已確認）**：Web 待撤銷時若 Access 過期且另一分頁已換 Cookie，單靠回應標頭無法安全撤銷原意圖。僅在 DELETE /session body 增加可選 UUIDv7 `sessionId` 條件；Web client 登出／重試必帶原 ID，不先 refresh。條件不符回409 SESSION_CHANGED，無 revoke 或 Set-Cookie；條件本身不授予撤銷權。此補充不恢復全域預期 session 請求標頭、不限制分頁數、不增加資料欄位。原意圖不對應目前 Cookie 時可清舊 marker，但不能把409視為原family已撤銷證明。已補5個HTTP及2個真browser/API/Worker/D1案例。
 
 #### PF-AUD-H2：D1 同批次共用前置條件與自然 UNIQUE 約束原子回滾（D-022）
 

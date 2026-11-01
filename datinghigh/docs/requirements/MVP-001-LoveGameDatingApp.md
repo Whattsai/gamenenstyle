@@ -55,6 +55,10 @@
 | D-029 | 2026-10-29 使用者確認「親密度就是總體好感度，我只是改名而已」 | 後續需求與畫面統一使用「親密度」；仍由雙方個人好感度平均衍生，不獨立修改，區間／等級顯示與私人分數保護不變 |
 | D-030 | 2026-10-29 使用者確認新增交換名片故事與驗收，並說明名片「就是使用者在配對前輸入的資料」 | 新增 US-020；親密度達 25 分顯示交換名片入口，任一方可發起，雙方同意才揭露。名片引用既有配對前個人資料，不另建一套名片輸入流程；欄位對應由 AvatarAndPreferences 定義，交換與揭露由 AffectionAndFeedback 承接 |
 | D-031 | 2026-10-29 使用者確認「邀請可以重送，就是用親密度25分判斷能不能出現這個功能而已」，並同意同步流程與分工 | 25 分只作交換功能入口的顯示門檻；可重送邀請，拒絕不改任何分數，不另加因掉分而取消待回覆邀請或重新鎖定已交換資料的規則。該輪終止後不得完成待處理交換，沿用既有退出邊界；八份 SPEC 切分與順序不變 |
+| D-032 | 2026-10-30 使用者確認「允許加入 sessionId 條件並補測」 | 僅補強 PlatformFoundation 的 DELETE /session body：可帶非秘密 UUIDv7 sessionId 作撤銷條件，仍只由有效可識別的 Cookie／Bearer／Refresh 取得撤銷權；不符回409 SESSION_CHANGED、不撤銷也不清新Cookie。Web登出及待撤銷重試送原sessionId，不先refresh；取消失去目前Cookie對應的舊意圖，不宣稱409證明原family已撤銷。不恢復D-021移除的全域請求前置標頭或單分頁鎖，不新增端點／資料表／欄位 |
+| D-033 | 2026-10-30 使用者指示「先忽略ios驗收」 | 本輪先驗收Web與Android；保留iOS實作與原規劃，不以Web或Android替代iOS執行證據，iOS標為使用者暫緩而非通過。未完成的其他平台或真服務仍須繼續補實作／驗收 |
+| D-034 | 2026-10-30 使用者指定Google登入使用CookieSelf，測試設定參照Orick/barterfly，並提供自建Web OAuth JSON | 使用DatingHigh專用Web用戶端，僅取公開client ID配置前後端；原JSON與client secret不複製進前端或版控。Android用戶端綁定com.datinghigh.app及目前development build簽章；不改Barterfly或其他App用戶端 |
+| D-035 | 2026-10-30 使用者指示「目前範圍請限制在本地驗收，另外告訴我哪些事情本地驗收目前做不到讓我判斷」 | 本輪只執行本地Web與Android驗收，不購買Workers Paid、不部署staging。雲端容器、公開HTTPS及正式binding保留暫緩，不能標成通過；本地可做的真Google及原生矩陣繼續完成。本地證據界限見docs/verification/PlatformFoundation-LocalAcceptance.md |
 
 D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時的用戶故事、驗收條件與八份 SPEC 切分，並同意先進入第一份 `SPEC-001-PlatformFoundation` 的 SDD；各 SPEC 的細部方案仍須依階段確認。
 
@@ -542,3 +546,7 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 | `SPEC-001-Confession` | `US-011`；85 分門檻與情書告白 | 第 8 順位 | `SPEC-001-MatchingSessions`、`SPEC-001-StoryDialogueAndExit`、`SPEC-001-AffectionAndFeedback` | 將情書輸入、送出與接收作為獨立可驗收功能，沿用當輪互動權限及門檻 |
 
 每份 SPEC 後續文件主幹須完整沿用，例如 `SPEC-001-PlatformFoundation.md` 對應 `SPEC-001-PlatformFoundation-BDD.md`、`SPEC-001-PlatformFoundation-TDD.md` 與 `SPEC-001-PlatformFoundation-RiskAudit.md`；不得以另一份 `SPEC-001` 文件代替其依賴、風險或交接來源。
+
+### 2026-10-30 PlatformFoundation 實作記錄
+
+SPEC-001-PlatformFoundation已建立帳號、認證、平台資料與本地工具程式，TDD完整覆核207/227（91.2%）、BDD46/92（50.0%）。各平台、真Google／收信及staging仍有必要驗收缺項，詳見[驗證紀錄](../verification/SPEC-001-PlatformFoundation-Verification.md)。此狀態只涵蓋本份SPEC的責任範圍；不把US-013、US-015或其餘七份SPEC與US-020標為整體完成。

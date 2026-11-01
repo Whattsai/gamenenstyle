@@ -1,0 +1,48 @@
+{
+  "name": "datinghigh-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "test": "node --test tools/tests/*.test.mjs",
+    "test:server": "dotnet test backend/DatingHigh.slnx",
+    "test:worker": "npm --prefix cloudflare test",
+    "dev:client": "npm --prefix frontend/client start",
+    "dev:platform": "node tools/local.mjs dev",
+    "dev:platform:restart": "node tools/restart-local.mjs",
+    "db:migrate:local": "node tools/local.mjs migrate",
+    "db:seed:local": "node tools/local.mjs seed",
+    "db:query:local": "node tools/local.mjs query",
+    "db:execute:local": "node tools/local.mjs execute",
+    "db:backup:local": "node tools/local.mjs backup",
+    "db:restore:local": "node tools/local.mjs restore",
+    "storage:probe:local": "node tools/local.mjs probe",
+    "check:foundation": "node tools/check.mjs",
+    "setup:wsl": "pwsh -File tools/setup-wsl.ps1",
+    "build:android": "pwsh -File tools/build-android.ps1",
+    "test:client": "npm --prefix frontend/client test",
+    "test:web": "playwright test --config tests/playwright.config.ts",
+    "test:live": "node --test tests/integration/foundation-live.test.mjs",
+    "test:email:local": "node --test tests/integration/local-email-log.test.mjs",
+    "test:android": "node tests/e2e/android/smoke.mjs",
+    "build:e2e-host": "dotnet build backend/tests/DatingHigh.E2eHost/DatingHigh.E2eHost.csproj --no-restore",
+    "test:android:faults": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite faults",
+    "test:android:forms": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite forms-matrix",
+    "test:android:recovery": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite recovery-matrix",
+    "test:android:retry": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite retry-matrix",
+    "test:layout": "playwright test --config tests/layout.playwright.config.ts",
+    "test:readiness:faults": "node --test tests/integration/readiness-faults.test.mjs",
+    "preflight:staging": "node tools/deploy-preflight.mjs staging",
+    "test:android:account": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite account-matrix",
+    "test:android:identity": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite identity-matrix",
+    "test:android:pending": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite pending-matrix",
+    "test:android:real-identity": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite real-identity"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
