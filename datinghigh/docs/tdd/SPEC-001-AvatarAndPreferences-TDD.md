@@ -1624,11 +1624,11 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 
 | 類型 | 路徑 | 狀態 |
 |---|---|---|
-| MVP | `datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md` | 已確認 D-036～D-049，20故事／68 AC |
+| MVP | `datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md` | 已確認 D-036～D-050，20故事／68 AC |
 | SPEC | `datinghigh/docs/specs/SPEC-001-AvatarAndPreferences.md` | SDD已確認；24條AP-AC；2表24欄 |
-| BDD | `datinghigh/docs/bdd/SPEC-001-AvatarAndPreferences-BDD.md` | 68場景、12個@frontend，0通過 |
+| BDD | `datinghigh/docs/bdd/SPEC-001-AvatarAndPreferences-BDD.md` | 73場景、13個@frontend，0通過 |
 | TDD | `datinghigh/docs/tdd/SPEC-001-AvatarAndPreferences-TDD.md` | 275項待測，原243＋14＋18 |
-| RiskAudit | `datinghigh/docs/specs/SPEC-001-AvatarAndPreferences-RiskAudit.md` | 12項風險均已決議，RQ-01=A、RQ-02=A |
+| RiskAudit | `datinghigh/docs/specs/SPEC-001-AvatarAndPreferences-RiskAudit.md` | 14項風險均已決議，RQ-01=A、RQ-02=A |
 
 ### 已確認風險
 

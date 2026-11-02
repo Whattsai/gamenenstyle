@@ -1,7 +1,7 @@
 # SPEC-001-AvatarAndPreferences — 實作前風險與缺漏稽核
 
 > **最後修訂**：2026-11-02（使用者 D-050 逐張產圖確認；既有 RQ-01=A／RQ-02=A 保留）
-> **來源**：[MVP](../requirements/MVP-001-LoveGameDatingApp.md) → [已確認 SDD](SPEC-001-AvatarAndPreferences.md) → [BDD 73 場景](../bdd/SPEC-001-AvatarAndPreferences-BDD.md) → [TDD 275 項（原243＋14補強）](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
+> **來源**：[MVP](../requirements/MVP-001-LoveGameDatingApp.md) → [已確認 SDD](SPEC-001-AvatarAndPreferences.md) → [BDD 73 場景](../bdd/SPEC-001-AvatarAndPreferences-BDD.md) → [TDD 275 項（原243＋14項風險補強＋D-050新增18項）](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
 > **本份範圍**：AvatarAndPreferences（禁止擴及 PlatformFoundation 既有 schema 或其他未授權 SPEC）
 > **Gate 狀態**：2026-11-02 使用者已確認 D-050 逐張產圖，原12項與新增RA-13／RA-14共14項風險都有處置，原RG-01～14與新RG-15～18均有TDD追溯；**Ready for well-done（僅規劃，0/275已執行）**。
 
