@@ -75,6 +75,12 @@ export function loadConfig(path = CONFIG_PATH) {
     if (!safeRelative(task.cwd)) fail(`task cwd invalid: ${task.id}`);
     const cwd = realpathSync(resolve(repos[task.alias].root, task.cwd));
     if (!within(repos[task.alias].root, cwd)) fail(`task cwd outside repo: ${task.id}`);
+    if (task.scopeRoot !== undefined) {
+      if (!safeRelative(task.scopeRoot)) fail(`task scopeRoot invalid: ${task.id}`);
+      const scopeRoot = realpathSync(resolve(repos[task.alias].root, task.scopeRoot));
+      if (!within(repos[task.alias].root, scopeRoot) || !within(scopeRoot, cwd) || !statSync(scopeRoot).isDirectory()) fail(`task cwd outside scopeRoot: ${task.id}`);
+      task.resolvedScopeRoot = scopeRoot;
+    }
     task.resolvedCwd = cwd;
     if (task.unity !== undefined) {
       const unity = task.unity;
@@ -97,8 +103,20 @@ export function loadConfig(path = CONFIG_PATH) {
       targetIds.add(target.id);
       if (!Array.isArray(target.allowedActions) || target.allowedActions.length === 0 || target.allowedActions.some(action => !['build','test','restore'].includes(action))) fail(`invalid dotnet actions: ${target.id}`);
       if (target.filterProfile !== undefined && target.filterProfile !== 'xunit') fail(`invalid dotnet filter profile: ${target.id}`);
-      const candidate = realpathSync(resolve(repos[target.alias].root,target.relativeProjectPath));
-      if (!within(repos[target.alias].root,candidate) || !statSync(candidate).isFile() || !/\.(?:sln|slnx|csproj|fsproj|vbproj)$/i.test(candidate)) fail(`dotnet target missing or outside repo: ${target.id}`);
+      const repoRoot = repos[target.alias].root;
+      const workingDirectory = target.workingDirectory ?? '.';
+      if (!safeRelative(workingDirectory)) fail(`dotnet workingDirectory invalid: ${target.id}`);
+      const workingRoot = realpathSync(resolve(repoRoot, workingDirectory));
+      if (!within(repoRoot, workingRoot) || !statSync(workingRoot).isDirectory()) fail(`dotnet workingDirectory outside repo: ${target.id}`);
+      let scopeRoot = workingRoot;
+      if (target.scopeRoot !== undefined) {
+        if (!safeRelative(target.scopeRoot)) fail(`dotnet scopeRoot invalid: ${target.id}`);
+        scopeRoot = realpathSync(resolve(repoRoot, target.scopeRoot));
+        if (!within(repoRoot, scopeRoot) || !within(scopeRoot, workingRoot) || !statSync(scopeRoot).isDirectory()) fail(`dotnet workingDirectory outside scopeRoot: ${target.id}`);
+      }
+      const candidate = realpathSync(resolve(workingRoot,target.relativeProjectPath));
+      if (!within(workingRoot,candidate) || !within(scopeRoot,candidate) || !statSync(candidate).isFile() || !/\.(?:sln|slnx|csproj|fsproj|vbproj)$/i.test(candidate)) fail(`dotnet target missing or outside repo: ${target.id}`);
+      target.resolvedWorkingDirectory = workingRoot;
       for (const action of ['build','test','restore']) { const seconds=target.defaultTimeoutSeconds?.[action]; if (seconds !== undefined && (!Number.isInteger(seconds) || seconds < 1 || seconds > 7200)) fail(`invalid dotnet timeout: ${target.id}/${action}`); }
     }
   }

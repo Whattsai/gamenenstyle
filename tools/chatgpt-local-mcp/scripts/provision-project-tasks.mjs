@@ -18,7 +18,7 @@ const configPath = join(root, 'tools', 'chatgpt-local-mcp', 'config', 'project.j
 const config = JSON.parse(readFileSync(configPath, 'utf8'));
 if (!Array.isArray(config.repos) || !Array.isArray(config.tasks)) throw new Error('project.json 缺少 repos 或 tasks');
 const inside = (parent, path) => { const rel = relative(parent, path); return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)); };
-const ignored = new Set(['.git', 'node_modules', '.next', '.open-next', '.output', 'dist', 'out', 'coverage', '.wrangler', '.turbo']);
+const ignored = new Set(['.git', 'node_modules', '.next', '.open-next', '.output', '.local', 'dist', 'out', 'coverage', '.wrangler', '.turbo']);
 const packagePaths = values('--package').length ? values('--package') : (config.taskDiscovery?.packagePaths ?? []);
 if (!Array.isArray(packagePaths) || packagePaths.some(path => typeof path !== 'string')) throw new Error('taskDiscovery.packagePaths 必須是路徑陣列');
 const packages = [];
@@ -43,6 +43,7 @@ if (packages.length && !existsSync(npmCli)) throw new Error(`找不到 npm CLI J
 const repoRoots = config.repos.map(repo => ({ alias: repo.alias, root: realpathSync(resolve(root, repo.path)) }));
 const owner = path => repoRoots.filter(repo => inside(repo.root, path)).sort((a, b) => b.root.length - a.root.length)[0];
 const slug = value => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const relativeProjectPath = path => relative(root, path).replaceAll('\\', '/');
 const usedIds = new Set(config.tasks.map(task => task.id));
 const added = [];
 const add = task => {
@@ -61,6 +62,7 @@ const add = task => {
   }
   if (usedIds.has(id)) throw new Error(`task ID 衝突：${id}`);
   task.id = id;
+  if (config.taskDiscovery?.purposes?.[id]) task.purpose = config.taskDiscovery.purposes[id];
   usedIds.add(id);
   config.tasks.push(task);
   added.push(id);
@@ -72,14 +74,19 @@ for (const packagePath of packages) {
   if (!repo) continue;
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
   const cwd = relative(repo.root, directory).replaceAll('\\', '/') || '.';
+  const packageKey = relativeProjectPath(directory);
+  const packagePolicy = config.taskDiscovery?.packageTasks?.[packageKey];
   const prefix = slug(pkg.name || relative(root, directory)) || 'package';
-  const base = { alias: repo.alias, cwd, executable: process.execPath };
+  const base = { alias: repo.alias, cwd, executable: process.execPath, ...(packagePolicy?.scopeRoot ? { scopeRoot: packagePolicy.scopeRoot } : {}) };
   if (existsSync(join(directory, 'package-lock.json'))) add({ id: `${prefix}-restore`.slice(0, 63), kind: 'restore', ...base, args: [npmCli, 'ci'] });
-  for (const name of Object.keys(pkg.scripts || {}).filter(eligible).sort((a, b) => {
+  const policyKinds = packagePolicy?.scripts
+    ? new Map(Object.entries(packagePolicy.scripts).flatMap(([kind, names]) => names.map(name => [name, kind])))
+    : null;
+  for (const name of Object.keys(pkg.scripts || {}).filter(name => policyKinds ? policyKinds.has(name) : eligible(name)).sort((a, b) => {
     const order = ['build', 'test', 'lint', 'check', 'typecheck'];
     return (order.indexOf(a) < 0 ? 9 : order.indexOf(a)) - (order.indexOf(b) < 0 ? 9 : order.indexOf(b)) || a.localeCompare(b);
   })) {
-    const kind = name === 'build' ? 'build' : 'test';
+    const kind = policyKinds?.get(name) ?? (name === 'build' ? 'build' : 'test');
     const runArgs = name === 'test' ? ['test'] : ['run', name];
     add({ id: `${prefix}-${slug(name)}`.slice(0, 63), kind, ...base, args: [npmCli, ...runArgs] });
   }
@@ -107,12 +114,17 @@ if (dotnetFiles.length) {
   for (const path of dotnetFiles.sort()) {
     const repo = owner(path);
     if (!repo) continue;
-    const relativeProjectPath = relative(repo.root, path).replaceAll('\\', '/');
-    if (targets.has(`${repo.alias}:${relativeProjectPath}`)) continue;
+    const configuredWorkingDirectory = (config.taskDiscovery?.dotnetWorkingDirectories ?? [])
+      .map(directory => ({ directory, absolute: resolve(root, directory) }))
+      .filter(item => inside(repo.root, item.absolute) && inside(item.absolute, path))
+      .sort((a, b) => b.absolute.length - a.absolute.length)[0];
+    const workingRoot = configuredWorkingDirectory?.absolute ?? repo.root;
+    const targetPath = relative(workingRoot, path).replaceAll('\\', '/');
+    if (targets.has(`${repo.alias}:${targetPath}`)) continue;
     const content = /\.(?:csproj|fsproj|vbproj)$/i.test(path) ? readFileSync(path, 'utf8') : '';
     const isTest = /<IsTestProject>\s*true\s*<\/IsTestProject>|Microsoft\.NET\.Test\.Sdk/i.test(content) || /(?:^|[\\/])[^\\/]*tests?\.(?:csproj|fsproj|vbproj)$/i.test(path);
-    const id = slug(relativeProjectPath.replace(/\.(?:slnx?|csproj|fsproj|vbproj)$/i, '')).slice(0, 63);
-    config.dotnet.targets.push({ id, alias: repo.alias, relativeProjectPath, allowedActions: isTest || /\.slnx?$/i.test(path) ? ['build', 'test', 'restore'] : ['build', 'restore'] });
+    const id = slug(targetPath.replace(/\.(?:slnx?|csproj|fsproj|vbproj)$/i, '')).slice(0, 63);
+    config.dotnet.targets.push({ id, alias: repo.alias, ...(configuredWorkingDirectory ? { workingDirectory: relative(repo.root, workingRoot).replaceAll('\\', '/'), scopeRoot: relative(repo.root, workingRoot).replaceAll('\\', '/') } : {}), relativeProjectPath: targetPath, allowedActions: isTest || /\.slnx?$/i.test(path) ? ['build', 'test', 'restore'] : ['build', 'restore'] });
     dotnetAdded.push(id);
   }
 }

@@ -206,6 +206,21 @@ test('successful filtered .NET run with zero tests reports no_tests_matched and 
     assert.equal((await dotnet.summary(started.id)).failureType,'no_tests_matched');
   }finally{await rm(f.base,{recursive:true,force:true});}
 });
+test('scoped project jobs and .NET targets stay inside their DatingHigh work directory',async()=>{
+  const f=await fixture();try{
+    const scoped=join(f.project,'datinghigh');await mkdir(scoped);await writeFile(join(scoped,'Demo.Tests.csproj'),'<Project />');
+    f.config.tasks[0].cwd='datinghigh';f.config.tasks[0].scopeRoot='datinghigh';
+    f.config.dotnet={enabled:true,executable:process.execPath,targets:[{id:'datinghigh-tests',alias:'main',workingDirectory:'datinghigh',scopeRoot:'datinghigh',relativeProjectPath:'Demo.Tests.csproj',allowedActions:['build','test']}]} ;
+    await writeFile(f.configPath,JSON.stringify(f.config));
+    const loaded=loadConfig(f.configPath);assert.equal(loaded.tasks[0].resolvedCwd,scoped);assert.equal(loaded.dotnet.targets[0].resolvedWorkingDirectory,scoped);
+    const service=new ProjectService(loaded);await service.init();const dotnet=new DotnetService(loaded,service);await dotnet.init();
+    const started=await dotnet.start(loaded.dotnet.targets[0],'build',['-e','console.log(process.cwd())'],30);let job;
+    for(let i=0;i<50;i++){job=await dotnet.read(started.id);if(job.status!=='running')break;await new Promise(resolve=>setTimeout(resolve,50));}
+    assert.equal(job.status,'succeeded');assert.equal((await readFile(job.logPath,'utf8')).trim(),scoped);
+    f.config.tasks[0].cwd='.';await writeFile(f.configPath,JSON.stringify(f.config));assert.throws(()=>loadConfig(f.configPath),/task cwd outside scopeRoot/);
+    f.config.tasks[0].cwd='datinghigh';f.config.dotnet.targets[0].relativeProjectPath='../AGENTS.md';await writeFile(f.configPath,JSON.stringify(f.config));assert.throws(()=>loadConfig(f.configPath),/invalid dotnet target/);
+  }finally{await rm(f.base,{recursive:true,force:true});}
+});
 test('template job summary is lightweight, bounded, redacted, and optionally records terminal validation',async()=>{
   const f=await fixture();let client;try{
     await writeFile(join(f.project,'Demo.Tests.csproj'),'<Project Sdk="Microsoft.NET.Sdk"></Project>');

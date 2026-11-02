@@ -13,7 +13,19 @@ const fail = (code, message) => { throw new Error(`${code}: ${message}`); };
 const blockedSegments = new Set(['.git','.vs','.ssh','.gnupg','credentials','secrets','node_modules','bin','obj']);
 const textExt = new Set(['.md','.txt','.json','.jsonc','.yaml','.yml','.js','.mjs','.cjs','.ts','.tsx','.jsx','.css','.html','.xml','.cs','.csproj','.sln','.sql','.py','.ps1','.sh','.feature','.toml','.ini','.config','.gitignore']);
 const sensitive = name => /^\.env(?:\.|$)/i.test(name) || /(?:^|[-_.])(secret|password|credential|private[-_]?key)(?:[-_.]|$)/i.test(name) || /\.(?:pem|pfx|p12|key)$/i.test(name);
-export function redact(value) { return String(value).replace(/(https:\/\/[^\s"'?#]+)\?[^\s"'#]*/gi,'$1?[REDACTED_QUERY]').replace(/(?:sk|sess|rk|pk)-[A-Za-z0-9_-]{16,}/g,'[REDACTED_KEY]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi,'$1[REDACTED]').replace(/((?:Password|Pwd|AccountKey|SharedAccessSignature)\s*[=:]\s*)[^;\s'\"]+/gi,'$1[REDACTED]').replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]'); }
+export function redact(value) {
+  return String(value)
+    .replace(/(https:\/\/[^\s"'?#]+)\?[^\s"'#]*/gi,'$1?[REDACTED_QUERY]')
+    .replace(/(?:sk|sess|rk|pk)-[A-Za-z0-9_-]{16,}/g,'[REDACTED_KEY]')
+    .replace(/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,'[REDACTED_JWT]')
+    .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{16,}/gi,'$1[REDACTED]')
+    .replace(/(["']?\b(?:(?:[a-z0-9]+[_-])*(?:secret|token|key)|access[_-]?token|refresh[_-]?token|id[_-]?token|oauth[_-]?token|auth[_-]?token|csrf[_-]?token|xsrf[_-]?token|session[_-]?(?:id|key|token)|api[_-]?key|secret|password|passwd|pwd|cookie|set-cookie|authorization|email|e-mail|phone|mobile|(?:verification|email|reset|login|one[-_ ]?time)[-_ ]?code|otp|proof|account(?:[_-]?id)?|user(?:name|[_-]?id)?|display[_-]?name|first[_-]?name|last[_-]?name|date[_-]?of[_-]?birth|address)["']?\s*[:=]\s*["']?)([^\s,;}'"<>]+)(["']?)/gi,'$1[REDACTED]$3')
+    .replace(/((?:Password|Pwd|AccountKey|SharedAccessSignature)\s*[=:]\s*)[^;\s'"]+/gi,'$1[REDACTED]')
+    .replace(/\bcode\s*[=:]\s*\d{4,10}\b/gi,'code=[REDACTED_CODE]')
+    .replace(/\b((?:verification|email|reset|login|one[-_ ]?time)[-_ ]?code)\s+\d{4,10}\b/gi,'$1 [REDACTED_CODE]')
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[REDACTED_EMAIL]')
+    .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]');
+}
 export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramData','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];env.PYTHONUTF8='1';env.PYTHONIOENCODING='utf-8';return env;}
 function assertText(path) { if (!textExt.has(extname(path).toLowerCase()) && !textExt.has(basename(path).toLowerCase())) fail('TEXT_TYPE_BLOCKED','unsupported text file'); }
 // 來源例外只供讀取，不加入共用的可寫副檔名集合；涵蓋 parts/s 與 p/8、p/48。

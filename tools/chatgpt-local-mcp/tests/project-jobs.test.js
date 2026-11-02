@@ -68,6 +68,17 @@ test('spawn error and nonzero exit keep explicit reasons',async()=>{
   }finally{await cleanup(g);}
 });
 
+test('test jobs return counts and redacted failure diagnostics with a persistent log',async()=>{
+  const f=await fixture(`process.stdout.write('email=private.person@');setTimeout(()=>{console.log('example.test');console.log('# tests 2\\n# pass 1\\n# fail 1\\n# skipped 0');console.error('not ok 2 - rejects private.person@example.test');process.exit(1)},10)`);
+  try{
+    const job=await until(f.service,f.id,done);
+    assert.equal(job.status,'failed');assert.equal(job.failureType,'test_failure');assert.equal(job.error,'1 of 2 tests failed');
+    assert.deepEqual(job.testSummary,{total:2,passed:1,failed:1,skipped:0});
+    assert.equal(job.diagnostics[0].type,'test_failure');assert.doesNotMatch(JSON.stringify(job.diagnostics),/private\.person@example\.test/);
+    const stored=await readFile(job.logPath,'utf8');assert.doesNotMatch(stored,/private\.person@example\.test/);assert.match(stored,/\[stderr\].*not ok/);
+  }finally{await cleanup(f);}
+});
+
 test('large logs stay queryable and do not kill a healthy job; legacy txt tail remains supported',async()=>{
   const f=await fixture(`process.stdout.write('x'.repeat(2100000));console.log('\\nfinished');`);
   try{

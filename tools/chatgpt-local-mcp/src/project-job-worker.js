@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { StringDecoder } from 'node:string_decoder';
 import { basename, dirname } from 'node:path';
 import { ProjectService, redact } from './core.js';
+import { parseProjectDiagnostics, parseProjectTestSummary } from './project-job-results.js';
 
 // 獨立 supervisor 不依附 MCP 連線；只有它能更新執行中工作，取消透過檔案傳遞。
 const [recordPath, launchPath] = process.argv.slice(2);
@@ -52,17 +53,28 @@ const progress = value => {
 const capture = stream => {
   const decoder = new StringDecoder('utf8');
   let pending = '';
-  return { write(chunk) {
-    const value = decoder.write(chunk);
-    log(stream, value);
-    pending += value;
-    const lines = pending.split('\n'); pending = lines.pop();
-    for (const line of lines) if (line.startsWith('@@JOB ')) {
+  const writeLine = (line, ending = '\n') => {
+    log(stream, line + ending);
+    if (line.startsWith('@@JOB ')) {
       try { progress(JSON.parse(line.slice(6))); } catch { /* 非完整事件只保留日誌。 */ }
     }
-    pending = pending.slice(-65536);
+  };
+  return { write(chunk) {
+    pending += decoder.write(chunk);
+    const lines = pending.split('\n'); pending = lines.pop();
+    for (const line of lines) writeLine(line);
+    // Keep enough overlap to redact credentials or PII split across output chunks.
+    if (pending.length > 65536) {
+      const flushLength = pending.length - 4096;
+      log(stream, pending.slice(0, flushLength));
+      pending = pending.slice(flushLength);
+    }
     save();
-  }, flush() { const rest = decoder.end(); if (rest) log(stream, rest); } };
+  }, flush() {
+    pending += decoder.end();
+    if (pending) writeLine(pending, '');
+    pending = '';
+  } };
 };
 const stdout = capture('stdout'), stderr = capture('stderr');
 async function stop(status, type, reason) {
@@ -96,9 +108,25 @@ function finish(code, error) {
   job.exitCode = code;
   job.completedAt = job.completed = now();
   job.durationMs = Date.now() - Date.parse(job.startedAt);
+  let output = '';
+  try { output = readFileSync(job.logPath, 'utf8').slice(-1048576); } catch {}
+  if (job.kind === 'test') {
+    job.testSummary = parseProjectTestSummary(output);
+    if (job.status === 'succeeded' && job.testSummary?.total === 0) {
+      job.status = 'failed';
+      job.failureType = 'test_failure';
+      job.error = 'Test task completed without running any tests';
+    } else if (job.testSummary?.failed > 0) {
+      job.status = 'failed';
+      job.failureType = 'test_failure';
+      job.error = `${job.testSummary.failed} of ${job.testSummary.total} tests failed`;
+    }
+  }
+  job.diagnostics = parseProjectDiagnostics(output);
   if (job.status === 'failed') {
     job.failureType ??= error?.code === 'ENOENT' ? 'environment_missing' : 'runtime_error';
-    job.error ??= error?.message ?? `Process exited with code ${code}; stage=${job.stage}`;
+    job.error ??= redact(error?.message ?? `Process exited with code ${code}; stage=${job.stage}`);
+    if (!job.diagnostics.length) job.diagnostics.push({ type: job.failureType, message: job.error });
     job.failedStage ??= job.stage;
   }
   job.lastActivityAt = now(); job.lastHeartbeatAt = now(); save();

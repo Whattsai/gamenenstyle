@@ -15,7 +15,10 @@
       "requiredInstructions": [
         "brickhigh/GEMINI.md",
         "brickhigh/overview/README.md",
-        "brickhigh/docs/README.md"
+        "brickhigh/docs/README.md",
+        "datinghigh/AGENTS.md",
+        "datinghigh/README.md",
+        "datinghigh/overview/02-development-guidelines/03-ai-workflow-stages.md"
       ],
       "alias": "main"
     }
@@ -481,12 +484,470 @@
       ],
       "cwd": ".",
       "timeoutSeconds": 300
+    },
+    {
+      "id": "datinghigh-local-migrate",
+      "purpose": "Apply DatingHigh D1 migrations to the existing default local instance through tools/local.mjs; the wrapper fixes Wrangler to --local.",
+      "kind": "build",
+      "alias": "main",
+      "scopeRoot": "datinghigh",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\GitProjects\\gamenenstyle\\datinghigh\\tools\\local.mjs",
+        "migrate"
+      ],
+      "timeoutSeconds": 600
+    },
+    {
+      "id": "datinghigh-platform-restore",
+      "kind": "restore",
+      "alias": "main",
+      "cwd": "datinghigh/cloudflare",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "ci"
+      ],
+      "purpose": "Restore the pinned DatingHigh Worker dependencies."
+    },
+    {
+      "id": "datinghigh-platform-test",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh/cloudflare",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "test"
+      ],
+      "purpose": "Run DatingHigh Miniflare Worker tests with D1 and R2 bindings."
+    },
+    {
+      "id": "datinghigh-platform-typecheck",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "datinghigh/cloudflare",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "purpose": "Typecheck the DatingHigh Worker package."
+    },
+    {
+      "id": "datinghigh-client-restore",
+      "kind": "restore",
+      "alias": "main",
+      "cwd": "datinghigh/frontend/client",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "ci"
+      ],
+      "purpose": "Restore the pinned DatingHigh client dependencies."
+    },
+    {
+      "id": "datinghigh-client-test",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh/frontend/client",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "test"
+      ],
+      "purpose": "Run DatingHigh client Vitest tests."
+    },
+    {
+      "id": "datinghigh-client-typecheck",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "datinghigh/frontend/client",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "purpose": "Typecheck the DatingHigh client package."
+    },
+    {
+      "id": "datinghigh-client-export-web",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "datinghigh/frontend/client",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "export:web"
+      ],
+      "purpose": "Build the DatingHigh static Web client export used by local E2E tests."
+    },
+    {
+      "id": "datinghigh-foundation-restore",
+      "kind": "restore",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "ci"
+      ],
+      "purpose": "Restore the pinned DatingHigh root Node dependencies from package-lock.json."
+    },
+    {
+      "id": "datinghigh-foundation-test",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "test"
+      ],
+      "purpose": "Run DatingHigh Node tool and policy tests."
+    },
+    {
+      "id": "datinghigh-foundation-build-android",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build:android"
+      ],
+      "purpose": "Build the DatingHigh local Android development APK through tools/build-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-build-e2e-host",
+      "kind": "build",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "build:e2e-host"
+      ],
+      "purpose": "Build the fixed DatingHigh E2E host project for local Web and Android acceptance."
+    },
+    {
+      "id": "datinghigh-foundation-check-foundation",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "check:foundation"
+      ],
+      "purpose": "Run DatingHigh policy, .NET, Worker, client, type and acceptance-evidence checks."
+    },
+    {
+      "id": "datinghigh-foundation-test-android",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android"
+      ],
+      "purpose": "Run the fixed DatingHigh Android smoke suite against the configured local emulator."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-account",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:account"
+      ],
+      "purpose": "Run the DatingHigh Android account matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-faults",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:faults"
+      ],
+      "purpose": "Run the DatingHigh Android controlled faults matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-forms",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:forms"
+      ],
+      "purpose": "Run the DatingHigh Android forms matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-identity",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:identity"
+      ],
+      "purpose": "Run the DatingHigh Android identity matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-recovery",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:recovery"
+      ],
+      "purpose": "Run the DatingHigh Android recovery matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-retry",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:retry"
+      ],
+      "purpose": "Run the DatingHigh Android retry matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-client",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:client"
+      ],
+      "purpose": "Run DatingHigh client component and state tests."
+    },
+    {
+      "id": "datinghigh-foundation-test-layout",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:layout"
+      ],
+      "purpose": "Run DatingHigh Playwright layout tests."
+    },
+    {
+      "id": "datinghigh-foundation-test-server",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:server"
+      ],
+      "purpose": "Run the DatingHigh .NET solution test suite."
+    },
+    {
+      "id": "datinghigh-foundation-test-web",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:web"
+      ],
+      "purpose": "Run DatingHigh Playwright Web end-to-end tests against the local platform."
+    },
+    {
+      "id": "datinghigh-foundation-test-worker",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:worker"
+      ],
+      "purpose": "Run DatingHigh Worker tests with Miniflare local D1 and R2 bindings."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-pending",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:pending"
+      ],
+      "purpose": "Run the DatingHigh Android pending-state matrix through tools/test-android.ps1."
+    },
+    {
+      "id": "datinghigh-foundation-test-android-real-identity",
+      "kind": "test",
+      "alias": "main",
+      "cwd": "datinghigh",
+      "executable": "C:\\Program Files\\nodejs\\node.exe",
+      "scopeRoot": "datinghigh",
+      "args": [
+        "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js",
+        "run",
+        "test:android:real-identity"
+      ],
+      "purpose": "Run the local Android real-identity test; requires an explicitly authorized Google account selection and keeps email/proof out of test artifacts."
     }
   ],
   "taskDiscovery": {
     "packagePaths": [
-      "brickhigh/tools/catalog"
-    ]
+      "brickhigh/tools/catalog",
+      "datinghigh",
+      "datinghigh/cloudflare",
+      "datinghigh/frontend/client"
+    ],
+    "packageTasks": {
+      "datinghigh": {
+        "scopeRoot": "datinghigh",
+        "scripts": {
+          "build": [
+            "build:e2e-host",
+            "build:android"
+          ],
+          "test": [
+            "test",
+            "test:server",
+            "test:worker",
+            "test:client",
+            "test:web",
+            "test:layout",
+            "test:android",
+            "test:android:faults",
+            "test:android:forms",
+            "test:android:recovery",
+            "test:android:retry",
+            "test:android:account",
+            "test:android:identity",
+            "test:android:pending",
+            "test:android:real-identity",
+            "check:foundation"
+          ]
+        }
+      },
+      "datinghigh/cloudflare": {
+        "scopeRoot": "datinghigh",
+        "scripts": {
+          "test": [
+            "test"
+          ],
+          "build": [
+            "typecheck"
+          ]
+        }
+      },
+      "datinghigh/frontend/client": {
+        "scopeRoot": "datinghigh",
+        "scripts": {
+          "test": [
+            "test"
+          ],
+          "build": [
+            "typecheck",
+            "export:web"
+          ]
+        }
+      }
+    },
+    "dotnetWorkingDirectories": [
+      "datinghigh"
+    ],
+    "purposes": {
+      "datinghigh-foundation-restore": "Restore the pinned DatingHigh root Node dependencies from package-lock.json.",
+      "datinghigh-foundation-test": "Run DatingHigh Node tool and policy tests.",
+      "datinghigh-foundation-test-server": "Run the DatingHigh .NET solution test suite.",
+      "datinghigh-foundation-test-worker": "Run DatingHigh Worker tests with Miniflare local D1 and R2 bindings.",
+      "datinghigh-foundation-test-client": "Run DatingHigh client component and state tests.",
+      "datinghigh-foundation-test-web": "Run DatingHigh Playwright Web end-to-end tests against the local platform.",
+      "datinghigh-foundation-test-layout": "Run DatingHigh Playwright layout tests.",
+      "datinghigh-foundation-test-android": "Run the fixed DatingHigh Android smoke suite against the configured local emulator.",
+      "datinghigh-foundation-test-android-faults": "Run the DatingHigh Android controlled faults matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-forms": "Run the DatingHigh Android forms matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-recovery": "Run the DatingHigh Android recovery matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-retry": "Run the DatingHigh Android retry matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-account": "Run the DatingHigh Android account matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-identity": "Run the DatingHigh Android identity matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-pending": "Run the DatingHigh Android pending-state matrix through tools/test-android.ps1.",
+      "datinghigh-foundation-test-android-real-identity": "Run the local Android real-identity test; requires an explicitly authorized Google account selection and keeps email/proof out of test artifacts.",
+      "datinghigh-foundation-check-foundation": "Run DatingHigh policy, .NET, Worker, client, type and acceptance-evidence checks.",
+      "datinghigh-foundation-build-e2e-host": "Build the fixed DatingHigh E2E host project for local Web and Android acceptance.",
+      "datinghigh-foundation-build-android": "Build the DatingHigh local Android development APK through tools/build-android.ps1.",
+      "datinghigh-platform-restore": "Restore the pinned DatingHigh Worker dependencies.",
+      "datinghigh-platform-test": "Run DatingHigh Miniflare Worker tests with D1 and R2 bindings.",
+      "datinghigh-platform-typecheck": "Typecheck the DatingHigh Worker package.",
+      "datinghigh-client-restore": "Restore the pinned DatingHigh client dependencies.",
+      "datinghigh-client-test": "Run DatingHigh client Vitest tests.",
+      "datinghigh-client-typecheck": "Typecheck the DatingHigh client package.",
+      "datinghigh-client-export-web": "Build the DatingHigh static Web client export used by local E2E tests."
+    }
   },
   "dotnet": {
     "targets": [
@@ -542,6 +1003,120 @@
         "allowedActions": [
           "build",
           "test",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-datinghigh",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/DatingHigh.slnx",
+        "allowedActions": [
+          "build",
+          "test",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-src-datinghigh-api-datinghigh-api",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/src/DatingHigh.Api/DatingHigh.Api.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-src-datinghigh-application-datinghigh-application",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/src/DatingHigh.Application/DatingHigh.Application.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-src-datinghigh-domain-datinghigh-domain",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/src/DatingHigh.Domain/DatingHigh.Domain.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-src-datinghigh-infrastructure-datinghigh-infrastructure",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/src/DatingHigh.Infrastructure/DatingHigh.Infrastructure.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tests-datinghigh-api-tests-datinghigh-api-tests",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tests/DatingHigh.Api.Tests/DatingHigh.Api.Tests.csproj",
+        "allowedActions": [
+          "build",
+          "test",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tests-datinghigh-e2ehost-datinghigh-e2ehost",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tests/DatingHigh.E2eHost/DatingHigh.E2eHost.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tests-datinghigh-integration-tests-datinghigh-integrati",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tests/DatingHigh.Integration.Tests/DatingHigh.Integration.Tests.csproj",
+        "allowedActions": [
+          "build",
+          "test",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tests-datinghigh-unit-tests-datinghigh-unit-tests",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tests/DatingHigh.Unit.Tests/DatingHigh.Unit.Tests.csproj",
+        "allowedActions": [
+          "build",
+          "test",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tools-datinghigh-platformprobe-datinghigh-platformprobe",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tools/DatingHigh.PlatformProbe/DatingHigh.PlatformProbe.csproj",
+        "allowedActions": [
+          "build",
           "restore"
         ]
       }

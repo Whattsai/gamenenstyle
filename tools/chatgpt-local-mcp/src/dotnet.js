@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { createWriteStream, existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 import { XMLParser } from 'fast-xml-parser';
 import { redact, safeEnvironment } from './core.js';
 
@@ -10,6 +11,14 @@ const fail=(code,message)=>{throw new Error(`${code}: ${message}`);};
 const MAX_TOOL_OUTPUT_CHARS=24000,GET_JOB_INLINE_LOG_MAX_CHARS=4096,GET_JOB_RESPONSE_SAFETY_CHARS=512;
 const parser=new XMLParser({ignoreAttributes:false,parseAttributeValue:false,isArray:(_name,path)=>String(path).endsWith('.UnitTestResult')||String(path).endsWith('.UnitTest')});
 const array=value=>value===undefined?[]:Array.isArray(value)?value:[value];
+function captureLog(log,prefix=''){
+  const decoder=new StringDecoder('utf8');let pending='';
+  const writeLine=(line,ending='\n')=>log.write(prefix+redact(line+ending));
+  return{
+    write(chunk){pending+=decoder.write(chunk);const lines=pending.split('\n');pending=lines.pop();for(const line of lines)writeLine(line);if(pending.length>65536){const flushLength=pending.length-4096;writeLine(pending.slice(0,flushLength),'');pending=pending.slice(flushLength);}},
+    flush(){pending+=decoder.end();if(pending)writeLine(pending,'');pending='';}
+  };
+}
 const duration=value=>{const match=/^(?:(\d+)\.)?(\d+):(\d+):(\d+)(?:\.(\d+))?$/.exec(String(value??''));return match?Math.round(((((Number(match[1]??0)*24+Number(match[2]))*60+Number(match[3]))*60+Number(match[4]))*1000)+Number(`0.${match[5]??'0'}`)*1000):0;};
 const line=value=>{const text=redact(value);return text.length<=1000?text:`${text.slice(0,1000)}…`;};
 export function escapeVstestValue(value){if(typeof value!=='string'||!value||value.length>500||/[\0\r\n]/.test(value))fail('DOTNET_FILTER_INVALID','filter value must be 1-500 characters on one line');return value.replace(/\\/g,'\\\\').replace(/,/g,'%2C').replace(/[()!~&|=]/g,'\\$&');}
@@ -63,7 +72,7 @@ export class DotnetService{
     const job={id,target:target.id,action,kind:`dotnet-${action}`,alias:target.alias,command:basename(this.config.dotnet.executable),args:args.map(redact),status:'running',createdAt:new Date().toISOString(),startedAt:new Date().toISOString(),timeoutSeconds,failureType:null,logPath,diagnosticsPath,...(filter?{filterSummary:{type:filter.type,operator:filter.operator,value:redact(filter.value),...(filter.trait_name?{traitName:filter.trait_name}:{})}}:{})};
     if(resultsDirectory)job.resultsDirectory=resultsDirectory;
     await this.save(job);
-    const child=spawn(this.config.dotnet.executable,args,{cwd:this.config.repos[target.alias].root,shell:false,windowsHide:true,env:safeEnvironment(),stdio:['ignore','pipe','pipe']});this.children.set(id,child);this.activeJobs.set(id,job);if(child.pid)job.pid=child.pid;await this.save(job);const log=createWriteStream(logPath,{flags:'a'}),capture=prefix=>{let carry='';return{write(chunk){carry+=chunk.toString('utf8');if(carry.length>2048){const count=carry.length-1024;log.write(prefix+redact(carry.slice(0,count)));carry=carry.slice(count);}},flush(){if(carry)log.write(prefix+redact(carry));carry='';}};},stdout=capture(''),stderr=capture('[stderr] ');child.stdout?.on('data',chunk=>stdout.write(chunk));child.stderr?.on('data',chunk=>stderr.write(chunk));let finished=false,timer;
+    const child=spawn(this.config.dotnet.executable,args,{cwd:target.resolvedWorkingDirectory??this.config.repos[target.alias].root,shell:false,windowsHide:true,env:safeEnvironment(),stdio:['ignore','pipe','pipe']});this.children.set(id,child);this.activeJobs.set(id,job);if(child.pid)job.pid=child.pid;await this.save(job);const log=createWriteStream(logPath,{flags:'a'}),stdout=captureLog(log),stderr=captureLog(log,'[stderr] ');child.stdout?.on('data',chunk=>stdout.write(chunk));child.stderr?.on('data',chunk=>stderr.write(chunk));let finished=false,timer;
     const finalize=async(code,error)=>{if(finished)return;finished=true;clearTimeout(timer);stdout.flush();stderr.flush();await new Promise(resolve=>log.end(resolve));this.children.delete(id);this.activeJobs.delete(id);job.exitCode=code;if(error){job.status='failed';job.summary=redact(error.message);}else if(!['cancelled','timed_out'].includes(job.status))job.status=code===0?'succeeded':'failed';job.completedAt=new Date().toISOString();job.durationMs=Math.max(0,Date.parse(job.completedAt)-Date.parse(job.startedAt));let failedTests=[];if(action==='test')try{const parsed=await parseTrxDirectory(resultsDirectory);job.testSummary=parsed.summary;failedTests=parsed.failedTests;if(job.status==='succeeded'&&parsed.summary.total===0){job.status='failed';job.failureType=filter?'no_tests_matched':'test_failure';job.summary=filter?'test filter matched no tests':!parsed.trxCount?'test produced no TRX':'test selected zero tests';}else if(job.status==='succeeded'&&!parsed.trxCount){job.status='failed';job.failureType='test_failure';job.summary='test produced no TRX';}else if(parsed.summary.failed){job.status='failed';job.failureType='test_failure';job.summary=`${parsed.summary.failed} of ${parsed.summary.total} tests failed`;}}catch(parseError){job.status='failed';job.failureType='infrastructure_error';job.summary=parseError.message;}const raw=await readFile(logPath,'utf8').catch(()=>''),diagnostics={errors:parseLogErrors(raw),failedTests};job.failureType??=failure(job,raw,diagnostics);await writeFile(diagnosticsPath,`${JSON.stringify(diagnostics,null,2)}\n`);await this.save(job);};child.once('error',error=>void finalize(null,error));child.once('close',code=>void finalize(code));timer=setTimeout(()=>{job.status='timed_out';job.failureType='timeout';job.summary=`Job exceeded ${timeoutSeconds} seconds`;void this.terminate(child);},timeoutSeconds*1000);return{id:job.id,status:job.status,target:job.target,action:job.action};
   }
   async terminate(child){if(!child.pid)return;if(process.platform==='win32')await new Promise(resolve=>{const killer=spawn('taskkill.exe',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,shell:false,stdio:'ignore'});killer.once('error',()=>{try{child.kill();}catch{}resolve();});killer.once('close',resolve);});else try{child.kill('SIGKILL');}catch{}}
