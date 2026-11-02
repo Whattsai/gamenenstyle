@@ -23,7 +23,7 @@
 | 可重跑開發／維運腳本與政策測試 | `tools/`、`tools/tests/` |
 | MVP／SPEC／BDD／TDD／驗收 | `docs/requirements/`、`docs/specs/`、`docs/bdd/`、`docs/tdd/`、`docs/verification/` |
 | 現況上下文 | `overview/01-architecture/`、`02-development-guidelines/`、`03-contracts/`、`04-deployment/` |
-| 提案／原型 | `proposals/`；不是正式業務程式入口 |
+| 原型／提案 | `prototypes/`（或 `proposals/`）；不是正式業務程式入口，與 Expo 正式 runtime 分開 |
 
 根 `tests/` 涵蓋前端、API、Worker／Container／D1 與持久性，不能因測試使用某個 client 就整包搬入前端。各模組單元測試留在模組內。
 

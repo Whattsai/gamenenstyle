@@ -3,7 +3,7 @@
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（US-001～003，US-020 的資料來源契約）
 > **來源 SDD**：[SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md)（2026-11-01 使用者已確認，含 D-047 無 SQL Trigger）
 > **生成日期**：2026-11-01
-> **階段**：使用者已確認 SDD／RiskAudit（RQ-01=A、RQ-02=A），規劃交接 Ready for well-done；68 個場景、12 個 @frontend，全部待開發／未驗收。
+> **階段**：使用者已確認 SDD／RiskAudit（RQ-01=A、RQ-02=A），2026-11-02 D-050 修訂後規劃交接 Ready for well-done；73 個場景、13 個 @frontend，全部待開發／未驗收。
 
 ---
 
@@ -18,7 +18,7 @@ Feature：登入本人安全維護工作／偏好、私人真人照片及免費�
 ```text
 📦 AvatarAndPreferences 前端 UX
 ├─ 狀態：⏸️ 未開始
-├─ 完整場景：0/12
+├─ 完整場景：0/13
 └─ 進度：[░░░░░░░░░░░░░░░░░░░░] 0%
 ```
 
@@ -252,30 +252,30 @@ Scenario: AP-BDD-014 本人預覽將交換的即時名片
 
 ### @smoke @happy-path @normal @AP-BDD-015
 
-- [ ] **Scenario: AI 鎖頭可直接使用真實生成**（`AP-BDD-015`）
+- [ ] **Scenario: AI 鎖頭首次只產生一張真結果（`AP-BDD-015`）
   - **追溯**：AP-AC-002、AP-AC-003、AP-AC-018；SPEC §4～§8
-  - **測試方法基名**：`GenerateFourAvatars`
+  - **測試方法基名**：`GenerateOneAvatar`
 
 ```gherkin
-Scenario: AP-BDD-015 AI 鎖頭可直接使用真實生成
-  Given 本人已保存至少兩張 ready 真人照並進入帶鎖頭的 AI 產圖頁
-  When 本人在看到「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」後主動按「開始產生4張」
-  Then 後端才可讀取本人照片並呼叫 Gemini，無須付款即可收到4張不同的真 AI 插畫候選
-  And 回傳一小時內有效的 attemptId 和四個候選索引
+Scenario: AP-BDD-015 AI 鎖頭首次只產生一張真結果
+  Given 本人已保存至少兩張 ready 真人照並已閱讀產圖頁第三方送照提醒
+  When 本人按「開始產生第1張」
+  Then 後端只呼叫本次一張 Gemini 並回傳一張真正可預覽的插畫，不要求一口氣取得四張
+  And 回傳 attemptId、index=1、producedCount=1 及60分鐘到期資訊
 ```
 
 ### @smoke @happy-path @critical @AP-BDD-016
 
-- [ ] **Scenario: 四張候選只選一張正式化身**（`AP-BDD-016`）
+- [ ] **Scenario: 任選已成功候選只保存一張（`AP-BDD-016`）
   - **追溯**：AP-AC-003、AP-AC-006；SPEC §4～§8
   - **測試方法基名**：`SelectGeneratedAvatar`
 
 ```gherkin
-Scenario: AP-BDD-016 四張候選只選一張正式化身
-  Given 本人已有四張尚未過期的私人 R2 候選和最新 revision
-  When 本人選中其中第3張
-  Then 僅第3張正式寫入 user_media_assets 並更新目前遊戲化身
-  And 另外3張不建立正式媒體列且舊化身不被提前覆寫
+Scenario: AP-BDD-016 任選已成功候選只保存一張
+  Given 本人已依序成功產生三張私人 R2 候選且 revision 為最新
+  When 本人回選第2張、看完採用警語後按「確認採用」
+  Then 只有所選第2張正式寫入 user_media_assets 並更新目前遊戲化身，本輪隨即關閉
+  And 其餘已成功兩張不建立正式媒體列，未確認前舊化身維持不變
 ```
 
 ### @happy-path @critical @AP-BDD-017
@@ -308,16 +308,16 @@ Scenario: AP-BDD-018 共用壓縮可被非化身圖片功能呼叫
 
 ### @happy-path @critical @AP-BDD-019
 
-- [ ] **Scenario: 使用 server secret 真正調用 Gemini**（`AP-BDD-019`）
+- [ ] **Scenario: 使用 server secret 真正逐張呼叫 Gemini（`AP-BDD-019`）
   - **追溯**：AP-AC-024；SPEC §4～§8
   - **測試方法基名**：`GeminiLiveVerification`
 
 ```gherkin
-Scenario: AP-BDD-019 使用 server secret 真正調用 Gemini
-  Given 測試環境以安全方式配置使用者授權的 Gemini API 憑證與照片
-  When 後端啟用受控真 API 驗證
-  Then 真實產生四張並記錄不含敏感資料的模型版本及成功證據
-  And 客戶端、Git 和日誌不包含金鑰或原始人像內容
+Scenario: AP-BDD-019 使用 server secret 真正逐張呼叫 Gemini
+  Given 測試環境以安全方式配置使用者授權的 Gemini API 憑證與真人照片
+  When 本人明確要求單張生成，後端啟用真實 Gemini API
+  Then 每次成功真正產出一張可預覽的3:4插畫並記錄非敏感的模型版本與耗時／用量證據
+  And 客戶端、Git與日誌均不包含秘密或原始人像，未產出圖片不能假成功
 ```
 
 
@@ -369,16 +369,16 @@ Scenario: AP-BDD-022 五張照片可刪除後補上新照片
 
 ### @alternative-path @critical @AP-BDD-023
 
-- [ ] **Scenario: 未完成的生成保留舊化身**（`AP-BDD-023`）
+- [ ] **Scenario: 本輪未採用仍保留既有化身（`AP-BDD-023`）
   - **追溯**：AP-AC-003；SPEC §4
   - **測試方法基名**：`AbandonGeneratedCandidates`
 
 ```gherkin
-Scenario: AP-BDD-023 未完成的生成保留舊化身
-  Given 本人已有當前免費角色
-  When 本人啟動 AI 後選擇不使用任何結果
-  Then 當前化身保持不變
-  And 暫存四張候選在期限到達後被清理
+Scenario: AP-BDD-023 本輪未採用仍保留既有化身
+  Given 本人已有當前免費角色與一至三張本輪已成功候選
+  When 本人暫不採用並離開產圖畫面
+  Then 目前遊戲化身保持不變且已成功候選在60分鐘效期內仍可由本人依參照安全預覽
+  And 到期才拒絕讀取／清理，沒有正式資產、付款或自動產下一張
 ```
 
 ### @alternative-path @normal @AP-BDD-024
@@ -397,16 +397,16 @@ Scenario: AP-BDD-024 職業留空不阻擋基本設定
 
 ### @alternative-path @normal @AP-BDD-025
 
-- [ ] **Scenario: 四張候選過期後可再次請求**（`AP-BDD-025`）
+- [ ] **Scenario: 過期本輪可以重新開始逐張產圖（`AP-BDD-025`）
   - **追溯**：AP-AC-003；SPEC §4
   - **測試方法基名**：`RetryExpiredAttempt`
 
 ```gherkin
-Scenario: AP-BDD-025 四張候選過期後可再次請求
-  Given 本人的上一次 attempt 已過期
-  When 本人在有足夠照片時重新點擊生成
-  Then 發起獨立的新生成請求而不是恢復舊 Job
-  And 可能再次產生 API 成本且 UI 清楚提示
+Scenario: AP-BDD-025 過期本輪可以重新開始逐張產圖
+  Given 本人的上次 attempt 已超過60分鐘
+  When 本人在照片足夠時再次主動按「開始產生第1張」
+  Then 建立新的獨立短效本輪、只請求一張，不恢復舊 provider 執行
+  And 先前候選已失效且需提示重試可能有供應商成本，但本 MVP 不扣款
 ```
 
 ### @alternative-path @critical @AP-BDD-026
@@ -528,44 +528,44 @@ Scenario: AP-BDD-033 登入已撤銷不得存取私人媒體
 
 ### @error-handling @normal @AP-BDD-034
 
-- [ ] **Scenario: AI 只產出三張不得回報成功**（`AP-BDD-034`）
+- [ ] **Scenario: 當次沒有產出一張不得回報成功（`AP-BDD-034`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`RejectPartialGeneration`
 
 ```gherkin
-Scenario: AP-BDD-034 AI 只產出三張不得回報成功
-  Given AI provider 真實或測試替身只返回三張不同圖
-  When 本人提交一次生成
-  Then 回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確生成失敗
-  And 舊化身保留、已暫存候選被清理且不建 Job
+Scenario: AP-BDD-034 當次沒有產出一張不得回報成功
+  Given 本輪已有兩張有效候選但這次 Gemini 沒有回傳可解碼圖片
+  When 本人按「產生下一張」要求第3張
+  Then 本次回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確失敗，producedCount 保持2
+  And 既有兩張依舊可預覽／採用，不能刪掉、冒充第3張或自動重送
 ```
 
 ### @error-handling @critical @AP-BDD-035
 
-- [ ] **Scenario: 四張重複內容不得視為四張**（`AP-BDD-035`）
+- [ ] **Scenario: 與既有候選相同不得計入下一張（`AP-BDD-035`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`RejectDuplicateGeneratedImages`
 
 ```gherkin
-Scenario: AP-BDD-035 四張重複內容不得視為四張
-  Given provider 回傳至少兩張 byte-identical 圖片
-  When 後端處理四張結果
-  Then 本次生成不得視為四張不同結果完成
-  And 不以相同圖複製冒充候選
+Scenario: AP-BDD-035 與既有候選相同不得計入下一張
+  Given 本輪已有一張成功候選，provider 回傳 byte-identical 的圖片
+  When 本人要求產生下一張，後端比對已有候選
+  Then 這次不產生新的 index，也不增加 producedCount，提示可主動再試
+  And 先前候選保持可選，禁止複製舊圖冒充新成果
 ```
 
 ### @error-handling @critical @AP-BDD-036
 
-- [ ] **Scenario: Gemini 超時或限額不得污染目前化身**（`AP-BDD-036`）
+- [ ] **Scenario: 單張逾時或限額不污染舊化身及候選（`AP-BDD-036`）
   - **追溯**：AP-AC-003、AP-AC-018、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`HandleGeminiFailure`
 
 ```gherkin
-Scenario: AP-BDD-036 Gemini 超時或限額不得污染目前化身
-  Given Gemini 不可用、已達額度或請求超時
-  When 本人要求 AI 生成
-  Then 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED
-  And 保留舊化身且不得以假圖代替真結果
+Scenario: AP-BDD-036 單張逾時或限額不污染舊化身及候選
+  Given Gemini 不可用、限額不足或本張請求超時，且本輪已有一張成功候選
+  When 本人要求第二張插畫
+  Then 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED；若供應商狀態不確定須顯示不可自動重送
+  And 第一張候選仍有效、舊化身不變，沒有假圖或自動繼續產生
 ```
 
 ### @error-handling @normal @AP-BDD-037
@@ -799,16 +799,16 @@ Scenario: AP-BDD-052 200000 bytes 精確邊界與分段串流
 
 ### @edge-case @normal @AP-BDD-053
 
-- [ ] **Scenario: 候選索引1到4及歸屬權**（`AP-BDD-053`）
+- [ ] **Scenario: 只有實際產出的候選索引可讀（`AP-BDD-053`）
   - **追溯**：AP-AC-003；SPEC §8.2～8.5
   - **測試方法基名**：`CandidateIndexBoundary`
 
 ```gherkin
-Scenario: AP-BDD-053 候選索引1到4及歸屬權
-  Given 本人持有有效 attemptId 且只有四個有效索引
-  When 本人請求索引0、5或他人 attemptId
-  Then 無效索引拒絕且合法1至4能讀
-  And R2 key 由 server 驗證的 accountId 形成，不能讓 client 指定
+Scenario: AP-BDD-053 只有實際產出的候選索引可讀
+  Given 本人持有尚未到期、只成功產出索引1與2的 attemptId
+  When 本人請求索引0、3、5或他人 attemptId
+  Then 僅實際存在且屬本人的1與2可讀，其餘索引拒絕
+  And R2 key 從 server CurrentUser.accountId 推導，且最多容許索引4
 ```
 
 ### @edge-case @critical @AP-BDD-054
@@ -916,58 +916,58 @@ Scenario: AP-BDD-060 照片排序及刪除確認
 
 ### @frontend @normal @AP-BDD-061
 
-- [ ] **Scenario: AI 鎖頭點擊直接生成但不收費**（`AP-BDD-061`）
+- [ ] **Scenario: AI 鎖頭進入逐張產圖且 MVP 不收費（`AP-BDD-061`）
   - **追溯**：AP-AC-018；SPEC §5.1／§7
   - **測試方法基名**：`AiLockEntryUi`
 
 ```gherkin
-Scenario: AP-BDD-061 AI 鎖頭點擊直接生成但不收費
+Scenario: AP-BDD-061 AI 鎖頭進入逐張產圖且 MVP 不收費
   Given 本人已存兩張以上 ready 真人照
-  When 點擊帶鎖頭的 AI 按鈕並進入產圖頁
-  Then 顯示風格選擇及醒目的「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」
-  And 未按「開始產生4張」前不得呼叫 Gemini，按下後才發送，無第二次確認跳窗、付款畫面、扣點或權益 API
+  When 點擊帶鎖頭的 AI 按鈕進入產圖頁
+  Then 顯示風格選擇及醒目的第三方 Gemini 照片使用提醒，按「開始產生第1張」後才送出一張請求
+  And 僅開頁不得呼叫 Gemini、無第二個送照同意跳窗、無付款／扣點；每張完成可採用或繼續
 ```
 
 ### @frontend @normal @AP-BDD-062
 
-- [ ] **Scenario: AI 生成 Loading 與重複點擊防護**（`AP-BDD-062`）
+- [ ] **Scenario: 逐張 Loading 與重複點擊防護（`AP-BDD-062`）
   - **追溯**：AP-AC-003、AP-AC-018；SPEC §5.1／§7
   - **測試方法基名**：`AiGenerateLoadingUi`
 
 ```gherkin
-Scenario: AP-BDD-062 AI 生成 Loading 與重複點擊防護
-  Given 本人已開始一次四圖生成
-  When 使用者連續點擊產圖按鈕
-  Then 畫面顯示處理中並禁用重複提交
-  And 失敗復原後可重新發起但提示不保證恢復先前進度
+Scenario: AP-BDD-062 逐張 Loading 與重複點擊防護
+  Given 本人正產生本輪第2張且第1張已成功
+  When 本人在兩個分頁快速重送同一 clientRequestId 或連點「產生下一張」
+  Then 介面只顯示一個進行中請求，server 使用短效排他與冪等拒絕額外 Gemini 呼叫
+  And 產生第二張成功才占下一個 index，出錯保留第1張且不自動重試
 ```
 
 ### @frontend @normal @AP-BDD-063
 
-- [ ] **Scenario: 四張 AI 候選比較後確認一張**（`AP-BDD-063`）
+- [ ] **Scenario: 最多四張逐步比較後任選一張（`AP-BDD-063`）
   - **追溯**：AP-AC-003、AP-AC-022；SPEC §5.1／§7
   - **測試方法基名**：`AiFourChoicesUi`
 
 ```gherkin
-Scenario: AP-BDD-063 四張 AI 候選比較後確認一張
-  Given 本人收到尚未過期的四張3:4直式半身至腰部插畫候選
-  When 本人點選第二張並確認選用
-  Then 清楚標示選取結果並在成功後換成遊戲化身，臉部比例與五官清楚且不被裁切
-  And 其他三張不留作永久選用圖片
+Scenario: AP-BDD-063 最多四張逐步比較後任選一張
+  Given 本人本輪依序成功取得四張3:4半身至腰部互異插畫候選
+  When 本人回選第2張、看完採用確認並確定選用
+  Then 清楚標示候選2並只將此張設為遊戲化身，四張畫框不裁切五官
+  And 其餘三張不留永久資產，第四張後無法再要求第5張
 ```
 
 ### @frontend @normal @AP-BDD-064
 
-- [ ] **Scenario: AI 失敗及候選過期的清楚提示**（`AP-BDD-064`）
+- [ ] **Scenario: 單張失敗、候選過期與不確定計費的提示（`AP-BDD-064`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §5.1／§7
   - **測試方法基名**：`AiFailureRecoveryUi`
 
 ```gherkin
-Scenario: AP-BDD-064 AI 失敗及候選過期的清楚提示
-  Given 生成 provider 失敗或先前候選到期
-  When 畫面接到503或410回應
-  Then 呈現具體的失敗及重新生成說明
-  And 不顯示假成功、不修改目前已選的角色
+Scenario: AP-BDD-064 單張失敗、候選過期與不確定計費的提示
+  Given 當次 provider 逾時、回傳錯誤或本輪到期
+  When 畫面收到503、429、409或410回應
+  Then 提供可理解的錯誤、保留既有有效候選；不確定供應商成本的逾時不得自動重送
+  And 不顯示假成功、舊化身不變，已到期候選不得再採用
 ```
 
 ### @frontend @critical @AP-BDD-065
@@ -1028,6 +1028,81 @@ Scenario: AP-BDD-068 手機／Web 重登與無障礙操作
 
 ---
 
+
+---
+
+## 2026-11-02 D-050 逐張產圖新增場景（保留原68個ID）
+
+### @happy-path @critical @AP-BDD-069
+
+- [ ] **Scenario: 第一張滿意即可提前採用**（`AP-BDD-069`）
+  - **追溯**：AP-AC-003、AP-AC-018；SPEC §4.2／§7／§8.4／§9
+  - **測試方法基名**：`QuickAdoptFirstCandidate`
+
+```gherkin
+Scenario: AP-BDD-069 第一張滿意即可提前採用
+  Given 本人已保存至少兩張 ready 個人照而尚未有本輪候選
+  When 本人按「開始產生第1張」收到真圖後直接確認採用
+  Then 只呼叫一次 Gemini 並將第1張正式選為遊戲化身、關閉本輪
+  And 不額外產第2～4張、不增加 AI 用量，也不向目前 MVP 使用者收費
+```
+
+### @alternative-path @critical @AP-BDD-070
+
+- [ ] **Scenario: 暫不採用可回選之前候選**（`AP-BDD-070`）
+  - **追溯**：AP-AC-003；SPEC §4.2／§7／§8.4／§9
+  - **測試方法基名**：`RevisitEarlierCandidate`
+
+```gherkin
+Scenario: AP-BDD-070 暫不採用可回選之前候選
+  Given 本人在本輪第1張完成後選擇「產生下一張」，第2張也完成
+  When 本人返回第1張並按「採用這張」且確認
+  Then 第1張可在60分鐘內被選用，候選2不再永久保存
+  And 前端只保留安全預覽參照，R2候選仍受 owner 與到期驗證
+```
+
+### @edge-case @critical @AP-BDD-071
+
+- [ ] **Scenario: 跨頁同時請求不可多產或超出四張**（`AP-BDD-071`）
+  - **追溯**：AP-AC-003、AP-AC-024；SPEC §4.2／§7／§8.4／§9
+  - **測試方法基名**：`AtomicCandidateBudget`
+
+```gherkin
+Scenario: AP-BDD-071 跨頁同時請求不可多產或超出四張
+  Given 本人已成功產出3張，且兩個分頁持有相同本輪 attemptId
+  When 兩端同時送不同 clientRequestId 產生下一張並重送其中一筆
+  Then 最多一筆真 Gemini 呼叫成功新增 index4，另一筆拒絕409並不得再產第5張
+  And 重送同一 requestId 可冪等取回原結果，後端短效排他與 R2 CAS 實測通過
+```
+
+### @error-handling @critical @AP-BDD-072
+
+- [ ] **Scenario: 單張逾時不自動再產及保留成功候選**（`AP-BDD-072`）
+  - **追溯**：AP-AC-003、AP-AC-024；SPEC §4.2／§7／§8.4／§9
+  - **測試方法基名**：`UncertainGenerationRetry`
+
+```gherkin
+Scenario: AP-BDD-072 單張逾時不自動再產及保留成功候選
+  Given 本人本輪已有兩張成功候選，第3張 provider 請求逾時且第三方是否計費未知
+  When 前端等待逾時回覆或刷新畫面
+  Then 仍可重新讀取先前兩張，不自動發起重送，也不把第3張計入成功
+  And 須明示重試可能再次產生供應商成本，使用者主動確認後且符合限流才能再請求
+```
+
+### @frontend @critical @AP-BDD-073
+
+- [ ] **Scenario: 確認採用視窗與未來重新生成費用提示**（`AP-BDD-073`）
+  - **追溯**：AP-AC-003、AP-AC-018；SPEC §4.2／§7／§8.4／§9
+  - **測試方法基名**：`AdoptionConfirmationPaymentNoticeUi`
+
+```gherkin
+Scenario: AP-BDD-073 確認採用視窗與未來重新生成費用提示
+  Given 本人有1～4張有效候選且當前 MVP 不收費
+  When 本人對任一張按「採用這張」後先按「取消」，再重新開啟確認並按「確認採用」
+  Then 視窗清楚寫明採用關閉本輪及未來正式付費上線後重新產圖依當時方案收費（目前免費），取消不寫入，確認才採用
+  And 採用後不能再新增候選、不產生金流／扣款；其他候選不永久保留
+```
+
 ## ⚠️ SPEC 補充／跨 SPEC 延後驗收
 
 - `AP-AC-001`～`AP-AC-024` 均有對應場景。真實的配對成立、親密度25分入口、名片邀請／同意／拒絕及互動終止是 `SPEC-001-MatchingSessions`、`SPEC-001-AffectionAndFeedback` 與 `SPEC-001-StoryDialogueAndExit` 的責任；本文件只驗證本份的受限內部介面與故障注入，不將跨 SPEC 尚未實作的 E2E 標為通過。
@@ -1041,4 +1116,4 @@ Scenario: AP-BDD-068 手機／Web 重登與無障礙操作
 - [TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
 - [風險稽核](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)
 
-**狀態**：SDD 與 RiskAudit 已確認、風險決策 RQ-01=A／RQ-02=A 已回寫，規劃文件 Ready for well-done；68 個唯一 Scenario、12 個 @frontend；0 項完整驗收。
+**狀態**：SDD 與 RiskAudit 已確認、風險決策 RQ-01=A／RQ-02=A 已回寫，規劃文件 Ready for well-done；73 個唯一 Scenario、13 個 @frontend；0 項完整驗收。

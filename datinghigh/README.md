@@ -63,7 +63,7 @@ npm --prefix frontend/client start -- --dev-client --localhost --port 8082
 | `tests/` | 跨系統整合、Web／Android E2E、版面驗證與 runbooks |
 | `tools/` | 本地資料 wrappers、建置、檢查及驗收工具 |
 | `docs/` | 已確認需求、SPEC／BDD／TDD 與驗收證據 |
-| `proposals/` | 提案與設計原型；不作正式業務模型 |
+| `prototypes/` | 設計與視覺原型（如 Next.js 原型）；不作正式業務模型 |
 
 - [AGENTS.md](AGENTS.md)：AI 讀取順序與變更檢查清單。
 - [系統概覽](overview/01-architecture/01-system-overview.md)、[模組地圖](overview/01-architecture/04-module-map.md)、[相依關係](overview/01-architecture/05-dependency-map.md)。

@@ -56,7 +56,7 @@
 
 | 來源 | 實際觀察 | 設計影響 |
 |------|----------|----------|
-| `proposals/prototypes/prototype.v2/package.json` | `Next.js 15.4.11`、`React 19.2.6`；沒有 Expo 或後端依賴 | 建立新的正式應用專案，以原型為視覺參考 |
+| `prototypes/prototype.v2/package.json` | `Next.js 15.4.11`、`React 19.2.6`；沒有 Expo 或後端依賴 | 建立新的正式應用專案，以原型為視覺參考 |
 | 原型 `app/page.tsx`、`engine.ts`、`content.ts` | 全程模擬資料、固定配對對象、單一好感度與 40／75 門檻 | 不複製其狀態模型為平台基礎 |
 | 原型 `app/prototype.module.css`、`assets.ts`、`layout.tsx` | 粉玫瑰／深紫色、半透明面板、場景與人物圖、繁體中文入口 | 共用設計 token 與素材清單；以 React Native 可用元件重新實現 |
 | `datinghigh/docs/` | 此前只有四份 MVP，無同名進行中／已歸檔 SPEC 文件包 | 本份是新的第一順位 SPEC，不覆寫歷史規格 |
@@ -852,7 +852,7 @@ Google 按鈕遵守品牌要求；SDK 結果經後端驗證並完成登入／建
 
 以下官方文件於 2026-10-24 至 2026-10-27 查核；產品／API 能力與本份選擇的參數分開看待，具體版本於實作 lockfile／映像記錄。
 
-- [來源 MVP](../requirements/MVP-001-LoveGameDatingApp.md)、原型 `proposals/prototypes/prototype.v2/app/`。
+- [來源 MVP](../requirements/MVP-001-LoveGameDatingApp.md)、原型 `prototypes/prototype.v2/app/`。
 - [Expo SDK 58 發布說明](https://expo.dev/changelog/sdk-58)、[本地原生建置](https://docs.expo.dev/guides/local-app-development/)、[Web 發布](https://docs.expo.dev/guides/publishing-websites/)、[SecureStore](https://docs.expo.dev/versions/latest/sdk/securestore/)：SDK／Node、development build、Web 匯出與原生秘密儲存。
 - [.NET 版本與支援](https://learn.microsoft.com/en-us/dotnet/core/releases-and-support)、[BCL PBKDF2](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.rfc2898derivebytes.pbkdf2?view=net-10.0)：目標 runtime 與密碼元件。
 - [Cloudflare Containers](https://developers.cloudflare.com/containers/)、[本地容器開發](https://developers.cloudflare.com/containers/guides/local-dev/)、[Workers Bindings 接線](https://developers.cloudflare.com/containers/configuration/workers-connections/)、[Static Assets 路由](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)、[Containers FAQ](https://developers.cloudflare.com/containers/faq/)：容器部署、outbound handlers、API 優先路由與持久化限制。

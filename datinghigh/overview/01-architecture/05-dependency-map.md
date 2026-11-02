@@ -19,7 +19,7 @@
 | Google native | react-native-nitro-google-signin `2.3.0`、nitro-modules `0.37.1`；Web 使用遠端 GIS script |
 | Client tests／build | TypeScript `6.0.3`、Vitest `5.0.5`、Testing Library、jsdom、Playwright；glob `14.0.2`／minimatch `11.0.1` overrides |
 
-三個 npm 專案獨立安裝，沒有 npm workspaces。`proposals/prototypes/prototype.v2/` 的 Next.js 相依不屬正式應用。版本變更須同步 lockfile；Windows 的 Worker 套件變更後也須重跑 `setup:wsl` 更新隔離 Linux toolchain。
+三個 npm 專案獨立安裝，沒有 npm workspaces。`prototypes/prototype.v2/` 的 Next.js 相依不屬正式應用。版本變更須同步 lockfile；Windows 的 Worker 套件變更後也須重跑 `setup:wsl` 更新隔離 Linux toolchain。
 
 ## DI（Program.cs）
 

@@ -29,4 +29,4 @@
 
 模組單元測試留在該模組，根 `tests/` 保留跨系統與平台驗收。HTTP fixture 證明 HTTP 契約；D1 條件、UNIQUE、FK、rollback 必須有真 Miniflare D1 證據。受控 sender／SDK 不證明實際收件或真 Google。
 
-`docs/` 保存需求與驗收權威；`overview/` 描述現行實作與維護入口；`proposals/` 僅供提案／視覺參考。擴大業務範圍須先有對應已確認文件。
+`docs/` 保存需求與驗收權威；`overview/` 描述現行實作與維護入口；`prototypes/` 僅供原型／視覺參考。擴大業務範圍須先有對應已確認文件。

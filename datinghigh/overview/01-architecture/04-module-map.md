@@ -40,6 +40,6 @@
 | `tests/component-layout/`、`tests/native/` | 共用 UI 版面 adapter、development-only native 故障 adapter |
 | `tests/e2e/runbooks/` | 本地資料、三平台、受控故障及 staging 的操作前提 |
 
-`proposals/prototypes/prototype.v2/` 是 Next.js 提案原型，與 Expo 正式 runtime 分開。`docs/verification` 的 JSON／Markdown 保存追溯與覆核；測試原始去敏摘要放忽略的 `.local/evidence`。
+`prototypes/prototype.v2/` 是 Next.js 提案原型，與 Expo 正式 runtime 分開。`docs/verification` 的 JSON／Markdown 保存追溯與覆核；測試原始去敏摘要放忽略的 `.local/evidence`。
 
 Android 測試的部分 import／Metro／APK 路徑尚未隨搬移更新，現況限制見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md#目前重跑限制)。

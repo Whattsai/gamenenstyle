@@ -2,8 +2,8 @@
 
 > **MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 > **SPEC**：[SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md)（使用者 2026-11-01 已確認，包括 D-047 無 SQL Trigger）
-> **BDD**：[SPEC-001-AvatarAndPreferences-BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)，68 個唯一場景
-> **日期**：2026-11-01；**交接狀態**：**Ready for well-done**（SDD／RiskAudit 已確認，RQ-01=A、RQ-02=A；14項稽核測試已補，**尚未實作或通過任何測試**）
+> **BDD**：[SPEC-001-AvatarAndPreferences-BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)，73 個唯一場景
+> **最後修訂**：2026-11-02（D-050 逐張最多4張，已補BDD及TDD）；**交接狀態**：**Ready for well-done**（SDD／RiskAudit 已確認，RQ-01=A、RQ-02=A；14項稽核測試已補，**尚未實作或通過任何測試**）
 
 ---
 
@@ -12,19 +12,19 @@
 ```text
 📦 AvatarAndPreferences TDD
 ├─ 🔴 Red-Green-Refactor：未開始
-├─ BDD：0/68 Scenario 通過
-├─ TDD：0/257 測試通過（原243＋風險補強14）
-├─ 前端：0/12 場景完成（需分 Web、Android、iOS 驗收）
+├─ BDD：0/73 Scenario 通過
+├─ TDD：0/275 測試通過（原257＋D-050補強18）
+├─ 前端：0/13 場景完成（需分 Web、Android、iOS 驗收）
 └─ 進度：[░░░░░░░░░░░░░░░░░░░░] 0%
 ```
 
 | 層級 | 待測數量 | 已驗收 | 狀態 |
 |---|---:|---:|---|
-| 單元測試 UT | 113 | 0 | 未開始 |
-| 真 D1／R2／服務整合 IT | 65 | 0 | 未開始 |
-| API 合約 API | 41 | 0 | 未開始 |
-| Web／Android／iOS E2E | 38 | 0 | 未開始 |
-| **合計** | **257** | **0** | **0%** |
+| 單元測試 UT | 121 | 0 | 未開始 |
+| 真 D1／R2／服務整合 IT | 69 | 0 | 未開始 |
+| API 合約 API | 44 | 0 | 未開始 |
+| Web／Android／iOS E2E | 41 | 0 | 未開始 |
+| **合計** | **275** | **0** | **0%** |
 
 **基線與範圍**：本份只有 `user_profiles` 15欄、`user_media_assets` 9欄；依 D-047 沒有 SQL Trigger；照片上限必須用固定 prepared 單條件式 `INSERT ... SELECT ... WHERE COUNT < 5 RETURNING`，不可先查再無條件插入；媒體更新採 owner、kind、status 條件與可變欄位白名單。原六張基礎表 54欄不變；名片邀請／同意／25分權限仍由後續 SPEC 負責。
 
@@ -34,7 +34,7 @@
 
 - [ ] M1 — Red→Green：Domain／Application 規則與共用媒體壓縮
 - [ ] M2 — 真 Miniflare D1，兩表、全部 API／媒體 R2、原子並發
-- [ ] M3 — 真 Gemini 四張、相似度人工驗收、暫存一小時及選1張
+- [ ] M3 — 真 Gemini 逐張1張、最多四張候選、相似度人工驗收、暫存一小時及選1張
 - [ ] M4 — Web／Android／iOS UX、授權及故障驗證（未驗收平台保留明確缺項）
 - [ ] M5 — 跨 SPEC 名片契約交付及完整深度稽核
 
@@ -112,6 +112,12 @@
 | `AP-BDD-066` | AP-AC-020、AP-AC-015 | `AP-E2E-028`、`AP-E2E-029`、`AP-E2E-030` |
 | `AP-BDD-067` | AP-AC-016、AP-AC-023 | `AP-E2E-031`、`AP-E2E-032`、`AP-E2E-033` |
 | `AP-BDD-068` | AP-AC-001、AP-AC-003、AP-AC-012 | `AP-E2E-034`、`AP-E2E-035`、`AP-E2E-036` |
+
+| `AP-BDD-069` | AP-AC-003、AP-AC-018 | `AP-UT-114`、`AP-UT-115`、`AP-IT-066`、`AP-API-042` |
+| `AP-BDD-070` | AP-AC-003 | `AP-UT-116`、`AP-UT-117`、`AP-IT-067`、`AP-API-043` |
+| `AP-BDD-071` | AP-AC-003、AP-AC-024 | `AP-UT-118`、`AP-UT-119`、`AP-IT-068`、`AP-API-044` |
+| `AP-BDD-072` | AP-AC-003、AP-AC-024 | `AP-UT-120`、`AP-UT-121`、`AP-IT-069` |
+| `AP-BDD-073` | AP-AC-003、AP-AC-018 | `AP-E2E-039`、`AP-E2E-040`、`AP-E2E-041` |
 
 ## 1️⃣ 單元測試（Unit Tests）
 
@@ -257,25 +263,25 @@
   - **來源**：`AP-BDD-014`（AP-AC-020）
   - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人開啟我的名片預覽；斷言 顯示本人當前可分享的欄位與照片；並且 預覽權限不提供另一人讀取授權。失敗時保留既有狀態及無秘密 log。
 
-- [ ] `AP-UT-029` **`GenerateFourAvatars_Precondition_EnforcesDomainRule`**
+- [ ] `AP-UT-029` **`GenerateOneAvatar_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-015`（AP-AC-002、AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已保存至少兩張 ready 真人照並主動同意傳給 AI；執行 本人點擊鎖頭選風格並提交生成；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已保存至少兩張 ready 真人照並已閱讀產圖頁第三方送照提醒；操作 本人按「開始產生第1張」；驗證只允許合法狀態繼續 IO。
 
-- [ ] `AP-UT-030` **`GenerateFourAvatars_Action_PreservesResultInvariant`**
+- [ ] `AP-UT-030` **`GenerateOneAvatar_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-015`（AP-AC-002、AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人點擊鎖頭選風格並提交生成；斷言 無須付款即可收到4張不同的真 AI 插畫候選；並且 回傳一小時內有效的 attemptId 和四個候選索引。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人按「開始產生第1張」；斷言 後端只呼叫本次一張 Gemini 並回傳一張真正可預覽的插畫，不要求一口氣取得四張；另驗 回傳 attemptId、index=1、producedCount=1 及60分鐘到期資訊。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-031` **`SelectGeneratedAvatar_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-016`（AP-AC-003、AP-AC-006）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已有四張尚未過期的私人 R2 候選和最新 revision；執行 本人選中其中第3張；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已依序成功產生三張私人 R2 候選且 revision 為最新；操作 本人回選第2張、看完採用警語後按「確認採用」；驗證只允許合法狀態繼續 IO。
 
 - [ ] `AP-UT-032` **`SelectGeneratedAvatar_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-016`（AP-AC-003、AP-AC-006）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人選中其中第3張；斷言 僅第3張正式寫入 user_media_assets 並更新目前遊戲化身；並且 另外3張不建立正式媒體列且舊化身不被提前覆寫。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人回選第2張、看完採用警語後按「確認採用」；斷言 只有所選第2張正式寫入 user_media_assets 並更新目前遊戲化身，本輪隨即關閉；另驗 其餘已成功兩張不建立正式媒體列，未確認前舊化身維持不變。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-033` **`ReselectGeneratedAvatar_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -300,12 +306,12 @@
 - [ ] `AP-UT-037` **`GeminiLiveVerification_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-019`（AP-AC-024）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：測試環境以安全方式配置使用者授權的 Gemini API 憑證與照片；執行 後端啟用受控真 API 驗證；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：測試環境以安全方式配置使用者授權的 Gemini API 憑證與真人照片；操作 本人明確要求單張生成，後端啟用真實 Gemini API；驗證只允許合法狀態繼續 IO。
 
 - [ ] `AP-UT-038` **`GeminiLiveVerification_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-019`（AP-AC-024）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 後端啟用受控真 API 驗證；斷言 真實產生四張並記錄不含敏感資料的模型版本及成功證據；並且 客戶端、Git 和日誌不包含金鑰或原始人像內容。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人明確要求單張生成，後端啟用真實 Gemini API；斷言 每次成功真正產出一張可預覽的3:4插畫並記錄非敏感的模型版本與耗時／用量證據；另驗 客戶端、Git與日誌均不包含秘密或原始人像，未產出圖片不能假成功。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-039` **`FreeWithoutPhotos_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -340,12 +346,12 @@
 - [ ] `AP-UT-045` **`AbandonGeneratedCandidates_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-023`（AP-AC-003）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已有當前免費角色；執行 本人啟動 AI 後選擇不使用任何結果；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人已有當前免費角色與一至三張本輪已成功候選；操作 本人暫不採用並離開產圖畫面；驗證只允許合法狀態繼續 IO。
 
 - [ ] `AP-UT-046` **`AbandonGeneratedCandidates_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-023`（AP-AC-003）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人啟動 AI 後選擇不使用任何結果；斷言 當前化身保持不變；並且 暫存四張候選在期限到達後被清理。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人暫不採用並離開產圖畫面；斷言 目前遊戲化身保持不變且已成功候選在60分鐘效期內仍可由本人依參照安全預覽；另驗 到期才拒絕讀取／清理，沒有正式資產、付款或自動產下一張。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-047` **`OptionalOccupation_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -360,12 +366,12 @@
 - [ ] `AP-UT-049` **`RetryExpiredAttempt_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-025`（AP-AC-003）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人的上一次 attempt 已過期；執行 本人在有足夠照片時重新點擊生成；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人的上次 attempt 已超過60分鐘；操作 本人在照片足夠時再次主動按「開始產生第1張」；驗證只允許合法狀態繼續 IO。
 
 - [ ] `AP-UT-050` **`RetryExpiredAttempt_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-025`（AP-AC-003）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人在有足夠照片時重新點擊生成；斷言 發起獨立的新生成請求而不是恢復舊 Job；並且 可能再次產生 API 成本且 UI 清楚提示。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人在照片足夠時再次主動按「開始產生第1張」；斷言 建立新的獨立短效本輪、只請求一張，不恢復舊 provider 執行；另驗 先前候選已失效且需提示重試可能有供應商成本，但本 MVP 不扣款。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-051` **`LiveCardRefresh_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -447,35 +453,35 @@
   - **來源**：`AP-BDD-033`（AP-AC-007）
   - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 舊憑證請求照片或選用化身；斷言 回傳401 SESSION_REVOKED；並且 不得把舊請求寫入任何帳號的資料。失敗時保留既有狀態及無秘密 log。
 
-- [ ] `AP-UT-067` **`RejectPartialGeneration_Precondition_EnforcesDomainRule`**
+- [ ] `AP-UT-067` **`RejectMissingSingleImage_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-034`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：AI provider 真實或測試替身只返回三張不同圖；執行 本人提交一次生成；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本輪已有兩張有效候選但這次 Gemini 沒有回傳可解碼圖片；操作 本人按「產生下一張」要求第3張；驗證只允許合法狀態繼續 IO。
 
-- [ ] `AP-UT-068` **`RejectPartialGeneration_Action_PreservesResultInvariant`**
+- [ ] `AP-UT-068` **`RejectMissingSingleImage_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-034`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人提交一次生成；斷言 回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確生成失敗；並且 舊化身保留、已暫存候選被清理且不建 Job。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人按「產生下一張」要求第3張；斷言 本次回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確失敗，producedCount 保持2；另驗 既有兩張依舊可預覽／採用，不能刪掉、冒充第3張或自動重送。失敗不污染既有狀態、日誌不留秘密。
 
-- [ ] `AP-UT-069` **`RejectDuplicateGeneratedImages_Precondition_EnforcesDomainRule`**
+- [ ] `AP-UT-069` **`RejectDuplicateCandidate_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-035`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：provider 回傳至少兩張 byte-identical 圖片；執行 後端處理四張結果；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本輪已有一張成功候選，provider 回傳 byte-identical 的圖片；操作 本人要求產生下一張，後端比對已有候選；驗證只允許合法狀態繼續 IO。
 
-- [ ] `AP-UT-070` **`RejectDuplicateGeneratedImages_Action_PreservesResultInvariant`**
+- [ ] `AP-UT-070` **`RejectDuplicateCandidate_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-035`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 後端處理四張結果；斷言 本次生成不得視為四張不同結果完成；並且 不以相同圖複製冒充候選。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人要求產生下一張，後端比對已有候選；斷言 這次不產生新的 index，也不增加 producedCount，提示可主動再試；另驗 先前候選保持可選，禁止複製舊圖冒充新成果。失敗不污染既有狀態、日誌不留秘密。
 
-- [ ] `AP-UT-071` **`HandleGeminiFailure_Precondition_EnforcesDomainRule`**
+- [ ] `AP-UT-071` **`HandleSingleGeminiFailure_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-036`（AP-AC-003、AP-AC-018、AP-AC-024）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：Gemini 不可用、已達額度或請求超時；執行 本人要求 AI 生成；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：Gemini 不可用、限額不足或本張請求超時，且本輪已有一張成功候選；操作 本人要求第二張插畫；驗證只允許合法狀態繼續 IO。
 
-- [ ] `AP-UT-072` **`HandleGeminiFailure_Action_PreservesResultInvariant`**
+- [ ] `AP-UT-072` **`HandleSingleGeminiFailure_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-036`（AP-AC-003、AP-AC-018、AP-AC-024）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人要求 AI 生成；斷言 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED；並且 保留舊化身且不得以假圖代替真結果。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人要求第二張插畫；斷言 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED；若供應商狀態不確定須顯示不可自動重送；另驗 第一張候選仍有效、舊化身不變，沒有假圖或自動繼續產生。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-073` **`RejectExpiredCandidate_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -640,12 +646,12 @@
 - [ ] `AP-UT-105` **`CandidateIndexBoundary_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-053`（AP-AC-003）
-  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人持有有效 attemptId 且只有四個有效索引；執行 本人請求索引0、5或他人 attemptId；驗證正確的允許／拒絕，不能讓不合法狀態進入 IO。
+  - **前置／動作／預期**：在 Domain／Application 的隔離前置條件模擬：本人持有尚未到期、只成功產出索引1與2的 attemptId；操作 本人請求索引0、3、5或他人 attemptId；驗證只允許合法狀態繼續 IO。
 
 - [ ] `AP-UT-106` **`CandidateIndexBoundary_Action_PreservesResultInvariant`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **來源**：`AP-BDD-053`（AP-AC-003）
-  - **前置／動作／預期**：用替身 Repository／Clock／Provider 進行 本人請求索引0、5或他人 attemptId；斷言 無效索引拒絕且合法1至4能讀；並且 R2 key 由 server 驗證的 accountId 形成，不能讓 client 指定。失敗時保留既有狀態及無秘密 log。
+  - **前置／動作／預期**：以替身 Repository／Clock／Provider 操作：本人請求索引0、3、5或他人 attemptId；斷言 僅實際存在且屬本人的1與2可讀，其餘索引拒絕；另驗 R2 key 從 server CurrentUser.accountId 推導，且最多容許索引4。失敗不污染既有狀態、日誌不留秘密。
 
 - [ ] `AP-UT-107` **`AvatarSelectionRace_Precondition_EnforcesDomainRule`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
@@ -686,6 +692,50 @@
   - **測試位置**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
   - **前置／操作**：以固定台灣時鐘測閏年2/29出生、剛滿18、差一天未滿18與午夜交界
   - **預期斷言**：固定時鐘驗2月29日、邊界當日及前一日，未成年不能 profileReady。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
+
+### 2026-11-02 D-050 逐張生成新增 UT 測試（8項）
+
+以下測試源自已確認 D-050，尚未實作或執行；保留原本測試ID，新增本輪唯一測試ID。
+
+- [ ] `AP-UT-114` **`GenerateOneCandidate_FirstImageApproved_DoesNotRequestRemainingThree`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-069`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：模擬只產出第一張且使用者立即確定採用；預期 驗 Gemini 僅被呼叫一次、後續三張均未請求、目前免費且採用後本輪關閉。
+
+- [ ] `AP-UT-115` **`ChooseFirstCandidate_ConfirmOnce_OnlyOneAssetCreated`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-069`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：模擬首次真圖、採用確認及重複送出選用；預期 驗只新增1張正式生成 asset、profile revision 只增加1、重複不二次建立。
+
+- [ ] `AP-UT-116` **`KeepSkippedCandidate_WhenNewOneArrives_PreservesEarlierReference`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-070`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：模擬本輪第1張暫不採用，接著成功產生第2張；預期 驗候選清單保留1與2，前端只有短效參照、不存持久圖片資料。
+
+- [ ] `AP-UT-117` **`SelectEarlierCandidate_AfterSecondResult_PersistsOnlySelected`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-070`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：模擬回選第1張並確認採用；預期 驗只正式化第1張、候選2不寫入 user_media_assets。
+
+- [ ] `AP-UT-118` **`ReserveCandidateSlot_ConcurrentRequests_AllowsSingleInFlight`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-071`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：以同帳號兩分頁不同 clientRequestId 競爭第4張；預期 只有一個 inFlight 取得權利，另一個409；同 id 重送不再次呼叫 provider。
+
+- [ ] `AP-UT-119` **`RejectFifthCandidate_AfterFourSuccesses_DoesNotChargeProvider`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-071`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：本輪 manifest producedCount=4、closed 或過期；預期 拒絕第5張與已關閉請求，provider 呼叫次數不增加。
+
+- [ ] `AP-UT-120` **`ProviderTimeout_AfterTwoCandidates_DoesNotIncrementCount`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-072`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：已有2張候選，第3張失敗或超時；預期 確認 producedCount 仍2、保留先前2圖並保留原化身。
+
+- [ ] `AP-UT-121` **`UnknownProviderCost_DoesNotAutoRetrySameRequest`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Application.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-072`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：假設供應商狀態未知且 client 重送相同 requestId；預期 不自動重新消耗成本／新增候選，需使用者明確再次操作、限流再驗。
 
 ## 2️⃣ 集成測試（Integration Tests）
 
@@ -761,15 +811,15 @@
   - **來源**：`AP-BDD-014`（AP-AC-020）
   - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given 本人已填入工作、興趣與照片；When 本人開啟我的名片預覽；Then 顯示本人當前可分享的欄位與照片；And 預覽權限不提供另一人讀取授權。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
 
-- [ ] `AP-IT-015` **`GenerateFourAvatars_Integration_EnforcesPersistenceAndAccess`**
+- [ ] `AP-IT-015` **`GenerateOneAvatar_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-015`（AP-AC-002、AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：應用整合（可替身 provider，但 Gemini 真測另列）：Given 本人已保存至少兩張 ready 真人照並主動同意傳給 AI；When 本人點擊鎖頭選風格並提交生成；Then 無須付款即可收到4張不同的真 AI 插畫候選；And 回傳一小時內有效的 attemptId 和四個候選索引。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本人已保存至少兩張 ready 真人照並已閱讀產圖頁第三方送照提醒；When 本人按「開始產生第1張」；Then 後端只呼叫本次一張 Gemini 並回傳一張真正可預覽的插畫，不要求一口氣取得四張；And 回傳 attemptId、index=1、producedCount=1 及60分鐘到期資訊。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-016` **`SelectGeneratedAvatar_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-016`（AP-AC-003、AP-AC-006）
-  - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given 本人已有四張尚未過期的私人 R2 候選和最新 revision；When 本人選中其中第3張；Then 僅第3張正式寫入 user_media_assets 並更新目前遊戲化身；And 另外3張不建立正式媒體列且舊化身不被提前覆寫。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本人已依序成功產生三張私人 R2 候選且 revision 為最新；When 本人回選第2張、看完採用警語後按「確認採用」；Then 只有所選第2張正式寫入 user_media_assets 並更新目前遊戲化身，本輪隨即關閉；And 其餘已成功兩張不建立正式媒體列，未確認前舊化身維持不變。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-017` **`ReselectGeneratedAvatar_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -784,7 +834,7 @@
 - [ ] `AP-IT-019` **`GeminiLiveVerification_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-019`（AP-AC-024）
-  - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given 測試環境以安全方式配置使用者授權的 Gemini API 憑證與照片；When 後端啟用受控真 API 驗證；Then 真實產生四張並記錄不含敏感資料的模型版本及成功證據；And 客戶端、Git 和日誌不包含金鑰或原始人像內容。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 測試環境以安全方式配置使用者授權的 Gemini API 憑證與真人照片；When 本人明確要求單張生成，後端啟用真實 Gemini API；Then 每次成功真正產出一張可預覽的3:4插畫並記錄非敏感的模型版本與耗時／用量證據；And 客戶端、Git與日誌均不包含秘密或原始人像，未產出圖片不能假成功。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-020` **`FreeWithoutPhotos_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -804,7 +854,7 @@
 - [ ] `AP-IT-023` **`AbandonGeneratedCandidates_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-023`（AP-AC-003）
-  - **前置／動作／預期**：應用整合（可替身 provider，但 Gemini 真測另列）：Given 本人已有當前免費角色；When 本人啟動 AI 後選擇不使用任何結果；Then 當前化身保持不變；And 暫存四張候選在期限到達後被清理。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本人已有當前免費角色與一至三張本輪已成功候選；When 本人暫不採用並離開產圖畫面；Then 目前遊戲化身保持不變且已成功候選在60分鐘效期內仍可由本人依參照安全預覽；And 到期才拒絕讀取／清理，沒有正式資產、付款或自動產下一張。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-024` **`OptionalOccupation_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -814,7 +864,7 @@
 - [ ] `AP-IT-025` **`RetryExpiredAttempt_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-025`（AP-AC-003）
-  - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given 本人的上一次 attempt 已過期；When 本人在有足夠照片時重新點擊生成；Then 發起獨立的新生成請求而不是恢復舊 Job；And 可能再次產生 API 成本且 UI 清楚提示。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本人的上次 attempt 已超過60分鐘；When 本人在照片足夠時再次主動按「開始產生第1張」；Then 建立新的獨立短效本輪、只請求一張，不恢復舊 provider 執行；And 先前候選已失效且需提示重試可能有供應商成本，但本 MVP 不扣款。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-026` **`LiveCardRefresh_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -856,20 +906,20 @@
   - **來源**：`AP-BDD-033`（AP-AC-007）
   - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given 本人舊 Session family 已被新登入撤銷；When 舊憑證請求照片或選用化身；Then 回傳401 SESSION_REVOKED；And 不得把舊請求寫入任何帳號的資料。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
 
-- [ ] `AP-IT-034` **`RejectPartialGeneration_Integration_EnforcesPersistenceAndAccess`**
+- [ ] `AP-IT-034` **`RejectMissingSingleImage_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-034`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：應用整合（可替身 provider，但 Gemini 真測另列）：Given AI provider 真實或測試替身只返回三張不同圖；When 本人提交一次生成；Then 回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確生成失敗；And 舊化身保留、已暫存候選被清理且不建 Job。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本輪已有兩張有效候選但這次 Gemini 沒有回傳可解碼圖片；When 本人按「產生下一張」要求第3張；Then 本次回傳503 IMAGE_PROVIDER_UNAVAILABLE 或明確失敗，producedCount 保持2；And 既有兩張依舊可預覽／採用，不能刪掉、冒充第3張或自動重送。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
-- [ ] `AP-IT-035` **`RejectDuplicateGeneratedImages_Integration_EnforcesPersistenceAndAccess`**
+- [ ] `AP-IT-035` **`RejectDuplicateCandidate_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-035`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：真 Miniflare D1 與私人 R2（媒體故障以受控替身注入）：Given provider 回傳至少兩張 byte-identical 圖片；When 後端處理四張結果；Then 本次生成不得視為四張不同結果完成；And 不以相同圖複製冒充候選。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本輪已有一張成功候選，provider 回傳 byte-identical 的圖片；When 本人要求產生下一張，後端比對已有候選；Then 這次不產生新的 index，也不增加 producedCount，提示可主動再試；And 先前候選保持可選，禁止複製舊圖冒充新成果。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
-- [ ] `AP-IT-036` **`HandleGeminiFailure_Integration_EnforcesPersistenceAndAccess`**
+- [ ] `AP-IT-036` **`HandleSingleGeminiFailure_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-036`（AP-AC-003、AP-AC-018、AP-AC-024）
-  - **前置／動作／預期**：應用整合（可替身 provider，但 Gemini 真測另列）：Given Gemini 不可用、已達額度或請求超時；When 本人要求 AI 生成；Then 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED；And 保留舊化身且不得以假圖代替真結果。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given Gemini 不可用、限額不足或本張請求超時，且本輪已有一張成功候選；When 本人要求第二張插畫；Then 明確回傳503 IMAGE_PROVIDER_UNAVAILABLE 或429 RATE_LIMITED；若供應商狀態不確定須顯示不可自動重送；And 第一張候選仍有效、舊化身不變，沒有假圖或自動繼續產生。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-037` **`RejectExpiredCandidate_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -954,7 +1004,7 @@
 - [ ] `AP-IT-053` **`CandidateIndexBoundary_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **來源**：`AP-BDD-053`（AP-AC-003）
-  - **前置／動作／預期**：應用整合（可替身 provider，但 Gemini 真測另列）：Given 本人持有有效 attemptId 且只有四個有效索引；When 本人請求索引0、5或他人 attemptId；Then 無效索引拒絕且合法1至4能讀；And R2 key 由 server 驗證的 accountId 形成，不能讓 client 指定。需檢查狀態、受影響列數、授權及補償，不得僅比對 HTTP mock。
+  - **前置／動作／預期**：以真 D1／私人 R2、受控 provider 故障注入測試：Given 本人持有尚未到期、只成功產出索引1與2的 attemptId；When 本人請求索引0、3、5或他人 attemptId；Then 僅實際存在且屬本人的1與2可讀，其餘索引拒絕；And R2 key 從 server CurrentUser.accountId 推導，且最多容許索引4。需驗資料及授權、不得只比對 HTTP Mock；真 Gemini 證據另列。
 
 - [ ] `AP-IT-054` **`AvatarSelectionRace_Integration_EnforcesPersistenceAndAccess`**
   - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
@@ -999,11 +1049,11 @@
   - **前置／操作**：名片有效雙方同意後在讀資料／開照片串流前終止互動或換輪，並驗client偽造授權context
   - **預期斷言**：名片授權 context 不能 client 偽造，互動終止和照片開串流之間重新驗證。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
 
-- [ ] `AP-IT-061` **`GenerateAvatar_LiveGeminiFourUniqueImagesWithinRequestDeadline`**
+- [ ] `AP-IT-061` **`GenerateAvatar_LiveGeminiSingleImagePerRequestWithBoundedCost`**
   - **稽核缺漏**：`RG-07`；**優先級**：中；**BDD**：`AP-BDD-015`；**來源**：RA-01、AP-BDD-015/034/035/036
   - **測試位置**：`datinghigh/tests/integration/avatar-and-preferences/`
-  - **前置／操作**：以授權照片2至5張與安全server secret真Gemini呼叫，注入逾時、重複圖與只產3張
-  - **預期斷言**：真 API 依所選模型驗 2～5張來源、4張輸出與 server超時；量測成本／延遲並驗欠4張必失敗。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
+  - **前置／操作**：真Gemini 2～5張已存來源，每張請求僅生成1張，另外注入無圖、重複圖與單張逾時並量測成本。
+  - **預期斷言**：真 Gemini 每個請求只回1張真圖、可解碼／安全／互異且成功才計入 producedCount；逐張驗證耗時、費用、R2與同帳號排他，沒有圖片／超時不得假成功或清除先前有效候選。不以Mock、Fixture冒充真測。
 
 - [ ] `AP-IT-062` **`CompressPersonalPhoto_FaceRegionAndPortraitOrientation_AcceptsHumanQualityReview`**
   - **稽核缺漏**：`RG-08`；**優先級**：中；**BDD**：`AP-BDD-052`；**來源**：RA-07、AP-BDD-002/052/063
@@ -1028,6 +1078,30 @@
   - **測試位置**：`datinghigh/tests/integration/avatar-and-preferences/`
   - **前置／操作**：合法名片後本人刪照、換照或終止，他方持舊assetId、URL與快取嘗試新增讀取
   - **預期斷言**：刪照後即時名片新讀取不含舊 assetId；持舊URL不能再次新增讀取。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
+
+### 2026-11-02 D-050 逐張生成新增 IT 測試（4項）
+
+以下測試源自已確認 D-050，尚未實作或執行；保留原本測試ID，新增本輪唯一測試ID。
+
+- [ ] `AP-IT-066` **`SingleGeneratedCandidate_ConfirmedFirst_PersistsOnlyOne`**
+  - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
+  - **來源**：`AP-BDD-069`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：以真 R2／D1 成功產生第1張並立即採用；預期 永久R2及DB僅1張候選，成功後關閉短效本輪、沒有後續 Gemini 請求。
+
+- [ ] `AP-IT-067` **`PreviouslySkippedCandidate_StillReadableAndSelectable`**
+  - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
+  - **來源**：`AP-BDD-070`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：真私人R2短效有兩張有效候選，第二張產出後回選第一張；預期 效期內第一張可讀並被正式採用；第二張仍不落正式DB，到期由GC清理。
+
+- [ ] `AP-IT-068` **`R2ManifestConditionalWrite_AcrossWorkers_EnforcesOneInFlightAndMaxFour`**
+  - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
+  - **來源**：`AP-BDD-071`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：真 R2／Worker 不同實例同帳號同時用不同 attemptId 爭搶首次 open attempt，以及同輪並行產第4張；另測重送與過期 inFlight；預期 R2 manifest 條件寫入／CAS嚴格跨 attempt 僅一個 active 指標、同輪僅一個有效 inFlight 占位，絕不發第5張或重複呼叫；未能證實則阻擋硬Gate。
+
+- [ ] `AP-IT-069` **`SingleFailure_LeavesValidEarlierCandidatesAndNoGhostIndex`**
+  - **位置建議**：`datinghigh/tests/integration/avatar-and-preferences/`
+  - **來源**：`AP-BDD-072`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：真R2已有2張，第3張 provider故障、重複或未知計費而回503；預期 先前2張仍可讀／採用，server成功數不變且不產生假 index，不自動重試。
 
 ## 3️⃣ API 端點測試（API Tests）
 
@@ -1192,7 +1266,7 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 - [ ] `AP-API-028` **`PostAvatarGeneration_Success_ReturnsDocumentedResponse`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Api.Tests/AvatarAndPreferences/`
   - **來源**：`SPEC §7 POST /api/v1/me/avatar/generations`（AP-AC）
-  - **前置／動作／預期**：使用本人有效 Web Cookie／native Bearer 呼叫 POST /api/v1/me/avatar/generations；斷言 200 與 camelCase JSON／對應串流、no-store、預期的完整 DTO。兩至五張現有照片、真 AI 四圖、單次請求、不建立 job。
+  - **前置／動作／預期**：使用本人有效 Web Cookie／native Bearer 呼叫 POST /api/v1/me/avatar/generations；斷言 200 與 camelCase JSON／對應串流、no-store、預期的完整 DTO。兩至五張已保存照片、每次只真產1張、回傳attemptId/index/producedCount/expiresAt、同輪上限4且不建Job、不建立 job。
 
 - [ ] `AP-API-029` **`PostAvatarGeneration_InvalidOrUnauthorized_ReturnsProblemDetails`**
   - **位置建議**：`datinghigh/backend/tests/DatingHigh.Api.Tests/AvatarAndPreferences/`
@@ -1265,6 +1339,25 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
   - **前置／操作**：PUT再GET含interestTagIds/topicTagIds/valueTagIds與preferences九鍵，並輸入未知/重複鍵、停用歷史代碼
   - **預期斷言**：九鍵偏好 JSON、三欄 interests JSON、topicTagIds、未知鍵拒絕、舊目錄代碼可回讀。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
 
+### 2026-11-02 D-050 逐張生成新增 API 測試（3項）
+
+以下測試源自已確認 D-050，尚未實作或執行；保留原本測試ID，新增本輪唯一測試ID。
+
+- [ ] `AP-API-042` **`PostAvatarGeneration_FirstCall_ReturnsSingleCandidateEnvelope`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Api.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-069`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：POST /api/v1/me/avatar/generations帶styleId與clientRequestId，首次無 attemptId；預期 200只包含 index=1、producedCount=1、maxCandidates=4、expiresAt與attemptId，不含其他三張、raw source 或R2 key。
+
+- [ ] `AP-API-043` **`PostAvatarGeneration_NextCall_RequiresAttemptAndExpectedCount`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Api.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-070`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：POST同一路由續帶attemptId、expectedProducedCount與新clientRequestId；預期 每次只增加一張、正確回 index=2；偽造attemptId、style變更或不連續count回400／409。
+
+- [ ] `AP-API-044` **`PostAvatarGeneration_ParallelOrDuplicate_ReturnsIdempotentOrConflict`**
+  - **位置建議**：`datinghigh/backend/tests/DatingHigh.Api.Tests/AvatarAndPreferences/`
+  - **來源**：`AP-BDD-071`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：兩個分頁同時送不同requestId及相同requestId重送，並測producedCount=4或closed；預期 相同requestId重放回既有結果／受控in-progress；不同競爭409，滿額或closed拒絕，沒有額外Gemini呼叫。
+
 ## 4️⃣ E2E／UX 測試（Web、Android、iOS）
 
 每個 @frontend 場景分別在 Web、Android、iOS 保留獨立驗收；iOS 未執行不得由 Web／Android 冒充。
@@ -1332,62 +1425,62 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 - [ ] `AP-E2E-013` **`AiLockEntryUi_Web_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-061`（AP-AC-018）
-  - **前置／動作／預期**：瀏覽器與鍵盤操作：前置 本人已存兩張以上真人照且已閱讀資料用途；操作 點擊帶鎖頭的 AI 按鈕；應驗證 可進入真 AI 生成並看到風格選擇，且 沒有付款畫面、扣點或權益 API。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Web 專屬使用者驗收：Given 本人已存兩張以上 ready 真人照；When 點擊帶鎖頭的 AI 按鈕進入產圖頁；Then 顯示風格選擇及醒目的第三方 Gemini 照片使用提醒，按「開始產生第1張」後才送出一張請求；And 僅開頁不得呼叫 Gemini、無第二個送照同意跳窗、無付款／扣點；每張完成可採用或繼續。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-014` **`AiLockEntryUi_Android_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-061`（AP-AC-018）
-  - **前置／動作／預期**：原生圖片選取／返回及 TalkBack：前置 本人已存兩張以上真人照且已閱讀資料用途；操作 點擊帶鎖頭的 AI 按鈕；應驗證 可進入真 AI 生成並看到風格選擇，且 沒有付款畫面、扣點或權益 API。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Android 專屬使用者驗收：Given 本人已存兩張以上 ready 真人照；When 點擊帶鎖頭的 AI 按鈕進入產圖頁；Then 顯示風格選擇及醒目的第三方 Gemini 照片使用提醒，按「開始產生第1張」後才送出一張請求；And 僅開頁不得呼叫 Gemini、無第二個送照同意跳窗、無付款／扣點；每張完成可採用或繼續。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-015` **`AiLockEntryUi_Ios_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-061`（AP-AC-018）
-  - **前置／動作／預期**：iOS 圖片權限／VoiceOver：前置 本人已存兩張以上真人照且已閱讀資料用途；操作 點擊帶鎖頭的 AI 按鈕；應驗證 可進入真 AI 生成並看到風格選擇，且 沒有付款畫面、扣點或權益 API。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：iOS 專屬使用者驗收：Given 本人已存兩張以上 ready 真人照；When 點擊帶鎖頭的 AI 按鈕進入產圖頁；Then 顯示風格選擇及醒目的第三方 Gemini 照片使用提醒，按「開始產生第1張」後才送出一張請求；And 僅開頁不得呼叫 Gemini、無第二個送照同意跳窗、無付款／扣點；每張完成可採用或繼續。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-016` **`AiGenerateLoadingUi_Web_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-062`（AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：瀏覽器與鍵盤操作：前置 本人已開始一次四圖生成；操作 使用者連續點擊產圖按鈕；應驗證 畫面顯示處理中並禁用重複提交，且 失敗復原後可重新發起但提示不保證恢復先前進度。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Web 專屬使用者驗收：Given 本人正產生本輪第2張且第1張已成功；When 本人在兩個分頁快速重送同一 clientRequestId 或連點「產生下一張」；Then 介面只顯示一個進行中請求，server 使用短效排他與冪等拒絕額外 Gemini 呼叫；And 產生第二張成功才占下一個 index，出錯保留第1張且不自動重試。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-017` **`AiGenerateLoadingUi_Android_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-062`（AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：原生圖片選取／返回及 TalkBack：前置 本人已開始一次四圖生成；操作 使用者連續點擊產圖按鈕；應驗證 畫面顯示處理中並禁用重複提交，且 失敗復原後可重新發起但提示不保證恢復先前進度。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Android 專屬使用者驗收：Given 本人正產生本輪第2張且第1張已成功；When 本人在兩個分頁快速重送同一 clientRequestId 或連點「產生下一張」；Then 介面只顯示一個進行中請求，server 使用短效排他與冪等拒絕額外 Gemini 呼叫；And 產生第二張成功才占下一個 index，出錯保留第1張且不自動重試。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-018` **`AiGenerateLoadingUi_Ios_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-062`（AP-AC-003、AP-AC-018）
-  - **前置／動作／預期**：iOS 圖片權限／VoiceOver：前置 本人已開始一次四圖生成；操作 使用者連續點擊產圖按鈕；應驗證 畫面顯示處理中並禁用重複提交，且 失敗復原後可重新發起但提示不保證恢復先前進度。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：iOS 專屬使用者驗收：Given 本人正產生本輪第2張且第1張已成功；When 本人在兩個分頁快速重送同一 clientRequestId 或連點「產生下一張」；Then 介面只顯示一個進行中請求，server 使用短效排他與冪等拒絕額外 Gemini 呼叫；And 產生第二張成功才占下一個 index，出錯保留第1張且不自動重試。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-019` **`AiFourChoicesUi_Web_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-063`（AP-AC-003、AP-AC-022）
-  - **前置／動作／預期**：瀏覽器與鍵盤操作：前置 本人收到尚未過期的四張插畫；操作 本人點選第二張並確認選用；應驗證 清楚標示選取結果並在成功後換成遊戲化身，且 其他三張不留作永久選用圖片。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Web 專屬使用者驗收：Given 本人本輪依序成功取得四張3:4半身至腰部互異插畫候選；When 本人回選第2張、看完採用確認並確定選用；Then 清楚標示候選2並只將此張設為遊戲化身，四張畫框不裁切五官；And 其餘三張不留永久資產，第四張後無法再要求第5張。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-020` **`AiFourChoicesUi_Android_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-063`（AP-AC-003、AP-AC-022）
-  - **前置／動作／預期**：原生圖片選取／返回及 TalkBack：前置 本人收到尚未過期的四張插畫；操作 本人點選第二張並確認選用；應驗證 清楚標示選取結果並在成功後換成遊戲化身，且 其他三張不留作永久選用圖片。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Android 專屬使用者驗收：Given 本人本輪依序成功取得四張3:4半身至腰部互異插畫候選；When 本人回選第2張、看完採用確認並確定選用；Then 清楚標示候選2並只將此張設為遊戲化身，四張畫框不裁切五官；And 其餘三張不留永久資產，第四張後無法再要求第5張。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-021` **`AiFourChoicesUi_Ios_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-063`（AP-AC-003、AP-AC-022）
-  - **前置／動作／預期**：iOS 圖片權限／VoiceOver：前置 本人收到尚未過期的四張插畫；操作 本人點選第二張並確認選用；應驗證 清楚標示選取結果並在成功後換成遊戲化身，且 其他三張不留作永久選用圖片。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：iOS 專屬使用者驗收：Given 本人本輪依序成功取得四張3:4半身至腰部互異插畫候選；When 本人回選第2張、看完採用確認並確定選用；Then 清楚標示候選2並只將此張設為遊戲化身，四張畫框不裁切五官；And 其餘三張不留永久資產，第四張後無法再要求第5張。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-022` **`AiFailureRecoveryUi_Web_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-064`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：瀏覽器與鍵盤操作：前置 生成 provider 失敗或先前候選到期；操作 畫面接到503或410回應；應驗證 呈現具體的失敗及重新生成說明，且 不顯示假成功、不修改目前已選的角色。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Web 專屬使用者驗收：Given 當次 provider 逾時、回傳錯誤或本輪到期；When 畫面收到503、429、409或410回應；Then 提供可理解的錯誤、保留既有有效候選；不確定供應商成本的逾時不得自動重送；And 不顯示假成功、舊化身不變，已到期候選不得再採用。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-023` **`AiFailureRecoveryUi_Android_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-064`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：原生圖片選取／返回及 TalkBack：前置 生成 provider 失敗或先前候選到期；操作 畫面接到503或410回應；應驗證 呈現具體的失敗及重新生成說明，且 不顯示假成功、不修改目前已選的角色。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：Android 專屬使用者驗收：Given 當次 provider 逾時、回傳錯誤或本輪到期；When 畫面收到503、429、409或410回應；Then 提供可理解的錯誤、保留既有有效候選；不確定供應商成本的逾時不得自動重送；And 不顯示假成功、舊化身不變，已到期候選不得再採用。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-024` **`AiFailureRecoveryUi_Ios_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
   - **來源**：`AP-BDD-064`（AP-AC-003、AP-AC-024）
-  - **前置／動作／預期**：iOS 圖片權限／VoiceOver：前置 生成 provider 失敗或先前候選到期；操作 畫面接到503或410回應；應驗證 呈現具體的失敗及重新生成說明，且 不顯示假成功、不修改目前已選的角色。若平台未可驗收明確標示未驗收，不以 Web 取代原生。
+  - **前置／動作／預期**：iOS 專屬使用者驗收：Given 當次 provider 逾時、回傳錯誤或本輪到期；When 畫面收到503、429、409或410回應；Then 提供可理解的錯誤、保留既有有效候選；不確定供應商成本的逾時不得自動重送；And 不顯示假成功、舊化身不變，已到期候選不得再採用。本平台未實跑不得以別的平台替代或標已通過。
 
 - [ ] `AP-E2E-025` **`DatingProfileFormUi_Web_ReflectsExpectedUserOutcome`**
   - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
@@ -1458,7 +1551,7 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 - [ ] `AP-E2E-037` **`GenerateAvatar_BeforeThirdPartyDisclosure_DoesNotTransmitSourcePhoto`**
   - **稽核缺漏**：`RG-06`；**優先級**：高；**BDD**：`AP-BDD-061`；**來源**：RA-05、BDD-001/061
   - **測試位置**：`datinghigh/tests/e2e/avatar-and-preferences/`
-  - **前置／操作**：Web／Android／iOS進入鎖頭頁但未按開始就離開、照片不足，及明確按「開始產生4張」
+  - **前置／操作**：Web／Android／iOS進入鎖頭頁但未按開始就離開、照片不足，及明確按「開始產生第1張」
   - **預期斷言**：使用者未主動觸發 AI 時，Gemini 無外送請求；UI 顯示傳送用途及明確操作。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
 
 - [ ] `AP-E2E-038` **`BuiltinAvatarCatalog_SixteenDistinctLicensedImages_ValidatesActualAssets`**
@@ -1467,6 +1560,25 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
   - **前置／操作**：逐一驗16張獨立正式角色素材授權與視覺差異，於Web/Android/iOS測3:4容器
   - **預期斷言**：逐16個ID辨識、來源授權、實際資產不同，三平台載入與容器裁切。不得以 Mock、Fixture 或單一平台成功冒充要求的真整合與跨平台結果。
 
+### 2026-11-02 D-050 逐張生成新增 E2E 測試（3項）
+
+以下測試源自已確認 D-050，尚未實作或執行；保留原本測試ID，新增本輪唯一測試ID。
+
+- [ ] `AP-E2E-039` **`AdoptConfirmation_Web_ShowsFutureChargeNoticeAndCancelPreservesSession`**
+  - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
+  - **來源**：`AP-BDD-073`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：Web產圖成功1～4張後按採用，先取消再確認；預期 顯示採用結束本輪／未來正式付費重生依方案收費、目前免費；取消保留本輪，確認才正式採用，不扣款。
+
+- [ ] `AP-E2E-040` **`AdoptConfirmation_Android_ShowsFutureChargeNoticeAndCancelPreservesSession`**
+  - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
+  - **來源**：`AP-BDD-073`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：Android產圖成功1～4張後按採用，先取消再確認；預期 顯示採用結束本輪／未來正式付費重生依方案收費、目前免費；取消保留本輪，確認才正式採用，不扣款。
+
+- [ ] `AP-E2E-041` **`AdoptConfirmation_Ios_ShowsFutureChargeNoticeAndCancelPreservesSession`**
+  - **位置建議**：`datinghigh/tests/e2e/avatar-and-preferences/`
+  - **來源**：`AP-BDD-073`（AP-AC-003、AP-AC-018／024；D-050）
+  - **前置／動作／預期**：iOS產圖成功1～4張後按採用，先取消再確認；預期 顯示採用結束本輪／未來正式付費重生依方案收費、目前免費；取消保留本輪，確認才正式採用，不扣款；未實測不得借用他平台證據。
+
 ## 🧪 關鍵測試資料與交付限制
 
 | 類別 | 必須提供的真實驗證 |
@@ -1474,7 +1586,7 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 | D1 原子並發 | 同帳號4張 ready、兩個第5／第6張並發、4 ready+1 pending 並發、單語句回傳0列、owner 不可改、deleted 不可復活、無 CREATE TRIGGER，且查最終有效資產恰5 |
 | D1 與 JSON | 兩張表首欄 UUIDv7、外鍵／CHECK／UNIQUE、15＋9欄、固定 JSON 深度與白名單、CAS stale、照片排序完整集合、真 D1 batch 衝突與 rollback |
 | 私人圖片 | 8MiB 上傳、≤200000 bytes、錯誤 MIME／惡意解碼／EXIF GPS、分段 stream、R2 pending/ready/deleted、GC、跨帳號拒絕與 response nosniff/no-store |
-| 生成及選用 | 2～5張已存來源、同次請求4張互異、短效 attempt 60分、1張正式化、剩餘3張不建表、重複／過期／競態／中斷／失敗後原化身不變 |
+| 生成及選用 | 2～5張已存來源、首次與後續逐張真正產出1張、本輪成功候選最多4張、前端可回選、60分鐘R2 manifest/CAS/同帳號排他與冪等、採用需確認未來重生費用（目前免費）、僅選中1張永久化、失敗不抹除舊候選／角色 |
 | 真人品質 | 需使用者授權提供的照片與 Gemini 真 API，人工逐張比較五官、臉型及髮型；記錄模型／結果數／時間與匿名品質評語，不留原始影像或明碼 secret |
 | 名片跨 SPEC | 本份只測讀取投影及拒絕授權的隔離契約；實際25分、邀請、雙方同意、終止狀態的完整 E2E 留待 AffectionAndFeedback／StoryDialogueAndExit 完成才驗 |
 | 前端 | 16款真不同插畫、照片用途提示完整文字、AI 鎖頭即用不扣款、圖片四選一、錯誤提示、Loading、無障礙、Web／Android／iOS 分平台 |
@@ -1484,7 +1596,7 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 1. 先 Red：寫出符合每一個 TDD ID 的失敗測試，保留有效失敗證據；以 Domain／Application → D1／R2 → HTTP → 前端順序 Green，再重構及回歸。
 2. 完整功能結果才可勾選 BDD 對應場景；有單一單元測試通過不等於 UX／平台驗收通過。
 3. `API` 列表的每一項成功／拒絕／平台傳輸測試均須與對應 `AP-AC`、`AP-BDD` 回鏈；API 對應以 SPEC §7 明列路由為準，不憑空實作跨使用者名片端點。
-4. 使用者已於2026-11-01確認 RQ-01=A、RQ-02=A，12項風險均有處理決議、14項缺漏已補回。**Ready for well-done 只代表規劃交接，0/257項測試已通過；不能跳過真D1、真Gemini、素材與分平台驗收。**
+4. 使用者已於2026-11-01確認 RQ-01=A、RQ-02=A，14項風險均有處理決議、原14項稽核缺漏並新增18項D-050測試已補回。**Ready for well-done 只代表規劃交接，0/275項測試已通過；不能跳過真D1、真Gemini、素材與分平台驗收。**
 
 ## 🔗 相關文件
 
@@ -1493,19 +1605,19 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 - [BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)
 - [RiskAudit](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)
 
-**文件狀態**：RiskAudit已確認、14項稽核測試已補回；**Ready for well-done**，0/257測試通過。
+**文件狀態**：RiskAudit已確認、原14項稽核測試＋D-050新增18項皆已補回；**Ready for well-done**，0/275測試通過。
 
 ---
 
 ## 📝 2026-11-01 實作前風險與缺漏稽核紀錄
 
-**結論**：5高／6中／1低共12項風險，RQ-01=A、RQ-02=A 均已由使用者確認並回寫；原243項TDD保留，追加14項（Unit+1、Integration+9、API+2、E2E+2），總計**257項，0已實測**。68個BDD Scenario與24條AP-AC均有追溯，未重編原有ID。
+**結論**：2026-11-02 D-050 已使風險盤點更新為6高／7中／1低共14項；RQ-01=A、RQ-02=A與逐張上限4／可回選／確認採用皆由使用者同意並回寫。原243項TDD＋14項先前稽核補強＋D-050新增18項＝**275項，0已實測**；73個BDD Scenario、13個@frontend與24條AP-AC追溯完整，原有ID均保留。
 
 ## 規劃交接紀錄
 
 **交接狀態**: **Ready for well-done**
 
-**最後確認日期**: 2026-11-01
+**最後確認日期**: 2026-11-02（D-050逐張生成方案經使用者同意，重新完成追溯與交接）
 **範圍及順序**: 僅 `SPEC-001-AvatarAndPreferences`（MVP-001第2順位）；既有 `SPEC-001-PlatformFoundation` 實作與證據不受修改。
 
 ### 文件包
@@ -1515,27 +1627,30 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 | MVP | `datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md` | 已確認 D-036～D-049，20故事／68 AC |
 | SPEC | `datinghigh/docs/specs/SPEC-001-AvatarAndPreferences.md` | SDD已確認；24條AP-AC；2表24欄 |
 | BDD | `datinghigh/docs/bdd/SPEC-001-AvatarAndPreferences-BDD.md` | 68場景、12個@frontend，0通過 |
-| TDD | `datinghigh/docs/tdd/SPEC-001-AvatarAndPreferences-TDD.md` | 257項待測，原243＋14 |
+| TDD | `datinghigh/docs/tdd/SPEC-001-AvatarAndPreferences-TDD.md` | 275項待測，原243＋14＋18 |
 | RiskAudit | `datinghigh/docs/specs/SPEC-001-AvatarAndPreferences-RiskAudit.md` | 12項風險均已決議，RQ-01=A、RQ-02=A |
 
 ### 已確認風險
 
 | 風險 ID | 風險 | 使用者確認／文件回寫與開發注意事項 |
 |---|---|---|
-| `RA-01` | 真人 AI 四圖同步生成能否在平台時限內完成 | **使用者接受**：D-046 單次請求無 Job 的取捨不變；已補 AP-IT-061（RG-07）。真 Gemini 4圖／時限與成本須在 well-done 實測，未達4張不可放行 |
-| `RA-02` | 8MiB 上傳與現有 8KiB 私人 R2/16KiB JSON 限制不相容 | **已補回文件**：新增 AP-API-040（RG-01）驗證受控媒體串流、Web/原生授權與 8 MiB 限制；不擴充原 Foundation 8 KiB 入口 |
-| `RA-03` | 取消 Trigger 後，D1 照片名額與媒體不變式的競態 | **已補回文件**：新增 AP-IT-057～059（RG-02～04），驗真 D1 同時上傳、RETURNING 0列與受控 UPDATE，不使用 SQL Trigger |
-| `RA-04` | 名片授權過期、終止競態和跨輪讀取 | **已補回文件**：AP-IT-060（RG-05），每次名片照片開啟前重驗同輪有效雙方同意／終止；完整跨 SPEC E2E 後續整合驗 |
-| `RA-05` | 真人照傳送 Gemini 的用途告知與按開始授權（已確認方案 A） | **已補回文件**：使用者明確選 **RQ-01=A／D-048**；產圖頁內嵌用途提醒，按開始才送照；AP-E2E-037（RG-06）覆蓋，沒有額外跳窗 |
-| `RA-06` | 免費與 AI 化身角色構圖一致性（已確認3:4半身方案 A） | **已補回文件**：使用者明確選 **RQ-02=A／D-049**；3:4半身至腰部、五官清楚、背景簡潔；AP-IT-062、AP-E2E-038（RG-08、RG-12） |
-| `RA-07` | 200KB來源照未必足夠保留 AI 人臉相似度 | **使用者接受**：200,000 bytes 來源照限制維持；AP-IT-062（RG-08）要求真人品質驗證，未達人臉可辨識不得假稱合格 |
-| `RA-08` | 固定 JSON 投影與範例欄位尚缺對齊測試 | **已補回文件**：SDD §7 PUT 範例補 topicTagIds，AP-API-041（RG-09）驗固定 JSON 與歷史代碼 |
-| `RA-09` | 四張暫存候選失敗補償與單次永久化競態 | **使用者接受**：D-046 無 Job 且重試可能再耗成本；AP-IT-063、064（RG-10、11）必驗補償、60分鐘到期、CAS |
-| `RA-10` | 免費16款立繪正式素材及品質驗收 | **已補回文件**：AP-E2E-038（RG-12）驗16張不同正式立繪資產及來源授權，不用假圖，統一3:4構圖 |
-| `RA-11` | 名片照片替換與身分狀態快取可能揭露舊內容 | **已補回文件**：AP-IT-065（RG-13）驗照片刪除、舊 URL、授權終止及 no-store 後不得新增揭露 |
-| `RA-12` | 年齡計算、Unicode與標籤目錄跨版本邊界 | **已補回文件**：AP-UT-113（RG-14）驗2/29、18歲與臺灣午夜固定時鐘 |
+| `RA-01` | 逐張單次時限、供應商計費及超時結果不確定 | **已補回文件**：D-050、AP-IT-061/069，單次四圖硬門檻被逐張替代；D-050 不再要求同次四圖：每次真產1張成功才算、失敗保留既有圖，供應商超時不能自動重送。逐張真Gemini量測延遲／費率／限流，不能保證失敗零成本。 |
+| `RA-02` | 8MiB 上傳與現有 8KiB 私人 R2/16KiB JSON 限制不相容 | **已補回文件**：新增 AP-API-040（RG-01）驗證受控媒體串流、Web/原生授權與 8 MiB 限制；不擴充原 Foundation 8 KiB 入口；既有 object.private.put 對檔案限8192 bytes，前端預設非GET使用 application/json；直接共用會造成照片上傳失敗或繞過原 CSRF 規則。需新增嚴格驗證的串流專用 API／worker handler，保留原認證 API JSON 限制與可信 Origin。 |
+| `RA-03` | 取消 Trigger 後，D1 照片名額與媒體不變式的競態 | **已補回文件**：新增 AP-IT-057～059（RG-02～04），驗真 D1 同時上傳、RETURNING 0列與受控 UPDATE，不使用 SQL Trigger；單一 prepared 條件式 INSERT 要以真 D1 驗並發第5/6張、0列、取消／刪除競態；媒體 owner/kind/key 更新必不可由任何受控命令通過，ready→pending／deleted→ready 必須拒絕。更要實測 D1 對 RETURNING 與 changes/result 的回應，避免誤當插入成功。 |
+| `RA-04` | 名片授權過期、終止競態和跨輪讀取 | **已補回文件**：AP-IT-060（RG-05），每次名片照片開啟前重驗同輪有效雙方同意／終止；完整跨 SPEC E2E 後續整合驗；只靠前端隱藏名片或僅傳 boolean authorizedContext 不安全。受信任 AffectionAndFeedback 需在每次投影及開照片串流時，核對本輪雙方同意、有效參與及未終止；猜 ID、他輪及已終止皆拒絕。當前 SPEC 僅保護內部資料契約，完整 E2E 要等後續 SPEC。 |
+| `RA-05` | 真人照傳送 Gemini 的用途告知與按開始授權（已確認方案 A） | **已補回文件**：使用者明確選 **RQ-01=A／D-048**；產圖頁內嵌用途提醒，按開始才送照；AP-E2E-037（RG-06）覆蓋，沒有額外跳窗；個人照原本也是交換名片用途；如果未醒目告知第三方 AI 會收到照片，使用者可能在不知情下將真人照傳出去。須在首次實際傳送前清楚顯示第三方用途並有本人主動操作，不預設背景傳送。 |
+| `RA-06` | 免費與 AI 化身角色構圖一致性（已確認3:4半身方案 A） | **已補回文件**：使用者明確選 **RQ-02=A／D-049**；3:4半身至腰部、五官清楚、背景簡潔；AP-IT-062、AP-E2E-038（RG-08、RG-12）；免費16款與 AI4款若構圖不同，遊戲人物欄位會裁掉臉、看不出相似度，還可能需要重新產圖。建議一致直向3:4的半身／胸腰人物立繪、臉部清楚；背景單純且不預設透明一定可行。 |
+| `RA-07` | 200KB來源照未必足夠保留 AI 人臉相似度 | **使用者接受**：200,000 bytes 來源照限制維持；AP-IT-062（RG-08）要求真人品質驗證，未達人臉可辨識不得假稱合格；壓縮服務須在200000 bytes內保留五官、方向、長寬比、色彩、EXIF移除；以使用者授權真人照做人工相似度驗收。AI正式結果不是個人真人照，不得誤套來源照200KB限制而破壞角色品質。 |
+| `RA-08` | 固定 JSON 投影與範例欄位尚缺對齊測試 | **已補回文件**：SDD §7 PUT 範例補 topicTagIds，AP-API-041（RG-09）驗固定 JSON 與歷史代碼；SPEC preferences_json 固定9鍵、interests_json含topicTagIds；§7 PUT 示範沒有 topicTagIds，應驗 DTO 的完整／部分資料映射、未知／重複鍵、合法歷史停用標籤、跨版本回讀及禁止敏感資料直列輸出。 |
+| `RA-09` | 逐張短效R2候選、選用CAS與回選 | **已補回文件**：AP-IT-063/064/067/068，沿用無D1 Job與無Trigger；短效60分鐘manifest記錄真正成功的索引且允許回選；本輪只一個inFlight，採用後關閉，D1/R2補償不清除其他合法候選。 |
+| `RA-10` | 免費16款立繪正式素材及品質驗收 | **已補回文件**：AP-E2E-038（RG-12）驗16張不同正式立繪資產及來源授權，不用假圖，統一3:4構圖；必須是真正16幅不同、可在商品中使用的素材，不能複製同一圖重新命名或使用原型 fixture；需驗視覺差異、授權與手機 UI 裁切、可跨兩組選取。 |
+| `RA-11` | 名片照片替換與身分狀態快取可能揭露舊內容 | **已補回文件**：AP-IT-065（RG-13）驗照片刪除、舊 URL、授權終止及 no-store 後不得新增揭露；本人的 ready 刪除後必立刻無法開始新的被授權串流；Cache-Control no-store、過期代理 URL 不應繞過重新授權。曾被對方保存的影像客戶端無法遠端收回，不宣稱可撤回已交付內容。 |
+| `RA-12` | 年齡計算、Unicode與標籤目錄跨版本邊界 | **已補回文件**：AP-UT-113（RG-14）驗2/29、18歲與臺灣午夜固定時鐘；固定臺灣時區與時鐘測試足18歲／未足18歲，含2月29日、未來日期、跨年；Unicode scalar、最大陣列／JSON長度與停用代碼須可讀且不得改義。 |
 
-**風險分界**：接受 `RA-01`（無Job同步四圖）、`RA-07`（200KB壓縮）及 `RA-09`（中斷補償／重新呼叫成本）代表接受既有設計取捨，**不是**表示Gemini四圖、臉部品質或R2補償已通過真實測試；未達驗收標準需停止並提交證據，不得自行降低Gate或增加Job表。
+**風險分界**：使用者接受 D-046 無 D1 Job 表、D-050 每次真產一張與最多四張的流程，仍必須由真 R2 條件寫入、同帳號排他、Gemini 單張結果與費率及 200KB 人臉品質實測。規劃確認**不是**所有外部服務已驗收；未達門檻需停止並提交證據，不得降低 Gate。
+
+| `RA-13` | 多頁及跨Worker重送導致第5張、重複Gemini費用 | **已補回文件**：D-050、RG-15/17及相關TDD，不增加D1 Job表；R2原子條件寫入／同帳號active attempt／clientRequestId冪等，限同時一個inFlight及最多4張成功候選；provider狀態未知不自動解鎖並重送。真R2＋Worker並發及崩潰復原必測，失敗即阻擋Gate。 |
+| `RA-14` | 採用後重生需付費提示與MVP當下免費政策可能混淆 | **已補回文件**：D-050、RG-16、跨平台E2E；確認視窗只提示**未來正式收費上線後**依方案付費；本MVP不扣款。取消保留候選，確認才關閉本輪與儲存一張；採用確認窗不等同D-048被禁止的第二個送照同意窗。 |
 
 ### 已補回缺漏
 
@@ -1556,17 +1671,22 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 | `RG-13` | RA-11、BDD-004/026 | `AP-IT-065` | 已補入，尚未執行 |
 | `RG-14` | RA-12、BDD-050 | `AP-UT-113` | 已補入，尚未執行 |
 
+| `RG-15` | RA-13、AP-BDD-071 | `AP-IT-068` | 已補回TDD／未執行 |
+| `RG-16` | RA-14、AP-BDD-073 | `AP-E2E-039`～`AP-E2E-041` | 已補回TDD／未執行 |
+| `RG-17` | RA-01/13、AP-BDD-069/070/071 | `AP-API-042`～`AP-API-044` | 已補回TDD／未執行 |
+| `RG-18` | RA-01/09、AP-BDD-072 | `AP-IT-069` | 已補回TDD／未執行 |
+
 ### 實作注意事項
 
-1. **D-048／RQ-01=A**：產圖頁每次醒目顯示「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」。**本人按「開始產生4張」才可傳送既有照片**；進頁不自動送照、無二次跳窗、無新同意表。
+1. **D-048／RQ-01=A**：產圖頁每次醒目顯示「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」。**本人按「開始產生第1張／產生下一張」才可傳送既有照片**；進頁不自動送照、無二次跳窗、無新同意表。
 2. **D-049／RQ-02=A**：免費16款與AI四候選均為**直式3:4半身至腰部立繪，清晰五官、簡潔背景**；容器不裁臉或拉伸，須以授權人像人工確認相似度與構圖。
 3. **D-045～D-047 Schema**：新表僅 `user_profiles` 15欄及 `user_media_assets` 9欄，**0個SQL Trigger**，不建AI Job／名片快照／免費角色表，不存圖片byte_size／sha256；既有auth/common六表54欄不變。
 4. **D1/R2安全**：照片輸入≤8MiB，使用可重用壓縮服務輸出≤200000 bytes存私人R2；第5／第6張並發由單句prepared條件式INSERT（含pending額度）及0列檢查守住；受控UPDATE不可改owner/kind/objectKey、deleted不可復活。真Miniflare D1／R2測試是必要Gate。
 5. **傳輸界限**：業務媒體使用獨立受控串流通道，保持Web Origin/Cookie與原生Bearer／Session驗證；不得放寬原平台16KiB JSON限制，或套用Foundation僅8192 bytes的測試物件API。
-6. **Gemini真生成**：金鑰只以安全的server secret配置，不得進Git／前端／log；使用已保存本人2～5張真人照，同一次前端請求成功**必為4張互異真圖**且只正式保存選中的1張。缺圖／超時不得假成功，也不擅改同步無Job方案。
+6. **Gemini真生成（D-050）**：金鑰只由安全server secret供應；使用已保存本人2～5張照，每個明確操作只請求並驗收一張真 Gemini 插畫，成功才增加本輪 producedCount，最多4張、可提前採用與回選。已有候選不因下一張失敗而作廢；超時或供應商計費狀態不確定不得自動重送，依clientRequestId/R2 CAS排他及限流控成本，只確認採用後存正式一張。不建D1 Job或假稱每次必出圖。
 7. **跨SPEC名片界線**：本份僅提供目前本人資料／照片的授權內部讀取契約；25分入口、雙方同意、名片新讀取權限與終止整合由MatchingSessions、StoryDialogueAndExit及AffectionAndFeedback後續負責；不得擅增公開他人名片路由／快照表。
-8. **證據與平台**：真D1並發、R2補償、真Gemini四圖、16張真正不同且有合法來源的插畫資產、Web/Android/iOS各平台證據都須如實驗收。沿用既有 iOS／雲端暫緩決策但不得標Passed；歷史Foundation證據不等於本份驗證。
-9. **硬性停損**：Gemini無法在時限內產4張、200KB壓縮難以辨識臉部、D1/R2補償或授權競態未通過時，必須提出實際證據並停止相應Gate，不改規格、不降低標準。
+8. **證據與平台**：真D1並發、R2補償、真Gemini逐張結果／費用與限流及R2並發、16張真正不同且有合法來源的插畫資產、Web/Android/iOS各平台證據都須如實驗收。沿用既有 iOS／雲端暫緩決策但不得標Passed；歷史Foundation證據不等於本份驗證。
+9. **硬性停損**：Gemini單次請求無法在時限內可靠產1張，或R2 CAS不能防重／超額、200KB壓縮難以辨識臉部、D1/R2補償或授權競態未通過時，必須提出實際證據並停止相應Gate，不改規格、不降低標準。
 
 ### 不得進入開發的阻斷項
 

@@ -3,17 +3,17 @@
 **功能 ID**: `SPEC-001-AvatarAndPreferences`  
 **關聯需求**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)  
 **優先級**: 高（MVP 第 2 順位）  
-**狀態**: 2026-11-01 使用者已確認本份完整 SDD（含 D-047 不使用 SQL Trigger）；RiskAudit RQ-01=A／RQ-02=A 已確認，14項稽核補強及 TDD 交接完成；**Ready for well-done（僅規劃完成，尚未實作）**
-**最後更新**: 2026-11-01  
+**狀態**: 2026-11-02 使用者確認 D-050 逐張產圖修訂，沿用已確認之本份完整 SDD（含 D-047 不使用 SQL Trigger）；RiskAudit RQ-01=A／RQ-02=A 已確認，14項稽核補強及 TDD 交接完成；**Ready for well-done（D-050 文件重審後，尚未實作）**
+**最後更新**: 2026-11-02
 **前置 SPEC**: [SPEC-001-PlatformFoundation](SPEC-001-PlatformFoundation.md)  
 **後續依賴者**: `SPEC-001-MatchingSessions`、`SPEC-001-StoryDialogueAndExit`、`SPEC-001-AffectionAndFeedback`  
 **責任範圍**: `US-001`～`US-003` 共 **13 條 MVP 驗收**；`US-020 / AC-020-02、AC-020-07` 的即時名片資料來源契約；不在本份實作 25 分門檻、邀請／同意／實際名片揭露或付款。
 
-> 本輪已確認的產品決策以 MVP `D-036`～`D-049` 為準，取代 2026-11-01 前一版 SDD 中「每次上傳／每次 1 張、生成後刪照片、名片排除真人照、配對快照、刻意避免高度相似、暫不能選 Gemini」的提案。本份 SDD 細部設計已於 2026-11-01 經使用者確認，仍不得聲稱已實作或已完成測試。
+> 本輪已確認的產品決策以 MVP `D-036`～`D-050` 為準，取代 2026-11-01 前一版 SDD 中「每次上傳／每次 1 張、生成後刪照片、名片排除真人照、配對快照、刻意避免高度相似、暫不能選 Gemini」的提案。本份 SDD 細部設計已於 2026-11-01 經使用者確認，仍不得聲稱已實作或已完成測試。
 
 ## 1. 功能概述與交付成果
 
-使用者可維護最多 5 張最滿意的**真人個人照**；每張上傳時由可重用的共用圖片壓縮底層處理，僅保存 ≤200 KB 的版本。選擇遊戲化身有**免費 16 款內建插畫角色（男性風格 8 款、女性風格 8 款）**及**未來付費的 AI 生成**兩條路徑。AI 目前以鎖頭標示，但點擊即可進入真生成，不付款；直接使用已保存的多張本人照片產出 **4 張**可比較的插畫風化身，使用者選最滿意的 **1 張**作遊戲角色。生成應盡量保留真人五官與辨識特徵，而不是讓人物因過度風格化失真。Gemini 可作為真實 API 的驗證來源。
+使用者可維護最多 5 張最滿意的**真人個人照**；每張上傳時由可重用的共用圖片壓縮底層處理，僅保存 ≤200 KB 的版本。選擇遊戲化身有**免費 16 款內建插畫角色（男性風格 8 款、女性風格 8 款）**及**未來付費的 AI 生成**兩條路徑。AI 目前以鎖頭標示，但點擊即可進入真生成，不付款；直接使用已保存的多張本人照片每次成功產生**1張**、單輪最多**4張**可比較的插畫風化身，使用者可提前採用、回選任一張，確認後只保存 **1 張**作遊戲角色。生成應盡量保留真人五官與辨識特徵，而不是讓人物因過度風格化失真。Gemini 可作為真實 API 的驗證來源。
 
 個人資料提供暱稱、自介、個性、**工作／職業**、興趣、生活習慣、價值觀、互動頻率、年齡／區域及配對偏好，供後續 MatchingSessions 使用。初期對方只見可授權的遊戲化身；於另一份 AffectionAndFeedback 完成該輪雙方同意交換名片後，才可查閱本人**當下最新個人資料及已保存的真人個人照**。名片不建立快照或複製表。
 
@@ -21,10 +21,10 @@
 
 | MVP 來源 | 本份預計驗收 ID | 本份交付／責任 |
 |---|---|---|
-| `US-001 / AC-001-01` | `AP-AC-001`～`AP-AC-004`、`AP-AC-022` | 真 AI 根據已有照片生成四款且可選用，與原型風格一致；免費內建化身不需要 AI |
+| `US-001 / AC-001-01` | `AP-AC-001`～`AP-AC-004`、`AP-AC-022` | 真 AI 根據已有照片逐張最多生成4款、可隨時採用，與原型風格一致；免費內建化身不需要 AI |
 | `US-001 / AC-001-02` | `AP-AC-005`、`AP-AC-006` | 化身暱稱、個性、簡介及當前角色引用 |
 | `US-001 / AC-001-03` | `AP-AC-004`、`AP-AC-017` | 男性風格 8、女性風格 8，共 16 款免費角色可用 |
-| `US-001 / AC-001-04` | `AP-AC-002`、`AP-AC-003`、`AP-AC-018` | AI 鎖頭點擊即用、4 張真實結果選 1；未實作計費 |
+| `US-001 / AC-001-04` | `AP-AC-002`、`AP-AC-003`、`AP-AC-018` | AI 鎖頭點擊即用、逐張最多4張、可回選及確認採用1；未實作計費 |
 | `US-001 / AC-001-05` | `AP-AC-001`、`AP-AC-019`、`AP-AC-020` | 真人照為持續維護的個人資料、用途提醒、最多 5 張、≤200 KB 共用壓縮 |
 | `US-001 / AC-001-06` | `AP-AC-002`、`AP-AC-022`、`AP-AC-024` | 插畫風下保留五官與相似度、Gemini 真實測試與安全 secret |
 | `US-002 / AC-002-01、AC-002-02` | `AP-AC-007`～`AP-AC-010` | 初期不露真人照或敏感聯絡資料；私有媒體存取隔離 |
@@ -42,7 +42,7 @@
 - **登入本人**：建立／更新或刪除個人真人照片、預覽壓縮版本、免費選擇 16 款角色、點 AI 鎖頭送出真生成、瀏覽 4 個結果並選用 1 張、編輯基本資料與配對偏好。
 - **初期候選／已配對對方**：未取得有效名片同意前僅可透過未來 MatchingSessions 授權看到安全的遊戲化身／有限公開資訊，**不能**取得真人照片或工作等名片私有欄位。
 - **交換名片後的該輪雙方**：未來由 AffectionAndFeedback 依親密度 25 分入口、雙方同意及互動有效性授權，才可讀取對方**當前**名片欄位與經 200 KB 壓縮的真人照；本人修改／刪除反映於後續讀取，不建立固定版本。
-- **AI 生成請求**：在單次授權請求內讀取本人現有的私人 R2 照片，協調提供者產生四個不同候選並短暫保存在有期限的私人 R2 區；僅在使用者選定後將一張轉為正式資產，不建立可恢復的生成工作資料。
+- **AI 生成請求**：每次本人操作僅觸發1張真實插畫生成；本輪最多累積4張成功候選，未採用者以私人R2短效保留供前端回選。只在本人確認採用後將1張轉正式媒體並結束該輪，無 Job D1 表；伺服器須嚴格管理同輪和同帳號並發、冪等、費用及候選效期。
 
 **不包含**：真實配對演算法、對話、親密度／25 分計分、名片邀請同意本身、付費收款／訂閱／權益資料、管理後臺、身份證件 KYC。16 款角色的男性／女性只描述畫風分類，**不以使用者申報的性別限制可選類別**。
 
@@ -65,12 +65,12 @@
 5. 圖片格式提案：JPEG／PNG／WebP，HEIC／HEIF 可由可用的 client adapter 轉成受支援格式；後端依實際內容解碼，限制解碼後最大像素數、拒絕偽造 MIME、損毀或惡意圖片。壓縮的品質優先序為「清晰五官／保留比例／不失真」，而不是無條件壓成一團模糊像素。**200 KB 約束可能使細節有所損失；需以真人樣本驗收是否足以供相似度生成。**
 6. 照片是個人資料而非任務暫存。生成成功不自動清除；僅本人刪除或帳號資料處理規則要求才刪除。若照片與處理中的 AI 生成請求有競態，刪除後新請求不得引用，既有請求於發布結果前重驗來源、已刪來源的結果必須廢棄；即使 AI 回覆晚到，也不得恢復已刪私人照片。
 
-### 4.2 免費 16 款與 AI 鎖頭四款擇一
+### 4.2 免費 16 款與 AI 鎖頭逐張最多四款
 
-1. **免費路徑**：固定資產目錄包含男性風格 `male-01`～`male-08` 共 8 款，以及女性風格 `female-01`～`female-08` 共 8 款，各有不同可辨識立繪；使用者可跨組自由選任一個，不需 AI、照片、金流或資料庫內建角色表。圖片以受版控的應用靜態資源及穩定 `builtinAvatarId` 引用，禁止把同一圖片換名稱充當 16 款。 **D-049／RQ-02=A**：免費16款及 AI4張候選統一直式3:4半身至腰部立繪，臉部清晰、背景簡潔，畫框可比較；必要時等比例裁切／留白，不可拉伸或裁掉臉部。
-2. **AI 路徑**：入口顯示未來付費的**鎖頭圖示**與說明，**本 MVP 點擊鎖頭即打開完整真 AI 功能**，無結帳、權限購買或收費 API；真正的付費能力由 `MVP-003-PayModule` 承接，交換名片不付費。需至少 2 張本人現有照片（最多 5 張），並可選生成風格選項。 **D-048／RQ-01=A**：每次進入產圖頁醒目顯示「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」；只有本人按「開始產生4張」才傳送現有照片，不額外跳同意視窗、不在背景自動呼叫 AI、不建同意資料表，缺少兩張 ready 照片時只引導上傳。
-3. 本人提交單次受控 AI 生成請求，使用既有至少2張、至多5張已壓縮真人照片，取得**4張不同且可預覽的插畫候選**，本人從中選1張；**只有選中的圖片才永久保存為本人生成化身**，並以 `selectedAvatarType=generated`／`selectedAvatarRef` 設為當前化身。其他三張只暫存在有期限的私人 R2，不能作一般公開頭像或永久名片。 候選圖的輸出畫框須符合上述3:4半身構圖，不以扭曲人臉的方式強行適配。
-4. 若供應商單次只回一張，backend 在**同一次**前端請求中受控協調取得四張，不能複製同圖冒充四款；四張不足不能回成功。不得承諾請求斷線或逾時仍可接續，重送可能再次呼叫 Gemini 並產生費用。保留先前選用的化身；超時、供應商錯誤、結果不足時提供可重試訊息。
+1. **免費路徑**：固定資產目錄包含男性風格 `male-01`～`male-08` 共 8 款，以及女性風格 `female-01`～`female-08` 共 8 款，各有不同可辨識立繪；使用者可跨組自由選任一個，不需 AI、照片、金流或資料庫內建角色表。圖片以受版控的應用靜態資源及穩定 `builtinAvatarId` 引用，禁止把同一圖片換名稱充當 16 款。 **D-049／RQ-02=A**：免費16款及 AI最多4張候選統一直式3:4半身至腰部立繪，臉部清晰、背景簡潔，畫框可比較；必要時等比例裁切／留白，不可拉伸或裁掉臉部。
+2. **AI 路徑**：入口顯示未來付費的**鎖頭圖示**與說明，**本 MVP 點擊鎖頭即打開完整真 AI 功能**，無結帳、權限購買或收費 API；真正的付費能力由 `MVP-003-PayModule` 承接，交換名片不付費。需至少 2 張本人現有照片（最多 5 張），並可選生成風格選項。 **D-048／RQ-01=A**：每次進入產圖頁醒目顯示「產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家」；只有本人按「開始產生第1張」或後續「產生下一張」才傳送現有照片，不額外跳同意視窗、不在背景自動呼叫 AI、不建同意資料表，缺少兩張 ready 照片時只引導上傳。
+3. **逐張產生流程（D-050）**：本人先按「開始產生第1張」，server 以已保存的2～5張 ready 真人照產出**一張**真正符合3:4畫框的插畫候選並回傳；該張完成後立即可按「採用這張」或「產生下一張」，至多4張**成功**結果。每張未採用候選仍在前端候選列可回選（前端保存短效參照，不永久保存原始圖片 bytes；對應私人R2候選有效60分鐘），不必為第一張滿意者生成剩餘三張。
+4. **單張成功定義**：每次受控 provider 請求僅接受一張已成功解碼、安全檢查、符合格式且與同輪先前結果不同的真 Gemini 插畫，寫入本輪合法的私人R2候選後才回傳200與新 index；不保證模型必然出圖，重複圖／沒有圖／超時時不得計入成功數，也不得複製假圖。上一張成功結果不受下一張失敗影響；已選用化身不被任何未確認結果覆蓋。
 5. AI 插畫風格應符合 `prototype.v2` 的視覺小說人物設計，但重點在 **插畫風下仍能辨識與本人相似的臉型、五官、髮型及神情**，不得只追求卡通風而刻意扭曲真人特徵。使用多張本人照片和固定版本的風格指示；結果不得偷放任何完整來源照片作背景、不得外洩私人 EXIF 或帳號 Email。品質驗收用使用者授權照片與結果做人工相似度／風格比較，模型輸出不能保證百分百保真。
 6. 共用選用狀態只能有 **一個目前遊戲化身**：`builtin` + catalog ID 或 `generated` + 本人已正式選定並保存的生成圖片 asset ID；伺服器檢核擁有權、成功狀態與 catalog 存在。錯誤、不完整或未選用的生成結果不覆寫既有化身。暱稱／個性／自介不因切換免費／AI 角色而清空。
 
@@ -121,7 +121,7 @@ PlatformFoundation 完成 Email／Google 登入
   └─ AI 客製化（鎖頭）：點擊即用、不付款
          → 引用個人資料已保存的至少2張真人照
          → 每次開啟產圖頁顯示第三方 AI 照片用途告知（RQ-01=A）
-          → 本人按「開始產生4張」才傳送，不另外顯示確認跳窗
+          → 本人按「開始產生第1張」→ 一次只產出一張真結果
          → Gemini／provider 真生成同一工作共 4 張直式3:4半身至腰部結果
          → 比較四張，選最滿意的 1 張 → 作為遊戲化身
   ↓
@@ -137,7 +137,7 @@ PlatformFoundation 完成 Email／Google 登入
 - 延續 `prototype.v2` 的玫瑰粉／深紫色、半透明面板、ADV 立繪感。免費角色要提供 **16 張各有區別的正式插畫資產**，不拿原型 4 款角色圖複製改名冒充。 **RQ-02=A**：免費16款和AI4張使用相近3:4直式半身至腰部畫框、清楚五官與簡潔背景；遊戲對話容器不能裁掉臉或拉伸失真。
 - 照片編輯屬**個人資料頁**，AI 是從已保存的照片啟動；不是每次點 AI 都重新上傳。Android／iOS 使用系統照片挑選、Web 使用檔案選擇，僅請求必要存取權限。0 張仍可用免費化身；AI 按鈕需提示至少 2 張。
 - 固定提醒文字必須在照片首次上傳及後續新增／替換前可見，不藏在深層條款；另提供本人「同意後名片預覽」區，使使用者清楚照片和職業會被分享。
-- AI 鎖頭只是假付費入口：點擊顯示功能與所需照片，**不可跳出付款畫面、扣點或寫入付費權限**；成功後展示 4 張不同結果供點選，並顯示選用與未選用狀態。失敗不會切換目前選用的免費或既有 AI 化身。 **RQ-01=A**：點入產圖頁固定可見第三方照片傳送提醒；本人按「開始產生4張」才是真正送照／呼叫 Gemini，不加第二次確認跳窗。
+- AI 鎖頭只代表**未來**的付費能力：本MVP進入頁面與每次生成均不收費、不扣點。首次需按「開始產生第1張」，之後由本人按「產生下一張」逐張生成，成功才出現新候選（最多4張）、可從既有候選清單回選；點「採用這張」**額外開啟採用確認視窗**，顯示「採用後將結束本輪；未來正式付費上線後，若要重新產生需依當時方案付費；目前免費」。確認前不能結束本輪或永久保存，取消則保留全部有效候選。此採用確認與D-048所禁止的「**送照片前再多一個同意跳窗**」是不同動作，兩者不衝突。
 - 表單需要空白、載入中、離線、圖片過大／壓縮失敗、未滿 18 歲、重送、防重複點擊、provider 超時、斷線後可能需重新生成、資料 CAS 409 與登入狀態失效等明確提示；互動按鈕防重複提交。
 - 除照片上傳有短暫本機預覽外，不把原始照片或 provider 憑證存進未受控本地快取／日志。安全圖片可經驗證授權短效讀取，不能使用公用 R2 URL。
 - 真正的 Web／Android／iOS 截圖、字體放大、鍵盤焦點、螢幕閱讀器及 reduced motion 驗收分開留證據。依既有 D-033／D-035 可保留 iOS／雲端暫緩但不得標為 Passed；本地 Web／Android 亦需這次功能自己的真實驗證。
@@ -148,12 +148,12 @@ PlatformFoundation 完成 Email／Google 登入
 |---|---|---|
 | Domain | `DatingProfile` Aggregate Root（包含基本資料、照片引用與偏好）、`AvatarSelection`、`MediaAsset`／短效 AI 候選 Value Object | 18+、欄位限制、每帳號最多5張、AI輸入至少2張、來源 owner、目前唯一選用化身、4張生成完成規則、CAS |
 | Domain | `Occupation`、`AgeRange`、`RegionCode`、`ProfileRevision` | 正規化、欄位範圍、標籤代碼與版本核對；**ProfileRevision 只防併發覆寫，不保存名片歷史** |
-| Application | `DatingProfileService`、`AvatarSelectionService`、`AvatarGenerationService` | 本人資料更新、免費角色切換、單次 AI 生成、四張暫存候選擇一、檢查權限與資料投影 |
+| Application | `DatingProfileService`、`AvatarSelectionService`、`AvatarGenerationService` | 本人資料更新、免費角色切換、每次1張 AI 生成、本輪至多4張、回選／確認採用及短效占位、檢查權限與資料投影 |
 | Application 共用能力 | `IImageCompressionService.CompressAsync(input, targetBytes=200_000, options, ct)` | 不依賴照片業務語意的通用圖片壓縮；任何後續上傳圖像流程都可用，回傳壓縮 bytes、byteLength、尺寸、MIME，不要求額外計算內容雜湊 |
 | Application／Infrastructure | `IPrivateMediaStore`、`IAvatarImageGenerator`、`IImageDecoder` | 串流圖片到私人 R2；真 Gemini adapter／可替換 provider；安全的圖片檢查與編碼 |
 | Cloudflare／D1 | 僅白名單的 `profile.*`／`avatar.*` 固定 commands、私人媒體 handler | 依目前有效 session family 判斷 owner；prepared SQL／batch／唯一限制，不公開任意 SQL 或 R2 key |
 | API | 本人 `/api/v1/me/*` 路由、串流端點與 ProblemDetails | 接受驗證後的平台身分、檢查流量與容量、拒絕跨帳號猜 ID、Web Origin／CSRF 與原生 Bearer |
-| Expo／React Native | `PersonalPhotos`、`FreeAvatarCatalog`、`AvatarGenerationChoices`、`DatingProfileForm`、`MyCardPreview` | 本人照片／資料、16款免費角色、鎖頭、4張選1、可見性提醒與錯誤恢復 |
+| Expo／React Native | `PersonalPhotos`、`FreeAvatarCatalog`、`AvatarGenerationChoices`、`DatingProfileForm`、`MyCardPreview` | 本人照片／資料、16款免費角色、鎖頭、逐張最多4張、可提前採用／回選／採用確認與費用預告、可見性提醒與錯誤恢復 |
 
 **共用壓縮契約**：壓縮功能放在中立共用服務（例如 `backend/src/DatingHigh.Application/Media/` 的 interface、`Infrastructure/Media/` adapter），不得寫死 `avatar` 路徑、圖片數量、R2、名片或任何 UI 規則；目標 bytes、尺寸限制、允許格式是參數／明確 options，未傳入時 `targetBytes = 200_000`。伺服器驗證每次輸出 `byteLength ≤ targetBytes`；後續其他圖片功能可用不同 targetBytes。測試不依賴 ImageSharp 或未審查的脆弱套件，也不假設任意 stream 都能直接被影像 decoder 單次同步讀完；需驗真實串流分段與失敗回復。
 
@@ -182,9 +182,9 @@ PlatformFoundation 完成 Email／Google 登入
 | `PUT /me/photos/order` | 本人；至多5個資產 ID 與預期 revision | 200；只能排列本人全部現有照片，不建立新圖片 |
 | `DELETE /me/photos/{assetId}` | 本人；單筆資產 ID | 204；刪除／遮蔽即對日後的即時名片讀取失效，跨 owner 拒絕 |
 | `GET /me/media/{assetId}` | 本人；資產 ID（真人照或本人生成結果） | 200；stream、no-store、nosniff；**不回 R2 key 或公用 URL** |
-| `POST /me/avatar/generations` | 本人；styleId，server 從現有本人照片取至少2張；單次同步請求 | 200；**四張全部完成**才回 attemptId、indices 1～4、expiresAt；不建立 Job／不承諾斷線恢復；provider 耗時超過平台限制須回錯誤並保留舊角色 |
-| `GET /me/avatar/candidates/{attemptId}/{index}` | 本人；attemptId UUIDv7、index 1～4，CurrentUser 自行推導 R2 key | 200；受控串流本次臨時四圖；過期410、無權拒絕；不可公開或作長效頭像 |
-| `PUT /me/avatar/selection` | 本人；`type=builtin`＋目錄ID，或 `type=generated`＋有效 `attemptId/index`，另帶 `expectedRevision`；既有正式本人 asset 也可重新選用 | 200；僅選中的 AI 候選轉永久 R2＋DB asset，並 CAS 設唯一化身；不保存其餘三張，不建立 Jobs 表 |
+| `POST /me/avatar/generations` | 本人；`styleId`、首次不帶 `attemptId`，續產帶本人有效 `attemptId`、`clientRequestId`（同輪冪等）、`expectedProducedCount`（0～3）；每次明確點擊只發1張請求 | 200；**成功時只回新產生的一張** `{attemptId,index,producedCount,maxCandidates:4,expiresAt}`；若失敗不增加成功張數且已產圖可續選。已關閉／超過4張／同時生成拒絕409，provider超時503，限流429；不得在一次請求強制生成4張或建立D1 Job表 |
+| `GET /me/avatar/candidates/{attemptId}/{index}` | 本人；attemptId UUIDv7、index 1～4，CurrentUser 自行推導 R2 key | 200；受控串流本輪已成功產生的臨時候選（最多四張）；過期410、無權拒絕；不可公開或作長效頭像 |
+| `PUT /me/avatar/selection` | 本人；`type=builtin`＋目錄ID，或 `type=generated`＋已成功產出的有效 `attemptId/index`，帶 `expectedRevision`；前端必須已顯示「採用後結束本輪／未來正式付費重生提示」並由本人確認，既有正式本人 asset 亦可重新選用 | 200；由伺服器原子關閉本輪，只將所選1張轉永久R2＋DB資產並 CAS 設唯一化身；其他0～3張短效清理，重送不得重複正式化；取消前端確認不送出PUT；無真付款／購買／權益API |
 | `GET /me/card-preview` | 本人 | 200；本人預覽當前將分享的資料與照片清單，不能替代另一人同意 |
 
 **不在本份建立** `GET /users/{id}/card`、公開名片照片路由、付款端點、交易／權益 API。跨帳號名片只由後續 AffectionAndFeedback 在有效雙方同意後透過受限內部資料查詢與短效影像代理存取；使用者猜到 owner／asset ID 不能繞過同意。介面不得直接公開原始 R2 路徑。
@@ -217,7 +217,7 @@ PlatformFoundation 完成 Email／Google 登入
 
 `GET /me/dating-profile` 不應回登入 Email 的備份、R2 objectKey、原始未壓縮 bytes 或任何 provider 憑證。`GET /me/card-preview` 僅本人預覽；對方名片回應只由未來受同意保護的服務建構，且每次讀取目前最新資料。下游新增路由時須執行資料存取授權與終止競態整合測試，不依賴僅有 URL 所有權的假驗證。
 
-**API 錯誤分類**：400 INVALID_PROFILE／INVALID_IMAGE／INVALID_AVATAR_SELECTION、401 SESSION_REVOKED／ACCESS_TOKEN_EXPIRED、404 PHOTO_NOT_FOUND／AVATAR_CANDIDATE_NOT_FOUND、409 PROFILE_VERSION_CONFLICT／PHOTO_LIMIT_REACHED、410 AVATAR_CANDIDATE_EXPIRED、413 IMAGE_TOO_LARGE／COMPRESSED_IMAGE_TOO_LARGE、429 RATE_LIMITED、503 IMAGE_PROVIDER_UNAVAILABLE／STORAGE_UNAVAILABLE；實際狀態碼及前端繁中文案在 BDD 應一致。
+**API 錯誤分類**：400 INVALID_PROFILE／INVALID_IMAGE／INVALID_AVATAR_SELECTION、401 SESSION_REVOKED／ACCESS_TOKEN_EXPIRED、404 PHOTO_NOT_FOUND／AVATAR_CANDIDATE_NOT_FOUND、409 PROFILE_VERSION_CONFLICT／PHOTO_LIMIT_REACHED／AVATAR_GENERATION_IN_PROGRESS／AVATAR_LIMIT_REACHED／AVATAR_ATTEMPT_CLOSED、410 AVATAR_CANDIDATE_EXPIRED、413 IMAGE_TOO_LARGE／COMPRESSED_IMAGE_TOO_LARGE、429 RATE_LIMITED、503 IMAGE_PROVIDER_UNAVAILABLE／STORAGE_UNAVAILABLE；實際狀態碼及前端繁中文案在 BDD 應一致。
 
 ## 8. D1 資料結構、JSON 契約與私人 R2（精簡定稿提案）
 
@@ -362,32 +362,35 @@ RETURNING asset_id;
 
 **最小設定完成判定**：`profileReady` 僅在本人已有有效暱稱（2～12）、合法成年生日及一個有效 `selected_avatar` 時為 true；無真人照片、無 AI、無工作欄位均不阻擋免費化身的基本設定。MatchingSessions 將另依是否有足夠興趣／擇偶條件決定能否參與配對，**不在本份擅自新增強制配對欄位**。
 
-### 8.4 無 Job 表的四張 AI 候選圖流程
+### 8.4 無 Job 表的逐張最多四張 AI 候選流程（D-050）
 
-1. 本人 `POST /me/avatar/generations` **單次受控請求**，server 即時核對至少2張現有 `ready` 真人照片、來源歸屬與當下可用狀態。由可替換 provider 產生**4張不同插畫**；供應商一次只支援1張時於同次後端請求協調最多四次結果取得，不假設 Gemini 能一次返回4張。
-2. 四張圖片先寫入**一小時有效的私人 R2 臨時區** `private/{accountId}/avatar/temp/{attemptId}/{index}`，不新增 D1 asset／job row；只有四張均有效且已寫入時才回傳 `attemptId`、候選索引1～4及 `expiresAt`。相同圖片重複或不足4張不能視為完成（可於本次請求的記憶體對輸出 bytes 計算暫時指紋以判別完全重複，**不存入 D1**）；失敗／逾時須盡力刪除已寫的暫存物件，使用者可重新發起。此 `attemptId` 不是 Job、沒有可查詢狀態或進度的資料表。
-3. 本人經受保護的候選串流 API 以 `attemptId/index` 預覽，伺服器**從 CurrentUser.accountId 推導 R2 key**（路由不接受 accountId／objectKey），R2 metadata 保存服務端產生的截止時間（建立後60分鐘）並在每次讀取時驗證，過期回410；R2 lifecycle／清理作保底。臨時候選**不可供遊戲或名片使用**，也不可成為正式 `user_media_assets`。
-4. 本人從四張擇一後，server 檢查來源候選仍在效期、完整性、型別，再將**所選一張**複製至正式私人 R2 `private/{accountId}/avatar/generated/{assetId}`，新增 `user_media_assets` 一筆 `generated_avatar`、`pending -> ready`，並以 `user_profiles.revision` 的條件更新將其設為目前化身。當發生競態、D1 不成功或 R2 複製失敗時，不覆寫舊化身，並對已建立但未成功選用的媒體列補償標記 `deleted`、清掉正式 R2 孤兒檔案。已正式選過的先前化身可以維持本人私有資產供往後重新選用；**本次其餘三張未選候選不轉為正式資產**。
-5. 完成選用或候選到期後刪除該次四張臨時圖；清理可能非同步，但授權讀取在過期後必拒絕。本人離頁面、網路斷線或 server 超時時，**不保證能從原生成請求恢復進度，重試可能再次呼叫 AI 並產生費用**；不宣稱具備 Job 等級的去重、取消、重試或持久進度查詢。若真 Gemini 受平台請求時限影響無法可靠在單次請求內產生四張，需以測試證據回報風險，取得使用者同意後才升級非同步架構。
-6. 開始及完成生成前重驗來源照片仍屬本人且 `ready`；若生成途中被刪除，結果廢棄、不發布候選。**已傳送給 Gemini 的資料無法倒轉撤回**，須如實以照片用途告知及 provider 資料政策處理。限流使用既有 `IRateLimiter` 新增本功能政策，不設計新的限流 DB 表。
+1. **開始產圖**：本人進入頁面僅顯示 D-048 第三方用途說明、風格及目前選用化身。本人按「開始產生第1張」才觸發 `POST /me/avatar/generations`；server 每次重驗已保存的2～5張 `ready` 真人照、account owner、登入 Session、限流及 R2 狀態，**每個 HTTP 請求最多調度1張 Gemini 結果**，不在同一請求遞迴產4張。
+2. **短效本輪身分**：首次請求建立 `attemptId`（UUIDv7）及 `private/{accountId}/avatar/temp/{attemptId}/manifest` 的短效私人 R2 狀態（有效60分鐘），紀錄 `expiresAt`、`producedCount=0`、連續成功索引清單、固定風格、`open/inFlight/closed`、目前受控 `clientRequestId`、重試回覆必要的非秘密中繼資訊；此 metadata 不是 D1 Job 表，不持久紀錄外部 provider 工作，不提供 background worker 或斷線後續跑保證。**跨 attempt 排他**：另以本帳號固定的 `private/{accountId}/avatar/temp/active` 私有 R2 指標執行條件建立（create-only），同帳號首次產圖並發只能有一個 attempt 取得使用權；關閉或到期時以 ETag CAS 更新／釋放，必須先確認舊 inFlight 不再能提交結果，避免不同 attemptId 繞過上限。前端只保存 `attemptId`／候選索引和短效預覽，不能把原始個人照與候選圖永久放入 localStorage／SecureStore。
+3. **並行與成本防護**：同帳號同時最多1個 open attempt，同 attempt 同時最多1張 `inFlight`；使用 R2 manifest 的條件式寫入（例如依 ETag 的 CAS）取得排他占位，`expectedProducedCount`、`clientRequestId`／request digest 做冪等檢查。重送相同請求應取回已完成結果或受控回 `409 AVATAR_GENERATION_IN_PROGRESS`，不得因此再次呼叫 Gemini。已經有4張成功候選、已採用關閉、過期或不符 accountId／styleId 的請求一律拒絕，不能繞前端開多頁同時產圖；每帳號限流／同時請求上限與服務預算由既有平台 `IRateLimiter` 及限額策略提供，**不宣稱完全避免第三方對超時請求計費**。需在真 R2 條件寫入與真 Worker 並發測試中證明跨實例排他，若現有 bridge 不支援須提出證據並阻止通過該 Gate，不放寬限制。
+4. **逐張成功及失敗**：每次 provider 真回1張、圖片可解碼／檢核格式、安全、3:4畫框且與本輪已存候選不同後，先保存 `private/{accountId}/avatar/temp/{attemptId}/{nextIndex}`，再以受控 CAS 將 `producedCount` 增1、釋放 `inFlight`，最後才回 `200 {attemptId,index,producedCount,maxCandidates:4,expiresAt}`。**只有真實成功並可讀取的一張才占1個成功額度**；沒有圖片、重複、超時、R2失敗均不產生新 index，已成功候選不刪除，也不將本輪整批判為失敗。無法確認是否已產生／已扣費的 provider 超時須顯示不確定狀態並禁止自動重送，查本輪短效狀態後讓使用者明確再次操作；重試可增加供應商成本，必受限流控制。
+5. **暫存與回選**：成功候選索引依序1～4，前端即時顯示成功的單張結果；「暫不採用」保留本輪短效候選列及私人 R2 暫存圖。可從任何仍有效的已成功索引返回預覽、比較和選擇；前端顯示 `已產 n/4`，在 `n<4` 且非 `inFlight` 才開放「產生下一張」，`n=4` 時只能選擇或放棄，不得再要求第5張。本輪到期後所有候選不再可用；不得把 preview 變成永久／公開 URL。
+6. **確認採用與費用文案**：本人點「採用這張」**先出現採用確認視窗**，文字明示「確定採用後本輪將結束，未採用圖片不會永久保存；未來正式付費上線後，重新生成將依當時方案付費；本 MVP 目前免費」。按「取消」不改 `attempt`／當前化身，按「確認採用」才呼叫 `PUT /me/avatar/selection`。此視窗與產圖頁面上無第二次 Gemini「送照同意跳窗」的 D-048 互不牴觸；禁止未實作的金流／扣點提示為已生效收費。
+7. **唯一正式化與關閉**：server 重新驗目前 Session、candidate owner、有效 `attemptId/index`、來源真人照仍ready、`user_profiles.revision`；以同輪 CAS 鎖定 closed/selected 避免生成與採用並發。只將選中的1張複製至正式 R2、建立1筆 `generated_avatar` 並以 D1 CAS 設為唯一目前化身；失敗保留原角色、補償 D1 pending／R2 孤兒，若未完成不得永久關閉可選候選。選用成功後關閉本輪，拒絕任何續產；剩餘成功候選（0～3張）到期或儘速清理，不建立永久資產。重送選用須冪等回報同一結果或明確衝突，不可重複扣費／儲存。
+8. **效期與安全**：本輪固定60分鐘（建立後不因逐張產出延長），在每次續產、讀取、選用時驗 `expiresAt`；R2 lifecycle/GC 僅保底，逾期立即拒絕410。生成途中真人照被刪除則**不得發布該張候選**，但已合法產出的其他候選仍需於採用時重新驗來源；超時 `inFlight` 的解鎖不得在可能仍有外部請求執行時放行並發第二筆，必須真實驗證安全的 lease recovery。沒有持久Job、不保證斷線可續跑同一次 provider 呼叫；短效 manifest 尚有效且本輪 open 時，已成功候選允許安全重讀與後續續產。
+
 
 ### 8.5 R2/D1 一致性、授權與清理
 
 - **本人照片上傳**：先安全解碼及共用壓縮後才向 D1 建立占位 `pending`（單一 D1 條件式 INSERT 檢核5張上限），依固定 owner+asset ID R2 key 上傳成功後才轉 `ready`；失敗補償標記 `deleted` 並刪除 R2 孤兒。不能把 raw 8 MiB 上傳檔原封不動保存。壓縮目標 200,000 bytes 是處理服務檢查值，**不是 D1 `byte_size` 欄位**。
 - **刪除／排序**：本人刪照先在 D1 標記 `deleted`，讓名片與 AI 新讀取立即無效；R2 刪除採安全補償／重試，已持有舊資料的外部接收者無法受控回收。刪照若不是指定目前 `display_order`，其餘照片按 0～N-1 重新排序；相同 profile CAS 可防止並發覆寫。照片內容由內部照片代理串流並加 no-store/nosniff，不回傳私人 R2 objectKey。
 - **圖片元資訊**：壓縮服務在記憶體驗證大小、像素、格式並回傳 MIME；R2 object metadata 存 Content-Type、必要的到期時間；D1 的 `mime_type` 保存業務列表必需的格式。沒有 DB `byte_size`／`sha256`；未要求全站圖片去重、數位指紋或定期檔案稽核。
-- **GC**：定期處理超時 `pending`、已標記刪除但殘留 R2 的私人物件、逾期臨時 AI 四圖；不能靠 GC 決定權限失效時點。清理任務按既有平台維運機制規劃，不因本 SPEC 建任何 task／outbox／job 新表；不得清除使用者仍在使用的 `ready` 本人照片或已選定的正式生成化身。
+- **GC**：定期處理超時 `pending`、已標記刪除但殘留 R2 的私人物件、逾期臨時 AI 候選／manifest（最多4圖）；不能靠 GC 決定權限失效時點。清理任務按既有平台維運機制規劃，不因本 SPEC 建任何 task／outbox／job 新表；不得清除使用者仍在使用的 `ready` 本人照片或已選定的正式生成化身。
 - **目前名片資料**：同意後每次由 `user_profiles` 及 `user_media_assets WHERE kind='personal_photo' AND status='ready'` 即時讀取；本份僅提供授權內部介面，雙方同意與互動終止由 `AffectionAndFeedback` 等後續 SPEC 控制。沒有 `card`、`snapshot`、`builtin_avatar`、`tag_catalog`、`user_avatar_generation_jobs` 新表。
 
 ## 9. AI、隱私與錯誤處理
 
 ### 9.1 Gemini 驗證、提供者抽象與品質
 
-- `IAvatarImageGenerator` 隔離供應商；**已獲使用者同意用 Gemini 作真實生成驗證**，但具體 Gemini 圖像模型、可上傳格式、每個請求的出圖數、費率與區域可用性，需要在實作前以官方 API 文件及使用者已配置的服務實測確認，不憑假資料推定「單次 API 回4張」能力。
+- `IAvatarImageGenerator` 隔離供應商；**已獲使用者同意用 Gemini 作真實生成驗證**，但具體 Gemini 圖像模型、可上傳格式、每個請求的出圖數、費率與區域可用性，需要在實作前以官方 API 文件及使用者已配置的服務實測確認，不憑假資料推定「單次 API 必回1張」能力，必須以真 Gemini 證明單張成功與合理耗時。
 - Gemini API credentials 由使用者在實作驗證階段設到已隔離的本地 `env`／安全的 server secret；**不得在對話、版本庫、前端打包檔、API response、紀錄或測試 fixture 留下明碼**。驗收時可使用其授權的測試照片，並記錄最小的成功證據（不含個資的 request correlation ID、model version、產出數量、成功／錯誤類別、主動確認相似度），不保留完整上傳照片或 secret 的 log。
 - 固定 server-side 風格指示（`promptVersion`）與使用者選定的 style，統一3:4直式半身至腰部、簡潔背景並保留人臉辨識特徵，創作圖仍採 ADV 插畫風。防止用戶輸入作為 system prompt、原圖不被意外公開；不能承諾 AI 影像百分之百精準，但需要**真人照片比對**確認沒有重大形變、錯誤臉孔／膚色偏移／五官變化。
-- 單次請求成功時必須取得 **4 張可預覽的不同結果**，不以同一圖複製或原型 Fixture 冒充。若模型需要多次呼叫，採既有共用限流、防重複點擊及有界嘗試；四張不足或超過單請求時限就回失敗，清理臨時 R2，不宣稱有冪等 Job 或持久恢復功能。
-- 未授權傳送真人照給第三方時不得呼叫 Gemini；需提供來源照片使用告知和本人明確觸發 AI 功能。輸出須通過平台內容安全與授權檢查；過度扭曲真人臉不是安全要求，也不等於通過隱私保護。 **RQ-01=A**：僅開頁／點鎖頭／取消或照片不足時不得傳送；按明示的「開始產生4張」才是真正的本次本人確認。
+- **每張獨立成功**：每個 Gemini 請求必須取得1張可安全解碼、與本輪既有候選不同、完成私人R2儲存的真正插畫，才回成功；不可讓一張 provider 回覆冒充四張。若該張失敗只停止這次，保留已成功候選、提醒再次嘗試可能產生成本；既有共用限流、同帳號排他、短效R2狀態與重送冪等必須防止不受控並發。真Gemini與真R2需要逐張驗證延遲、用量、單張成本與失敗回復，不宣稱可以完全取消供應商的失敗計費。
+- 未授權傳送真人照給第三方時不得呼叫 Gemini；需提供來源照片使用告知和本人明確觸發 AI 功能。輸出須通過平台內容安全與授權檢查；過度扭曲真人臉不是安全要求，也不等於通過隱私保護。 **RQ-01=A**：僅開頁／點鎖頭／取消或照片不足時不得傳送；按明示的「開始產生第1張／產生下一張」才是真正的本次本人確認。
 
 ### 9.2 圖片壓縮與安全邊界
 
@@ -404,7 +407,7 @@ RETURNING asset_id;
 | 圖片格式偽造、資料破損、超過8 MiB、壓縮後仍大於200 KB | 明確拒絕，不把未壓縮 bytes 存為已成功照片；保留已存在資料 |
 | 兩端同時上傳第5／第6張 | 只能原子接受不超過5張，超額回明確錯誤，不留下可存取孤兒檔 |
 | D1 寫入成功但 R2 失敗，或 R2 成功 D1 逾時 | pending／孤兒補償與可重試，不能把無檔資產變成可讀 |
-| 重複點擊 AI、provider 逾時、四張只成功三張 | 前端提交時停用重複按鈕、server 套用共用限流；失敗清理暫存圖，不改目前化身；**斷線後重新生成可能再次付費呼叫供應商**，不假稱有持久冪等工作 |
+| 同帳號多頁並發產圖、重送、單張逾時／無圖／重複圖、產出4張後再要求第5張 | 一次只允許1個inFlight；以短效R2 CAS與clientRequestId防止重複呼叫；失敗不占成功額度但先前候選保留。達4張或已採用／過期拒絕409／410，不能自動因超時重送；提示供應商成本可能已發生、MVP仍不向使用者收款 |
 | Gemini 配置失效、額度不足、API 超時或回傳不同格式 | 給可處理的錯誤提示；不寫入假的成功圖、不洩漏 API key |
 | 本人已刪真人照但生成回應晚到 | 不使用已刪照片新生成、不恢復私人檔案、不把遲到圖自動切換為使用中的化身 |
 | 未同意名片或任一方已終止，持舊照片 URL／猜 ID | 授權拒絕且不開始新的照片串流或資料揭露；不依 client 隱藏按鈕保護 |
@@ -418,16 +421,16 @@ RETURNING asset_id;
 
 | 測試層級 | 最低必驗收場景 |
 |---|---|
-| Domain／Unit | 18歲生日邊界、職業與暱稱長度、0～5張真人照、免費選角無照可用、AI 最少2張、共16款目錄 ID、目前唯一化身、生成4張才可成功、狀態轉移、CAS、標籤去重與名片白名單 |
+| Domain／Unit | 18歲生日邊界、職業與暱稱長度、0～5張真人照、免費選角無照可用、AI 最少2張、共16款目錄 ID、目前唯一化身、逐張1張才成功、最多4張成功候選、確認採用、超額／並發／失效拒絕、狀態轉移、CAS、標籤去重與名片白名單 |
 | **共用圖片壓縮** | 真手機／Web 圖片、200,000 bytes 上限、不放大與長寬比、EXIF/GPS 清除、色彩／方向、格式與像素限制、分段串流與失敗復原；**以非化身圖片再呼叫同一介面**，證明沒有照片業務耦合 |
 | D1 Integration | **2張**新業務表＋原六張基礎表分離，24欄首欄 UUIDv7、FK／UNIQUE／CHECK、無 Trigger 的條件式 INSERT／零列回應（含並發第5／第6張）、受控 UPDATE 欄位白名單／狀態轉移拒絕、CAS、同 owner 限制、照片排序競態與 R2 失敗補償；**真 Miniflare D1** 驗證 SQL 而非 mock |
-| R2／媒體整合 | 上傳時以共用服務驗證≤200 KB，不持久保存原圖、D1 byte_size 或 sha256；驗 R2 MIME／私有 key、照片刪除後不可讀、四張暫存候選到期／清理、選中1張轉正式資產而其餘3張不落 DB；本人管理與名片通道分離 |
-| AI Provider | 模擬 adapter 驗只產3張、重複圖、時限、斷線、來源照片遭刪、暫存清理；以安全 server secret **真 Gemini 在單次請求內生成4張**，量測耗時及實際平台請求限制，人工比較插畫風與五官相似度；若逾時不可假稱方案A可行 |
-| API／Security | 每個端點正常與錯誤、400／401／404／409／413／429／503、Web CSRF、Native Bearer、session revoked、跨 owner 猜測資產、圖片偽造格式及超額；AI 鎖頭不扣款，名片預覽不給他人 |
-| Web／Android／iOS E2E | 帳號 A 選16款免費角色、維護真人照片、點 AI 鎖頭取得4張並選1、填寫工作與偏好；帳號 B 未同意無法讀取 A 照片；未來有效交換同意後讀最新工作／照片，修改即更新，終止後不得新增揭露。**下一份 SPEC 尚未實作時，只能先驗契約，不可假稱名片 E2E 已完成** |
-| UX／恢復 | 重新登入、照片選擇取消、壓縮失敗、AI 生成中離開／斷線後明確提示需重試（不承諾 job 恢復）、重複提交防護、短效候選到期410、Loading／空狀態、409衝突、鍵盤／觸控／螢幕閱讀器與字體放大 |
+| R2／媒體整合 | 上傳時以共用服務驗證≤200 KB，不持久保存原圖、D1 byte_size 或 sha256；驗 R2 MIME／私有 key、照片刪除後不可讀、逐張短效候選及manifest到期／清理、選中1張轉正式資產而其餘0～3張不落 DB；本人管理與名片通道分離 |
+| AI Provider | 逐張1張真結果／重複候選拒絕／失敗保留先前成功圖／時限／真人來源被刪／單張暫存清理；以安全 server secret 用真 Gemini **每請求只產1張**，驗可預覽、3:4、唯一性與成本／延遲；4張滿額禁止第5張，不得假稱同步出4張，也不得自動重送不確定供應商請求 |
+| API／Security | 每個端點正常與錯誤、400／401／404／409／413／429／503、Web CSRF、Native Bearer、session revoked、跨 owner 猜測資產、圖片偽造格式及超額；產圖限流／同帳號併發排他／idempotency與採用二次確認，AI 鎖頭MVP不扣款，名片預覽不給他人 |
+| Web／Android／iOS E2E | 帳號 A 選16款免費角色、維護真人照片、點AI鎖頭逐張生成1～4張、提前採用或回選、確認後採用1張、填寫工作與偏好；帳號 B 未同意無法讀取 A 照片；未來有效交換同意後讀最新工作／照片，修改即更新，終止後不得新增揭露。**下一份 SPEC 尚未實作時，只能先驗契約，不可假稱名片 E2E 已完成** |
+| UX／恢復 | 重新登入、照片選擇取消、壓縮失敗、逐張中離頁／斷線保留已成功候選、超時狀態不確定禁止自動重送（不承諾 job 恢復）、重複提交防護、短效候選到期410、Loading／空狀態、409衝突、鍵盤／觸控／螢幕閱讀器與字體放大 |
 
-已由 [BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md) 規劃 Happy Path、Error、Boundary、Alternative、`@frontend` UX；[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 逐場景追溯到測試 ID。這只是文件規劃，**不得將場景或測試標成已執行**；實作前 [RiskAudit](SPEC-001-AvatarAndPreferences-RiskAudit.md) 的使用者確認未完成前不得交接 well-done。
+已由 [BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md) 規劃 Happy Path、Error、Boundary、Alternative、`@frontend` UX；[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 逐場景追溯到測試 ID。這只是文件規劃，**不得將場景或測試標成已執行**；實作前 [RiskAudit](SPEC-001-AvatarAndPreferences-RiskAudit.md) 已於2026-11-01確認；2026-11-02 D-050 修訂後另需同步驗證逐張流程，未執行功能測試。
 
 ## 11. 本份可驗收條件（SDD 已核准，待 TDD 實作驗收）
 
@@ -435,7 +438,7 @@ RETURNING asset_id;
 |---|---|
 | `AP-AC-001` | 個人頁維護0～5張本人照片；可新增／替換／排序／刪除，免費化身無照可用，AI 引用既有至少2張 |
 | `AP-AC-002` | 真 AI 依本人多張已保存照片生成遊戲插畫化身，保留合理五官相似度；不得用原圖或 Fixture 偽裝 |
-| `AP-AC-003` | **單次成功 AI 請求**須有4張不同且可分別預覽的候選，選定1張才持久保存；其餘三張僅短效私人 R2；未滿4張、斷線／逾時不得誤報成功或替換既有化身，不宣稱能恢復持久 job |
+| `AP-AC-003` | **本輪逐張最多4張**：每次成功只能得到1張真 Gemini 圖並可立即預覽／採用；失敗不占成功張數且保留先前候選；任何先前有效候選可回選，最多4張後禁第5張；選用確認後只保存所選1張且關閉本輪，其餘候選僅60分鐘私人R2暫存，無D1 Job表 |
 | `AP-AC-004` | 免費8款男性風格／8款女性風格，當前化身選用和切換於跨端／重登一致 |
 | `AP-AC-005` | 本人修改暱稱、自介、個性標籤並保存；異常 Unicode／不合法值拒絕 |
 | `AP-AC-006` | 目前選用遊戲化身（免費或生成）有供後續遊戲引用的安全契約，不能讀取來源真人照 |
@@ -450,13 +453,13 @@ RETURNING asset_id;
 | `AP-AC-015` | 名片來源是**當前**同一份本人資料，無第二套名片編輯／名片快照表 |
 | `AP-AC-016` | 名片真人照只經同意後授權通道取得；原始人像與遊戲化身不混用，不公開永久可讀 URL |
 | `AP-AC-017` | 存在16張真正不同的正式免費插畫資產，男性風格8、女性風格8，可跨分類選用，無需付費或照片；須與AI候選一致為3:4直式半身至腰部立繪、五官清楚且背景簡潔 |
-| `AP-AC-018` | AI 入口顯示鎖頭但**點擊即可於單次請求真生成4張並擇1（如超時需明示失敗）**，產圖頁固定顯示第三方 Gemini 照片用途，按「開始產生4張」才呼叫 AI，不另跳確認視窗；沒有付款、扣點或訂閱門檻 |
+| `AP-AC-018` | AI 鎖頭進入產圖頁，明示第三方 Gemini 照片用途；按「開始產生第1張」／「產生下一張」才送照片且每次僅生成1張，最多4張成功候選；點採用先跳確認「採用後結束本輪、未來正式付費上線後重生依方案收費（**MVP目前免費**）」；取消則繼續挑選，確認才正式儲存；不跳額外送照同意窗、不扣款 |
 | `AP-AC-019` | 圖片共用壓縮可跨用途調用，預設 targetBytes=200,000，每張真實輸出≤目標且外觀合理，僅儲存R2壓縮版 |
 | `AP-AC-020` | 照片上傳前確實顯示「請提供自己最滿意的個人照，未來同意的情況下提供對方交換名片時查閱」，並提供本人照片與名片預覽 |
 | `AP-AC-021` | 未滿18歲無法完成交友資料設定；生日作內部年齡驗證、不公開精確生日，不假稱證件KYC |
 | `AP-AC-022` | AI 結果符合 ADV 插畫風及3:4直式半身至腰部構圖，臉不可被裁切，並由授權真人樣本人工比較五官、臉型與髮型相似度，不以刻意失真作合格 |
 | `AP-AC-023` | 有效名片同意能反映被查閱者**目前**工作／個人資料／真人照更新與刪除；無同意、跨輪或終止後不能新增揭露（實際同意流程後續整合驗證） |
-| `AP-AC-024` | Gemini 透過 server secret 真實調用，不暴露金鑰到 client／Git；失敗或四張不足不以模擬結果冒充成功 |
+| `AP-AC-024` | Gemini 透過 server secret 真實調用，不暴露金鑰到 client／Git；失敗、未取得當次單張或重複圖不以模擬結果冒充成功 |
 
 **MVP→SDD 映射**：`AC-001-01..06`、`AC-002-01..03`、`AC-003-01..04` 及 `AC-020-02`／`AC-020-07` 在 §1.1 有責任回鏈。`US-020` 的25分入口、雙方同意及終止實作仍由後續 SPEC 負責。
 
@@ -476,13 +479,13 @@ RETURNING asset_id;
 
 ### 12.2 新需求及使用者表名前綴決策已回寫
 
-- AI 屬**未來付費**：本 MVP 顯示鎖頭、點擊即可完整真使用，**4 張結果選 1 張**；正式付款與權益交由 MVP-003。
+- AI 屬**未來付費**：本 MVP 顯示鎖頭、點擊即可完整真使用，**每次產1張、最多4張可提前採用／回選，採用確認預告未來付費（目前免費）**；正式付款與權益交由 MVP-003。
 - **免費 16 款**：男性風格8、女性風格8；不需真人照片或付款，也不以本人性別限制所選類別。
 - **即時名片**：包含當前工作／職業與經壓縮的真人照；必須經該輪雙方有效同意，沒有配對時快照。
 - **D-045 使用者資料表命名**：所有本份使用者直屬表統一使用 `user_` 前綴；該決策保留，原三表數量已由 D-046 精簡，不修改既有認證與系統共用表。
-- **D-046 同意方案 A 及移除欄位**：**取消 `user_avatar_generation_jobs`**、圖片 DB 欄位 `byte_size`／`sha256`，連同僅為 job 關聯而設的 `generation_job_id`／`result_index` 一併移除；改成兩表，四張圖先短效私人 R2 暫存、選1張才正式保存；同意不具持久 job 進度及斷線恢復保證。
+- **D-046 同意方案 A 及移除欄位**：**取消 `user_avatar_generation_jobs`**、圖片 DB 欄位 `byte_size`／`sha256`，連同僅為 job 關聯而設的 `generation_job_id`／`result_index` 一併移除；改成兩表，本輪最多四張圖先短效私人 R2 暫存（每次1張，依D-050）、選1張才正式保存；同意不具持久 job 進度及斷線恢復保證。
 - **D-047 不使用 SQL Trigger（2026-11-01）**：移除原本限制照片5張及防媒體歸屬／狀態變更的兩個 Trigger 設計；改為後端 Business Logic、單一 D1 條件式 INSERT 原子檢查上限，配合不可任意更新 owner/kind/key 的受控 UPDATE 與狀態轉換條件；保留 PK／FK／UNIQUE／CHECK 和真 D1 併發／競態驗證。此決策僅適用本份 AvatarAndPreferences 的新增表，不回溯改動已完成的 PlatformFoundation。
-- **D-048／RQ-01=A（2026-11-01）**：產圖頁固定可見第三方 Gemini 照片用途提醒，本人按「開始產生4張」才送照片，無二次跳窗／背景傳送或新同意資料表。
+- **D-048／RQ-01=A（2026-11-01）**：產圖頁固定可見第三方 Gemini 照片用途提醒，本人按「開始產生第1張」／後續「產生下一張」才送照片，無二次跳窗／背景傳送或新同意資料表。
 - **D-049／RQ-02=A（2026-11-01）**：免費16款與AI4張均為3:4直式半身至腰部插畫立繪，五官清楚、背景簡潔，禁止拉伸及裁掉臉。
 
 ### 12.3 2026-11-01 已確認之 SDD 設計細節
@@ -494,15 +497,15 @@ RETURNING asset_id;
 | S1 照片最低數 | 個人資料0～5張、免費化身無照可用、AI需已保存至少2張 | 可先用免費角色進遊戲，AI符合多張照片 |
 | S2 壓縮尺寸 | **200 KB＝200,000 bytes 上限**，只存壓縮版 | 原始解析度可能損失少量細節，必須保持五官清晰 |
 | S3 工作欄位 | 單一可空文字，暫定最多60字，不另外收集公司／部門 | 避免強制揭露雇主 |
-| S4 表數量及命名 | **已確認 D-046／D-047：只新增2張 `user_` 表**（`user_profiles` 15欄、`user_media_assets` 9欄），不建 AI Jobs／名片／免費角色／快照／目錄表，**不使用 SQL Trigger** | 照片最多5張由後端與單一 D1 原子條件 INSERT 限制，其他媒體欄位由受控條件 UPDATE 保護；圖片大小與雜湊不進 D1；四圖短效暫存，選一張後才正式保存 |
+| S4 表數量及命名 | **已確認 D-046／D-047：只新增2張 `user_` 表**（`user_profiles` 15欄、`user_media_assets` 9欄），不建 AI Jobs／名片／免費角色／快照／目錄表，**不使用 SQL Trigger** | 照片最多5張由後端與單一 D1 原子條件 INSERT 限制，其他媒體欄位由受控條件 UPDATE 保護；圖片大小與雜湊不進 D1；逐張最多四圖短效暫存，選一張後才正式保存 |
 | S5 名片更新 | 已同意且該輪有效時每次讀最新欄位及照片，終止後不再揭露新增或修改 | 可避免過期資料／保存複本 |
 | S6 Gemini 設定 | 實作時由使用者放入安全本地或 server secret | 不需在對話提供明碼金鑰 |
 
-**SDD／RiskAudit 確認紀錄**：2026-11-01 使用者確認整份 SDD 後再次確認 RiskAudit RQ-01=A、RQ-02=A，授權補入14項稽核測試。BDD／TDD／RiskAudit 已同步、完成 Phase 5 [TDD 規劃交接紀錄](../tdd/SPEC-001-AvatarAndPreferences-TDD.md#規劃交接紀錄)：**Ready for well-done**。此狀態僅表示規劃可交給開發，未執行程式修改或測試；不得延伸到其他 SPEC。
+**SDD／RiskAudit 確認紀錄**：2026-11-01 使用者確認整份 SDD 後再次確認 RiskAudit RQ-01=A、RQ-02=A，授權補入14項稽核測試。BDD／TDD／RiskAudit 已同步、完成 Phase 5 [TDD 規劃交接紀錄](../tdd/SPEC-001-AvatarAndPreferences-TDD.md#規劃交接紀錄)：**Ready for well-done**。此狀態僅表示規劃可交給開發，未執行程式修改或測試；不得延伸到其他 SPEC。 **2026-11-02 追加D-050**：使用者同意逐張產圖，本份已更新 API／R2／BDD／TDD／風險與交接，取代「整批四張」的舊成功條件。
 
 ## 13. 相關文件與下一階段
 
-- 需求來源：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)，最新業務決策 `D-036`～`D-049`，目前 20 個 US／68 條 AC。
+- 需求來源：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)，最新業務決策 `D-036`～`D-050`，目前 20 個 US／68 條 AC。
 - 基礎依賴：[SPEC-001-PlatformFoundation](SPEC-001-PlatformFoundation.md)、[現行平台 API 契約](../../overview/03-contracts/01-api-contracts.md)、[資料契約](../../overview/03-contracts/02-data-contracts.md)。
-- 原型僅供視覺參考：[prototype.v2 AvatarScreen／ProfileScreen](../../proposals/prototypes/prototype.v2/app/screens.tsx)，其 Fixture 不作真 AI／真使用者／16款免費角色驗收。
+- 原型僅供視覺參考：[prototype.v2 AvatarScreen／ProfileScreen](../../prototypes/prototype.v2/app/screens.tsx)，其 Fixture 不作真 AI／真使用者／16款免費角色驗收。
 - **現階段**：[BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 及 [RiskAudit](SPEC-001-AvatarAndPreferences-RiskAudit.md) 已於風險確認後補強並完成 **Ready for well-done** 規劃交接。後續本份實作改由 `well-done` 接手，本輪不修改產品程式或開始下一份 SPEC。
