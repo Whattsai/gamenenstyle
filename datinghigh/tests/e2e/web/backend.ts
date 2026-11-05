@@ -13,3 +13,5 @@ export async function routeBackend(page:Page,backend:Backend){
  await page.route('**/api/v1/**',async route=>{const original=new URL(route.request().url());try{const response=await route.fetch({url:backend.url+original.pathname+original.search,headers:await route.request().allHeaders(),timeout:50000});await route.fulfill({response});}catch{await route.abort('failed').catch(()=>{});}});
 }
 export async function advance(backend:Backend,request:APIRequestContext,page:Page,milliseconds:number){await page.evaluate(value=>(window as any).__testAdvance(value),milliseconds);await control(backend,request,{op:'advance',milliseconds});}
+
+export const avatarFixturePassword='A real D1 integration password';

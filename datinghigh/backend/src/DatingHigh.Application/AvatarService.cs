@@ -86,7 +86,16 @@ public sealed class AvatarService(IPlatformClient platform,IPrivateMediaStore ph
     {
         var payload=Auth(user);payload["expectedRevision"]=input.Number("expectedRevision");
         var command="profile.avatar.builtin";
-        if(input.Text("type")=="builtin")payload["avatarId"]=input.Text("builtinAvatarId");
+        if(input.Text("type")=="builtin"){
+            var own=(await platform.ExecuteAsync("profile.read",Auth(user),ct))["rows"]?.AsArray().FirstOrDefault();
+            if(own is null){
+                if((await platform.ExecuteAsync("session.validate",Auth(user),ct))["rows"]?.AsArray().Count!=1)throw new DomainException("SESSION_REVOKED",401);
+                throw new DomainException("INVALID_AVATAR_SELECTION");
+            }
+            if(own.Number("revision")!=input.Number("expectedRevision"))throw new DomainException("PROFILE_VERSION_CONFLICT",409);
+            if(!BuiltinAvatarCatalog.Allowed(input.Text("builtinAvatarId"),own.Maybe("gender")))throw new DomainException("INVALID_AVATAR_SELECTION");
+            payload["avatarId"]=input.Text("builtinAvatarId");
+        }
         else if(input.ContainsKey("assetId")){command="profile.avatar.generated";payload["assetId"]=input.Text("assetId");}
         else{command="avatar.attempt.select";payload["attemptId"]=input.Text("attemptId");payload["index"]=input.Number("index");payload["proposedAssetId"]=EntityId.New();return await platform.ExecuteAsync(command,payload,ct);}
         var result=await platform.ExecuteAsync(command,payload,ct);

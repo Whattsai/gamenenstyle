@@ -1,5 +1,10 @@
 # 分層與信任邊界
 
+## 共用欄位定義（2026-11-05）
+
+根contracts/profile-fields.json為資料與顯示契約，Domain嵌入靜態資源，Worker只據此核對分享鍵；Application仍逐欄驗輸入並使用固定命令，SQL不從storage mapping動態產生。前端只經API取定義，不直接讀D1。名片投影在伺服器排除關閉欄位；顯示元件不擁有授權或資料載入責任。
+
+
 ## 後端
 
 | 層 | 實際責任 | 邊界 |

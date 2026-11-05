@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 export const password='A meaningful password 42!';
@@ -19,4 +20,20 @@ export async function register(page:Page,email:string){
  const confirmed=page.waitForResponse(r=>r.url().endsWith('/api/v1/accounts')&&r.request().method()==='POST');
  await page.getByRole('button',{name:'驗證並建立帳號'}).click();const result=await confirmed;
  expect(result.status()).toBe(201);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();return {metadata,result};
+}
+
+// 為既有免費化身整合案例明確保存性別；新修訂的UI路徑由profile-card-settings驗證。
+export async function prepareBuiltinGender(page:Page){
+ const base='http://localhost:8787/api/v1',headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'};
+ const own=await(await page.request.get(base+'/me/dating-profile',{headers})).json();
+ const fields=JSON.parse(readFileSync(new URL('../../../contracts/profile-fields.json',import.meta.url),'utf8'));
+ const payload=Object.fromEntries(fields.filter((f:any)=>f.type!=='photos').map((f:any)=>[f.key,own[f.key]]));
+ const saved=await page.request.put(base+'/me/dating-profile',{headers,data:{...payload,nickname:own.nickname||'星河旅人',gender:'diverse',romanticOrientation:['female','male'],cardVisibility:own.cardVisibility,expectedRevision:own.revision}});expect(saved.status()).toBe(200);
+ return {...own,...await saved.json()};
+}
+export async function returnFromProfile(page:Page){
+ await page.getByRole('button',{name:'返回',exact:true}).click();
+ const discard=page.getByRole('button',{name:'捨棄修改',exact:true});
+ await expect(page.getByRole('button',{name:'登出',exact:true}).or(discard)).toBeVisible();
+ if(await discard.isVisible())await discard.click();
 }

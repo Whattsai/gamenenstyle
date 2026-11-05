@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using DatingHigh.Domain;
 
@@ -20,7 +21,7 @@ public static class ProfileProjections
     public static JsonObject MatchingInput(JsonObject own,DateOnly today)
     {
         var age=Age(own,today);if(age is null or <18)throw new DomainException("PROFILE_NOT_READY",409);
-        var result=Copy(own,"regionCode","interestTagIds","topicTagIds","valueTagIds","weekendPreference","sleepSchedule","conversationStyle","expectedInteractionFrequency","relationshipMode","preferredAgeMin","preferredAgeMax","preferredRegionCodes","sharedInterestWeight");
+        var result=Copy(own,"gender","romanticOrientation","regionCode","interestTagIds","topicTagIds","valueTagIds","weekendPreference","sleepSchedule","conversationStyle","expectedInteractionFrequency","relationshipMode","preferredAgeMin","preferredAgeMax","preferredRegionCodes","sharedInterestWeight");
         result["age"]=age.Value;return result;
     }
     /// <summary>有限公開角色投影；只用遊戲化身引用，絕不以真人照片當一般頭像。</summary>
@@ -28,14 +29,21 @@ public static class ProfileProjections
     /// <summary>當前名片欄位，不建立快照或回傳私有擇偶條件。</summary>
     public static JsonObject CurrentCardFields(JsonObject own,DateOnly today)
     {
-        var result=Copy(own,"nickname","bio","occupation","regionCode","traitTagIds","interestTagIds","topicTagIds","valueTagIds","weekendPreference","sleepSchedule","conversationStyle","expectedInteractionFrequency","relationshipMode");
-        var photos=new JsonArray();
-        foreach(var photo in own["personalPhotos"]?.AsArray()??new JsonArray()){
-            if(photo is null)continue;var safe=new JsonObject();
-            foreach(var key in new[]{"assetId","mimeType","displayOrder","createdAt"})safe[key]=photo[key]?.DeepClone();photos.Add(safe);
+        var result=new JsonObject();
+        var settings=own["cardVisibility"]?.Deserialize<Dictionary<string,bool>>()??new();
+        foreach(var field in ProfileFields.All.Where(f=>ProfileFields.Visible(f,settings))){
+            var key=field.CardKey??field.Key;
+            if(key=="ageBand"){
+                var age=Age(own,today);if(age.HasValue)result[key]=$"{age/5*5}–{age/5*5+4} 歲";
+            }else if(key=="personalPhotos"){
+                var photos=new JsonArray();
+                foreach(var photo in own[key]?.AsArray()??new JsonArray()){
+                    if(photo is null)continue;var safe=new JsonObject();
+                    foreach(var name in new[]{"assetId","mimeType","displayOrder","createdAt"})safe[name]=photo[name]?.DeepClone();photos.Add(safe);
+                }
+                result[key]=photos;
+            }else result[key]=own[field.Key]?.DeepClone();
         }
-        result["personalPhotos"]=photos;
-        var age=Age(own,today);if(age.HasValue)result["ageBand"]=$"{age/5*5}–{age/5*5+4} 歲";
         return result;
     }
 }

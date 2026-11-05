@@ -1,0 +1,10 @@
+**
+!backend/
+!backend/**
+!contracts/
+!contracts/profile-fields.json
+backend/**/bin
+backend/**/obj
+backend/**/.env*
+backend/**/TestResults
+backend/tests

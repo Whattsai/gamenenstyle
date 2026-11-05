@@ -1,5 +1,10 @@
 # AI 工作階段與交付
 
+## 2026-11-05 修訂驗證原則
+
+兩表27欄及0003、性別／性向／分享白名單用真Miniflare D1證明升級與原子性；HTTP fixture仍僅證HTTP。獨立名片頁每次重讀已過濾資料，UI測關閉照片無請求、預覽前儲存失敗不導頁、下拉與返回捨棄確認。2026-11-04原Android／Web結案不擴推本次追加修訂；依同日Verification逐平台記錄。記憶體壓力下依序跑模組，逾時／ECONNRESET不可記通過。
+
+
 ## 任務入口
 
 先依 [AGENTS.md](../../AGENTS.md) 讀現況與目標規格，檢查工作樹，保留既有使用者改動。判斷任務為文件同步、既有功能修正，或新需求的規劃／開發。現有 PlatformFoundation 不能作其他七份 SPEC 已確認或已完成的證據。
@@ -90,3 +95,6 @@ Web可選狀態須確認實際DOM的aria-pressed／aria-checked，不能只檢�
 靜態圖片的Web分支以height:auto覆寫原始高度，Android保留height:undefined；兩平台均須量實際3:4框，不能只檢查aspectRatio宣告或載入成功。
 
 `avatar-managed.mjs`補原生超8MiB／可重選、照片配額回收、revision衝突與表單／重登；`avatar-privacy.mjs`以兩個真隔離帳號驗Native Bearer猜私人asset回404及原生畫面無他人照片入口。這些腳本只用專用QA裝置，不與其他UiAutomator讀取同時執行。替換表單既有文字時先定位實際EditText、移到末尾逐字刪除再輸入，不能點到同名標籤，也不能假設數字鍵盤支援Ctrl+A；捲動必須讓輸入框本身可見。
+
+
+2026-11-05 D-053：BDD／TDD開頭必列含追加需求的總進度；目前BDD範圍73/73、全部規劃73/81，原TDD 236/275與新8/8驗證組分開計算。追溯重建保留人工覆核的profileCardRevision與追加Markdown章節，不自動核准新組，也不得覆寫掉追加進度。原生新流程`tests/e2e/android/profile-card-settings.mjs`已用搬移後fixture在專用QA API31完整exit0；這不代表其餘舊路徑腳本均已重跑。平台重驗邊界以Verification為準。

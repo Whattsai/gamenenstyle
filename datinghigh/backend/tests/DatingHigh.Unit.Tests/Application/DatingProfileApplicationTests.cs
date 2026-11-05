@@ -38,12 +38,42 @@ public sealed class DatingProfileApplicationTests
         preferredAgeMin = 25,
         preferredAgeMax = 35,
         preferredRegionCodes = new[] { "TW-TPE" },
-        sharedInterestWeight = 60
+        sharedInterestWeight = 60, gender="diverse",romanticOrientation=new[]{"male","female"},cardVisibility=new Dictionary<string,bool>()
     });
 
     private static ProfileUpdateInput Read(string json) =>
         ProfileUpdateInput.Parse(Encoding.UTF8.GetBytes(json), Clock);
 
+    [Theory]
+    [InlineData("gender","\"unknown\"")]
+    [InlineData("romanticOrientation","[\"male\",\"male\"]")]
+    [InlineData("romanticOrientation","[\"other\"]")]
+    [InlineData("cardVisibility","{\"birthDate\":true}")]
+    [InlineData("cardVisibility","{\"preferredAgeMin\":true}")]
+    [InlineData("cardVisibility","{\"nickname\":1}")]
+    public void ProfileExtension_InvalidValuesAreRejected(string key,string value)
+    {
+        var json=JsonNode.Parse(Valid)!;json[key]=JsonNode.Parse(value);
+        Assert.Equal("INVALID_PROFILE",Assert.Throws<DomainException>(()=>Read(json.ToJsonString())).Code);
+    }
+    [Fact]
+    public void ProfileExtension_EmptyGenderAndOrientationCanBeSaved()
+    {
+        var json=JsonNode.Parse(Valid)!;json["gender"]=null;json["romanticOrientation"]=new JsonArray();
+        var input=Read(json.ToJsonString());Assert.Null(input.Gender);Assert.Empty(input.RomanticOrientation!);
+    }
+    [Theory]
+    [InlineData(null,"[]",false)]
+    [InlineData("male","[]",false)]
+    [InlineData(null,"[\"female\"]",false)]
+    [InlineData("male","[\"female\"]",true)]
+    [InlineData("female","[\"male\"]",false)]
+    public async Task ProfileReady_RequiresSavedGenderAndNonemptyOrientation(string? gender,string orientation,bool ready)
+    {
+        var store=new ProfilePlatformSpy{ProfileOverrides=new JsonObject{["gender"]=gender,["romantic_orientation_json"]=orientation}};
+        var own=await new DatingProfileService(store,Clock).ReadAsync(Owner);
+        Assert.Equal(ready,own["profileReady"]!.GetValue<bool>());
+    }
     [Fact,Trait("Case","AP-UT-017")]
     public async Task VersionedCatalog_AllFiveInterestCategories_PersistStableCodesRatherThanLabels()
     {
@@ -366,7 +396,7 @@ public sealed class DatingProfileApplicationTests
                     nickname = "星河旅人", bio = "喜歡手作", occupation = "工程師", birth_date = "1995-08-12",
                     region_code = "TW-TPE", traits_json = "[\"warm\"]",
                     interests_json = "{\"interestTagIds\":[\"puzzle\"],\"topicTagIds\":[],\"valueTagIds\":[]}",
-                    preferences_json = "{\"weekendPreference\":null,\"sleepSchedule\":null,\"conversationStyle\":null,\"expectedInteractionFrequency\":null,\"relationshipMode\":null,\"preferredAgeMin\":null,\"preferredAgeMax\":null,\"preferredRegionCodes\":[],\"sharedInterestWeight\":50}",
+                    gender="diverse",romantic_orientation_json="[\"male\",\"female\"]",card_visibility_json="{}",preferences_json = "{\"weekendPreference\":null,\"sleepSchedule\":null,\"conversationStyle\":null,\"expectedInteractionFrequency\":null,\"relationshipMode\":null,\"preferredAgeMin\":null,\"preferredAgeMax\":null,\"preferredRegionCodes\":[],\"sharedInterestWeight\":50}",
                     selected_avatar_type = "builtin", selected_avatar_ref = "male-01",
                     revision = 1, created_at = 1, updated_at = 1
                 } };

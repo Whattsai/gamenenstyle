@@ -1,5 +1,46 @@
 # AvatarAndPreferences 驗證紀錄
 
+## 2026-11-05 D-053 個人資料／化身／獨立名片修訂
+
+本節為本次計畫的最新證據；下方2026-11-04的236/236與兩表24欄屬歷史版本，不擴推本次修訂。範圍限本地Web／Android；iOS暫緩、無障礙專項不納入；production／staging皆未發布。沒有新增Gemini真產圖、Google或收信證據；本次沒有呼叫真AI供應商。
+
+### 實作與追溯
+
+- [共用欄位定義](../../contracts/profile-fields.json)：.NET嵌入／Worker白名單／API目錄／前端表單及名片共用；catalog版本2026-11-05.v2。
+- [0003](../../cloudflare/migrations/0003_profile_gender_card_visibility.sql)：user_profiles18欄、media9欄，共兩表27欄；Foundation六表54欄保留、零Trigger。已經正式wrapper套用default local。
+- [DatingProfileService](../../backend/src/DatingHigh.Application/DatingProfileService.cs)、[commands](../../cloudflare/src/commands.ts)、[ProfileProjections](../../backend/src/DatingHigh.Application/ProfileProjections.cs)：新輸入、完成判定、原子化身清除、分享省略與配對獨立投影。
+- [編輯頁](../../frontend/client/src/DatingProfileScreen.tsx)、[名片頁與可重用顯示](../../frontend/client/src/CardPreviewScreen.tsx)：條件儲存、草稿保護、下拉／返回、預覽前保存與每次focus讀取。
+- BDD／TDD的AP-PC-001～008與[追溯](SPEC-001-AvatarAndPreferences-Traceability.md)、avatar-preferences-traceability.json.profileCardRevision同步；原275項歷史追溯不改寫。
+
+### Red／Green與本輪執行
+
+先加入失敗測試：CardVisibility_ClosedFieldsAreAbsent_AndNewFieldsDefaultClosed原投影仍洩露關閉欄位；真D1的profile extension原15欄未達18。再新增migration、驗證與條件SQL，以下Green另依環境記錄。
+
+| 驗證 | 結果／精確範圍 |
+|---|---|
+| `dotnet test backend/DatingHigh.slnx --no-restore -m:1` | 完整批次405/405：API142、真整合31、Unit232；之後追加6個Unit案例，定向10/10（含4個重驗），目錄API最新3/3重驗。合計411個唯一後端案例有通過證據，並非單次完整411項；HTTP的iOS參數不等於iOS UI驗收 |
+| `npm --prefix cloudflare test -- --maxWorkers=1 --testTimeout=30000 -t '^(?!GC drains)'` | 131/131選定案例通過；大型GC另跑 |
+| Worker補跑 `-t 'GC drains|profile extension|gender and|changing gender|0003 upgrades'` | 12/12通過，其中GC一項補齊上列，其他是最新D1重驗；合計132個唯一Worker案例通過 |
+| `npm --prefix frontend/client test -- --maxWorkers=1` | 最新150/150；含深度稽核追加的editor定義驅動畫面、名片離頁清除舊資料兩項Red→Green。uncertain分支另重驗4/4 |
+| client／Worker `run typecheck` | 兩者exit0 |
+| `npm test` | 工具／政策24/24 |
+| `npm --prefix frontend/client run export:web`、`npm run build:e2e-host` | exit0；未帶native fault profile進Web export |
+| `npx playwright test --config tests/playwright.config.ts profile-card-settings.spec.ts` | 最新2/2（43.1秒），在兩項稽核修正後重跑；真.NET／Miniflare D1／私人R2、受控圖片fixture，不呼叫Gemini |
+| Android `profile-card-settings.mjs` | 完整all流程exit0：DatingHighQA31／Android API31 x86_64、emulator-5578、專用ADB5038；8／8／16、保存、返回／下拉取消與捨棄、獨立名片、隱藏欄位與零照片請求、登出重登入保留設定 |
+| default local Worker／Linux Container bridge | 0003已套用、根context實際容器建置及wrapper restart ready成功；`npm run test:live` 3/3，擴充後`avatar-http-live.test.mjs` 1/1；原8082 Metro已還原，測試用8084／QA emulator已關閉 |
+| Foundation組成檢查 | Tools24、上述Server／Worker／client、兩模組typecheck、build policy及Foundation既有證據評估依序通過；本次未執行單次`check:foundation`總命令，不借用歷史671項作本次結果。歷史全環境驗收仍未通過，不改寫為已驗收 |
+| `git diff --check`、文件相對連結 | 已通過；交付前再檢查 |
+
+Web已驗8／8／16、未儲存性別不提供免費角色、切換性別清除錯誤角色、語意修改後才顯示儲存、還原隱藏、獨立預覽先保存／重讀、關閉暱稱／職業／照片後不顯示且零媒體請求、重登保留、360px不橫向溢出、下拉取消／捨棄及409留原頁不重送。client另驗uncertain與保存後GET失敗不導頁、不自動重送。
+
+真default local的擴充bridge另驗catalog v2、舊資料預設、新三欄完整往返、關閉欄位由伺服器省略、錯誤性別化身400、正確選用後完成判定、變更性別原子清除，以及舊revision409無部分寫入。不是僅HTTP fixture證據。
+
+原生完整批次完成後，稽核另修正editor metadata與名片blur清除快取，已以失敗測試、最新client150項及Web2項驗證；未在這兩項共用修正後重跑Android。實際定義的editor與type目前相同，原生已驗路由返回會卸載名片；仍不把前述重驗宣稱為另一輪Android證據。
+
+匿名本地執行記錄：`.local/profile-server-final.log`、`profile-server-new-cases.log`、`profile-server-catalog-final.log`、`profile-worker-focused-final.log`、`profile-worker-gc-final.log`、`profile-client-acceptance.log`、`profile-ui-audit-red.log`、`profile-web-acceptance.log`、`profile-android-final-success.log`、`profile-live-foundation.log`、`profile-live-avatar-acceptance.log`及`profile-platform-restart-verified.log`。這些為忽略的本機證據，版本庫的逐項對照見[追溯索引](SPEC-001-AvatarAndPreferences-Traceability.md)。
+
+初輪回歸曾因宿主記憶體壓力出現逾時／ECONNRESET；改依序執行後重驗成功。大型GC的fixture牆鐘期限由120秒調為600秒，保留模擬時鐘的清理預算、批次／backlog及live媒體保留斷言，沒有放寬產品清理預算。Android第一次遭QA系統桌面ANR擋住，尚未進入表單，不記成功；其後修正測試工具的捲動／對話框定位與等待，完整批次exit0，未把早期失敗改記成功。既有Gemini產圖實作與素材未覆寫。
+
 更新：2026-11-05（補記預覽恢復；驗收批次為2026-11-04）；對應 [SPEC](../specs/SPEC-001-AvatarAndPreferences.md)、[BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)。本輪本地Web／Android責任範圍開發、逐項稽核與回歸完成；原始275項中的iOS及後續SPEC整合仍分開保留，未宣稱三平台或雲端全部驗收。歷史文件的「尚未上傳／AI／正式圖」是當時狀態，以下為本輪現況。
 
 ### 2026-11-04 本輪驗收範圍調整

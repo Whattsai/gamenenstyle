@@ -20,7 +20,7 @@ public sealed class DatingProfileEndpointTests
         weekendPreference = "explore", sleepSchedule = "night_owl", conversationStyle = "warm",
         expectedInteractionFrequency = "weekly", relationshipMode = "friends_first",
         preferredAgeMin = 25, preferredAgeMax = 35,
-        preferredRegionCodes = new[] { "TW-TPE" }, sharedInterestWeight = 60
+        preferredRegionCodes = new[] { "TW-TPE" }, sharedInterestWeight = 60, gender="diverse",romanticOrientation=new[]{"female","male"},cardVisibility=new Dictionary<string,bool>()
     };
 
     [Theory,Trait("Case","AP-API-041")]

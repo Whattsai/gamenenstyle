@@ -1,5 +1,10 @@
 # HTTP API 契約
 
+## 2026-11-05 個人資料與名片修訂
+
+`GET /profile-catalog`新增`fields`，來源唯一contracts/profile-fields.json；既有groups新增gender／romanticOrientation選項。本人GET與完整PUT新增gender、romanticOrientation、cardVisibility（三者必須出現在完整PUT）。`GET /me/card-preview`只回傳有效開放欄位，關閉鍵直接省略，包含照片metadata與ageBand；精確生日、帳號資訊及私有偏好不分享。HTTP路由數不變；client獨立路由`/card-preview`每次進入重讀。MatchingInput新增性別／性向且與分享設定無關，未建立候選配對或他人名片入口。
+
+
 來源為 [Program.cs](../../backend/src/DatingHigh.Api/Program.cs)、[HttpContract.cs](../../backend/src/DatingHigh.Api/HttpContract.cs)、[AuthApplication.cs](../../backend/src/DatingHigh.Application/AuthApplication.cs)、[Worker router](../../cloudflare/src/router.ts) 與 [前端 api.ts](../../frontend/client/src/api.ts)。需求權威仍為 [SPEC](../../docs/specs/SPEC-001-PlatformFoundation.md)。目前保留 PlatformFoundation **15 個認證路由**及 **2 個健康路由**，另新增 AvatarAndPreferences **13 個受保護路由**（資料、照片、目錄、化身及本人名片預覽）；沒有 SignalR event 或公開資料 command API。
 
 ## AvatarAndPreferences（2026-11-03）

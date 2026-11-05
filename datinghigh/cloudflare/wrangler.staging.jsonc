@@ -12,7 +12,7 @@
     "ACCESS_TOKEN_ISSUER": "datinghigh-staging",
     "ACCESS_TOKEN_AUDIENCE": "datinghigh-staging-client",
     "EmailDeliveryMode": "Cloudflare",
-    "EXPECTED_MIGRATION": "0002_avatar_preferences.sql"
+    "EXPECTED_MIGRATION": "0003_profile_gender_card_visibility.sql"
   },
   "assets": {
     "directory": "../.local/staging-web",
@@ -62,6 +62,7 @@
     {
       "class_name": "ApiContainer",
       "image": "../backend/Dockerfile",
+      "image_build_context": "..",
       "max_instances": 1,
       "instance_type": "basic"
     }

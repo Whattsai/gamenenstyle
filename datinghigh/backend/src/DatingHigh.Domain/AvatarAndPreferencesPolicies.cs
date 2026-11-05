@@ -62,7 +62,7 @@ public static class DatingProfileRules
     public static bool IsAdult(DateOnly birthday, DateOnly taiwanToday) =>
         birthday <= taiwanToday && birthday.AddYears(MinimumAge) <= taiwanToday;
 
-    /// <summary>免費角色不需要真人照片；完成設定只取決於有效暱稱、成年與正式角色。</summary>
+    /// <summary>免費角色不需要真人照片；此處核對暱稱、成年與正式角色基礎條件，最終profileReady另由Application核對已存性別／性向及免費角色相容性。</summary>
     public static bool IsReady(string? nickname, string? birthDate, string? avatarType,
         string? avatarRef, DateOnly taiwanToday,bool generatedAvatarVerified=false)
     {
@@ -123,6 +123,7 @@ public static class BuiltinAvatarCatalog
     public static IReadOnlyList<string> Ids => Catalog;
 
     /// <summary>以精確、大小寫敏感的目錄代碼檢查引用。</summary>
+    public static bool Allowed(string? id,string? gender)=>Contains(id)&&(gender=="diverse"||gender is "male" or "female"&&id!.StartsWith(gender+"-",StringComparison.Ordinal));
     public static bool Contains(string? id) => id is not null && Catalog.Contains(id);
 }
 

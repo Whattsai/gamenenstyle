@@ -1,16 +1,16 @@
 import React from 'react';
-import {ActivityIndicator,Image,KeyboardAvoidingView,Platform,Pressable,ScrollView,StyleSheet,Text,TextInput,View,type TextInputProps,type LayoutChangeEvent,type StyleProp,type ViewStyle} from 'react-native';
+import {ActivityIndicator,Image,KeyboardAvoidingView,Platform,Pressable,ScrollView,StyleSheet,Text,TextInput,View,type TextInputProps,type ScrollViewProps,type LayoutChangeEvent,type StyleProp,type ViewStyle} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import cafeBackground from '../assets/bg-cafe.jpg';
 
 // 對齊 prototype.v2 的戀愛視覺小說色票系統
 export const colors={rose:'#ff7aa2',roseDeep:'#ff4f86',gold:'#ffd27a',mint:'#7be0b8',sky:'#8cc9ff',ink:'#2a1730',plum:'#3a1a48',panel:'rgba(38,18,50,.84)',line:'rgba(255,255,255,.18)',muted:'#cbb5cb'};
 
-export function SceneBackground({children,scrollRef,header}:{children:React.ReactNode;scrollRef?:React.Ref<React.ComponentRef<typeof ScrollView>>;header?:React.ReactNode}){
+export function SceneBackground({children,scrollRef,header,scrollProps}:{children:React.ReactNode;scrollRef?:React.Ref<React.ComponentRef<typeof ScrollView>>;header?:React.ReactNode;scrollProps?:ScrollViewProps}){
  return <View style={s.scene}>
   <Image source={cafeBackground} style={[StyleSheet.absoluteFill,{width:'100%',height:'100%'}]} resizeMode="cover" accessibilityIgnoresInvertColors/>
   <View pointerEvents="none" style={[StyleSheet.absoluteFill,{backgroundColor:'rgba(24,10,34,.78)'}]}/>
-  <SafeAreaView style={{flex:1}}>{header}<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView ref={scrollRef} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>
+  <SafeAreaView style={{flex:1}}>{header}<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView {...scrollProps} ref={scrollRef} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>
  </View>;
 }
 

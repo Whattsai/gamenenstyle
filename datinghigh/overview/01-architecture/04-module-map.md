@@ -1,5 +1,13 @@
 # 模組與修改入口
 
+## 2026-11-05 新增入口
+
+- `contracts/profile-fields.json`、Domain `ProfileFields.cs`：跨.NET／Worker共用定義，API目錄提供client；不是任意資料寫入引擎。
+- `cloudflare/migrations/0003_profile_gender_card_visibility.sql`：三欄向前升級，固定commands維持原子性。
+- `frontend/client/src/profile-fields.ts`：型別、有效分享預設、payload與草稿比較。
+- `frontend/client/app/card-preview.tsx`、`src/CardPreviewScreen.tsx`：獨立名片載入與可重用唯讀CardDisplay，照片來源由載入端注入。DatingProfileScreen不再內嵌名片。
+
+
 所有路徑以 DatingHigh 根目錄為基準。端點與欄位詳見 [API](../03-contracts/01-api-contracts.md)／[資料契約](../03-contracts/02-data-contracts.md)。
 
 | 模組 | 主要位置 | 常見修改 |

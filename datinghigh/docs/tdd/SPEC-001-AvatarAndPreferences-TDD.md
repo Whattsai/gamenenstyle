@@ -1,9 +1,42 @@
 # SPEC-001-AvatarAndPreferences — TDD 測試清單
 
+## 需求總進度（2026-11-05）
+
+| 計算範圍 | 完整覆核／總數 | 完成率 | 尚未驗收／邊界 |
+|---|---:|---:|---|
+| 目前Web／Android需求（BDD場景，含D-053） | **73/73** | **100%** | 原65場景＋本次8場景；不是整個遊戲MVP完成率 |
+| 全部已規劃需求（BDD，含後續SPEC整合） | **73/81** | **90.1%** | 8項後續SPEC授權整合未驗收 |
+| 原有TDD完整ID：目前責任範圍 | **236/236** | **100%** | 依既有逐ID證據；本次修改另由下列新增組驗證 |
+| 原有TDD完整ID：全部規劃 | **236/275** | **85.8%** | iOS暫緩13項、後續SPEC整合26項，未改記通過 |
+| D-053追加驗證組 AP-PC-001～008 | **8/8組** | **100%** | 每組含多層斷言，粒度不同，不加進275個TDD ID分母 |
+| 原有前端UX：Web／Android | **13/13** | **100%** | 新編輯／獨立名片流程另包含於AP-PC驗證組 |
+
+總進度以需求／完整斷言覆核計算，測試函式數只作回歸結果。iOS依D-052暫緩，無障礙專項依D-051不納入；逐平台及最後兩項共用UI修正的重驗限制見[最新驗證紀錄](../verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂)。
+
+## 2026-11-05 D-053 追加測試結案
+
+狀態：**本地Web／Android範圍完成，8/8組完整斷言已覆核**；使用者已提供已確認計畫。MVP／SPEC／BDD／RiskAudit使用既有文件與同日D-053章節；未新增平行規劃文件。
+
+先確認Red：`CardVisibility_ClosedFieldsAreAbsent_AndNewFieldsDefaultClosed`原投影洩露關閉欄位；真D1 `profile extension has eighteen columns`原15欄未達18。之後實作0003、固定條件UPDATE、輸入驗證、共用定義及頁面。
+
+| 對應場景 | 必要測試與檔案 |
+|---|---|
+| AP-PC-001 | 真Miniflare舊schema升級、兩表27欄、Foundation schema完整保留、零Trigger；avatar-preferences-d1.integration.test.ts |
+| AP-PC-002 | .NET／Worker非法代碼／重複性向／分享白名單、未填可存與profileReady；DatingProfileApplicationTests、D1測試 |
+| AP-PC-003 | D1同一UPDATE清除、stale／撤銷不寫、AI保留、Application拒錯誤化身；client 8／8／16與未存提示；Web／Android |
+| AP-PC-004 | CurrentCardFields省略、MatchingInput保留、未來欄位預設關閉、CardDisplay沒有照片resolver呼叫；Web關閉後無媒體請求 |
+| AP-PC-005 | semantic snapshot將trim／集合順序／有效分享設定正規化，修改還原隱藏儲存；client與Web |
+| AP-PC-006 | clean直接開；dirty PUT→GET→導頁；409／uncertain／GET失敗不導頁且只一次PUT；client及Web |
+| AP-PC-007 | 返回取消／捨棄／fallback；Web頂端touch下拉確認；Android原生刷新及system back |
+| AP-PC-008 | 獨立頁每次focus讀取、安全錯誤狀態、重新登入設定、360px不溢出及照片比例；Web／Android |
+
+八組均已依表列實作、單元／真D1／HTTP及Web／Android證據覆核；測試命令、通過數及精確平台重驗邊界見Verification同日修訂。原236個ID與本次8組分別計算，不以歷史通過數替代新需求證據。
+
+
 > **MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 > **SPEC**：[SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md)（使用者 2026-11-01 已確認，包括 D-047 無 SQL Trigger）
 > **BDD**：[SPEC-001-AvatarAndPreferences-BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)，73 個唯一場景
-> **最後修訂**：2026-11-04；**狀態**：本輪Web／Android範圍Well-Done完成（236/236；最終回歸671/671 exit0）。真Gemini／私人媒體／16正式圖及Web流程已有證據，使用者已確認第三版風格與相似度。完整ID **236/275（85.8%）** 已覆核，不能把測試總數當完整案例驗收。
+> **最後修訂**：2026-11-05；**狀態**：D-053新增8/8組已覆核；原Web／Android範圍236/236已結案（2026-11-04回歸671/671為歷史批次）。真Gemini／私人媒體／16正式圖及Web流程已有證據，使用者已確認第三版風格與相似度。完整ID **236/275（85.8%）** 已覆核，不能把測試總數當完整案例驗收。
 
 ---
 
@@ -15,7 +48,7 @@
 
 **本輪Web／Android責任範圍**：236/236（100%）完整TDD ID已覆核；另列iOS暫緩13項、後續SPEC整合26項，均未改記通過。
 
-## 🎯 開發進度總覽
+## 原275項TDD分層進度（新增驗證組見頂端總表）
 
 | 層級 | 總數 | 完整ID已覆核 | 狀態 |
 |---|---:|---:|---|

@@ -64,7 +64,7 @@ if(command==='dev'){
  await fs.mkdir(target.cwd,{recursive:true});
  const config=JSON.parse(await fs.readFile(path.join(root,'cloudflare/wrangler.jsonc'),'utf8'));
  const source=relative=>path.relative(target.cwd,path.join(root,relative)).replaceAll('\\','/');
- config.name=`datinghigh-local-${opts.target}`;config.main=source('cloudflare/src/index.ts');config.$schema=source('cloudflare/node_modules/wrangler/config-schema.json');config.d1_databases[0].migrations_dir=source('cloudflare/migrations');config.assets.directory=source('frontend/client/dist');config.containers[0].image=source('backend/Dockerfile');
+ config.name=`datinghigh-local-${opts.target}`;config.main=source('cloudflare/src/index.ts');config.$schema=source('cloudflare/node_modules/wrangler/config-schema.json');config.d1_databases[0].migrations_dir=source('cloudflare/migrations');config.assets.directory=source('frontend/client/dist');config.containers[0].image=source('backend/Dockerfile');config.containers[0].image_build_context=source('.');
  await fs.writeFile(target.config,JSON.stringify(config,null,2));await invoke('restore',target,{file:opts.file});
  // 驗證固定 view、FK 與原有自然 UNIQUE；不把 restore 寫入原 instance。
  await run(['d1','execute','DB','--config',target.config,'--local','--command','PRAGMA foreign_key_check; SELECT count(*) AS accounts FROM auth_accounts; SELECT count(*) AS sessions FROM auth_sessions;','--json'],target.cwd);

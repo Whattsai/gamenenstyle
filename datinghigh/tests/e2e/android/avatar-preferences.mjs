@@ -58,7 +58,7 @@ try{
  while(Date.now()<deadline&&!resolved){resolved=nodes().some(n=>visible(n)&&['登出','使用 Email 登入','Email','重試登出'].includes(n['content-desc']));if(!resolved)await sleep(600);}
  assert.ok(resolved,'Own QA app cold start reaches an account or login entry');
  const all=nodes(),has=label=>all.some(n=>n['content-desc']===label&&visible(n));
- if(has('儲存目前修改')){await reveal('返回帳號','up');await tap('返回帳號');await reveal('登出');await tap('登出');await wait('使用 Email 登入');await tap('使用 Email 登入');}
+ if(has('儲存')){await reveal('返回','up');await tap('返回');await reveal('登出');await tap('登出');await wait('使用 Email 登入');await tap('使用 Email 登入');}
  else if(has('登出')){await tap('登出');await wait('使用 Email 登入');await tap('使用 Email 登入');}
  else if(has('重試登出')){await tap('重試登出');await wait('使用 Email 登入');await tap('使用 Email 登入');}
  else if(has('使用 Email 登入'))await tap('使用 Email 登入');
@@ -67,8 +67,8 @@ try{
  await fill('Email',account.email);await fill('密碼',password);await tap('登入');console.log('Native login submitted');
  await tap('個人資料與遊戲化身');await wait('暱稱');
  await fill('暱稱','QaNative');console.log('Native nickname entered');await reveal('一句自我介紹');await fill('一句自我介紹','Walking');console.log('Native bio entered');await reveal('工作／職業');await fill('工作／職業','Engineer');console.log('Native occupation entered');
- await reveal('生日');await fill('生日','1995-01-01');console.log('Native birthday entered');
- await tap('儲存目前修改');await wait('個人資料已儲存');console.log('Native profile saved');
+ await reveal('生日');await fill('生日','1995-01-01');console.log('Native birthday entered');await reveal('生理性別：多元');await tap('生理性別：多元');await reveal('戀愛性向：女');await tap('戀愛性向：女');
+ await tap('儲存');await wait('個人資料已儲存');console.log('Native profile saved');
  await reveal('選擇化身','up');await tap('選擇化身');await tap('AI 客製化');await wait('尚未上傳照片；仍可直接選擇免費化身。');await tap('新增個人照片');
  // 系統照片挑選器取消不得觸發上傳。
  await sleep(1500);invoke('shell','input','keyevent','4');await sleep(700);
@@ -84,8 +84,8 @@ try{
  const frames=[];for(const group of ['male','female'])for(let index=1;index<=8;index++)frames.push(await portraitFrame(`${group}-0${index}`));
  assert.equal(frames.length,16);await reveal('選用 female-07','up');await tap('選用 female-07');await wait('遊戲化身已更新');
  assert.equal((await wait('選用 female-07')).selected,'true');console.log('Native all sixteen portraits and cross-group selection verified');
- await previewSection();await openPreview();await reveal('Engineer');await wait('Engineer');console.log('Native card preview verified');
- await reveal('返回帳號','up');await tap('返回帳號');await reveal('登出');await tap('登出');await wait('使用 Email 登入');
+ await previewSection();await openPreview();await reveal('Engineer');await wait('Engineer');console.log('Native card preview verified');await tap('返回');
+ await reveal('返回','up');await tap('返回');await reveal('登出');await tap('登出');await wait('使用 Email 登入');
  // UI長流程後先在同一驗證程序確認本地container連線；登入mutation仍只送一次。
  await waitReady();
  const relogged=await api('/sessions','POST',{email:account.email,password,clientPlatform:'android'});assert.equal(relogged.status,201);

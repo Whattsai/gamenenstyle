@@ -1,5 +1,10 @@
 # 本地操作與部署檢查
 
+## 現行migration與context（2026-11-05）
+
+default local已經正式wrapper向前套用0003；EXPECTED_MIGRATION local／staging現設0003_profile_gender_card_visibility.sql，staging未部署。root contracts需隨container：Dockerfile仍在backend，build context為DatingHigh根（Wrangler image_build_context=".."），根.dockerignore只送backend及contracts，勿用舊backend-only context。下方2026-11-03的0002為歷史紀錄。所有本地故障、重啟及依賴8787測試仍依序執行。
+
+
 本文件整理現有 wrappers、Docker／Wrangler 與 runbooks；不是發布授權或新驗收證據。2026-11-01 的既有紀錄顯示本地 Web／Android 已結案；iOS依D-052暫緩、無障礙依D-051不在目前MVP範圍，雲端／真收信仍保留界限。D-033／D-035 暫緩 iOS／staging，不啟用付費、不部署；production 未配置／發布。詳見 [本地範圍](../../docs/verification/PlatformFoundation-LocalAcceptance.md) 與 [逐平台紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)。
 
 ## 本地啟動與資料

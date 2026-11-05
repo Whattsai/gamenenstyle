@@ -21,7 +21,7 @@ public sealed class PersonalMediaIntegrationTests
             expectedRevision=revision,nickname="星河旅人",bio="喜歡手作",occupation,birthDate="1995-01-01",regionCode="TW-TPE",
             traitTagIds=new[]{"warm"},interestTagIds=new[]{"puzzle"},topicTagIds=new[]{"creative_chat"},valueTagIds=new[]{"creativity"},
             weekendPreference="explore",sleepSchedule="night_owl",conversationStyle="warm",expectedInteractionFrequency="weekly",relationshipMode="friends_first",
-            preferredAgeMin=25,preferredAgeMax=35,preferredRegionCodes=new[]{"TW-TPE"},sharedInterestWeight=60
+            preferredAgeMin=25,preferredAgeMax=35,preferredRegionCodes=new[]{"TW-TPE"},sharedInterestWeight=60, gender="diverse",romanticOrientation=new[]{"male","female"},cardVisibility=new Dictionary<string,bool>()
         }),p.Clock);
         var input=Form(1,"工程師");Assert.Equal(2,await profiles.SaveAsync(old,input));
         var saved=await profiles.ReadAsync(old);var expected=System.Text.Json.JsonSerializer.SerializeToNode(input,new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!.AsObject();
@@ -168,6 +168,7 @@ public sealed class PersonalMediaIntegrationTests
         var media=new PrivateMediaStore(http);var provider=new OneImageProvider();
         AvatarService Avatars()=>new(platform,media,new AvatarCandidateStore(http),provider,new RateLimiter(platform,platform.Options,platform.Clock));
         var avatars=Avatars();await new DatingProfileService(platform,platform.Clock).ReadAsync(other);
+        await platform.Sql("UPDATE user_profiles SET gender='male' WHERE account_id=?",other.AccountId);
         await avatars.SelectAsync(other,new JsonObject{["type"]="builtin",["builtinAvatarId"]="male-02",["expectedRevision"]=1L});
         var photos=Service(platform);for(var i=0;i<2;i++){using var input=new MemoryStream(Picture());await photos.UploadAsync(owner,input,"image/png");}
         var generated=await avatars.GenerateAsync(owner,new JsonObject{["styleId"]="warm",["clientRequestId"]=EntityId.New(),["expectedProducedCount"]=0L});

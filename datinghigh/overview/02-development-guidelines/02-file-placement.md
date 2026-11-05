@@ -1,5 +1,8 @@
 # 檔案放置規則
 
+共用非秘密靜態契約放根`contracts/`；profile-fields.json由Domain／Worker共讀，前端只取API目錄。新增受支援欄位要同步migration、完整DTO與固定SQL，不另建設定表或動態SQL。名片頁獨立在app/card-preview.tsx，顯示與載入在src/CardPreviewScreen.tsx分離。
+
+
 | 內容 | 位置 |
 |---|---|
 | 純規則、ID、期限、預設拒絕政策 | `backend/src/DatingHigh.Domain/` |
@@ -12,7 +15,7 @@
 | 圖片 adapter／共用介面 | `backend/src/DatingHigh.Infrastructure/Media/`、`backend/src/DatingHigh.Application/Media/` |
 | 圖片處理與真 provider probe | `backend/tools/DatingHigh.MediaProbe/`；真人來源不放版本庫 |
 | Worker／commands／strict JSON | `cloudflare/src/` |
-| D1 schema | `cloudflare/migrations/`；0001六表54欄＋0002兩表24欄，零 Trigger |
+| D1 schema | `cloudflare/migrations/`；0001六表54欄＋0002新增兩表24欄＋0003擴至兩表27欄，零 Trigger |
 | Worker 單元／真 D1 測試 | `cloudflare/tests/` |
 | Expo 路由畫面 | `frontend/client/app/`；layout 只組合全域 provider／Stack |
 | 前端共用 UI／API／session／storage | `frontend/client/src/`；Web 專用元件用 `.web.tsx` |

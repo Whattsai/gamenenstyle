@@ -68,7 +68,7 @@ try{
  await tap('取消');await reveal(`比較候選 ${selectedIndex}`);assert.equal((await wait(`比較候選 ${selectedIndex}`)).selected,'true');console.log('Native adoption cancelled without losing the candidate');
  await reveal('採用這張');await tap('採用這張');await tap('確認採用');await wait('已採用選中的遊戲化身');await tap('免費化身');await wait('目前遊戲化身');
  console.log('Native explicit adoption completed');
- await tap('關閉');await reveal('返回帳號','up');await tap('返回帳號');await reveal('登出');await tap('登出');await wait('使用 Email 登入');await waitReady();
+ await tap('關閉');await reveal('返回','up');await tap('返回');await reveal('登出');await tap('登出');await wait('使用 Email 登入');await waitReady();
  const logged=await api('/sessions','POST',{email,password,clientPlatform:'android'});assert.equal(logged.status,201);verifiedTokens=logged.body.tokens;
  const profile=await api('/me/dating-profile','GET',undefined,verifiedTokens.accessToken);assert.equal(profile.status,200);assert.equal(profile.body.selectedAvatarType,'generated');assert.equal(profile.body.generatedAvatars.length,1);assert.equal(profile.body.selectedAvatarRef,profile.body.generatedAvatars[0].assetId);assert.equal(profile.body.personalPhotos.length,2);assert.equal(profile.body.avatarAttempt,null);
  const image=await fetch(`http://localhost:8787/api/v1/me/media/${profile.body.selectedAvatarRef}`,{headers:{'X-DatingHigh-Client':'android',Authorization:`Bearer ${verifiedTokens.accessToken}`},signal:AbortSignal.timeout(45000)});assert.equal(image.status,200);const bytes=Buffer.from(await image.arrayBuffer());assert.ok(bytes.length>0&&bytes.length<=2000000);

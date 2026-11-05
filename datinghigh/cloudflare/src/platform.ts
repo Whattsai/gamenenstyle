@@ -26,10 +26,11 @@ export async function ready(env:PlatformEnv){
   auth_email_challenges:'challenge_id,purpose,email_normalized,client_platform,flow_token_hash,code_mac,generation,failed_attempts,account_id,bound_credential_version,state,created_at,expires_at,absolute_expires_at,resend_after,consumed_at',
   common_rate_limit_buckets:'bucket_id,policy_key,subject_type,subject_hash,window_start,attempt_count,expires_at',
  };
- if(env.EXPECTED_MIGRATION==='0002_avatar_preferences.sql'){
+ if(['0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql'].includes(env.EXPECTED_MIGRATION)){
   expected.user_profiles='profile_id,account_id,nickname,bio,occupation,birth_date,region_code,traits_json,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref,revision,created_at,updated_at';
   expected.user_media_assets='asset_id,account_id,kind,object_key,mime_type,display_order,status,created_at,deleted_at';
  }
+ if(env.EXPECTED_MIGRATION==='0003_profile_gender_card_visibility.sql')expected.user_profiles+=',gender,romantic_orientation_json,card_visibility_json';
  for(const [table,names] of Object.entries(expected)){
   const columns=await env.DB.prepare(`PRAGMA table_info(${table})`).all();
   if(columns.results.map(column=>column.name).join(',')!==names || columns.results[0].pk!==1 || columns.results[0].notnull!==1) throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);

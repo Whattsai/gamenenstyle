@@ -1,5 +1,10 @@
 # 啟動與執行流程
 
+## 2026-11-05 個人資料編輯流程
+
+profile-catalog.fields提供同一欄位定義供表單、欄位前開關與名片。草稿snapshot比較有效預設，僅有語意差異顯示儲存。預覽有修改先PUT，再成功GET最新本人資料後push `/card-preview`；任何失敗保留編輯頁且不重送。名片focus每次GET已過濾投影，不由草稿或cache組合。Android RefreshControl／手機Web頂端touch下拉及返回皆先保護草稿；成功照片／化身操作保留未存欄位與visibility並檢查revision衝突。
+
+
 ## 平台與 HTTP
 
 1. `tools/local.mjs dev` 在 Windows 切入 Ubuntu WSL 的隔離 Node／Wrangler。使用已知 instance 的設定與 state；初次建立秘密，重啟沿用。

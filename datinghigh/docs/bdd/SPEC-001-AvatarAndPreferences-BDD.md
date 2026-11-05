@@ -1,9 +1,37 @@
 # SPEC-001-AvatarAndPreferences — BDD 場景規格
 
+## 需求總進度（2026-11-05）
+
+| 範圍 | 完整覆核／總數 | 完成率 | 說明 |
+|---|---:|---:|---|
+| **目前Web／Android需求合計** | **73/73** | **100%** | 原範圍65＋D-053新增8；不是整個遊戲MVP完成率 |
+| 原有BDD範圍 | 65/65 | 100% | 原73場景中，8項跨SPEC正向授權整合另列 |
+| D-053新增 AP-PC-001～008 | 8/8 | 100% | 新欄位、化身限制、分享設定、編輯與獨立名片流程 |
+| **全部已規劃BDD（含後續整合）** | **73/81** | **90.1%** | 73原場景＋8新增；剩餘8項後續SPEC整合未驗收 |
+| 原有前端UX：Web／Android | 13/13 | 100% | 新流程另見AP-PC-003～008 |
+
+分母納入本次新增需求；暫緩／後續整合不記為通過。TDD原275個ID及新增8組分開統計，詳見[TDD總表](../tdd/SPEC-001-AvatarAndPreferences-TDD.md#需求總進度2026-11-05)；逐平台與最後兩項共用UI修正的重驗邊界見[最新驗證紀錄](../verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂)。iOS暫緩，無障礙專項不在目前範圍。
+
+## 2026-11-05 D-053 追加場景（8/8完整覆核）
+
+| ID | Given／When／Then | 實作與驗證 |
+|---|---|---|
+| AP-PC-001 | 舊帳號升級0003後資料保留，三欄為NULL／[]／{}，Foundation不變且零Trigger | migration、avatar-preferences-d1.integration.test.ts |
+| AP-PC-002 | 非法性別、重複性向或分享未知／私有鍵，儲存拒絕且無部分變更；未填仍可存但未完成 | ProfileUpdateInput、D1／Application測試 |
+| AP-PC-003 | 已存男／女／多元時，只能選8／8／16款；未存性別先提示；改性別同時清不符免費化身，AI保留 | AvatarService、commands、DatingProfileScreen |
+| AP-PC-004 | 關閉分享後名片完全省略欄位與照片；性別／性向／新欄位預設關閉，配對投影仍保留性別／性向 | ProfileProjections、CardDisplay、Web請求觀測 |
+| AP-PC-005 | 修改表單或開關後頂端出現儲存，恢復原值則隱藏，無底部儲存或更新鈕 | profile-fields、DatingProfileScreen及client測試 |
+| AP-PC-006 | 預覽有草稿先存再重讀再開獨立頁；無修改直接開，409／不明／讀取失敗留原頁不重送 | client／Web測試 |
+| AP-PC-007 | 下拉更新與返回遇草稿先確認，取消保留，捨棄才更新／離開；無上一頁回帳號 | client／Web／Android流程 |
+| AP-PC-008 | 每次進入唯讀名片重讀，820px切換分欄／單欄，可捲動且照片保比例；重新登入保留設定 | CardPreviewScreen、Web／Android流程 |
+
+本次8組均已完整覆核，與原範圍65組合計73/73；逐平台結果依Verification同日章節。本次有獨立證據，不以歷史通過數擴推新增場景。
+
+
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（US-001～003，US-020 的資料來源契約）
 > **來源 SDD**：[SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md)（2026-11-01 使用者已確認，含 D-047 無 SQL Trigger）
 > **生成日期**：2026-11-01
-> **階段**：使用者已確認 SDD／RiskAudit（RQ-01=A、RQ-02=A），2026-11-02 D-050 修訂後規劃交接 Ready for well-done；73個場景、13個@frontend；2026-11-04本輪Web／Android範圍已完整覆核，iOS暫緩、無障礙不在範圍。
+> **階段**：2026-11-05 D-053完成本地範圍，原73＋新增8共81個場景；目前責任範圍73/73，另8項後續SPEC整合未驗收。原13個@frontend已按Web／Android覆核，iOS暫緩、無障礙不在範圍。使用者先前確認的SDD／RiskAudit（RQ-01=A、RQ-02=A）保留。
 
 ---
 
@@ -19,7 +47,7 @@
 
 Feature：登入本人安全維護工作／偏好、私人真人照片及免費／AI 遊戲化身；本輪僅交付即時名片資料查詢與授權協作契約，不建立交換名片的邀請／雙方同意／計分路由。
 
-**追溯慣例**：每個 `AP-BDD-###` 唯一且不可重編；標註 `AP-AC` 來源與 `MVP` 跨 SPEC 邊界。所有 `Then/And` 均為可觀察斷言，通過與範圍以本輪追溯索引的逐項證據為準。D1 必須用真 Miniflare D1 驗證，保留兩張新 `user_` 表共 24 欄、**零個 SQL Trigger**；圖片壓縮及 AI 實際呼叫不可用 Fixture 冒充。
+**追溯慣例**：每個 `AP-BDD-###` 唯一且不可重編；D-053另用`AP-PC-###`。標註 `AP-AC` 來源與 `MVP` 跨 SPEC 邊界。所有 `Then/And` 均為可觀察斷言，通過與範圍以本輪追溯索引的逐項證據為準。D1 必須用真 Miniflare D1 驗證，兩張業務表現為27欄（0002歷史24欄、0003追加3欄）、**零個 SQL Trigger**；圖片壓縮及 AI 實際呼叫不可用 Fixture 冒充。
 
 ## 🎯 前端 UX 實作進度
 

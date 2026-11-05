@@ -139,6 +139,7 @@ public sealed class AvatarHttpContractTests
         public string Candidate(int index)=>$"/api/v1/me/avatar/candidates/{Attempt}/{index}";
         private JsonObject Result()=>new(){["attemptId"]=Attempt,["index"]=(long)NextIndex,["producedCount"]=(long)NextIndex,["expiresAt"]=Expires,["lease"]="fixture-private-lease",["sourceAssetIds"]=new JsonArray(SourceA,SourceB),["objectKey"]="fixture-private-key"};
         private JsonNode? Reply(string command,JsonNode p){
+            if(command=="profile.read")return new JsonObject{["rows"]=new JsonArray(new JsonObject{["gender"]="diverse",["revision"]=1L})};
             if(command=="avatar.attempt.begin"){Begin=p.DeepClone();if(BeginFailure is not null)throw BeginFailure;var dto=Result();dto["completed"]=Replay;return dto;}
             if(command=="avatar.attempt.fail"){Failure=p.DeepClone();return new JsonObject{["acknowledged"]=true};}
             if(command=="avatar.attempt.select"){Selection=p.DeepClone();return new JsonObject{["revision"]=2L,["assetId"]=p.Text("proposedAssetId")};}

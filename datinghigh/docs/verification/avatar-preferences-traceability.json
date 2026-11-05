@@ -1,11 +1,12 @@
 {
-  "updatedAt": "2026-11-04",
+  "updatedAt": "2026-11-05",
   "status": "complete-current-scope",
-  "method": "人工覆核完整ID及BDD業務斷言；D-051移出無障礙專項，D-052暫緩iOS，原SPEC後續整合另列，排除不改記通過",
+  "method": "人工覆核完整ID及BDD業務斷言；D-051移出無障礙專項，D-052暫緩iOS，原SPEC後續整合另列，追加組保留獨立證據，排除不改記通過",
   "acceptanceScope": {
     "decisions": [
       "D-051",
-      "D-052"
+      "D-052",
+      "D-053"
     ],
     "platforms": [
       "web",
@@ -62,6 +63,18 @@
       "AP-IT-065"
     ]
   },
+  "overallProgress": {
+    "basis": "BDD business scenarios; TDD IDs and revision verification groups are counted separately",
+    "bdd": {
+      "total": 81,
+      "verified": 73,
+      "currentScopeTotal": 73,
+      "currentScopeVerified": 73,
+      "futureIntegration": 8,
+      "percent": 90.1,
+      "currentScopePercent": 100
+    }
+  },
   "currentScope": {
     "total": 236,
     "verified": 236,
@@ -115,11 +128,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 79
+            "line": 83
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 149
+            "line": 141
           }
         ],
         "gap": null
@@ -151,7 +164,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 388
+            "line": 391
           }
         ],
         "gap": null
@@ -174,11 +187,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 20
+            "line": 21
           },
           {
             "path": "tests/e2e/android/avatar-preferences.mjs",
-            "line": 87
+            "line": 86
           },
           {
             "path": "frontend/client/assets/avatars/provenance.json",
@@ -228,7 +241,7 @@
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 292
+            "line": 322
           }
         ],
         "gap": null
@@ -246,7 +259,7 @@
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 48
+            "line": 78
           }
         ],
         "gap": null
@@ -300,11 +313,11 @@
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 307
+            "line": 337
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 47
+            "line": 48
           }
         ],
         "gap": null
@@ -382,7 +395,7 @@
         "evidence": [
           {
             "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-            "line": 60
+            "line": 101
           }
         ],
         "gap": null
@@ -414,7 +427,7 @@
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 153
+            "line": 145
           }
         ],
         "gap": null
@@ -442,7 +455,7 @@
         "evidence": [
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 220
+            "line": 212
           },
           {
             "path": "tests/integration/avatar-controlled-host.test.mjs",
@@ -450,7 +463,7 @@
           },
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 192
+            "line": 193
           }
         ],
         "gap": null
@@ -482,7 +495,7 @@
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 138
+            "line": 130
           }
         ],
         "gap": null
@@ -599,7 +612,7 @@
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 149
+            "line": 158
           }
         ],
         "gap": null
@@ -641,7 +654,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 254
+            "line": 255
           }
         ],
         "gap": null
@@ -669,7 +682,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 192
+            "line": 193
           }
         ],
         "gap": null
@@ -715,7 +728,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 278
+            "line": 279
           }
         ],
         "gap": null
@@ -747,7 +760,7 @@
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 325
+            "line": 355
           }
         ],
         "gap": null
@@ -761,7 +774,7 @@
         "evidence": [
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
-            "line": 29
+            "line": 48
           },
           {
             "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -769,7 +782,7 @@
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 149
+            "line": 158
           }
         ],
         "gap": null
@@ -792,19 +805,19 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 186
+            "line": 187
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 239
+            "line": 269
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 91
+            "line": 96
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 120
+            "line": 114
           }
         ],
         "gap": null
@@ -818,7 +831,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 417
+            "line": 420
           }
         ],
         "gap": null
@@ -836,7 +849,7 @@
           },
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 266
+            "line": 269
           }
         ],
         "gap": null
@@ -868,11 +881,11 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 305
+            "line": 308
           },
           {
             "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-            "line": 342
+            "line": 345
           }
         ],
         "gap": null
@@ -912,15 +925,15 @@
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 146
+            "line": 176
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 165
+            "line": 195
           },
           {
             "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-            "line": 177
+            "line": 207
           }
         ],
         "gap": null
@@ -942,7 +955,7 @@
           },
           {
             "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-            "line": 48
+            "line": 89
           }
         ],
         "gap": null
@@ -956,7 +969,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 150
+            "line": 151
           }
         ],
         "gap": null
@@ -970,7 +983,7 @@
         "evidence": [
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 240
+            "line": 241
           }
         ],
         "gap": null
@@ -993,7 +1006,7 @@
         "evidence": [
           {
             "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-            "line": 106
+            "line": 147
           }
         ],
         "gap": null
@@ -1007,15 +1020,15 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 79
+            "line": 83
           },
           {
             "path": "tests/e2e/android/avatar-preferences.mjs",
-            "line": 79
+            "line": 78
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 145
+            "line": 137
           }
         ],
         "gap": null
@@ -1029,15 +1042,15 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 27
+            "line": 28
           },
           {
             "path": "tests/e2e/android/avatar-preferences.mjs",
-            "line": 87
+            "line": 86
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 20
+            "line": 21
           },
           {
             "path": "frontend/client/assets/avatars/provenance.json",
@@ -1055,11 +1068,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 36
+            "line": 37
           },
           {
             "path": "tests/e2e/android/avatar-managed.mjs",
-            "line": 57
+            "line": 59
           }
         ],
         "gap": null
@@ -1073,11 +1086,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 91
+            "line": 96
           },
           {
             "path": "tests/e2e/android/avatar-managed.mjs",
-            "line": 57
+            "line": 59
           }
         ],
         "gap": null
@@ -1099,7 +1112,7 @@
           },
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 115
+            "line": 122
           },
           {
             "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
@@ -1107,7 +1120,7 @@
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 153
+            "line": 145
           }
         ],
         "gap": null
@@ -1121,7 +1134,7 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-            "line": 39
+            "line": 41
           },
           {
             "path": "tests/e2e/android/avatar-controlled.mjs",
@@ -1139,7 +1152,7 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-            "line": 71
+            "line": 72
           },
           {
             "path": "tests/e2e/android/avatar-gemini-live.mjs",
@@ -1161,15 +1174,15 @@
           },
           {
             "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-            "line": 21
+            "line": 24
           },
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 192
+            "line": 193
           },
           {
             "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-            "line": 176
+            "line": 177
           },
           {
             "path": "tests/e2e/android/avatar-controlled.mjs",
@@ -1187,11 +1200,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 128
+            "line": 136
           },
           {
             "path": "tests/e2e/android/avatar-managed.mjs",
-            "line": 80
+            "line": 82
           }
         ],
         "gap": null
@@ -1205,11 +1218,11 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 47
+            "line": 48
           },
           {
             "path": "tests/e2e/android/avatar-managed.mjs",
-            "line": 80
+            "line": 82
           }
         ],
         "gap": null
@@ -1223,7 +1236,7 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 149
+            "line": 158
           },
           {
             "path": "tests/e2e/android/avatar-privacy.mjs",
@@ -1241,15 +1254,15 @@
         "evidence": [
           {
             "path": "tests/e2e/web/avatar-preferences.spec.ts",
-            "line": 74
+            "line": 77
           },
           {
             "path": "tests/e2e/android/avatar-managed.mjs",
-            "line": 80
+            "line": 82
           },
           {
             "path": "tests/e2e/android/avatar-preferences.mjs",
-            "line": 87
+            "line": 86
           }
         ],
         "gap": null
@@ -1303,7 +1316,7 @@
           },
           {
             "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-            "line": 39
+            "line": 41
           }
         ],
         "gap": null
@@ -1365,7 +1378,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 223
+      "requirementLine": 256
     },
     {
       "id": "AP-UT-002",
@@ -1380,17 +1393,17 @@
       },
       "evidence": {
         "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-        "line": 145
+        "line": 137
       },
       "supportingEvidence": [
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 79
+          "line": 83
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 228
+      "requirementLine": 261
     },
     {
       "id": "AP-UT-003",
@@ -1401,7 +1414,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/PersonalPhotosApplicationTests.cs",
@@ -1410,7 +1423,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 233
+      "requirementLine": 266
     },
     {
       "id": "AP-UT-004",
@@ -1421,7 +1434,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/PersonalPhotosApplicationTests.cs",
@@ -1430,7 +1443,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 238
+      "requirementLine": 271
     },
     {
       "id": "AP-UT-005",
@@ -1441,16 +1454,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 388
+        "line": 391
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 243
+      "requirementLine": 276
     },
     {
       "id": "AP-UT-006",
@@ -1461,16 +1474,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 388
+        "line": 391
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 248
+      "requirementLine": 281
     },
     {
       "id": "AP-UT-007",
@@ -1481,7 +1494,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1490,7 +1503,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 253
+      "requirementLine": 286
     },
     {
       "id": "AP-UT-008",
@@ -1501,7 +1514,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1510,7 +1523,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 258
+      "requirementLine": 291
     },
     {
       "id": "AP-UT-009",
@@ -1530,12 +1543,12 @@
       "supportingEvidence": [
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 20
+          "line": 21
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 263
+      "requirementLine": 296
     },
     {
       "id": "AP-UT-010",
@@ -1555,12 +1568,12 @@
       "supportingEvidence": [
         {
           "path": "tests/e2e/android/avatar-preferences.mjs",
-          "line": 87
+          "line": 86
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 268
+      "requirementLine": 301
     },
     {
       "id": "AP-UT-011",
@@ -1580,7 +1593,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 273
+      "requirementLine": 306
     },
     {
       "id": "AP-UT-012",
@@ -1600,7 +1613,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 278
+      "requirementLine": 311
     },
     {
       "id": "AP-UT-013",
@@ -1611,16 +1624,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 184
+        "line": 214
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 283
+      "requirementLine": 316
     },
     {
       "id": "AP-UT-014",
@@ -1631,16 +1644,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 238
+        "line": 268
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 288
+      "requirementLine": 321
     },
     {
       "id": "AP-UT-015",
@@ -1651,16 +1664,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 292
+        "line": 322
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 293
+      "requirementLine": 326
     },
     {
       "id": "AP-UT-016",
@@ -1671,16 +1684,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 292
+        "line": 322
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 298
+      "requirementLine": 331
     },
     {
       "id": "AP-UT-017",
@@ -1691,16 +1704,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 48
+        "line": 78
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 303
+      "requirementLine": 336
     },
     {
       "id": "AP-UT-018",
@@ -1711,21 +1724,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 88
+        "line": 118
       },
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 34
+          "line": 37
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 308
+      "requirementLine": 341
     },
     {
       "id": "AP-UT-019",
@@ -1736,7 +1749,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1745,7 +1758,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 313
+      "requirementLine": 346
     },
     {
       "id": "AP-UT-020",
@@ -1756,7 +1769,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1765,7 +1778,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 318
+      "requirementLine": 351
     },
     {
       "id": "AP-UT-021",
@@ -1776,7 +1789,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1785,7 +1798,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 323
+      "requirementLine": 356
     },
     {
       "id": "AP-UT-022",
@@ -1796,7 +1809,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1805,7 +1818,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 328
+      "requirementLine": 361
     },
     {
       "id": "AP-UT-023",
@@ -1816,7 +1829,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1825,7 +1838,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 333
+      "requirementLine": 366
     },
     {
       "id": "AP-UT-024",
@@ -1836,7 +1849,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1845,7 +1858,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 338
+      "requirementLine": 371
     },
     {
       "id": "AP-UT-025",
@@ -1856,7 +1869,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1865,7 +1878,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 343
+      "requirementLine": 376
     },
     {
       "id": "AP-UT-026",
@@ -1876,7 +1889,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -1885,7 +1898,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 348
+      "requirementLine": 381
     },
     {
       "id": "AP-UT-027",
@@ -1896,16 +1909,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 307
+        "line": 337
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 353
+      "requirementLine": 386
     },
     {
       "id": "AP-UT-028",
@@ -1916,16 +1929,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 307
+        "line": 337
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 358
+      "requirementLine": 391
     },
     {
       "id": "AP-UT-029",
@@ -1950,7 +1963,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 363
+      "requirementLine": 396
     },
     {
       "id": "AP-UT-030",
@@ -1975,7 +1988,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 368
+      "requirementLine": 401
     },
     {
       "id": "AP-UT-031",
@@ -1995,12 +2008,12 @@
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 168
+          "line": 160
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 373
+      "requirementLine": 406
     },
     {
       "id": "AP-UT-032",
@@ -2020,12 +2033,12 @@
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 168
+          "line": 160
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 378
+      "requirementLine": 411
     },
     {
       "id": "AP-UT-033",
@@ -2045,7 +2058,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 383
+      "requirementLine": 416
     },
     {
       "id": "AP-UT-034",
@@ -2065,7 +2078,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 388
+      "requirementLine": 421
     },
     {
       "id": "AP-UT-035",
@@ -2085,7 +2098,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 393
+      "requirementLine": 426
     },
     {
       "id": "AP-UT-036",
@@ -2105,7 +2118,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 398
+      "requirementLine": 431
     },
     {
       "id": "AP-UT-037",
@@ -2120,12 +2133,12 @@
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 60
+        "line": 101
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 403
+      "requirementLine": 436
     },
     {
       "id": "AP-UT-038",
@@ -2140,12 +2153,12 @@
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 60
+        "line": 101
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 408
+      "requirementLine": 441
     },
     {
       "id": "AP-UT-039",
@@ -2165,7 +2178,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 413
+      "requirementLine": 446
     },
     {
       "id": "AP-UT-040",
@@ -2185,7 +2198,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 418
+      "requirementLine": 451
     },
     {
       "id": "AP-UT-041",
@@ -2205,7 +2218,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 423
+      "requirementLine": 456
     },
     {
       "id": "AP-UT-042",
@@ -2220,12 +2233,12 @@
       },
       "evidence": {
         "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-        "line": 153
+        "line": 145
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 428
+      "requirementLine": 461
     },
     {
       "id": "AP-UT-043",
@@ -2245,7 +2258,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 433
+      "requirementLine": 466
     },
     {
       "id": "AP-UT-044",
@@ -2265,7 +2278,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 438
+      "requirementLine": 471
     },
     {
       "id": "AP-UT-045",
@@ -2280,12 +2293,12 @@
       },
       "evidence": {
         "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-        "line": 220
+        "line": 212
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 443
+      "requirementLine": 476
     },
     {
       "id": "AP-UT-046",
@@ -2300,12 +2313,12 @@
       },
       "evidence": {
         "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-        "line": 220
+        "line": 212
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 448
+      "requirementLine": 481
     },
     {
       "id": "AP-UT-047",
@@ -2316,7 +2329,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Domain/AvatarAndPreferencesPolicyTests.cs",
@@ -2325,7 +2338,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 453
+      "requirementLine": 486
     },
     {
       "id": "AP-UT-048",
@@ -2336,16 +2349,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 292
+        "line": 322
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 458
+      "requirementLine": 491
     },
     {
       "id": "AP-UT-049",
@@ -2356,7 +2369,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "tests/integration/avatar-controlled-host.test.mjs",
@@ -2365,7 +2378,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 463
+      "requirementLine": 496
     },
     {
       "id": "AP-UT-050",
@@ -2376,7 +2389,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "tests/integration/avatar-controlled-host.test.mjs",
@@ -2385,12 +2398,12 @@
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 138
+          "line": 130
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 468
+      "requirementLine": 501
     },
     {
       "id": "AP-UT-051",
@@ -2401,7 +2414,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -2410,7 +2423,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 473
+      "requirementLine": 506
     },
     {
       "id": "AP-UT-052",
@@ -2421,7 +2434,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -2430,7 +2443,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 478
+      "requirementLine": 511
     },
     {
       "id": "AP-UT-053",
@@ -2441,7 +2454,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -2450,7 +2463,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 483
+      "requirementLine": 516
     },
     {
       "id": "AP-UT-054",
@@ -2461,7 +2474,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -2470,7 +2483,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 488
+      "requirementLine": 521
     },
     {
       "id": "AP-UT-055",
@@ -2490,7 +2503,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 493
+      "requirementLine": 526
     },
     {
       "id": "AP-UT-056",
@@ -2510,7 +2523,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 498
+      "requirementLine": 531
     },
     {
       "id": "AP-UT-057",
@@ -2530,7 +2543,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 503
+      "requirementLine": 536
     },
     {
       "id": "AP-UT-058",
@@ -2550,7 +2563,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 508
+      "requirementLine": 541
     },
     {
       "id": "AP-UT-059",
@@ -2561,7 +2574,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Infrastructure/ImageCompressionTests.cs",
@@ -2570,7 +2583,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 513
+      "requirementLine": 546
     },
     {
       "id": "AP-UT-060",
@@ -2581,7 +2594,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/PersonalPhotosApplicationTests.cs",
@@ -2595,7 +2608,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 518
+      "requirementLine": 551
     },
     {
       "id": "AP-UT-061",
@@ -2615,7 +2628,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 523
+      "requirementLine": 556
     },
     {
       "id": "AP-UT-062",
@@ -2635,7 +2648,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 528
+      "requirementLine": 561
     },
     {
       "id": "AP-UT-063",
@@ -2660,7 +2673,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 533
+      "requirementLine": 566
     },
     {
       "id": "AP-UT-064",
@@ -2684,12 +2697,12 @@
         },
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 149
+          "line": 158
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 538
+      "requirementLine": 571
     },
     {
       "id": "AP-UT-065",
@@ -2700,7 +2713,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -2709,7 +2722,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 543
+      "requirementLine": 576
     },
     {
       "id": "AP-UT-066",
@@ -2720,7 +2733,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -2729,7 +2742,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 548
+      "requirementLine": 581
     },
     {
       "id": "AP-UT-067",
@@ -2749,7 +2762,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 553
+      "requirementLine": 586
     },
     {
       "id": "AP-UT-068",
@@ -2769,7 +2782,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 558
+      "requirementLine": 591
     },
     {
       "id": "AP-UT-069",
@@ -2784,12 +2797,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 254
+        "line": 255
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 563
+      "requirementLine": 596
     },
     {
       "id": "AP-UT-070",
@@ -2804,12 +2817,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 254
+        "line": 255
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 568
+      "requirementLine": 601
     },
     {
       "id": "AP-UT-071",
@@ -2829,7 +2842,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 573
+      "requirementLine": 606
     },
     {
       "id": "AP-UT-072",
@@ -2849,7 +2862,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 578
+      "requirementLine": 611
     },
     {
       "id": "AP-UT-073",
@@ -2869,7 +2882,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 583
+      "requirementLine": 616
     },
     {
       "id": "AP-UT-074",
@@ -2884,12 +2897,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 192
+        "line": 193
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 588
+      "requirementLine": 621
     },
     {
       "id": "AP-UT-075",
@@ -2909,7 +2922,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 593
+      "requirementLine": 626
     },
     {
       "id": "AP-UT-076",
@@ -2929,7 +2942,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 598
+      "requirementLine": 631
     },
     {
       "id": "AP-UT-077",
@@ -2949,7 +2962,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 603
+      "requirementLine": 636
     },
     {
       "id": "AP-UT-078",
@@ -2969,7 +2982,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 608
+      "requirementLine": 641
     },
     {
       "id": "AP-UT-079",
@@ -2984,12 +2997,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 278
+        "line": 279
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 613
+      "requirementLine": 646
     },
     {
       "id": "AP-UT-080",
@@ -3004,12 +3017,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 278
+        "line": 279
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 618
+      "requirementLine": 651
     },
     {
       "id": "AP-UT-081",
@@ -3020,16 +3033,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 215
+        "line": 245
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 623
+      "requirementLine": 656
     },
     {
       "id": "AP-UT-082",
@@ -3040,7 +3053,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -3049,7 +3062,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 628
+      "requirementLine": 661
     },
     {
       "id": "AP-UT-083",
@@ -3060,16 +3073,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 215
+        "line": 245
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 633
+      "requirementLine": 666
     },
     {
       "id": "AP-UT-084",
@@ -3080,16 +3093,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 325
+        "line": 355
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 638
+      "requirementLine": 671
     },
     {
       "id": "AP-UT-085",
@@ -3100,11 +3113,11 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
-        "line": 29
+        "line": 48
       },
       "supportingEvidence": [
         {
@@ -3114,7 +3127,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 643
+      "requirementLine": 676
     },
     {
       "id": "AP-UT-086",
@@ -3125,11 +3138,11 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
-        "line": 29
+        "line": 48
       },
       "supportingEvidence": [
         {
@@ -3139,7 +3152,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 648
+      "requirementLine": 681
     },
     {
       "id": "AP-UT-087",
@@ -3150,7 +3163,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -3159,7 +3172,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 653
+      "requirementLine": 686
     },
     {
       "id": "AP-UT-088",
@@ -3170,7 +3183,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -3179,7 +3192,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 658
+      "requirementLine": 691
     },
     {
       "id": "AP-UT-089",
@@ -3190,21 +3203,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 239
+        "line": 269
       },
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 186
+          "line": 187
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 663
+      "requirementLine": 696
     },
     {
       "id": "AP-UT-090",
@@ -3215,25 +3228,25 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 239
+        "line": 269
       },
       "supportingEvidence": [
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 91
+          "line": 96
         },
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 120
+          "line": 114
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 668
+      "requirementLine": 701
     },
     {
       "id": "AP-UT-091",
@@ -3248,12 +3261,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 417
+        "line": 420
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 673
+      "requirementLine": 706
     },
     {
       "id": "AP-UT-092",
@@ -3268,12 +3281,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 417
+        "line": 420
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 678
+      "requirementLine": 711
     },
     {
       "id": "AP-UT-093",
@@ -3284,7 +3297,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -3293,7 +3306,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 683
+      "requirementLine": 716
     },
     {
       "id": "AP-UT-094",
@@ -3304,7 +3317,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -3313,7 +3326,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 688
+      "requirementLine": 721
     },
     {
       "id": "AP-UT-095",
@@ -3324,7 +3337,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "cloudflare/tests/photo-media-d1-r2.integration.test.ts",
@@ -3338,7 +3351,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 693
+      "requirementLine": 726
     },
     {
       "id": "AP-UT-096",
@@ -3349,7 +3362,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "cloudflare/tests/photo-media-d1-r2.integration.test.ts",
@@ -3363,7 +3376,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 698
+      "requirementLine": 731
     },
     {
       "id": "AP-UT-097",
@@ -3378,12 +3391,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 305
+        "line": 308
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 703
+      "requirementLine": 736
     },
     {
       "id": "AP-UT-098",
@@ -3398,17 +3411,17 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 305
+        "line": 308
       },
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 342
+          "line": 345
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 708
+      "requirementLine": 741
     },
     {
       "id": "AP-UT-099",
@@ -3419,7 +3432,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Domain/AvatarAndPreferencesPolicyTests.cs",
@@ -3428,12 +3441,12 @@
       "supportingEvidence": [
         {
           "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-          "line": 325
+          "line": 355
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 713
+      "requirementLine": 746
     },
     {
       "id": "AP-UT-100",
@@ -3444,7 +3457,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Domain/AvatarAndPreferencesPolicyTests.cs",
@@ -3458,7 +3471,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 718
+      "requirementLine": 751
     },
     {
       "id": "AP-UT-101",
@@ -3469,21 +3482,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 146
+        "line": 176
       },
       "supportingEvidence": [
         {
           "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-          "line": 165
+          "line": 195
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 723
+      "requirementLine": 756
     },
     {
       "id": "AP-UT-102",
@@ -3494,21 +3507,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-        "line": 146
+        "line": 176
       },
       "supportingEvidence": [
         {
           "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-          "line": 177
+          "line": 207
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 728
+      "requirementLine": 761
     },
     {
       "id": "AP-UT-103",
@@ -3528,7 +3541,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 733
+      "requirementLine": 766
     },
     {
       "id": "AP-UT-104",
@@ -3552,12 +3565,12 @@
         },
         {
           "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-          "line": 48
+          "line": 89
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 738
+      "requirementLine": 771
     },
     {
       "id": "AP-UT-105",
@@ -3572,12 +3585,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 150
+        "line": 151
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 743
+      "requirementLine": 776
     },
     {
       "id": "AP-UT-106",
@@ -3592,12 +3605,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 150
+        "line": 151
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 748
+      "requirementLine": 781
     },
     {
       "id": "AP-UT-107",
@@ -3612,12 +3625,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 240
+        "line": 241
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 753
+      "requirementLine": 786
     },
     {
       "id": "AP-UT-108",
@@ -3632,12 +3645,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 240
+        "line": 241
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 758
+      "requirementLine": 791
     },
     {
       "id": "AP-UT-109",
@@ -3648,7 +3661,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -3657,7 +3670,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 763
+      "requirementLine": 796
     },
     {
       "id": "AP-UT-110",
@@ -3668,7 +3681,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -3677,7 +3690,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 768
+      "requirementLine": 801
     },
     {
       "id": "AP-UT-111",
@@ -3688,16 +3701,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 106
+        "line": 147
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 773
+      "requirementLine": 806
     },
     {
       "id": "AP-UT-112",
@@ -3708,16 +3721,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 106
+        "line": 147
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 778
+      "requirementLine": 811
     },
     {
       "id": "AP-UT-113",
@@ -3728,7 +3741,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Domain/AvatarAndPreferencesPolicyTests.cs",
@@ -3737,7 +3750,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 787
+      "requirementLine": 820
     },
     {
       "id": "AP-UT-114",
@@ -3757,7 +3770,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 798
+      "requirementLine": 831
     },
     {
       "id": "AP-UT-115",
@@ -3777,7 +3790,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 803
+      "requirementLine": 836
     },
     {
       "id": "AP-UT-116",
@@ -3797,7 +3810,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 808
+      "requirementLine": 841
     },
     {
       "id": "AP-UT-117",
@@ -3817,7 +3830,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 813
+      "requirementLine": 846
     },
     {
       "id": "AP-UT-118",
@@ -3837,7 +3850,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 818
+      "requirementLine": 851
     },
     {
       "id": "AP-UT-119",
@@ -3857,7 +3870,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 823
+      "requirementLine": 856
     },
     {
       "id": "AP-UT-120",
@@ -3877,7 +3890,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 828
+      "requirementLine": 861
     },
     {
       "id": "AP-UT-121",
@@ -3897,7 +3910,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 833
+      "requirementLine": 866
     },
     {
       "id": "AP-IT-001",
@@ -3912,17 +3925,17 @@
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 79
+        "line": 83
       },
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 149
+          "line": 141
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 842
+      "requirementLine": 875
     },
     {
       "id": "AP-IT-002",
@@ -3933,7 +3946,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -3942,7 +3955,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 847
+      "requirementLine": 880
     },
     {
       "id": "AP-IT-003",
@@ -3953,7 +3966,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -3962,7 +3975,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 852
+      "requirementLine": 885
     },
     {
       "id": "AP-IT-004",
@@ -3973,7 +3986,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -3982,7 +3995,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 857
+      "requirementLine": 890
     },
     {
       "id": "AP-IT-005",
@@ -3997,12 +4010,12 @@
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 20
+        "line": 21
       },
       "supportingEvidence": [
         {
           "path": "tests/e2e/android/avatar-preferences.mjs",
-          "line": 87
+          "line": 86
         },
         {
           "path": "frontend/client/assets/avatars/provenance.json",
@@ -4011,7 +4024,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 862
+      "requirementLine": 895
     },
     {
       "id": "AP-IT-006",
@@ -4031,7 +4044,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 867
+      "requirementLine": 900
     },
     {
       "id": "AP-IT-007",
@@ -4042,7 +4055,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4051,7 +4064,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 872
+      "requirementLine": 905
     },
     {
       "id": "AP-IT-008",
@@ -4062,7 +4075,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4071,7 +4084,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 877
+      "requirementLine": 910
     },
     {
       "id": "AP-IT-009",
@@ -4082,7 +4095,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -4091,12 +4104,12 @@
       "supportingEvidence": [
         {
           "path": "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
-          "line": 48
+          "line": 78
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 882
+      "requirementLine": 915
     },
     {
       "id": "AP-IT-010",
@@ -4107,7 +4120,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4116,7 +4129,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 887
+      "requirementLine": 920
     },
     {
       "id": "AP-IT-011",
@@ -4127,7 +4140,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4136,7 +4149,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 892
+      "requirementLine": 925
     },
     {
       "id": "AP-IT-012",
@@ -4147,7 +4160,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4156,7 +4169,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 897
+      "requirementLine": 930
     },
     {
       "id": "AP-IT-013",
@@ -4167,7 +4180,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4176,7 +4189,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 902
+      "requirementLine": 935
     },
     {
       "id": "AP-IT-014",
@@ -4187,7 +4200,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4196,7 +4209,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 907
+      "requirementLine": 940
     },
     {
       "id": "AP-IT-015",
@@ -4216,7 +4229,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 912
+      "requirementLine": 945
     },
     {
       "id": "AP-IT-016",
@@ -4236,7 +4249,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 917
+      "requirementLine": 950
     },
     {
       "id": "AP-IT-017",
@@ -4256,7 +4269,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 922
+      "requirementLine": 955
     },
     {
       "id": "AP-IT-018",
@@ -4276,7 +4289,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 927
+      "requirementLine": 960
     },
     {
       "id": "AP-IT-019",
@@ -4291,12 +4304,12 @@
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 60
+        "line": 101
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 932
+      "requirementLine": 965
     },
     {
       "id": "AP-IT-020",
@@ -4316,7 +4329,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 937
+      "requirementLine": 970
     },
     {
       "id": "AP-IT-021",
@@ -4336,7 +4349,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 942
+      "requirementLine": 975
     },
     {
       "id": "AP-IT-022",
@@ -4356,7 +4369,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 947
+      "requirementLine": 980
     },
     {
       "id": "AP-IT-023",
@@ -4371,7 +4384,7 @@
       },
       "evidence": {
         "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-        "line": 220
+        "line": 212
       },
       "supportingEvidence": [
         {
@@ -4380,12 +4393,12 @@
         },
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 192
+          "line": 193
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 952
+      "requirementLine": 985
     },
     {
       "id": "AP-IT-024",
@@ -4396,7 +4409,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4405,7 +4418,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 957
+      "requirementLine": 990
     },
     {
       "id": "AP-IT-025",
@@ -4416,7 +4429,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "tests/integration/avatar-controlled-host.test.mjs",
@@ -4425,7 +4438,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 962
+      "requirementLine": 995
     },
     {
       "id": "AP-IT-026",
@@ -4436,7 +4449,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4445,7 +4458,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 967
+      "requirementLine": 1000
     },
     {
       "id": "AP-IT-027",
@@ -4456,7 +4469,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4465,7 +4478,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 972
+      "requirementLine": 1005
     },
     {
       "id": "AP-IT-028",
@@ -4485,7 +4498,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 977
+      "requirementLine": 1010
     },
     {
       "id": "AP-IT-029",
@@ -4505,7 +4518,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 982
+      "requirementLine": 1015
     },
     {
       "id": "AP-IT-030",
@@ -4516,7 +4529,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4525,7 +4538,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 987
+      "requirementLine": 1020
     },
     {
       "id": "AP-IT-031",
@@ -4545,7 +4558,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 992
+      "requirementLine": 1025
     },
     {
       "id": "AP-IT-032",
@@ -4569,12 +4582,12 @@
         },
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 149
+          "line": 158
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 997
+      "requirementLine": 1030
     },
     {
       "id": "AP-IT-033",
@@ -4585,7 +4598,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4594,7 +4607,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1002
+      "requirementLine": 1035
     },
     {
       "id": "AP-IT-034",
@@ -4614,7 +4627,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1007
+      "requirementLine": 1040
     },
     {
       "id": "AP-IT-035",
@@ -4629,12 +4642,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 254
+        "line": 255
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1012
+      "requirementLine": 1045
     },
     {
       "id": "AP-IT-036",
@@ -4654,7 +4667,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1017
+      "requirementLine": 1050
     },
     {
       "id": "AP-IT-037",
@@ -4669,12 +4682,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 192
+        "line": 193
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1022
+      "requirementLine": 1055
     },
     {
       "id": "AP-IT-038",
@@ -4694,7 +4707,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1027
+      "requirementLine": 1060
     },
     {
       "id": "AP-IT-039",
@@ -4714,7 +4727,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1032
+      "requirementLine": 1065
     },
     {
       "id": "AP-IT-040",
@@ -4729,12 +4742,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 278
+        "line": 279
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1037
+      "requirementLine": 1070
     },
     {
       "id": "AP-IT-041",
@@ -4745,7 +4758,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -4754,7 +4767,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1042
+      "requirementLine": 1075
     },
     {
       "id": "AP-IT-042",
@@ -4765,7 +4778,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -4774,7 +4787,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1047
+      "requirementLine": 1080
     },
     {
       "id": "AP-IT-043",
@@ -4785,11 +4798,11 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
-        "line": 29
+        "line": 48
       },
       "supportingEvidence": [
         {
@@ -4798,12 +4811,12 @@
         },
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 149
+          "line": 158
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1052
+      "requirementLine": 1085
     },
     {
       "id": "AP-IT-044",
@@ -4814,7 +4827,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -4823,7 +4836,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 1057
+      "requirementLine": 1090
     },
     {
       "id": "AP-IT-045",
@@ -4834,16 +4847,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 186
+        "line": 187
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1062
+      "requirementLine": 1095
     },
     {
       "id": "AP-IT-046",
@@ -4858,12 +4871,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 417
+        "line": 420
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1067
+      "requirementLine": 1100
     },
     {
       "id": "AP-IT-047",
@@ -4874,7 +4887,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -4883,12 +4896,12 @@
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 266
+          "line": 269
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1072
+      "requirementLine": 1105
     },
     {
       "id": "AP-IT-048",
@@ -4899,7 +4912,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "cloudflare/tests/photo-media-d1-r2.integration.test.ts",
@@ -4913,7 +4926,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1077
+      "requirementLine": 1110
     },
     {
       "id": "AP-IT-049",
@@ -4924,21 +4937,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "cloudflare/src/commands.ts",
-        "line": 112
+        "line": 117
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 305
+        "line": 308
       },
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 342
+          "line": 345
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1082
+      "requirementLine": 1115
     },
     {
       "id": "AP-IT-050",
@@ -4949,7 +4962,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -4963,7 +4976,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1087
+      "requirementLine": 1120
     },
     {
       "id": "AP-IT-051",
@@ -4974,7 +4987,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Integration.Tests/ProfileCatalogIntegrationTests.cs",
@@ -4983,7 +4996,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1092
+      "requirementLine": 1125
     },
     {
       "id": "AP-IT-052",
@@ -5003,7 +5016,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1097
+      "requirementLine": 1130
     },
     {
       "id": "AP-IT-053",
@@ -5018,12 +5031,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 150
+        "line": 151
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1102
+      "requirementLine": 1135
     },
     {
       "id": "AP-IT-054",
@@ -5038,12 +5051,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 240
+        "line": 241
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1107
+      "requirementLine": 1140
     },
     {
       "id": "AP-IT-055",
@@ -5054,7 +5067,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -5063,7 +5076,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 1112
+      "requirementLine": 1145
     },
     {
       "id": "AP-IT-056",
@@ -5074,16 +5087,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 106
+        "line": 147
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1117
+      "requirementLine": 1150
     },
     {
       "id": "AP-IT-057",
@@ -5103,7 +5116,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1126
+      "requirementLine": 1159
     },
     {
       "id": "AP-IT-058",
@@ -5123,7 +5136,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1132
+      "requirementLine": 1165
     },
     {
       "id": "AP-IT-059",
@@ -5134,21 +5147,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "cloudflare/src/commands.ts",
-        "line": 112
+        "line": 117
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-        "line": 305
+        "line": 308
       },
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 342
+          "line": 345
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1138
+      "requirementLine": 1171
     },
     {
       "id": "AP-IT-060",
@@ -5159,7 +5172,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -5168,7 +5181,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 1144
+      "requirementLine": 1177
     },
     {
       "id": "AP-IT-061",
@@ -5183,7 +5196,7 @@
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 60
+        "line": 101
       },
       "supportingEvidence": [
         {
@@ -5192,7 +5205,7 @@
         },
         {
           "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-          "line": 63
+          "line": 64
         },
         {
           "path": "backend/tools/DatingHigh.MediaProbe/Program.cs",
@@ -5201,7 +5214,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1150
+      "requirementLine": 1183
     },
     {
       "id": "AP-IT-062",
@@ -5212,11 +5225,11 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
-        "line": 48
+        "line": 89
       },
       "supportingEvidence": [
         {
@@ -5230,7 +5243,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1156
+      "requirementLine": 1189
     },
     {
       "id": "AP-IT-063",
@@ -5245,17 +5258,17 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 278
+        "line": 279
       },
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 240
+          "line": 241
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1162
+      "requirementLine": 1195
     },
     {
       "id": "AP-IT-064",
@@ -5270,12 +5283,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 192
+        "line": 193
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1168
+      "requirementLine": 1201
     },
     {
       "id": "AP-IT-065",
@@ -5286,7 +5299,7 @@
       "scopeStatus": "future-integration",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
@@ -5295,7 +5308,7 @@
       "supportingEvidence": [],
       "gap": "原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。",
       "verificationScope": null,
-      "requirementLine": 1174
+      "requirementLine": 1207
     },
     {
       "id": "AP-IT-066",
@@ -5310,12 +5323,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 351
+        "line": 352
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1184
+      "requirementLine": 1217
     },
     {
       "id": "AP-IT-067",
@@ -5330,12 +5343,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 219
+        "line": 220
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1189
+      "requirementLine": 1222
     },
     {
       "id": "AP-IT-068",
@@ -5346,7 +5359,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-worker-cas.integration.test.ts",
@@ -5355,7 +5368,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1194
+      "requirementLine": 1227
     },
     {
       "id": "AP-IT-069",
@@ -5370,12 +5383,12 @@
       },
       "evidence": {
         "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-        "line": 176
+        "line": 177
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1199
+      "requirementLine": 1232
     },
     {
       "id": "AP-API-001",
@@ -5386,7 +5399,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
@@ -5395,7 +5408,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1229
+      "requirementLine": 1262
     },
     {
       "id": "AP-API-002",
@@ -5406,16 +5419,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 50
+        "line": 55
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1234
+      "requirementLine": 1267
     },
     {
       "id": "AP-API-003",
@@ -5426,16 +5439,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1239
+      "requirementLine": 1272
     },
     {
       "id": "AP-API-004",
@@ -5455,7 +5468,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1244
+      "requirementLine": 1277
     },
     {
       "id": "AP-API-005",
@@ -5470,12 +5483,12 @@
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 50
+        "line": 55
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1249
+      "requirementLine": 1282
     },
     {
       "id": "AP-API-006",
@@ -5490,12 +5503,12 @@
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1254
+      "requirementLine": 1287
     },
     {
       "id": "AP-API-007",
@@ -5506,7 +5519,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
@@ -5515,7 +5528,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1259
+      "requirementLine": 1292
     },
     {
       "id": "AP-API-008",
@@ -5526,16 +5539,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 50
+        "line": 55
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1264
+      "requirementLine": 1297
     },
     {
       "id": "AP-API-009",
@@ -5546,16 +5559,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1269
+      "requirementLine": 1302
     },
     {
       "id": "AP-API-010",
@@ -5566,7 +5579,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/DatingProfileEndpointTests.cs",
@@ -5575,7 +5588,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1274
+      "requirementLine": 1307
     },
     {
       "id": "AP-API-011",
@@ -5586,7 +5599,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/DatingProfileEndpointTests.cs",
@@ -5595,7 +5608,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1279
+      "requirementLine": 1312
     },
     {
       "id": "AP-API-012",
@@ -5606,7 +5619,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/DatingProfileEndpointTests.cs",
@@ -5615,7 +5628,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1284
+      "requirementLine": 1317
     },
     {
       "id": "AP-API-013",
@@ -5626,7 +5639,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PhotoHttpContractTests.cs",
@@ -5640,7 +5653,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1289
+      "requirementLine": 1322
     },
     {
       "id": "AP-API-014",
@@ -5651,7 +5664,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PhotoHttpContractTests.cs",
@@ -5665,7 +5678,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1294
+      "requirementLine": 1327
     },
     {
       "id": "AP-API-015",
@@ -5676,7 +5689,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PhotoHttpContractTests.cs",
@@ -5685,7 +5698,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1299
+      "requirementLine": 1332
     },
     {
       "id": "AP-API-016",
@@ -5696,7 +5709,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PersonalPhotoEndpointTests.cs",
@@ -5705,7 +5718,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1304
+      "requirementLine": 1337
     },
     {
       "id": "AP-API-017",
@@ -5716,16 +5729,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 50
+        "line": 55
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1309
+      "requirementLine": 1342
     },
     {
       "id": "AP-API-018",
@@ -5736,16 +5749,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1314
+      "requirementLine": 1347
     },
     {
       "id": "AP-API-019",
@@ -5765,7 +5778,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1319
+      "requirementLine": 1352
     },
     {
       "id": "AP-API-020",
@@ -5785,12 +5798,12 @@
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
-          "line": 417
+          "line": 420
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1324
+      "requirementLine": 1357
     },
     {
       "id": "AP-API-021",
@@ -5810,7 +5823,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1329
+      "requirementLine": 1362
     },
     {
       "id": "AP-API-022",
@@ -5821,7 +5834,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PhotoHttpContractTests.cs",
@@ -5835,7 +5848,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1334
+      "requirementLine": 1367
     },
     {
       "id": "AP-API-023",
@@ -5846,7 +5859,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PersonalPhotoEndpointTests.cs",
@@ -5855,7 +5868,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1339
+      "requirementLine": 1372
     },
     {
       "id": "AP-API-024",
@@ -5866,7 +5879,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/PersonalPhotoEndpointTests.cs",
@@ -5875,7 +5888,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1344
+      "requirementLine": 1377
     },
     {
       "id": "AP-API-025",
@@ -5895,7 +5908,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1349
+      "requirementLine": 1382
     },
     {
       "id": "AP-API-026",
@@ -5920,7 +5933,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1354
+      "requirementLine": 1387
     },
     {
       "id": "AP-API-027",
@@ -5940,7 +5953,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1359
+      "requirementLine": 1392
     },
     {
       "id": "AP-API-028",
@@ -5969,7 +5982,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1364
+      "requirementLine": 1397
     },
     {
       "id": "AP-API-029",
@@ -5989,7 +6002,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1369
+      "requirementLine": 1402
     },
     {
       "id": "AP-API-030",
@@ -6009,7 +6022,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1374
+      "requirementLine": 1407
     },
     {
       "id": "AP-API-031",
@@ -6029,12 +6042,12 @@
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 122
+          "line": 123
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1379
+      "requirementLine": 1412
     },
     {
       "id": "AP-API-032",
@@ -6054,7 +6067,7 @@
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 192
+          "line": 193
         },
         {
           "path": "backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs",
@@ -6063,7 +6076,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1384
+      "requirementLine": 1417
     },
     {
       "id": "AP-API-033",
@@ -6078,12 +6091,12 @@
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1389
+      "requirementLine": 1422
     },
     {
       "id": "AP-API-034",
@@ -6108,7 +6121,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1394
+      "requirementLine": 1427
     },
     {
       "id": "AP-API-035",
@@ -6133,7 +6146,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1399
+      "requirementLine": 1432
     },
     {
       "id": "AP-API-036",
@@ -6153,7 +6166,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1404
+      "requirementLine": 1437
     },
     {
       "id": "AP-API-037",
@@ -6164,7 +6177,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/CardPreviewEndpointTests.cs",
@@ -6173,7 +6186,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1409
+      "requirementLine": 1442
     },
     {
       "id": "AP-API-038",
@@ -6184,16 +6197,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 50
+        "line": 55
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1414
+      "requirementLine": 1447
     },
     {
       "id": "AP-API-039",
@@ -6204,16 +6217,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/ProfileProjections.cs",
-        "line": 7
+        "line": 8
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/ProfileReadContractTests.cs",
-        "line": 79
+        "line": 84
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1419
+      "requirementLine": 1452
     },
     {
       "id": "AP-API-040",
@@ -6238,7 +6251,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1428
+      "requirementLine": 1461
     },
     {
       "id": "AP-API-041",
@@ -6249,7 +6262,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "backend/src/DatingHigh.Application/DatingProfileService.cs",
-        "line": 152
+        "line": 162
       },
       "evidence": {
         "path": "backend/tests/DatingHigh.Api.Tests/DatingProfileEndpointTests.cs",
@@ -6263,7 +6276,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1434
+      "requirementLine": 1467
     },
     {
       "id": "AP-API-042",
@@ -6283,7 +6296,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1444
+      "requirementLine": 1477
     },
     {
       "id": "AP-API-043",
@@ -6303,12 +6316,12 @@
       "supportingEvidence": [
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 137
+          "line": 138
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1449
+      "requirementLine": 1482
     },
     {
       "id": "AP-API-044",
@@ -6328,7 +6341,7 @@
       "supportingEvidence": [
         {
           "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-          "line": 39
+          "line": 41
         },
         {
           "path": "cloudflare/tests/avatar-worker-cas.integration.test.ts",
@@ -6337,7 +6350,7 @@
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1454
+      "requirementLine": 1487
     },
     {
       "id": "AP-E2E-001",
@@ -6348,16 +6361,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 79
+        "line": 83
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1463
+      "requirementLine": 1496
     },
     {
       "id": "AP-E2E-002",
@@ -6368,21 +6381,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-preferences.mjs",
-        "line": 79
+        "line": 78
       },
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 145
+          "line": 137
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1468
+      "requirementLine": 1501
     },
     {
       "id": "AP-E2E-003",
@@ -6393,7 +6406,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6402,7 +6415,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1473
+      "requirementLine": 1506
     },
     {
       "id": "AP-E2E-004",
@@ -6413,16 +6426,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 27
+        "line": 28
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1478
+      "requirementLine": 1511
     },
     {
       "id": "AP-E2E-005",
@@ -6433,16 +6446,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-preferences.mjs",
-        "line": 87
+        "line": 86
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1483
+      "requirementLine": 1516
     },
     {
       "id": "AP-E2E-006",
@@ -6453,7 +6466,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6462,7 +6475,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1488
+      "requirementLine": 1521
     },
     {
       "id": "AP-E2E-007",
@@ -6473,16 +6486,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 36
+        "line": 37
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1493
+      "requirementLine": 1526
     },
     {
       "id": "AP-E2E-008",
@@ -6493,16 +6506,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-managed.mjs",
-        "line": 57
+        "line": 59
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1498
+      "requirementLine": 1531
     },
     {
       "id": "AP-E2E-009",
@@ -6513,7 +6526,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6522,7 +6535,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1503
+      "requirementLine": 1536
     },
     {
       "id": "AP-E2E-010",
@@ -6533,16 +6546,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 91
+        "line": 96
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1508
+      "requirementLine": 1541
     },
     {
       "id": "AP-E2E-011",
@@ -6553,16 +6566,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-managed.mjs",
-        "line": 57
+        "line": 59
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1513
+      "requirementLine": 1546
     },
     {
       "id": "AP-E2E-012",
@@ -6573,7 +6586,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6582,7 +6595,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1518
+      "requirementLine": 1551
     },
     {
       "id": "AP-E2E-013",
@@ -6593,7 +6606,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
@@ -6602,7 +6615,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1523
+      "requirementLine": 1556
     },
     {
       "id": "AP-E2E-014",
@@ -6613,7 +6626,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-gemini-live.mjs",
@@ -6622,7 +6635,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1528
+      "requirementLine": 1561
     },
     {
       "id": "AP-E2E-015",
@@ -6633,7 +6646,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6642,7 +6655,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1533
+      "requirementLine": 1566
     },
     {
       "id": "AP-E2E-016",
@@ -6653,16 +6666,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-        "line": 39
+        "line": 41
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1538
+      "requirementLine": 1571
     },
     {
       "id": "AP-E2E-017",
@@ -6673,7 +6686,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-controlled.mjs",
@@ -6682,7 +6695,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1543
+      "requirementLine": 1576
     },
     {
       "id": "AP-E2E-018",
@@ -6693,7 +6706,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6702,7 +6715,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1548
+      "requirementLine": 1581
     },
     {
       "id": "AP-E2E-019",
@@ -6713,16 +6726,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
-        "line": 71
+        "line": 72
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1553
+      "requirementLine": 1586
     },
     {
       "id": "AP-E2E-020",
@@ -6733,7 +6746,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-gemini-live.mjs",
@@ -6742,7 +6755,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1558
+      "requirementLine": 1591
     },
     {
       "id": "AP-E2E-021",
@@ -6753,7 +6766,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6762,7 +6775,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1563
+      "requirementLine": 1596
     },
     {
       "id": "AP-E2E-022",
@@ -6773,7 +6786,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-expiry-ui.spec.ts",
@@ -6782,20 +6795,20 @@
       "supportingEvidence": [
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 21
+          "line": 24
         },
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 192
+          "line": 193
         },
         {
           "path": "cloudflare/tests/avatar-attempt-r2.integration.test.ts",
-          "line": 176
+          "line": 177
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1568
+      "requirementLine": 1601
     },
     {
       "id": "AP-E2E-023",
@@ -6806,7 +6819,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-controlled.mjs",
@@ -6815,7 +6828,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1573
+      "requirementLine": 1606
     },
     {
       "id": "AP-E2E-024",
@@ -6826,7 +6839,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6835,7 +6848,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1578
+      "requirementLine": 1611
     },
     {
       "id": "AP-E2E-025",
@@ -6846,16 +6859,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 128
+        "line": 136
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1583
+      "requirementLine": 1616
     },
     {
       "id": "AP-E2E-026",
@@ -6866,16 +6879,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-managed.mjs",
-        "line": 80
+        "line": 82
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1588
+      "requirementLine": 1621
     },
     {
       "id": "AP-E2E-027",
@@ -6886,7 +6899,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6895,7 +6908,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1593
+      "requirementLine": 1626
     },
     {
       "id": "AP-E2E-028",
@@ -6906,16 +6919,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 47
+        "line": 48
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1598
+      "requirementLine": 1631
     },
     {
       "id": "AP-E2E-029",
@@ -6926,16 +6939,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-managed.mjs",
-        "line": 80
+        "line": 82
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1603
+      "requirementLine": 1636
     },
     {
       "id": "AP-E2E-030",
@@ -6946,7 +6959,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -6955,7 +6968,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1608
+      "requirementLine": 1641
     },
     {
       "id": "AP-E2E-031",
@@ -6966,16 +6979,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 149
+        "line": 158
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1613
+      "requirementLine": 1646
     },
     {
       "id": "AP-E2E-032",
@@ -6986,7 +6999,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-privacy.mjs",
@@ -6995,7 +7008,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1618
+      "requirementLine": 1651
     },
     {
       "id": "AP-E2E-033",
@@ -7006,7 +7019,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -7015,7 +7028,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1623
+      "requirementLine": 1656
     },
     {
       "id": "AP-E2E-034",
@@ -7026,16 +7039,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 74
+        "line": 77
       },
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1628
+      "requirementLine": 1661
     },
     {
       "id": "AP-E2E-035",
@@ -7046,21 +7059,21 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-managed.mjs",
-        "line": 80
+        "line": 82
       },
       "supportingEvidence": [
         {
           "path": "tests/e2e/android/avatar-preferences.mjs",
-          "line": 87
+          "line": 86
         }
       ],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1633
+      "requirementLine": 1666
     },
     {
       "id": "AP-E2E-036",
@@ -7071,7 +7084,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -7080,7 +7093,7 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1638
+      "requirementLine": 1671
     },
     {
       "id": "AP-E2E-037",
@@ -7091,7 +7104,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-gemini-live.mjs",
@@ -7100,7 +7113,7 @@
       "supportingEvidence": [
         {
           "path": "tests/e2e/web/avatar-preferences.spec.ts",
-          "line": 115
+          "line": 122
         },
         {
           "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
@@ -7108,12 +7121,12 @@
         },
         {
           "path": "frontend/client/tests/unit/dating-profile-screen.test.tsx",
-          "line": 153
+          "line": 145
         }
       ],
       "gap": null,
       "verificationScope": "依D-052僅驗Web／Android；iOS子斷言暫緩，未宣稱通過",
-      "requirementLine": 1649
+      "requirementLine": 1682
     },
     {
       "id": "AP-E2E-038",
@@ -7124,16 +7137,16 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
-        "line": 20
+        "line": 21
       },
       "supportingEvidence": [
         {
           "path": "tests/e2e/android/avatar-preferences.mjs",
-          "line": 87
+          "line": 86
         },
         {
           "path": "frontend/client/assets/avatars/provenance.json",
@@ -7142,7 +7155,7 @@
       ],
       "gap": null,
       "verificationScope": "依D-052僅驗Web／Android；iOS子斷言暫緩，未宣稱通過",
-      "requirementLine": 1655
+      "requirementLine": 1688
     },
     {
       "id": "AP-E2E-039",
@@ -7153,7 +7166,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-gemini-live.spec.ts",
@@ -7162,7 +7175,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1665
+      "requirementLine": 1698
     },
     {
       "id": "AP-E2E-040",
@@ -7173,7 +7186,7 @@
       "scopeStatus": "in-scope",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/android/avatar-gemini-live.mjs",
@@ -7182,7 +7195,7 @@
       "supportingEvidence": [],
       "gap": null,
       "verificationScope": null,
-      "requirementLine": 1670
+      "requirementLine": 1703
     },
     {
       "id": "AP-E2E-041",
@@ -7193,7 +7206,7 @@
       "scopeStatus": "deferred",
       "implementation": {
         "path": "frontend/client/src/DatingProfileScreen.tsx",
-        "line": 58
+        "line": 49
       },
       "evidence": {
         "path": "tests/e2e/web/avatar-preferences.spec.ts",
@@ -7202,7 +7215,211 @@
       "supportingEvidence": [],
       "gap": "iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。",
       "verificationScope": null,
-      "requirementLine": 1675
+      "requirementLine": 1708
     }
-  ]
+  ],
+  "historicalBaseline": {
+    "date": "2026-11-04",
+    "status": "complete-current-scope",
+    "note": "原275項追溯與本地範圍236項結案保留；不擴推2026-11-05 D-053追加修訂"
+  },
+  "profileCardRevision": {
+    "decision": "D-053",
+    "migration": "0003_profile_gender_card_visibility.sql",
+    "businessTables": 2,
+    "businessColumns": 27,
+    "foundationColumns": 54,
+    "triggers": 0,
+    "scope": [
+      "web",
+      "android"
+    ],
+    "deferred": [
+      "ios"
+    ],
+    "excluded": [
+      "accessibility-specialist-implementation-and-acceptance"
+    ],
+    "cases": [
+      {
+        "id": "AP-PC-001",
+        "implementation": [
+          "cloudflare/migrations/0003_profile_gender_card_visibility.sql",
+          "cloudflare/src/platform.ts"
+        ],
+        "tests": [
+          "cloudflare/tests/avatar-preferences-d1.integration.test.ts"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
+            "line": 572
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-002",
+        "implementation": [
+          "backend/src/DatingHigh.Application/DatingProfileService.cs",
+          "cloudflare/src/commands.ts"
+        ],
+        "tests": [
+          "backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs",
+          "cloudflare/tests/avatar-preferences-d1.integration.test.ts"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
+            "line": 528
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-003",
+        "implementation": [
+          "backend/src/DatingHigh.Application/AvatarService.cs",
+          "cloudflare/src/commands.ts",
+          "frontend/client/src/DatingProfileScreen.tsx"
+        ],
+        "tests": [
+          "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
+          "frontend/client/tests/unit/dating-profile-screen.test.tsx",
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "cloudflare/tests/avatar-preferences-d1.integration.test.ts",
+            "line": 544
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-004",
+        "implementation": [
+          "contracts/profile-fields.json",
+          "backend/src/DatingHigh.Application/ProfileProjections.cs",
+          "frontend/client/src/CardPreviewScreen.tsx"
+        ],
+        "tests": [
+          "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
+          "frontend/client/tests/unit/dating-profile-screen.test.tsx",
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs",
+            "line": 37
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-005",
+        "implementation": [
+          "frontend/client/src/profile-fields.ts",
+          "frontend/client/src/DatingProfileScreen.tsx"
+        ],
+        "tests": [
+          "frontend/client/tests/unit/dating-profile-screen.test.tsx",
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "tests/e2e/web/profile-card-settings.spec.ts",
+            "line": 9
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-006",
+        "implementation": [
+          "frontend/client/src/DatingProfileScreen.tsx",
+          "frontend/client/src/CardPreviewScreen.tsx"
+        ],
+        "tests": [
+          "frontend/client/tests/unit/dating-profile-screen.test.tsx",
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "tests/e2e/web/profile-card-settings.spec.ts",
+            "line": 33
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-007",
+        "implementation": [
+          "frontend/client/src/DatingProfileScreen.tsx",
+          "frontend/client/src/ui.tsx"
+        ],
+        "tests": [
+          "frontend/client/tests/unit/dating-profile-screen.test.tsx",
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "tests/e2e/android/profile-card-settings.mjs",
+            "line": 66
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      },
+      {
+        "id": "AP-PC-008",
+        "implementation": [
+          "frontend/client/app/card-preview.tsx",
+          "frontend/client/src/CardPreviewScreen.tsx"
+        ],
+        "tests": [
+          "tests/e2e/web/profile-card-settings.spec.ts",
+          "tests/e2e/android/profile-card-settings.mjs"
+        ],
+        "status": "verified",
+        "reviewedAt": "2026-11-05",
+        "evidence": [
+          {
+            "path": "tests/e2e/android/profile-card-settings.mjs",
+            "line": 72
+          }
+        ],
+        "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂"
+      }
+    ],
+    "status": "complete-current-scope",
+    "total": 8,
+    "verified": 8,
+    "percent": 100,
+    "reviewedAt": "2026-11-05",
+    "verification": "docs/verification/SPEC-001-AvatarAndPreferences-Verification.md",
+    "limitations": [
+      "iOS deferred; accessibility specialist work excluded",
+      "Android all flow exit0 precedes final editor-metadata and blur-cache shared fixes; latest client and Web reruns cover both",
+      "No production or staging release; no new real Gemini/Google/inbox evidence"
+    ]
+  }
 }

@@ -1,1 +1,3 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><EmbeddedResource Include="../../../contracts/profile-fields.json" LogicalName="DatingHigh.profile-fields.json" /></ItemGroup>
+</Project>

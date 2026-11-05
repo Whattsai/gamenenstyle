@@ -68,17 +68,20 @@ internal sealed class AvatarFixtureState: IAvatarImageGenerator,IDisposable
     {
         var user=await Current();var service=new PersonalPhotosService(platform,Media,new ImageCompressionService());
         for(var n=0;n<count;n++){using var input=new MemoryStream(Picture(n+20));await service.UploadAsync(user,input,"image/jpeg",ct);}
+        // 受控照片fixture明確選用多元性別以滿足舊CAS案例前提；正式應用不推測既有帳號。
+        await platform.Sql("UPDATE user_profiles SET gender=COALESCE(gender,'diverse') WHERE account_id=?",user.AccountId);
         return new JsonObject{["count"]=(await service.ListAsync(user,ct))["photos"]!.AsArray().Count};
     }
     public async Task<JsonNode> AdvanceRevision()
     {
         var user=await Current();var row=(await platform.ExecuteAsync("profile.read",new{accountId=user.AccountId,sessionId=user.SessionId,cv=user.CredentialVersion,accessExpiresAt=user.AccessExpiresAt}))["rows"]![0]!;
+        await platform.Sql("UPDATE user_profiles SET gender='diverse' WHERE account_id=?",user.AccountId);
         return await platform.ExecuteAsync("profile.avatar.builtin",new{accountId=user.AccountId,sessionId=user.SessionId,cv=user.CredentialVersion,accessExpiresAt=user.AccessExpiresAt,expectedRevision=row.Number("revision"),avatarId="female-07"});
     }
     public async Task<JsonNode> Snapshot()
     {
         int count;lock(gate)count=calls;
-        return new JsonObject{["providerCalls"]=count,["profiles"]=(await platform.Sql("SELECT account_id,revision,nickname,occupation,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref FROM user_profiles ORDER BY account_id")).DeepClone(),["assets"]=(await platform.Sql("SELECT asset_id,account_id,kind,status,display_order FROM user_media_assets ORDER BY asset_id")).DeepClone()};
+        return new JsonObject{["providerCalls"]=count,["profiles"]=(await platform.Sql("SELECT account_id,revision,nickname,occupation,gender,romantic_orientation_json,card_visibility_json,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref FROM user_profiles ORDER BY account_id")).DeepClone(),["assets"]=(await platform.Sql("SELECT asset_id,account_id,kind,status,display_order FROM user_media_assets ORDER BY asset_id")).DeepClone()};
     }
     public void Dispose(){lock(gate)RestoreCatalog();bridge.Dispose();}
 

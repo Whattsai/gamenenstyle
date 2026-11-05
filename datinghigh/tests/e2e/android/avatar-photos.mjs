@@ -58,7 +58,7 @@ try{
  await reveal('照片 3 往前移');await tap('照片 3 往前移');await wait('照片順序已更新');console.log('Native photos reordered');
  await reveal('刪除照片 2');await tap('刪除照片 2');await wait('確定刪除這張照片？');await tap('取消');await reveal('個人照片 3');await wait('個人照片 3');
  for(let remaining=3;remaining>0;remaining--){await reveal('刪除照片 1','up');await tap('刪除照片 1');await tap('確認刪除');await wait('照片已刪除');console.log(`Native photo deleted; ${remaining-1} remain`);}
- await wait('尚未上傳照片；仍可直接選擇免費化身。');await tap('關閉');await reveal('返回帳號','up');await tap('返回帳號');await reveal('登出');await tap('登出');await wait('使用 Email 登入');
+ await wait('尚未上傳照片；仍可直接選擇免費化身。');await tap('關閉');await reveal('返回','up');await tap('返回');await reveal('登出');await tap('登出');await wait('使用 Email 登入');
  await waitReady();const logged=await api('/sessions','POST',{email,password,clientPlatform:'android'});assert.equal(logged.status,201);
  try{const saved=await api('/me/photos','GET',undefined,logged.body.tokens.accessToken);assert.equal(saved.status,200);assert.equal(saved.body.photos.length,0);}finally{await api('/session','DELETE',{refreshToken:logged.body.tokens.refreshToken},logged.body.tokens.accessToken);}
  result={status:'passed',executedAt:new Date().toISOString(),environment:`Android API${sdk} x86_64 local emulator`,checks:['native-system-picker-upload-three','native-photo-reorder','delete-cancel-preserves-photo','delete-confirm-all','post-login-empty-photo-list'],limitations:['synthetic image format fixtures; no likeness claim','TalkBack not exercised','AI not exercised']};

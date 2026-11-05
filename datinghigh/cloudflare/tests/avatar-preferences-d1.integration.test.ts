@@ -23,7 +23,7 @@ beforeAll(async () => {
     compatibilityDate: '2026-10-24', d1Databases: { DB: 'avatar-preferences-test' }
   }));
   db = await mf.getD1Database('DB') as unknown as D1Database;
-  for (const migration of ['0001_foundation.sql', '0002_avatar_preferences.sql']) {
+  for (const migration of ['0001_foundation.sql', '0002_avatar_preferences.sql', '0003_profile_gender_card_visibility.sql']) {
     const sql = readFileSync(new URL(`../migrations/${migration}`, import.meta.url), 'utf8');
     await db.batch(sql.split(';').map(s => s.trim()).filter(Boolean).map(s => db.prepare(s)));
   }
@@ -100,6 +100,7 @@ const profileFields = {
   conversationStyle: 'warm', expectedInteractionFrequency: 'weekly',
   relationshipMode: 'friends_first',
   preferredAgeMin: 25, preferredAgeMax: 35,
+  gender:'diverse',romanticOrientation:['male','female'],cardVisibility:{},
   preferredRegionCodes: ['TW-TPE'], sharedInterestWeight: 60
 };
 
@@ -216,6 +217,7 @@ it('AP-D1-PROFILE-003: malformed or unrecognized fields and revoked sessions can
 
 it('AP-D1-AVATAR-001: builtin choice requires stable catalog ID and optimistic revision', async () => {
   await executeCommand(db, 'profile.ensure', { ...owner, profileId: id(151) }, now);
+  await db.prepare("UPDATE user_profiles SET gender='diverse'").run();
   await expect(executeCommand(db, 'profile.avatar.builtin', {
     ...owner, expectedRevision: 1, avatarId: 'male-09'
   }, now)).rejects.toThrow();
@@ -233,6 +235,7 @@ it('AP-D1-AVATAR-001: builtin choice requires stable catalog ID and optimistic r
 
 it('AP-D1-AVATAR-002: generated choice is only own ready undeleted asset at same CAS commit', async () => {
   await executeCommand(db, 'profile.ensure', { ...owner, profileId: id(151) }, now);
+  await db.prepare("UPDATE user_profiles SET gender='diverse'").run();
   await db.prepare('INSERT INTO auth_accounts(account_id,email_normalized,email_verified_at,status,credential_version,created_at,updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)')
     .bind(id(201),'other-avatar@example.com',now,'active',now,now).run();
   for (const [n,account,status,deleted] of [
@@ -263,10 +266,10 @@ it('AP-D1-AVATAR-002: generated choice is only own ready undeleted asset at same
   },now)).rows).toHaveLength(0);
 });
 
-it('AP-D1-SCHEMA-001: schema adds exactly two tables, 24 columns, no SQL trigger', async () => {
+it('AP-D1-SCHEMA-001: schema adds exactly two tables, 27 columns, no SQL trigger', async () => {
   const tables = await rows(`SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'user_%' ORDER BY name`);
   expect(tables.map(t => t.name)).toEqual(['user_media_assets', 'user_profiles']);
-  expect((await rows('PRAGMA table_info(user_profiles)'))).toHaveLength(15);
+  expect((await rows('PRAGMA table_info(user_profiles)'))).toHaveLength(18);
   expect((await rows('PRAGMA table_info(user_media_assets)'))).toHaveLength(9);
   expect(await rows(`SELECT name FROM sqlite_master WHERE type='trigger'`)).toHaveLength(0);
 });
@@ -520,4 +523,63 @@ it('AP-D1-PHOTO-DELETE-002: revoked session, stale revision and unknown ID do no
   },now)).changes[0]).toBe(0);
   expect((await rows(`SELECT status FROM user_media_assets WHERE asset_id='${id(351)}'`))[0].status).toBe('ready');
   expect((await rows('SELECT revision FROM user_profiles'))[0].revision).toBe(1);
+});
+
+it('profile extension has eighteen columns and rejects unset gender avatar selection',async()=>{
+ expect(await rows('PRAGMA table_info(user_profiles)')).toHaveLength(18);
+ await executeCommand(db,'profile.ensure',{...owner,profileId:id(880)},now);
+ expect((await executeCommand(db,'profile.avatar.builtin',{...owner,expectedRevision:1,avatarId:'male-01'},now)).rows).toHaveLength(0);
+});
+
+it.each([
+ {gender:'other'}, {romanticOrientation:['male','male']}, {romanticOrientation:['unknown']},
+ {cardVisibility:{birthDate:true}}, {cardVisibility:{preferredAgeMin:true}},
+ {cardVisibility:{nickname:'true'}}, {cardVisibility:{unknown:true}}
+])('profile extension rejects invalid input without a partial write: %j',async invalid=>{
+ await executeCommand(db,'profile.ensure',{...owner,profileId:id(881)},now);
+ const before=await rows('SELECT * FROM user_profiles');
+ await expect(executeCommand(db,'profile.update',{...owner,expectedRevision:1,...profileFields,...invalid},now)).rejects.toThrow();
+ expect(await rows('SELECT * FROM user_profiles')).toEqual(before);
+});
+it('gender and incompatible avatar clear atomically; stale and revoked writes preserve both',async()=>{
+ await executeCommand(db,'profile.ensure',{...owner,profileId:id(882)},now);
+ const initial=(await executeCommand(db,'profile.read',owner,now)).rows[0] as any;
+ expect(initial.gender).toBeNull();expect(initial.romantic_orientation_json).toBe('[]');expect(initial.card_visibility_json).toBe('{}');
+ await executeCommand(db,'profile.update',{...owner,expectedRevision:1,...profileFields,gender:'male'},now);
+ expect((await executeCommand(db,'profile.avatar.builtin',{...owner,expectedRevision:2,avatarId:'female-01'},now)).rows).toHaveLength(0);
+ await executeCommand(db,'profile.avatar.builtin',{...owner,expectedRevision:2,avatarId:'male-01'},now);
+ const before=await rows('SELECT * FROM user_profiles');
+ expect((await executeCommand(db,'profile.update',{...owner,expectedRevision:2,...profileFields,gender:'female'},now)).rows).toHaveLength(0);
+ expect(await rows('SELECT * FROM user_profiles')).toEqual(before);
+ await executeCommand(db,'profile.update',{...owner,expectedRevision:3,...profileFields,gender:'female'},now);
+ const changed=(await rows('SELECT * FROM user_profiles'))[0];
+ expect(changed).toMatchObject({gender:'female',selected_avatar_type:null,selected_avatar_ref:null,revision:4});
+ await executeCommand(db,'profile.avatar.builtin',{...owner,expectedRevision:4,avatarId:'female-08'},now);
+ await db.prepare('UPDATE auth_sessions SET revoked_at=?').bind(now).run();
+ expect((await executeCommand(db,'profile.update',{...owner,expectedRevision:5,...profileFields,gender:'male'},now)).rows).toHaveLength(0);
+ expect((await rows('SELECT * FROM user_profiles'))[0]).toMatchObject({gender:'female',selected_avatar_ref:'female-08',revision:5});
+});
+it('changing gender retains a ready AI avatar and changing to unset clears a builtin',async()=>{
+ await executeCommand(db,'profile.ensure',{...owner,profileId:id(883)},now);
+ await db.prepare("UPDATE user_profiles SET gender='diverse',selected_avatar_type='builtin',selected_avatar_ref='female-03'").run();
+ await executeCommand(db,'profile.update',{...owner,expectedRevision:1,...profileFields,gender:null,romanticOrientation:[]},now);
+ expect((await rows('SELECT * FROM user_profiles'))[0]).toMatchObject({gender:null,selected_avatar_ref:null});
+ await db.prepare("INSERT INTO user_media_assets(asset_id,account_id,kind,object_key,mime_type,status,created_at) VALUES(?,?,'generated_avatar',?,'image/jpeg','ready',?)").bind(id(884),accountId,`private/${accountId}/avatar/${id(884)}`,now).run();
+ await db.prepare("UPDATE user_profiles SET selected_avatar_type='generated',selected_avatar_ref=?").bind(id(884)).run();
+ await executeCommand(db,'profile.update',{...owner,expectedRevision:2,...profileFields,gender:'male'},now);
+ expect((await rows('SELECT * FROM user_profiles'))[0]).toMatchObject({gender:'male',selected_avatar_type:'generated',selected_avatar_ref:id(884)});
+});
+it('0003 upgrades existing profiles without rewriting historical values or Foundation schema',async()=>{
+ const upgrade=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'upgrade-profile'}}));
+ try{
+  const old=await upgrade.getD1Database('DB');
+  const migrate=async(name:string)=>old.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>old.prepare(s)));
+  await migrate('0001_foundation.sql');await migrate('0002_avatar_preferences.sql');
+  const foundation=await old.prepare("SELECT name,sql FROM sqlite_master WHERE name LIKE 'auth_%' OR name LIKE 'common_%' ORDER BY name").all();
+  await old.prepare("INSERT INTO auth_accounts(account_id,email_normalized,email_verified_at,status,credential_version,created_at,updated_at) VALUES(?,'old@example.test',1,'disabled',1,?,?)").bind(id(999),now,now).run();
+  await old.prepare("INSERT INTO user_profiles(profile_id,account_id,nickname,selected_avatar_type,selected_avatar_ref,created_at,updated_at) VALUES(?,?,'舊資料','builtin','male-01',?,?)").bind(id(998),id(999),now,now).run();
+  await migrate('0003_profile_gender_card_visibility.sql');
+  expect((await old.prepare("SELECT name,sql FROM sqlite_master WHERE name LIKE 'auth_%' OR name LIKE 'common_%' ORDER BY name").all()).results).toEqual(foundation.results);
+  expect(await old.prepare('SELECT nickname,gender,romantic_orientation_json,card_visibility_json,selected_avatar_ref FROM user_profiles').first()).toEqual({nickname:'舊資料',gender:null,romantic_orientation_json:'[]',card_visibility_json:'{}',selected_avatar_ref:'male-01'});
+ }finally{await upgrade.dispose();}
 });

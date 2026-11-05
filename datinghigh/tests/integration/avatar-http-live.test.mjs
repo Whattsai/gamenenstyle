@@ -19,8 +19,26 @@ test('Avatar photo transport: true local Bearer/Cookie, binary limit, CSRF and p
   assert.equal((await json(await request(base+'/me/photos'),200)).photos.length,0);
   const saved=await json(await request(base+'/me/photos','POST',image,{'Content-Type':'image/jpeg'}),201);assert.deepEqual(Object.keys(saved).sort(),['assetId','createdAt','displayOrder','mimeType']);assert.equal(saved.mimeType,'image/jpeg');
   const media=await request(base+'/me/media/'+saved.assetId);assert.equal(media.status,200);assert.match(media.headers.get('Cache-Control')??'',/no-store/);assert.equal(media.headers.get('X-Content-Type-Options'),'nosniff');const bytes=new Uint8Array(await media.arrayBuffer());assert.ok(bytes.length>0&&bytes.length<=200000);
+  const catalog=await json(await request(base+'/profile-catalog'),200);assert.equal(catalog.version,'2026-11-05.v2');
+  const readProfile=()=>request(base+'/me/dating-profile').then(r=>json(r,200));
+  const own=await readProfile();assert.equal(own.gender,null);assert.deepEqual(own.romanticOrientation,[]);assert.deepEqual(own.cardVisibility,{});
+  const form=Object.fromEntries(catalog.fields.filter(field=>field.type!=='photos').map(field=>[field.key,own[field.key]]));
+  Object.assign(form,{nickname:'本地驗證',birthDate:'1995-01-01',gender:'female',romanticOrientation:['male'],cardVisibility:{nickname:false,occupation:false,personalPhotos:false}});
+  const putProfile=revision=>request(base+'/me/dating-profile','PUT',JSON.stringify({...form,expectedRevision:revision}),{'Content-Type':'application/json'});
+  const receipt=await json(await putProfile(own.revision),200),updated=await readProfile();
+  assert.equal(updated.gender,'female');assert.deepEqual(updated.romanticOrientation,['male']);assert.deepEqual(updated.cardVisibility,form.cardVisibility);assert.equal(updated.profileReady,false);
+  const card=await json(await request(base+'/me/card-preview'),200);
+  for(const key of ['nickname','occupation','personalPhotos','gender','romanticOrientation','birthDate','preferredAgeMin'])assert.equal(Object.hasOwn(card,key),false);
+  assert.equal(typeof card.ageBand,'string');
+  const choose=(avatar,revision)=>request(base+'/me/avatar/selection','PUT',JSON.stringify({type:'builtin',builtinAvatarId:avatar,expectedRevision:revision}),{'Content-Type':'application/json'});
+  await json(await choose('male-01',receipt.revision),400,'INVALID_AVATAR_SELECTION');
+  const selected=await json(await choose('female-01',receipt.revision),200);assert.equal((await readProfile()).profileReady,true);
+  form.gender='male';await json(await putProfile(selected.revision),200);
+  const changed=await readProfile();assert.equal(changed.gender,'male');assert.equal(changed.selectedAvatarType,null);assert.equal(changed.selectedAvatarRef,null);assert.equal(changed.profileReady,false);
+  form.nickname='不應寫入';await json(await putProfile(receipt.revision),409,'PROFILE_VERSION_CONFLICT');
+  assert.deepEqual(await readProfile(),changed);
   const publicCommand=await fetch('http://localhost:8787/v1/commands/storage.object.put',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal:AbortSignal.timeout(45000)});assert.equal(publicCommand.status,404);await publicCommand.arrayBuffer();
-  const result={status:'passed',executedAt:new Date().toISOString(),environment:'default local Worker/Linux Container/D1/private R2',checks:['native-bearer-8MiB-rejected','global-16KiB-json-retained','web-cookie-real-login','forged-origin-no-upload','binary-over16KiB-uploaded','safe-201-metadata','private-compressed-R2-read','public-command-rejected'],limitations:['fictional image format fixture','HTTP platform modes do not prove native UI or iOS']};
+  const result={status:'passed',executedAt:new Date().toISOString(),environment:'default local Worker/Linux Container/D1/private R2',checks:['native-bearer-8MiB-rejected','global-16KiB-json-retained','web-cookie-real-login','forged-origin-no-upload','binary-over16KiB-uploaded','safe-201-metadata','private-compressed-R2-read','public-command-rejected','profile-gender-visibility-roundtrip','closed-card-fields-absent','wrong-gender-builtin-rejected','gender-change-clears-builtin','stale-profile-has-no-partial-write'],limitations:['fictional image format fixture','HTTP platform modes do not prove native UI or iOS']};
   const removed=await request(base+'/me/photos/'+saved.assetId,'DELETE','{}',{'Content-Type':'application/json'});assert.equal(removed.status,204);await removed.arrayBuffer();await json(await request(base+'/me/media/'+saved.assetId),404,'PHOTO_NOT_FOUND');assert.equal((await json(await request(base+'/me/photos'),200)).photos.length,0);
   const loggedOut=await request(base+'/session','DELETE','{}',{'Content-Type':'application/json'});assert.equal(loggedOut.status,204);await loggedOut.arrayBuffer();cookie=undefined;fs.writeFileSync('.local/evidence/avatar-http-live.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
  }finally{

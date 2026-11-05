@@ -26,7 +26,7 @@ const publish=(attempt:string,request:number,etag:string,bytes=new Uint8Array([1
 beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'avatar-attempts'},r2Buckets:{FILES:'avatar-attempts'}}));
  env={DB:await mf.getD1Database('DB') as unknown as D1Database,FILES:await mf.getR2Bucket('FILES') as unknown as R2Bucket,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0001_foundation.sql'};
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql']){
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql']){
   const sql=readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8');
   await env.DB.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>env.DB.prepare(s)));
  }
@@ -38,6 +38,7 @@ beforeEach(async()=>{
  await env.DB.prepare("INSERT INTO auth_accounts VALUES(?,?,?,NULL,'active',1,?,?)").bind(auth.accountId,'anonymous@example.test',now,now,now).run();
  await env.DB.prepare("INSERT INTO auth_sessions VALUES(?,?,'android',1,0,?,?,?,NULL,NULL)").bind(auth.sessionId,auth.accountId,now,now+2592000000,now+604800000).run();
  await executeCommand(env.DB,'profile.ensure',{...auth,profileId:id(3)},now);
+ await env.DB.prepare("UPDATE user_profiles SET gender='diverse'").run();
  for(const assetId of [id(10),id(11)]){
   await executeCommand(env.DB,'profile.photo.reserve',{...auth,assetId,objectKey:`private/${auth.accountId}/photos/${assetId}`,mimeType:'image/jpeg'},now);
   await executeCommand(env.DB,'profile.photo.ready',{...auth,assetId},now);

@@ -35,7 +35,7 @@ test('AP actual Web Gemini one candidate, cancel and explicit adoption',async({p
  await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
  for(let n=0;n<2;n++){await page.getByRole('button',{name:'刪除照片 1',exact:true}).click();await page.getByRole('button',{name:'確認刪除',exact:true}).click();await expect(page.getByText('照片已刪除',{exact:true})).toBeVisible();}
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await page.getByRole('button',{name:'返回',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP actual Web four Gemini candidates, two-tab race, replay and adopt candidate two',async({page,context})=>{
@@ -81,5 +81,5 @@ test('AP actual Web four Gemini candidates, two-tab race, replay and adopt candi
  const formal=await winner.request.get(`http://localhost:8787/api/v1/me/media/${saved.selectedAvatarRef}`,{headers:webHeaders});expect(formal.status()).toBe(200);expect(createHash('sha256').update(await formal.body()).digest('hex')).toBe(digests[1]);
  for(let n=0;n<2;n++){await winner.getByRole('button',{name:'刪除照片 1',exact:true}).click();await winner.getByRole('button',{name:'確認刪除',exact:true}).click();await expect(winner.getByText('照片已刪除',{exact:true})).toBeVisible();}
  await winner.getByRole('button',{name:'關閉',exact:true}).click();
- await loser.close();await winner.getByRole('button',{name:'返回帳號',exact:true}).click();await winner.getByRole('button',{name:'登出',exact:true}).click();
+ await loser.close();await winner.getByRole('button',{name:'返回',exact:true}).click();await winner.getByRole('button',{name:'登出',exact:true}).click();
 });

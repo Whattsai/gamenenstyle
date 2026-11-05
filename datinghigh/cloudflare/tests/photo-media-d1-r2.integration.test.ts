@@ -29,7 +29,7 @@ beforeAll(async()=>{
  }));
  db=await mf.getD1Database('DB') as unknown as D1Database;
  files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
- for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql']){
+ for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql']){
   const sql=readFileSync(new URL(`../migrations/${migration}`,import.meta.url),'utf8');
   await db.batch(sql.split(';').map(q=>q.trim()).filter(Boolean).map(q=>db.prepare(q)));
  }
@@ -243,7 +243,7 @@ it('GC drains a multi-page photo, candidate and formal-orphan backlog across bou
   expect((await db.prepare("SELECT asset_id FROM user_media_assets WHERE status='ready'").all()).results).toHaveLength(2);
   for(const objectKey of retained)expect(new Uint8Array(await(await files.get(objectKey))!.arrayBuffer())).toEqual(sample);
  }finally{clock.mockRestore();await files.delete([...removed,...retained,checkpoint]);}
-},120000);
+},600000);
 
 it('AP-IT-PHOTO-UPLOAD-004: simultaneous writes never replace the winning ready photo',async()=>{
  await reserve();

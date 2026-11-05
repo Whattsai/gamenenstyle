@@ -99,10 +99,27 @@ public sealed class AvatarApplicationTests
         await f.Service.SelectAsync(User,new JsonObject{["type"]="generated",["attemptId"]=f.Attempt,["index"]=2L,["expectedRevision"]=1L});
         Assert.Equal(1,f.Selections);Assert.Equal(1,f.ProviderCalls);Assert.Equal(2,f.CandidateCount);
     }
+    [Theory]
+    [InlineData(null,"male-01")]
+    [InlineData("male","female-01")]
+    [InlineData("female","male-08")]
+    public async Task BuiltinSelection_RequiresCompatibleSavedGenderBeforeAttemptingWrite(string? gender,string avatar)
+    {
+        var f=new Fixture{Gender=gender};
+        var error=await Assert.ThrowsAsync<DomainException>(()=>f.Service.SelectAsync(User,new JsonObject{["type"]="builtin",["builtinAvatarId"]=avatar,["expectedRevision"]=1L}));
+        Assert.Equal("INVALID_AVATAR_SELECTION",error.Code);Assert.Equal(400,error.Status);Assert.Equal(0,f.BuiltinWrites);Assert.Equal(0,f.ProviderCalls);
+    }
+    [Fact]
+    public async Task BuiltinSelection_RevokedFamilyCannotReachGenderOrAvatarWrite()
+    {
+        var f=new Fixture{Revoked=true};
+        Assert.Equal(401,(await Assert.ThrowsAsync<DomainException>(()=>f.Service.SelectAsync(User,new JsonObject{["type"]="builtin",["builtinAvatarId"]="male-01",["expectedRevision"]=1L}))).Status);
+        Assert.Equal(0,f.BuiltinWrites);
+    }
     private sealed class Fixture:IPlatformClient,IPrivateMediaStore,IAvatarCandidateStore,IAvatarImageGenerator,IRateLimiter
     {
         public bool Replay,BeginFailure,Unknown,RateLimited,PublishFailure,OwnSavedAvatar,DenySavedSelection,Revoked,NoImage;
-        public int CandidateCount;
+        public int CandidateCount,BuiltinWrites;public string? Gender="diverse";
         public int QuotaCalls,PhotoReads,ProviderCalls,PublishCalls,Selections;
         public JsonNode? Failure,Selection;
         public string Attempt=EntityId.New();
@@ -110,6 +127,8 @@ public sealed class AvatarApplicationTests
         public AvatarService Service=>new(this,this,this,this,this);
         private JsonObject Result()=>new(){["attemptId"]=Attempt,["index"]=1L,["producedCount"]=1L,["expiresAt"]=long.MaxValue};
         public Task<JsonNode> ExecuteAsync(string command,object payload,CancellationToken ct=default){
+            if(command=="profile.read")return Task.FromResult<JsonNode>(new JsonObject{["rows"]=Revoked?new JsonArray():new JsonArray(new JsonObject{["gender"]=Gender,["revision"]=1L})});
+            if(command=="profile.avatar.builtin"){BuiltinWrites++;return Task.FromResult<JsonNode>(new JsonObject{["rows"]=new JsonArray(new JsonObject{["revision"]=2L})});}
             if(command=="profile.avatar.generated")return Task.FromResult<JsonNode>(new JsonObject{["rows"]=DenySavedSelection?new JsonArray():new JsonArray(new JsonObject{["revision"]=2L})});
             if(command=="session.validate")return Task.FromResult<JsonNode>(new JsonObject{["rows"]=Revoked?new JsonArray():new JsonArray(new JsonObject{["account_id"]=User.AccountId})});
             if(command=="profile.avatar.list"){SavedListReads++;return Task.FromResult<JsonNode>(new JsonObject{["rows"]=OwnSavedAvatar?new JsonArray(new JsonObject{["asset_id"]=Saved}):new JsonArray()});}

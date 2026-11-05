@@ -1,5 +1,10 @@
 # 相依關係地圖
 
+## 2026-11-05 共用契約與建置
+
+Domain csproj嵌入根`contracts/profile-fields.json`，Worker import同檔，前端透過既有API目錄讀取；未增runtime套件或外部服務。backend Dockerfile改以DatingHigh根目錄為context，COPY backend與contracts，根.dockerignore只允許兩者並排除bin／obj／測試結果；Wrangler local／staging及restore wrapper同步image_build_context。staging未部署。
+
+
 本文件根據根與兩個模組的 `package.json`、`global.json`、`backend/**/*.csproj`、`Program.cs`、Wrangler／Expo／Docker 設定整理。版本代表目前 repo 設定，不宣稱為上游最新版本；解析後版本以各 lockfile 為準。
 
 ## 專案與套件

@@ -5,9 +5,11 @@ public sealed record ProfileOption(string Id,string Label,string? Category=null,
 /// <summary>興趣五大類及生活／配對選項；代碼停用仍保留相同語意供舊資料回讀。</summary>
 public static class ProfileCatalog
 {
-    public const string Version="2026-11-03.v1";
+    public const string Version="2026-11-05.v2";
     private static ProfileOption[] Options(params (string Id,string Label)[] values)=>values.Select(v=>new ProfileOption(v.Id,v.Label)).ToArray();
     public static readonly IReadOnlyDictionary<string,ProfileOption[]> Groups=new Dictionary<string,ProfileOption[]>{
+        ["gender"]=Options(("male","男"),("female","女"),("diverse","多元")),
+        ["romanticOrientation"]=Options(("male","男"),("female","女"),("diverse","多元")),
         ["traitTagIds"]=Options(("warm","溫暖"),("curious","好奇"),("calm","沉穩"),("humorous","幽默"),("thoughtful","體貼"),("creative","有創意"),("outgoing","外向"),("quiet","慢熟")),
         ["interestTagIds"]=[new("handcraft","手作","culture"),new("art","藝術展覽","culture"),new("reading","閱讀","culture"),new("hiking","健行","outdoor"),new("camping","露營","outdoor"),new("travel","旅行","outdoor"),new("coffee","咖啡","food"),new("cooking","料理","food"),new("foodie","美食","food"),new("film","電影","screen"),new("anime","動漫","screen"),new("drama","影集","screen"),new("puzzle","解謎","psychology"),new("psychology","心理測驗","psychology")],
         ["topicTagIds"]=Options(("puzzle_chat","解謎話題"),("creative_chat","創作分享"),("travel_chat","旅行故事"),("food_chat","美食交流"),("film_chat","影劇討論"),("daily_chat","生活日常")),

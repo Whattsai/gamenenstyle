@@ -30,10 +30,10 @@ Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Go
 
 | 名稱 | 種類 | 用途 |
 |---|---|---|
-| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0002_avatar_preferences.sql；ready查migration及八表欄位；不轉入.NET。staging 變更未代表已部署 |
+| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0003_profile_gender_card_visibility.sql；ready查migration及八表欄位；不轉入.NET。staging 變更未代表已部署 |
 | EMAIL_FROM | 一般設定，cloud必要 | 已完成sender domain驗證的寄件地址；不以任意地址替代 |
 | EMAIL | Email sender binding，cloud必要 | 平台寄信用；目前staging設定尚缺 |
-| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表24欄及migration metadata；不能換其他專案DB |
+| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表27欄及migration metadata；不能換其他專案DB |
 | FILES | 私人R2 binding | owner物件與固定probe；非公開bucket |
 | API | Durable Object／Container binding | ApiContainer生命週期及api-v1路由 |
 | ASSETS | Wrangler assets binding | local為frontend/client/dist；staging為.local/staging-web |

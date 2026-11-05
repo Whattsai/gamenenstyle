@@ -65,7 +65,7 @@ public sealed class ProfileCatalogIntegrationTests
         expectedRevision=revision,nickname="星河旅人",bio,occupation="工程師",birthDate="1995-01-01",regionCode="TW-TPE",
         traitTagIds=new[]{"warm"},interestTagIds=new[]{"puzzle"},topicTagIds=new[]{"creative_chat"},valueTagIds=new[]{"creativity"},
         weekendPreference="explore",sleepSchedule="night_owl",conversationStyle="warm",expectedInteractionFrequency="weekly",relationshipMode="friends_first",
-        preferredAgeMin=25,preferredAgeMax=35,preferredRegionCodes=new[]{"TW-TPE"},sharedInterestWeight=60
+        preferredAgeMin=25,preferredAgeMax=35,preferredRegionCodes=new[]{"TW-TPE"},sharedInterestWeight=60, gender="diverse",romanticOrientation=new[]{"male","female"},cardVisibility=new Dictionary<string,bool>()
     }),p.Clock);
 
     [Fact,Trait("Case","AP-IT-009")]

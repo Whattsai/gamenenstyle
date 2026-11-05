@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import profileFields from '../../contracts/profile-fields.json';
+const gender=z.enum(['male','female','diverse']);
+const shareable=new Set(profileFields.filter(f=>f.shareable).map(f=>f.cardKey));
+const visibility=z.record(z.string(),z.boolean()).refine(v=>Object.keys(v).every(k=>shareable.has(k)));
 
 // 僅容器 outbound handler 可達；所有值都由固定 prepared statement 綁定。
 const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
@@ -21,6 +25,7 @@ const scalarText=(min:number,max:number)=>z.string().refine(s=>{
 });
 const profileUpdate=z.strictObject({
  ...auth,expectedRevision:z.number().int().positive(),
+ gender:gender.nullable(),romanticOrientation:z.array(gender).max(3).refine(v=>new Set(v).size===v.length),cardVisibility:visibility,
  nickname:scalarText(2,12).transform(s=>s.trim()).pipe(scalarText(2,12)),
  bio:scalarText(0,40),
  occupation:scalarText(1,60).transform(s=>s.trim()).pipe(scalarText(1,60)).nullable(),
@@ -149,7 +154,7 @@ export function planCommand(command:string,payload:unknown,now:number):Statement
    SELECT ?,?,?,?,? WHERE EXISTS(${activeSession}) AND NOT EXISTS
    (SELECT 1 FROM user_profiles WHERE account_id=?) RETURNING profile_id,revision`,
    p.profileId,p.accountId,defaultPreferences,now,now,...authorized(p,now),p.accountId)];
- case 'profile.read':return [stmt(`SELECT profile_id,nickname,bio,occupation,birth_date,region_code,
+ case 'profile.read':return [stmt(`SELECT profile_id,nickname,bio,occupation,birth_date,region_code,gender,romantic_orientation_json,card_visibility_json,
    traits_json,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref,
    revision,created_at,updated_at,EXISTS(SELECT 1 FROM user_media_assets m WHERE m.asset_id=user_profiles.selected_avatar_ref
     AND m.account_id=user_profiles.account_id AND m.kind='generated_avatar' AND m.status='ready' AND m.deleted_at IS NULL) AS selected_avatar_ready
@@ -163,10 +168,14 @@ export function planCommand(command:string,payload:unknown,now:number):Statement
      relationshipMode:p.relationshipMode,preferredAgeMin:p.preferredAgeMin,preferredAgeMax:p.preferredAgeMax,
      preferredRegionCodes:canonical(p.preferredRegionCodes),sharedInterestWeight:p.sharedInterestWeight});
    return [stmt(`UPDATE user_profiles SET nickname=?,bio=?,occupation=?,birth_date=?,region_code=?,
-       traits_json=?,interests_json=?,preferences_json=?,revision=revision+1,updated_at=?
+       traits_json=?,interests_json=?,preferences_json=?,gender=?,romantic_orientation_json=?,card_visibility_json=?,
+       selected_avatar_type=CASE WHEN selected_avatar_type='builtin' AND NOT (?='diverse' OR (?='male' AND selected_avatar_ref LIKE 'male-%') OR (?='female' AND selected_avatar_ref LIKE 'female-%')) THEN NULL WHEN selected_avatar_type='builtin' AND ? IS NULL THEN NULL ELSE selected_avatar_type END,
+       selected_avatar_ref=CASE WHEN selected_avatar_type='builtin' AND NOT (?='diverse' OR (?='male' AND selected_avatar_ref LIKE 'male-%') OR (?='female' AND selected_avatar_ref LIKE 'female-%')) THEN NULL WHEN selected_avatar_type='builtin' AND ? IS NULL THEN NULL ELSE selected_avatar_ref END,
+       revision=revision+1,updated_at=?
        WHERE account_id=? AND revision=? AND EXISTS(${activeSession}) RETURNING profile_id,revision`,
       p.nickname,p.bio,p.occupation,p.birthDate,p.regionCode,JSON.stringify(canonical(p.traitTagIds)),
-      interests,prefs,now,p.accountId,p.expectedRevision,...authorized(p,now))];
+      interests,prefs,p.gender,JSON.stringify(canonical(p.romanticOrientation)),JSON.stringify(p.cardVisibility),
+      p.gender,p.gender,p.gender,p.gender,p.gender,p.gender,p.gender,p.gender,now,p.accountId,p.expectedRevision,...authorized(p,now))];
  }
  case 'profile.avatar.list':return [stmt(`SELECT asset_id,mime_type,created_at FROM user_media_assets
    WHERE account_id=? AND kind='generated_avatar' AND status='ready' AND deleted_at IS NULL
@@ -174,8 +183,9 @@ export function planCommand(command:string,payload:unknown,now:number):Statement
  case 'profile.avatar.builtin':return [stmt(`UPDATE user_profiles
    SET selected_avatar_type='builtin',selected_avatar_ref=?,revision=revision+1,updated_at=?
    WHERE account_id=? AND revision=? AND EXISTS(${activeSession})
+   AND (gender='diverse' OR (gender='male' AND ? LIKE 'male-%') OR (gender='female' AND ? LIKE 'female-%'))
    RETURNING profile_id,revision,selected_avatar_type,selected_avatar_ref`,
-   p.avatarId,now,p.accountId,p.expectedRevision,...authorized(p,now))];
+   p.avatarId,now,p.accountId,p.expectedRevision,...authorized(p,now),p.avatarId,p.avatarId)];
  case 'profile.avatar.generated':return [stmt(`UPDATE user_profiles
    SET selected_avatar_type='generated',selected_avatar_ref=?,revision=revision+1,updated_at=?
    WHERE account_id=? AND revision=? AND EXISTS(${activeSession})

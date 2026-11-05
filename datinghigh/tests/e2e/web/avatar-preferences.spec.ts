@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-import {register,password} from './support';
+import {register,password,prepareBuiltinGender,returnFromProfile} from './support';
 import path from 'node:path';
 import {readFileSync} from 'node:fs';
 
@@ -13,7 +13,8 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  await page.getByLabel('一句自我介紹',{exact:true}).fill('喜歡手作與散步');
  await page.getByLabel('工作／職業',{exact:true}).fill('工程師');
  await page.getByLabel('生日',{exact:true}).fill('1995-01-01');
- await page.getByRole('button',{name:'儲存個人資料',exact:true}).click();
+ await page.getByRole('checkbox',{name:'生理性別：多元',exact:true}).click();
+ await page.getByRole('button',{name:'儲存',exact:true}).click();
  await expect(page.getByText('個人資料已儲存',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();
  await expect(page.getByRole('button',{name:/選用 (male|female)-0[1-8]/})).toHaveCount(16);
@@ -46,6 +47,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  await expect(page.getByText('這是你自己的預覽，尚未授權其他玩家查看；未來須在有效互動中由雙方同意。',{exact:true})).toBeVisible();
  await expect(page.getByRole('img',{name:'名片照片 1',exact:true})).toBeVisible();
  await expect.poll(()=>page.getByRole('img',{name:'名片照片 1',exact:true}).evaluate(element=>(element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+ await page.getByRole('button',{name:'返回',exact:true}).click();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
  await page.getByRole('button',{name:'刪除照片 1',exact:true}).click();
  await expect(page.getByText('確定刪除這張照片？',{exact:true})).toBeVisible();
@@ -59,7 +61,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  const preview=page.waitForResponse(r=>r.url().endsWith('/api/v1/me/card-preview'));
  await page.getByRole('button',{name:'預覽同意後的名片'}).click();
  const shared=await (await preview).json();expect(shared.occupation).toBe('工程師');
- expect(shared.birthDate).toBeUndefined();expect(shared.preferredAgeMin).toBeUndefined();expect(shared.email).toBeUndefined();
+ expect(shared.birthDate).toBeUndefined();expect(shared.preferredAgeMin).toBeUndefined();expect(shared.email).toBeUndefined();await page.getByRole('button',{name:'返回',exact:true}).click();
  await page.reload();await expect(page.getByLabel('暱稱',{exact:true})).toHaveValue('星河旅人',{timeout:30000});
  await page.setViewportSize({width:360,height:800});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
@@ -67,7 +69,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  const again=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片'}).click();await(await again).setFiles(path.resolve('frontend/client/assets/avatars/female-08.jpg'));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible();
  const before=await(await page.request.get('http://localhost:8787/api/v1/me/dating-profile',{headers:{'X-DatingHigh-Client':'web'}})).json();
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號'}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
  await page.getByRole('button',{name:'使用 Email 登入',exact:true}).click();await page.getByLabel('Email',{exact:true}).fill(email);await page.getByLabel('密碼',{exact:true}).fill(password);await page.getByRole('button',{name:'登入',exact:true}).click();await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();
  await expect(page.getByLabel('暱稱',{exact:true})).toHaveValue('星河旅人');await expect(page.getByLabel('工作／職業',{exact:true})).toHaveValue('工程師');
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await expect(page.getByText('目前選用 · female-05',{exact:true}).filter({visible:true}).first()).toBeVisible();
@@ -75,7 +77,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  const reread=await(await page.request.get('http://localhost:8787/api/v1/me/dating-profile',{headers:{'X-DatingHigh-Client':'web'}})).json();expect(reread.personalPhotos).toEqual(before.personalPhotos);expect(reread.revision).toBe(before.revision);expect(reread.selectedAvatarRef).toBe('female-05');
  await page.getByRole('button',{name:'刪除照片 1',exact:true}).click();await page.getByRole('button',{name:'確認刪除',exact:true}).click();await expect(page.getByText('照片已刪除',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號'}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP Web empty photo picker cancellation keeps notice and never uploads',async({page})=>{
@@ -88,11 +90,11 @@ test('AP Web empty photo picker cancellation keeps notice and never uploads',asy
  await expect(page.getByRole('button',{name:'新增個人照片',exact:true})).toBeEnabled();await expect(page.getByText(empty,{exact:true})).toBeVisible();
  await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toHaveCount(0);expect(uploads).toBe(0);
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP Web three photos reorder, stale revision and delete confirmation preserve current list',async({page})=>{
- await register(page,`ap-order-web-${Date.now()}@example.com`);await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();
+ await register(page,`ap-order-web-${Date.now()}@example.com`);await prepareBuiltinGender(page);await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
  for(const n of ['01','02','03']){const picker=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片',exact:true}).click();await(await picker).setFiles(path.resolve(`frontend/client/assets/avatars/female-${n}.jpg`));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible({timeout:60000});}
  const base='http://localhost:8787/api/v1',headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'};
@@ -106,7 +108,7 @@ test('AP Web three photos reorder, stale revision and delete confirmation preser
  expect((await profile()).personalPhotos.map((p:{assetId:string})=>p.assetId)).toEqual([ids[0],ids[2],ids[1]]);
  await expect(page.getByRole('img',{name:'個人照片 2',exact:true})).toHaveAttribute('src',new RegExp(ids[2]));
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'重新整理目前資料',exact:true}).click();
+ await page.reload();await expect(page.getByLabel('暱稱',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await expect(page.getByText('目前選用 · male-02',{exact:true})).toBeVisible();
  await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
  await page.getByRole('button',{name:'刪除照片 2',exact:true}).click();await page.getByRole('button',{name:'取消',exact:true}).click();expect((await profile()).personalPhotos).toHaveLength(3);
@@ -114,7 +116,7 @@ test('AP Web three photos reorder, stale revision and delete confirmation preser
  expect((await profile()).personalPhotos.map((p:{assetId:string})=>p.assetId)).toEqual([ids[0],ids[1]]);
  for(let n=0;n<2;n++){await page.getByRole('button',{name:'刪除照片 1',exact:true}).click();await page.getByRole('button',{name:'確認刪除',exact:true}).click();await expect(page.getByText('照片已刪除',{exact:true})).toBeVisible();}
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP Web AI entry is read-only until explicit generation and rejects anonymous card guessing',async({page})=>{
@@ -128,28 +130,29 @@ test('AP Web AI entry is read-only until explicit generation and rejects anonymo
  const response=await page.request.get('http://localhost:8787/api/v1/users/guessed/card',{headers:{'X-DatingHigh-Client':'web'}});
  expect(response.status()).toBe(404);
  await page.getByRole('button',{name:'關閉',exact:true}).click();
- await page.getByRole('button',{name:'返回帳號'}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP Web profile gives specific birthday and paired-age feedback, then saves a blank occupation',async({page})=>{
  await register(page,`ap-validation-${Date.now()}@example.com`);await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();
  await page.getByLabel('暱稱',{exact:true}).fill('星河旅人');let writes=0;page.on('request',r=>{if(r.method()==='PUT'&&r.url().endsWith('/me/dating-profile'))writes++;});
- await page.getByLabel('生日',{exact:true}).fill('2015-01-01');await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();
+ await page.getByLabel('生日',{exact:true}).fill('2015-01-01');await page.getByRole('button',{name:'儲存',exact:true}).click();
  await expect(page.getByText('需年滿 18 歲才能完成個人資料，請確認生日',{exact:true})).toBeVisible();expect(writes).toBe(0);
- await page.getByLabel('生日',{exact:true}).fill('2026-02-30');await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();
+ await page.getByLabel('生日',{exact:true}).fill('2026-02-30');await page.getByRole('button',{name:'儲存',exact:true}).click();
  await expect(page.getByText('生日請填寫有效日期（YYYY-MM-DD），且不可晚於今天',{exact:true})).toBeVisible();expect(writes).toBe(0);
- await page.getByLabel('生日',{exact:true}).fill('1995-01-01');await page.getByLabel('偏好最小年齡',{exact:true}).fill('25');
- await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();await expect(page.getByText('年齡偏好的最小與最大值請一起填寫，或一起留空',{exact:true})).toBeVisible();expect(writes).toBe(0);
- await page.getByLabel('偏好最大年齡',{exact:true}).fill('24');await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();
+ await page.getByLabel('生日',{exact:true}).fill('1995-01-01');
+ await page.getByRole('checkbox',{name:'生理性別：多元',exact:true}).click();await page.getByLabel('偏好最小年齡',{exact:true}).fill('25');
+ await page.getByRole('button',{name:'儲存',exact:true}).click();await expect(page.getByText('年齡偏好的最小與最大值請一起填寫，或一起留空',{exact:true})).toBeVisible();expect(writes).toBe(0);
+ await page.getByLabel('偏好最大年齡',{exact:true}).fill('24');await page.getByRole('button',{name:'儲存',exact:true}).click();
  await expect(page.getByText('年齡偏好須為 18 至 120 歲，且最小不大於最大',{exact:true})).toBeVisible();expect(writes).toBe(0);
  await page.getByLabel('偏好最大年齡',{exact:true}).fill('35');await page.getByLabel('工作／職業',{exact:true}).fill('   ');
- await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();await expect(page.getByText('個人資料已儲存',{exact:true})).toBeVisible();expect(writes).toBe(1);
+ await page.getByRole('button',{name:'儲存',exact:true}).click();await expect(page.getByText('個人資料已儲存',{exact:true})).toBeVisible();expect(writes).toBe(1);
  const saved=await(await page.request.get('http://localhost:8787/api/v1/me/dating-profile',{headers:{'X-DatingHigh-Client':'web'}})).json();expect(saved.occupation).toBeNull();expect(saved.preferredAgeMin).toBe(25);expect(saved.preferredAgeMax).toBe(35);expect(saved.revision).toBe(2);
  await page.route('**/api/v1/me/dating-profile',async route=>{if(route.request().method()==='PUT')await route.fulfill({status:400,contentType:'application/json',json:{code:'INVALID_PROFILE'}});else await route.continue();});
- await page.getByRole('checkbox',{name:'解謎',exact:true}).click();await page.getByRole('button',{name:'儲存目前修改',exact:true}).click();await expect(page.getByText('請確認生日、文字長度、標籤與配對條件',{exact:true})).toBeVisible();await expect(page.getByLabel('偏好最小年齡',{exact:true})).toHaveValue('25');
+ await page.getByRole('checkbox',{name:'解謎',exact:true}).click();await page.getByRole('button',{name:'儲存',exact:true}).click();await expect(page.getByText('請確認生日、文字長度、標籤與配對條件',{exact:true})).toBeVisible();await expect(page.getByLabel('偏好最小年齡',{exact:true})).toHaveValue('25');
  await page.unroute('**/api/v1/me/dating-profile');const unchanged=await(await page.request.get('http://localhost:8787/api/v1/me/dating-profile',{headers:{'X-DatingHigh-Client':'web'}})).json();expect(unchanged.revision).toBe(2);expect(unchanged.interestTagIds).toEqual(saved.interestTagIds);
 
- await page.getByRole('button',{name:'返回帳號',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 test('AP Web no consent exposes no other-player photo entry and rejects guessed own-media routes',async({page,browser})=>{
@@ -165,6 +168,6 @@ test('AP Web no consent exposes no other-player photo entry and rejects guessed 
   expect((await b.request.get(`${base}/users/${created.account.accountId}/card`,{headers})).status()).toBe(404);
   expect((await page.request.get(`${base}/me/media/${asset}`,{headers})).status()).toBe(200);
   await b.getByRole('button',{name:'關閉',exact:true}).click();
-  await b.getByRole('button',{name:'返回帳號'}).click();await b.getByRole('button',{name:'登出',exact:true}).click();
+  await returnFromProfile(b);await b.getByRole('button',{name:'登出',exact:true}).click();
  }finally{await other.close();await page.request.delete(`${base}/me/photos/${asset}`,{headers,data:{}});await page.getByRole('button',{name:'登出',exact:true}).click();}
 });

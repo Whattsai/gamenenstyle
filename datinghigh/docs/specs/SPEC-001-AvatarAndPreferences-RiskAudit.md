@@ -1,5 +1,22 @@
 # SPEC-001-AvatarAndPreferences — 實作前風險與缺漏稽核
 
+## 2026-11-05 D-053 追加風險與處理
+
+此修訂已由使用者計畫確認，不重新索取規劃確認。既有RA-01～14屬原範圍與歷史證據，仍有效；本節覆蓋新增欄位及頁面風險。
+
+| ID | 風險 | 已採設計與驗證位置 |
+|---|---|---|
+| PC-R01 | 舊帳號被推測性別，或schema升級遺失資料 | 0003僅ALTER三欄，NULL／[]／{}；真Miniflare升級保留既有列及Foundation schema測試 |
+| PC-R02 | 性別先保存而錯誤角色仍可用，或並行清除較新的選擇 | 同一固定UPDATE及revision／activeSession條件；真D1驗失敗不部分寫入、撤銷與衝突 |
+| PC-R03 | 分享關閉只在UI隱藏，標題或照片仍洩露 | CurrentCardFields依集中定義省略關閉欄位，顯示元件只列實際回傳欄位；Web觀測沒有照片請求 |
+| PC-R04 | 新欄位隨意成為預設公開 | 共用ProfileField的defaultVisible缺值為false；伺服器／Worker白名單；未來欄位測試 |
+| PC-R05 | 預覽前儲存不明卻導頁、重試或丟草稿 | 儲存成功且最新讀取完成才導頁；409／uncertain／讀取失敗不導頁不自動重送；client測試 |
+| PC-R06 | 下拉、返回或照片操作丟失未儲存設定 | 草稿semantic snapshot涵蓋有效visibility，照片刷新保留草稿與衝突；取消／確認的Web與Android流程 |
+| PC-R07 | 共用JSON未進容器或build context帶入秘密 | Domain embedded resource連結根contracts；Docker根context僅允許backend／contracts，排除bin／obj；local wrapper同步context |
+
+本次PC-R01～07處置已實作並依AP-PC-001～008完成覆核；Web2/2、Android完整流程exit0、真D1及default local bridge均有證據。精確重驗邊界見[Verification同日章節](../verification/SPEC-001-AvatarAndPreferences-Verification.md#2026-11-05-d-053-個人資料化身獨立名片修訂)。下方2026-11-02的0/275與Ready狀態僅為歷史規劃階段。
+
+
 > **最後修訂**：2026-11-02（使用者 D-050 逐張產圖確認；既有 RQ-01=A／RQ-02=A 保留）
 > **來源**：[MVP](../requirements/MVP-001-LoveGameDatingApp.md) → [已確認 SDD](SPEC-001-AvatarAndPreferences.md) → [BDD 73 場景](../bdd/SPEC-001-AvatarAndPreferences-BDD.md) → [TDD 275 項（原243＋14項風險補強＋D-050新增18項）](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
 > **本份範圍**：AvatarAndPreferences（禁止擴及 PlatformFoundation 既有 schema 或其他未授權 SPEC）

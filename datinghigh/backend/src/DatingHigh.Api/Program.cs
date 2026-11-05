@@ -92,7 +92,7 @@ app.Use(async(context,next)=>
 });
 app.UseAuthentication();app.UseAuthorization();
 var api=app.MapGroup("/api/v1");
-api.MapGet("/profile-catalog",(HttpContext c)=>{c.Payload().Only();return Results.Ok(new{version=ProfileCatalog.Version,groups=ProfileCatalog.Groups});}).RequireAuthorization("PlatformAccess");
+api.MapGet("/profile-catalog",(HttpContext c)=>{c.Payload().Only();return Results.Ok(new{version=ProfileCatalog.Version,groups=ProfileCatalog.Groups,fields=ProfileFields.All});}).RequireAuthorization("PlatformAccess");
 api.MapGet("/avatar-catalog",(HttpContext c)=>{
     c.Payload().Only();return Results.Ok(new{version="2026-11-03.v2",avatars=new[]{"male","female"}.SelectMany(group=>Enumerable.Range(1,8).Select(n=>new{
         id=$"{group}-{n:00}",group,assetPath=$"/avatars/{group}-{n:00}.jpg",source="OpenAI imagegen original generation",aspectRatio="3:4"

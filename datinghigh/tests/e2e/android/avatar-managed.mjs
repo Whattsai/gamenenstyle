@@ -68,16 +68,16 @@ try{
    await openPhotoModal();await reveal('刪除照片 1');await tap('刪除照片 1');await tap('確認刪除');await waitText('照片已刪除');await pick('small');await waitText('照片已壓縮並安全儲存');assert.equal(readyPhotos(await state()).length,5);
    results.push({mode,passed:true,checks:['real-picker-oversize-rejection','valid-retry','stale-revision-no-overwrite','refreshed-reorder','delete-cancel-confirm','five-photo-limit-and-slot-reuse']});
   }else{
-   await setField('暱稱','QaForm');await reveal('工作／職業');await setField('工作／職業','Engineer');await reveal('生日');await setField('生日','1995-01-01');await tap('儲存目前修改');await waitText('個人資料已儲存');
+   await setField('暱稱','QaForm');await reveal('工作／職業');await setField('工作／職業','Engineer');await reveal('生日');await setField('生日','1995-01-01');await tap('儲存');await waitText('個人資料已儲存');
    console.log('Native profile saved adult occupation');await preview();console.log('Native own card opened');await reveal('Engineer');await wait('Engineer');await reveal('名片照片 1');await wait('名片照片 1');await reveal('名片照片 2');await wait('名片照片 2');
-   await profileTop();await reveal('生日');await setField('生日','2015-01-01');const before=await state();console.log('Native underage input confirmed');await tap('儲存目前修改');await waitText('需年滿 18 歲才能完成個人資料，請確認生日');assert.equal((await state()).profiles[0].revision,before.profiles[0].revision);console.log('Native underage feedback verified');
-   await setField('生日','1995-01-01');await reveal('偏好最小年齡');await setField('偏好最小年齡','25');await tap('儲存目前修改');await waitText('年齡偏好的最小與最大值請一起填寫，或一起留空');
-   await reveal('偏好最大年齡');await setField('偏好最大年齡','20');await tap('儲存目前修改');await waitText('年齡偏好須為 18 至 120 歲，且最小不大於最大');
-   await setField('偏好最大年齡','35');await tap('儲存目前修改');await waitText('個人資料已儲存');
-   console.log('Native paired age validation verified');await profileTop();await reveal('解謎');await tap('解謎');await fixture.send({op:'avatar-retire-choice'});const revision=(await state()).profiles[0].revision;await tap('儲存目前修改');await waitText('請確認生日、文字長度、標籤與配對條件');assert.equal((await state()).profiles[0].revision,revision);
-   await tap('解謎');await reveal('工作／職業','up');await setField('工作／職業','');await tap('儲存目前修改');await waitText('個人資料已儲存');assert.equal((await state()).profiles[0].occupation,null);
+   await profileTop();await reveal('生日');await setField('生日','2015-01-01');const before=await state();console.log('Native underage input confirmed');await tap('儲存');await waitText('需年滿 18 歲才能完成個人資料，請確認生日');assert.equal((await state()).profiles[0].revision,before.profiles[0].revision);console.log('Native underage feedback verified');
+   await setField('生日','1995-01-01');await reveal('偏好最小年齡');await setField('偏好最小年齡','25');await tap('儲存');await waitText('年齡偏好的最小與最大值請一起填寫，或一起留空');
+   await reveal('偏好最大年齡');await setField('偏好最大年齡','20');await tap('儲存');await waitText('年齡偏好須為 18 至 120 歲，且最小不大於最大');
+   await setField('偏好最大年齡','35');await tap('儲存');await waitText('個人資料已儲存');
+   console.log('Native paired age validation verified');await profileTop();await reveal('解謎');await tap('解謎');await fixture.send({op:'avatar-retire-choice'});const revision=(await state()).profiles[0].revision;await tap('儲存');await waitText('請確認生日、文字長度、標籤與配對條件');assert.equal((await state()).profiles[0].revision,revision);
+   await tap('解謎');await reveal('工作／職業','up');await setField('工作／職業','');await tap('儲存');await waitText('個人資料已儲存');assert.equal((await state()).profiles[0].occupation,null);
    await preview();assert.ok(!nodes().some(node=>visible(node)&&node.text==='Engineer'));await reveal('名片照片 1');await wait('名片照片 1');
-   await profileTop();await reveal('返回帳號','up');await tap('返回帳號');await tap('登出');await wait('使用 Email 登入');await tap('使用 Email 登入');await login('A real D1 integration password');await tap('個人資料與遊戲化身');await wait('暱稱');
+   await profileTop();await reveal('返回','up');await tap('返回');await tap('登出');await wait('使用 Email 登入');await tap('使用 Email 登入');await login('A real D1 integration password');await tap('個人資料與遊戲化身');await wait('暱稱');
    assert.ok(nodes().some(node=>node['content-desc']==='暱稱'&&node.text==='QaForm'));await reveal('工作／職業');assert.ok(nodes().some(node=>node['content-desc']==='工作／職業'&&!node.text));await openPhotoModal();await reveal('個人照片 2');await wait('個人照片 2');
    results.push({mode,passed:true,checks:['adult-and-paired-age-errors','retired-choice-api-rejection','null-occupation','current-own-card-two-photos','actual-native-relogin-persistence']});
   }

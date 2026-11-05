@@ -112,7 +112,7 @@ public sealed class MemoryPlatform:IPlatformClient
                         profile_id=EntityId.New(),account_id=AccountId,nickname="",bio="",
                         occupation=(string?)null,birth_date=(string?)null,region_code=(string?)null,
                         traits_json="[]",interests_json="{\"interestTagIds\":[],\"topicTagIds\":[],\"valueTagIds\":[]}",
-                        preferences_json="{\"weekendPreference\":null,\"sleepSchedule\":null,\"conversationStyle\":null,\"expectedInteractionFrequency\":null,\"relationshipMode\":null,\"preferredAgeMin\":null,\"preferredAgeMax\":null,\"preferredRegionCodes\":[],\"sharedInterestWeight\":50}",
+                        gender="diverse",romantic_orientation_json="[\"male\",\"female\"]",card_visibility_json="{}",preferences_json="{\"weekendPreference\":null,\"sleepSchedule\":null,\"conversationStyle\":null,\"expectedInteractionFrequency\":null,\"relationshipMode\":null,\"preferredAgeMin\":null,\"preferredAgeMax\":null,\"preferredRegionCodes\":[],\"sharedInterestWeight\":50}",
                         selected_avatar_type=(string?)null,selected_avatar_ref=(string?)null,
                         revision=_datingProfileRevision,created_at=1,updated_at=1
                     });
@@ -178,6 +178,9 @@ public sealed class MemoryPlatform:IPlatformClient
                     _datingProfile["bio"]=p["bio"]!.GetValue<string>();
                     _datingProfile["occupation"]=p["occupation"]?.GetValue<string>();
                     _datingProfile["birth_date"]=p["birthDate"]?.GetValue<string>();
+                    _datingProfile["gender"]=p["gender"]?.DeepClone();
+                    _datingProfile["romantic_orientation_json"]=p["romanticOrientation"]!.ToJsonString();
+                    _datingProfile["card_visibility_json"]=p["cardVisibility"]!.ToJsonString();
                     _datingProfile["region_code"]=p["regionCode"]?.GetValue<string>();
                     _datingProfile["traits_json"]=p["traitTagIds"]!.ToJsonString();
                     _datingProfile["interests_json"]=new JsonObject{

@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import {register} from './support';
+import {register,prepareBuiltinGender,returnFromProfile} from './support';
 
 test.setTimeout(90000);
 // 只注入短效候選讀取，驗證真瀏覽器的到期UI；不是Gemini／R2整合證據。
@@ -9,7 +9,7 @@ test('AP Web expiry UI: an already-open adoption dialog closes and cannot submit
  await page.clock.install();
  await register(page,`ap-expiry-ui-${Date.now()}@example.com`);
  const base='http://localhost:8787/api/v1',headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'};
- const own=await(await page.request.get(`${base}/me/dating-profile`,{headers})).json();
+ const own=await prepareBuiltinGender(page);
  expect((await page.request.put(`${base}/me/avatar/selection`,{headers,data:{type:'builtin',builtinAvatarId:'male-03',expectedRevision:own.revision}})).status()).toBe(200);
  const photoIds:string[]=[];
  for(const file of ['female-01.jpg','female-02.jpg']){
@@ -41,10 +41,10 @@ test('AP Web expiry UI: an already-open adoption dialog closes and cannot submit
  expect(actual.selectedAvatarRef).toBe('male-03');expect(actual.generatedAvatars).toHaveLength(0);expect(actual.avatarAttempt).toBeNull();
  await page.unroute('**/api/v1/me/dating-profile');
  for(const asset of photoIds)expect((await page.request.delete(`${base}/me/photos/${asset}`,{headers,data:{}})).status()).toBe(204);
- await page.getByRole('button',{name:'重新整理目前資料',exact:true}).click();
+ await page.reload();await expect(page.getByLabel('暱稱',{exact:true})).toBeVisible();await page.getByRole('button',{name:'選擇化身',exact:true}).click();
  await expect(page.getByRole('button',{name:'採用這張',exact:true})).toHaveCount(0);
  await expect(page.getByText('目前選用 · male-03',{exact:true})).toBeVisible();
- await page.getByRole('button',{name:'返回帳號',exact:true}).click();await page.getByRole('button',{name:'登出',exact:true}).click();
+ await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
 });
 
 for(const [status,code,notice] of [
@@ -57,7 +57,7 @@ for(const [status,code,notice] of [
  // 故障只在HTTP回應層注入；真SQL／R2／provider故障另有獨立整合證據，不混為真生成。
  await page.clock.install();await register(page,`ap-error-ui-${code.toLowerCase()}-${Date.now()}@example.com`);
  const base='http://localhost:8787/api/v1',headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'};
- const own=await(await page.request.get(`${base}/me/dating-profile`,{headers})).json();
+ const own=await prepareBuiltinGender(page);
  expect((await page.request.put(`${base}/me/avatar/selection`,{headers,data:{type:'builtin',builtinAvatarId:'male-03',expectedRevision:own.revision}})).status()).toBe(200);
  const photoIds:string[]=[];
  for(const file of ['female-01.jpg','female-02.jpg']){

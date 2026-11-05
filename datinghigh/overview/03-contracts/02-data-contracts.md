@@ -1,5 +1,12 @@
 # 資料與儲存契約
 
+## 現行資料版本（2026-11-05 D-053）
+
+[0003](../../cloudflare/migrations/0003_profile_gender_card_visibility.sql)新增gender、romantic_orientation_json、card_visibility_json，user_profiles18欄＋media9欄＝兩表27欄；Foundation六表54欄及零Trigger不變。已在default local套用；staging設定更新但未部署。下方0002兩表24欄是歷史建表基線。
+
+完整PUT為22鍵；新增性別nullable單選male／female／diverse、性向唯一多選同碼（0～3）、分享白名單boolean map。{}依[共用定義](../../contracts/profile-fields.json)取有效預設；只允許shareable cardKey，ageBand不接收birthDate分享鍵。偏好JSON固定9鍵不變。新欄位defaultVisible缺值必為false。性別與不符免費化身清除同一CAS；AI保留。profileReady追加性別及非空性向。
+
+
 基礎版本來源為 [0001 migration](../../cloudflare/migrations/0001_foundation.sql)、[prepared commands](../../cloudflare/src/commands.ts)、[platform](../../cloudflare/src/platform.ts)、Domain／Infrastructure 與 client storage。業務責任以已確認 SPEC 為準。
 
 ## D1 schema
@@ -30,7 +37,7 @@ challenge purpose 為 `register_email | reset_password`，state 為 `active | co
 | user_profiles（15） | profile_id、account_id、nickname、bio、occupation、birth_date、region_code、traits_json、interests_json、preferences_json、selected_avatar_type、selected_avatar_ref、revision、created_at、updated_at |
 | user_media_assets（9） | asset_id、account_id、kind、object_key、mime_type、display_order、status、created_at、deleted_at |
 
-profile首次ensure冪等；嚴格19欄輸入、三組JSON（preferences固定9鍵）及版本化靜態目錄見SPEC。臺灣日期18+，Unicode scalar長度；occupation可空。本人投影含精確生日及私有偏好，名片預覽只用分享白名單。generated profileReady額外要求本人ready正式資產，不單靠type/ref字串。儲存含停用目錄選項時，Application先讀本人目前revision及同欄位歷史值；只允許原值保留，其他欄位出現同碼也不能當作保留依據。撤銷401、版本落後409、新加入停用碼400，不新增JSON鍵或schema欄位。
+profile首次ensure冪等；嚴格22欄輸入（含expectedRevision）、三組JSON（preferences固定9鍵）及版本化靜態目錄見SPEC。臺灣日期18+，Unicode scalar長度；occupation可空。本人投影含精確生日及私有偏好，名片預覽只用分享白名單。generated profileReady額外要求本人ready正式資產，不單靠type/ref字串。儲存含停用目錄選項時，Application先讀本人目前revision及同欄位歷史值；只允許原值保留，其他欄位出現同碼也不能當作保留依據。撤銷401、版本落後409、新加入停用碼400，停用值保留不另新增metadata鍵；D-053新增三個具名schema欄位另見下文。
 
 `profile.photo.reserve` 單條件 INSERT…SELECT COUNT(pending+ready)<5 RETURNING；pending計入配額。ready按當下ready最大序號+1配號。排序核對整個ready集合及revision，刪除同batch先CAS、soft-delete、壓緊其餘序號；零列不假成功。上傳失敗僅透過 `profile.photo.cancel-upload` 撤pending，不因遺失回覆誤刪ready；舊內部delete不供正式HTTP刪除使用。R2先成功寫入才ready，刪除先tombstone才允許R2實體清除。GC清逾30分鐘pending及tombstone物件；R2 `_system/avatar-preferences/cleanup.json`保存photoCursor、r2Cursor及最多100個尚未處理key／到期metadata，分配各段預算並以ETag提交進度，不刪ready原件、不加D1 job表。
 

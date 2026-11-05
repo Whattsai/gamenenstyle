@@ -21,7 +21,7 @@
 - 依使用者2026-11-04決策D-051／D-052：無障礙專項不納入目前整個遊戲MVP的設計、實作或驗收，不列待補；iOS暫緩。Web／Android一般功能與資料安全仍須驗證，歷史未驗不改記通過。
 
 - 認證以 SPEC 為準：每帳號一個未撤銷 family；新登入同 D1 batch 撤舊建新；`cv` 只隨憑證變更增加；Refresh 30 秒寬限，逾時重放撤原 family。
-- Foundation 六表54欄保持；AvatarAndPreferences 只增加兩表24欄，零 SQL Trigger。首欄 UUIDv7、固定 prepared SQL；不引入 Identity／EF、額外 marker/version 欄位、job 表或公開 command 入口。
+- Foundation 六表54欄保持；AvatarAndPreferences 維持兩表27欄（2026-11-05已確認D-053由24欄向前升級），零 SQL Trigger。首欄 UUIDv7、固定 prepared SQL；不引入 Identity／EF、額外 marker/version 欄位、job 表或公開 command 入口。
 - 認證與資料變更先加有意義的失敗測試，再實作。D1 的條件更新、UNIQUE、FK 與 rollback 必須用真 Miniflare D1；HTTP fixture 只驗 HTTP，不可取代 SQL 證據。
 - 不要輸出、提交或持久記錄 raw code、密碼、平台／Google token、Cookie 或環境秘密。本地唯一碼日誌例外為明確 local／Log 的 `LocalEmailVerification`。產品內既有 Cookie／SecureStore／流程 metadata 儲存僅依資料契約處理，不另建秘密日誌或檔案。
 - UI 測試關閉影片／trace；原生 UI XML 只在記憶體處理。

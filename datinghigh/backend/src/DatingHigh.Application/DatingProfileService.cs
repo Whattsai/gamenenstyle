@@ -13,10 +13,11 @@ public sealed record ProfileUpdateInput(
     string? WeekendPreference, string? SleepSchedule, string? ConversationStyle,
     string? ExpectedInteractionFrequency, string? RelationshipMode,
     int? PreferredAgeMin, int? PreferredAgeMax, string[] PreferredRegionCodes,
-    int SharedInterestWeight)
+    int SharedInterestWeight, string? Gender=null, string[]? RomanticOrientation=null, Dictionary<string,bool>? CardVisibility=null)
 {
     private static readonly HashSet<string> Keys = new(StringComparer.Ordinal)
     {
+        "gender", "romanticOrientation", "cardVisibility",
         "expectedRevision", "nickname", "bio", "occupation", "birthDate", "regionCode",
         "traitTagIds", "interestTagIds", "topicTagIds", "valueTagIds",
         "weekendPreference", "sleepSchedule", "conversationStyle",
@@ -66,6 +67,15 @@ public sealed record ProfileUpdateInput(
             var region = OptionalString(fields, "regionCode");
             if (region is not null && !RegionPattern.IsMatch(region)) throw new DomainException("INVALID_PROFILE");
 
+            var gender=OptionalString(fields,"gender");
+            if(gender is not null && gender is not ("male" or "female" or "diverse"))throw new DomainException("INVALID_PROFILE");
+            var orientation=Tags(fields,"romanticOrientation",3);
+            if(orientation.Any(v=>v is not ("male" or "female" or "diverse")))throw new DomainException("INVALID_PROFILE");
+            if(fields["cardVisibility"].ValueKind!=JsonValueKind.Object)throw new DomainException("INVALID_PROFILE");
+            var visibility=new Dictionary<string,bool>(StringComparer.Ordinal);
+            foreach(var entry in fields["cardVisibility"].EnumerateObject()){
+                if(!ProfileFields.CanShare(entry.Name)||entry.Value.ValueKind is not (JsonValueKind.True or JsonValueKind.False)||!visibility.TryAdd(entry.Name,entry.Value.GetBoolean()))throw new DomainException("INVALID_PROFILE");
+            }
             var traits = Tags(fields, "traitTagIds", 5);
             var interests = Tags(fields, "interestTagIds", 12);
             var topics = Tags(fields, "topicTagIds", 8);
@@ -93,7 +103,7 @@ public sealed record ProfileUpdateInput(
 
             return new(revision, nickname, bio, occupation, birth, region,
                 traits, interests, topics, values, weekend, sleep, conversation,
-                frequency, relationship, minAge, maxAge, regions, weight);
+                frequency, relationship, minAge, maxAge, regions, weight,gender,orientation,visibility);
         }
         catch (JsonException) { throw new DomainException("INVALID_PROFILE"); }
         catch (InvalidOperationException) { throw new DomainException("INVALID_PROFILE"); }
@@ -185,6 +195,7 @@ public sealed class DatingProfileService(IPlatformClient platform, TimeProvider 
             expectedRevision = input.ExpectedRevision,
             nickname = input.Nickname, bio = input.Bio, occupation = input.Occupation,
             birthDate = input.BirthDate, regionCode = input.RegionCode,
+            gender=input.Gender,romanticOrientation=input.RomanticOrientation??[],cardVisibility=input.CardVisibility??new(),
             traitTagIds = input.TraitTagIds,
             interestTagIds = input.InterestTagIds, topicTagIds = input.TopicTagIds,
             valueTagIds = input.ValueTagIds,
@@ -293,6 +304,7 @@ public sealed class DatingProfileService(IPlatformClient platform, TimeProvider 
             ["nickname"] = item.Text("nickname"), ["bio"] = item.Text("bio"),
             ["occupation"] = item.Maybe("occupation"), ["birthDate"] = item.Maybe("birth_date"),
             ["regionCode"] = item.Maybe("region_code"),
+            ["gender"]=item.Maybe("gender"),["romanticOrientation"]=JsonNode.Parse(item.Maybe("romantic_orientation_json")??"[]"),["cardVisibility"]=JsonNode.Parse(item.Maybe("card_visibility_json")??"{}"),
             ["traitTagIds"] = traits, ["interestTagIds"] = interests["interestTagIds"]?.DeepClone(),
             ["topicTagIds"] = interests["topicTagIds"]?.DeepClone(),
             ["valueTagIds"] = interests["valueTagIds"]?.DeepClone(),
@@ -311,7 +323,7 @@ public sealed class DatingProfileService(IPlatformClient platform, TimeProvider 
             ["revision"] = item.Number("revision"),
             ["personalPhotos"] = photos,
             ["generatedAvatars"]=generated,
-            ["profileReady"] = DatingProfileRules.IsReady(
+            ["profileReady"] = (item.Maybe("selected_avatar_type")!="builtin"||BuiltinAvatarCatalog.Allowed(item.Maybe("selected_avatar_ref"),item.Maybe("gender"))) && item.Maybe("gender") is not null && (JsonNode.Parse(item.Maybe("romantic_orientation_json")??"[]")?.AsArray().Count??0)>0 && DatingProfileRules.IsReady(
                 item.Text("nickname"), item.Maybe("birth_date"),
                 item.Maybe("selected_avatar_type"), item.Maybe("selected_avatar_ref"),
                 DatingProfileRules.TaiwanToday(clock),item.Maybe("selected_avatar_type")=="generated"&&item["selected_avatar_ready"]?.GetValue<long>()==1)

@@ -1,5 +1,8 @@
 # 心動迴路（DatingHigh）
 
+2026-11-05個人資料修訂：加入性別／性向、欄位分享設定、性別對應免費化身及獨立`/card-preview`。現行0003將業務兩表擴至27欄；共用欄位定義在`contracts/profile-fields.json`。本次驗證狀態與歷史驗收分開，見[驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)同日修訂。
+
+
 DatingHigh 是戀愛養成交友平台。[PlatformFoundation](docs/specs/SPEC-001-PlatformFoundation.md) 的帳號與認證基礎已有本地驗收；[AvatarAndPreferences](docs/specs/SPEC-001-AvatarAndPreferences.md) 已實作本人資料、照片壓縮與私人 R2、16 款正式插畫、Gemini 逐張生成／比較／採用及 Web／原生共用畫面。兩張授權照片的真 Gemini 最多四張流程已通過，使用者已確認第三版相似度與原型風格；本地Web／Android責任範圍已完成；iOS暫緩，無障礙不在目前整個MVP範圍。現況及限制見[驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)。本功能尚未部署雲端或發布 production。
 
 已建立 Email 驗碼註冊、登入、忘記／重設密碼、修改密碼、Google 登入與連結管理，以及登入恢復／撤銷。技術組成為 Expo SDK 58／React Native、.NET 10、Cloudflare Worker／Container／D1／私人 R2。

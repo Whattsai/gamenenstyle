@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Image,Modal,Platform,Pressable,ScrollView,Text,useWindowDimensions,View} from 'react-native';
-import {useFocusEffect,useRouter} from 'expo-router';
+import {BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,useWindowDimensions,View} from 'react-native';
+import {useFocusEffect,useRouter,useNavigation} from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Crypto from 'expo-crypto';
 import {File,Paths} from 'expo-file-system';
@@ -8,29 +8,21 @@ import {api,useSession} from './session';
 import {ApiFailure} from './api';
 import {avatarAssets} from './avatar-assets';
 import {colors,SceneBackground,GlassPanel,PrimaryButton,FormField,SubtleBadge,InlineNotice,LoadingOverlay,PersonEditIcon,s} from './ui';
+import type {ProfileField,Gender,CardVisibility} from './profile-fields';
+import {formSnapshot,profilePayload,visibleOnCard} from './profile-fields';
 import {usePendingBackGuard} from './pending-back-guard';
 
 type Photo={assetId:string;mimeType:string;displayOrder:number};
 type Option={id:string;label:string;category?:string;active:boolean};
 type Avatar={id:string;group:string};
-type Profile=Record<string,any>&{revision:number;personalPhotos:Photo[]};
+type Profile=Record<string,any>&{revision:number;personalPhotos:Photo[];gender:Gender|null;romanticOrientation:Gender[];cardVisibility:CardVisibility};
 type Attempt={attemptId:string;producedCount:number;expiresAt:number;status?:string;styleId?:string};
 type ModalTab='free'|'ai';
 
-const fields=['nickname','bio','occupation','birthDate','regionCode','traitTagIds','interestTagIds','topicTagIds','valueTagIds','weekendPreference','sleepSchedule','conversationStyle','expectedInteractionFrequency','relationshipMode','preferredAgeMin','preferredAgeMax','preferredRegionCodes','sharedInterestWeight'];
-// 只比較可編輯欄位；集合順序、伺服器trim與照片／化身metadata不構成另一份表單修改。
-function formSnapshot(profile:Record<string,any>){return JSON.stringify(Object.fromEntries(fields.map(key=>{
- let value=profile[key]??(key==='preferredRegionCodes'||key.endsWith('TagIds')?[]:key==='sharedInterestWeight'?50:key==='nickname'||key==='bio'?'':null);
- if(Array.isArray(value))value=[...value].sort();
- if(['nickname','bio','occupation'].includes(key)&&typeof value==='string')value=value.trim()||(key==='occupation'?null:'');
- return [key,value];
-})));}
-
-const multi:Record<string,[string,number]>={traitTagIds:['個性',5],interestTagIds:['興趣',12],topicTagIds:['聊天話題',8],valueTagIds:['價值觀',8],preferredRegionCodes:['希望認識的地區',10]};
-const habits:Record<string,string>={weekendPreference:'週末安排',sleepSchedule:'作息',conversationStyle:'交流方式',expectedInteractionFrequency:'互動頻率',relationshipMode:'關係期待'};
 const styles:[string,string,string][]=[['warm','暖陽系','#ff9a62'],['moon','月光文青系','#8cc9ff'],['sakura','櫻語甜心系','#ff7aa2'],['forest','森語帥氣系','#7be0b8']];
 const purpose='請提供自己最滿意的個人照，未來同意的情況下提供對方交換名片時查閱';
 const disclosure='產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家';
+const touchY=(event:any)=>event.nativeEvent.touches?.[0]?.pageY??event.nativeEvent.changedTouches?.[0]?.pageY??event.nativeEvent.pageY;
 const pressedState=(selected:boolean)=>Platform.OS==='web'?{'aria-pressed':selected}:{};
 
 function birthdayIssue(value:string|null|undefined,now:number){
@@ -55,11 +47,11 @@ function message(error:unknown){
 }
 
 export function DatingProfileScreen(){
- const router=useRouter(),session=useSession(),{width}=useWindowDimensions(),isWide=width>=820;
- const [profile,setProfile]=useState<Profile|null>(null),[groups,setGroups]=useState<Record<string,Option[]>>({}),[avatars,setAvatars]=useState<Avatar[]>([]);
+ const router=useRouter(),navigation=useNavigation(),session=useSession(),{width}=useWindowDimensions(),isWide=width>=820;
+ const [profile,setProfile]=useState<Profile|null>(null),[groups,setGroups]=useState<Record<string,Option[]>>({}),[avatars,setAvatars]=useState<Avatar[]>([]),[definitions,setDefinitions]=useState<ProfileField[]>([]);
  const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[style,setStyle]=useState('warm');
  const [loadedAccount,setLoadedAccount]=useState<string|undefined>(undefined),[avatarModal,setAvatarModal]=useState(false),[modalTab,setModalTab]=useState<ModalTab>('free');
- const [attempt,setAttempt]=useState<Attempt|null>(null),[selected,setSelected]=useState(1),[confirm,setConfirm]=useState<{kind:'delete'|'adopt';id?:string}|null>(null),[card,setCard]=useState<Record<string,any>|null>(null);
+ const [attempt,setAttempt]=useState<Attempt|null>(null),[selected,setSelected]=useState(1),[confirm,setConfirm]=useState<{kind:'delete'|'adopt'|'discard';id?:string}|null>(null);
  const [,setExpiryTick]=useState(0);
  useEffect(()=>{
   if(!attempt)return;let timer:ReturnType<typeof setTimeout>;
@@ -80,29 +72,30 @@ export function DatingProfileScreen(){
  const refresh=useCallback(async(preserveDraft=false)=>{
   const accountId=api.account?.accountId;
   const [current,catalog,avatarCatalog]=await Promise.all([api.request('/me/dating-profile'),api.request('/profile-catalog'),api.request('/avatar-catalog')]);
-  if(alive.current&&accountId===api.account?.accountId){
-   setCard(null);
-   const snapshot=formSnapshot(current),fresh={...current,_savedForm:snapshot,draftConflict:false};
+  if(!alive.current||accountId!==api.account?.accountId)throw new ApiFailure('SESSION_REVOKED',401);
+  {
+
+   const snapshot=formSnapshot(current,catalog.fields),fresh={...current,_savedForm:snapshot,draftConflict:false};
    setProfile(previous=>{
     if(!preserveDraft||!previous)return fresh;
-    const baseline=previous._savedForm??formSnapshot(previous),draft=formSnapshot(previous);
+    const baseline=previous._savedForm??formSnapshot(previous,catalog.fields),draft=formSnapshot(previous,catalog.fields);
     if(draft===baseline||draft===snapshot)return fresh;
     const conflict=current.revision!==previous.revision&&snapshot!==baseline;
-    return {...fresh,...Object.fromEntries(fields.map(key=>[key,previous[key]])),revision:conflict?previous.revision:current.revision,_savedForm:conflict?baseline:snapshot,draftConflict:conflict||previous.draftConflict};
+    return {...fresh,cardVisibility:previous.cardVisibility,...Object.fromEntries(catalog.fields.filter((f:ProfileField)=>f.type!=='photos').map((f:ProfileField)=>[f.key,previous[f.key]])),revision:conflict?previous.revision:current.revision,_savedForm:conflict?baseline:snapshot,draftConflict:conflict||previous.draftConflict};
    });
-   setGroups(catalog.groups);setAvatars(avatarCatalog.avatars);setLoadedAccount(accountId);if(!current.avatarAttemptUnavailable)setAttempt(current.avatarAttempt??null);if(current.avatarAttempt?.styleId)setStyle(current.avatarAttempt.styleId);
+   setDefinitions(catalog.fields);setGroups(catalog.groups);setAvatars(avatarCatalog.avatars);setLoadedAccount(accountId);if(!current.avatarAttemptUnavailable)setAttempt(current.avatarAttempt??null);if(current.avatarAttempt?.styleId)setStyle(current.avatarAttempt.styleId);
   }
  },[]);
  useFocusEffect(useCallback(()=>{
   alive.current=true;if(!session.ready)return;
-  if(owner.current!==api.account?.accountId){owner.current=api.account?.accountId;setCard(null);setAttempt(null);setProfile(null);setLoadedAccount(undefined);setAvatarModal(false);setModalTab('free');}
-  if(!api.account){setProfile(null);setAttempt(null);setCard(null);router.replace('/login');return;}
+  if(owner.current!==api.account?.accountId){owner.current=api.account?.accountId;setAttempt(null);setProfile(null);setLoadedAccount(undefined);setAvatarModal(false);setModalTab('free');}
+  if(!api.account){setProfile(null);setAttempt(null);router.replace('/login');return;}
   refresh(true).catch(error=>{if(alive.current)setNotice(message(error));});
   return()=>{alive.current=false;};
  },[session.ready,api.account,refresh,router]));
  const run=async(action:()=>Promise<void>)=>{
   if(pending.current)return;pending.current=true;setBusy(true);setNotice('');
-  try{await action();}catch(error){if(alive.current)setNotice(message(error));}
+  try{await action();return true;}catch(error){if(alive.current)setNotice(message(error));return false;}
   finally{pending.current=false;if(alive.current)setBusy(false);}
  };
  const update=(key:string,value:unknown)=>setProfile(p=>p?{...p,[key]:value}:p);
@@ -116,11 +109,11 @@ export function DatingProfileScreen(){
   const min=profile.preferredAgeMin??null,max=profile.preferredAgeMax??null;
   if((min===null)!==(max===null)){setNotice('年齡偏好的最小與最大值請一起填寫，或一起留空');return;}
   if(min!==null&&(!Number.isInteger(min)||!Number.isInteger(max)||min<18||max>120||min>max)){setNotice('年齡偏好須為 18 至 120 歲，且最小不大於最大');return;}
-  await run(async()=>{
-   const payload=Object.fromEntries(fields.map(key=>[key,profile[key]??(key==='preferredRegionCodes'||key.endsWith('TagIds')?[]:key==='sharedInterestWeight'?50:null)]));
-   const result=await api.request('/me/dating-profile','PUT',{...payload,expectedRevision:profile.revision});
-   setCard(null);
-   setProfile(p=>p?{...p,revision:result.revision,_savedForm:formSnapshot(payload),draftConflict:false}:p);setNotice('個人資料已儲存');
+  return await run(async()=>{
+   const payload=profilePayload(profile,definitions);
+   await api.request('/me/dating-profile','PUT',{...payload,expectedRevision:profile.revision});
+
+   await refresh();setNotice('個人資料已儲存');
   });
  }
  async function pick(){
@@ -158,6 +151,7 @@ export function DatingProfileScreen(){
  async function selectSaved(assetId:string){if(!profile)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'generated',assetId,expectedRevision:profile.revision});await refresh(true);setNotice('已重新選用保存的化身');});}
  async function confirmAction(){
   if(!confirm||!profile)return;const action=confirm;setConfirm(null);
+  if(action.kind==='discard'){const next=discardAction.current;discardAction.current=null;next?.();return;}
   if(action.kind==='adopt'&&(!attempt||attempt.expiresAt<=api.serverNow)){
    setExpiryTick(value=>value+1);setNotice('本輪候選已過期，請重新開始');return;
   }
@@ -168,18 +162,44 @@ export function DatingProfileScreen(){
   });
  }
  const chips=(key:string,label:string,multiple=false,limit=1,cardBox=false)=>{
-  const values=groups[key==='preferredRegionCodes'?'regionCode':key]??[],chosenList:string[]=multiple?(profile?.[key]??[]):[];
+  const values=groups[definitions.find(f=>f.key===key)?.options??key]??[],chosenList:string[]=multiple?(profile?.[key]??[]):[];
   return <View key={key} style={[cardBox?{flex:1,minWidth:'46%',padding:12,borderRadius:16,backgroundColor:'rgba(255,255,255,.04)',borderWidth:1,borderColor:'rgba(255,255,255,.10)',gap:8}:{gap:8}]}>
    <View style={s.labelRow}><Text style={[s.label,cardBox&&{fontSize:12,color:colors.muted}]}>{label}</Text>{multiple&&<Text style={s.counter}>{chosenList.length}/{limit}</Text>}</View>
    <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{values.map(option=>{
     const chosen=multiple?chosenList.includes(option.id):profile?.[key]===option.id;
     const disabled=busy||!option.active&&!chosen,optionLabel=option.label+(option.active?'':'（已停用）');
-    return <Pressable key={option.id} disabled={disabled} accessibilityRole="checkbox" aria-checked={chosen} aria-disabled={disabled} accessibilityLabel={optionLabel} accessibilityState={{checked:chosen,disabled}} onPress={()=>{
+    return <Pressable key={option.id} disabled={disabled} accessibilityRole="checkbox" aria-checked={chosen} aria-disabled={disabled} accessibilityLabel={key==='gender'||key==='romanticOrientation'?`${label}：${optionLabel}`:optionLabel} accessibilityState={{checked:chosen,disabled}} onPress={()=>{
      if(multiple){const current:string[]=profile?.[key]??[];if(!chosen&&current.length>=limit){setNotice(`最多選擇 ${limit} 項`);return;}update(key,chosen?current.filter(id=>id!==option.id):[...current,option.id]);}
      else update(key,chosen?null:option.id);
     }} style={{paddingHorizontal:12,paddingVertical:7,borderRadius:999,borderWidth:1,borderColor:chosen?colors.rose:'rgba(255,255,255,.22)',backgroundColor:chosen?colors.rose:'rgba(255,255,255,.06)'}}><Text style={{fontSize:13,fontWeight:chosen?'800':'500',color:chosen?colors.ink:'#f0e4f0'}}>{optionLabel}</Text></Pressable>;
    })}</View>
   </View>;
+ };
+ const dirty=!!profile&&formSnapshot(profile,definitions)!==profile._savedForm;
+ const discardAction=useRef<(()=>void)|null>(null),allowExit=useRef(false);
+ const requestDiscard=(action:()=>void)=>{if(pending.current)return;if(dirty){discardAction.current=action;setConfirm({kind:'discard'});}else action();};
+ const back=()=>requestDiscard(()=>{allowExit.current=true;if(router.canGoBack())router.back();else router.replace('/account');});
+ useEffect(()=>(navigation as any).addListener('beforeRemove',(event:any)=>{
+  if(!alive.current||allowExit.current)return;
+  if(pending.current){event.preventDefault();return;}
+  if(dirty){event.preventDefault();requestDiscard(()=>{allowExit.current=true;navigation.dispatch(event.data.action);});}
+ }),[navigation,dirty]);
+ useEffect(()=>{if(Platform.OS!=='android')return;const handler=BackHandler.addEventListener('hardwareBackPress',()=>{
+  if(!alive.current)return false;if(pending.current)return true;if(avatarModal){setAvatarModal(false);return true;}back();return true;
+ });return()=>handler.remove();},[dirty,avatarModal]);
+ const pullStart=useRef<number|null>(null),scrollTop=useRef(true);
+ const reload=()=>requestDiscard(()=>{void run(async()=>{await refresh();setNotice('已更新目前資料');});});
+ const shareToggle=(field:ProfileField)=>field.shareable?<View style={{flexDirection:'row',alignItems:'center',gap:8}}>
+  <Switch accessibilityLabel={`開放${field.cardLabel??field.label}`} disabled={busy} value={visibleOnCard(field,profile?.cardVisibility??{})} onValueChange={value=>update('cardVisibility',{...profile?.cardVisibility,[field.cardKey]:value})}/>
+  <Text style={s.footer}>開放{field.cardLabel??field.label}</Text>
+ </View>:null;
+ const renderField=(field:ProfileField)=>{
+  const key=field.key,editor=field.editor??field.type;
+  return <View key={key} style={{gap:8}}>{shareToggle(field)}{
+   editor==='choice'||editor==='multi'?chips(key,field.label,editor==='multi',field.limit??1):
+   editor==='photos'?<PrimaryButton label="管理個人照片" secondary disabled={busy} onPress={()=>{setAvatarModal(true);setModalTab('ai');}}/>:
+   <FormField label={field.label} placeholder={field.type==='date'?'YYYY-MM-DD':undefined} editable={!busy} keyboardType={field.type==='number'?'number-pad':'default'} value={String(profile?.[key]??'')} onChangeText={text=>update(key,field.type==='number'?(text?Number(text):key==='sharedInterestWeight'?50:null):text||(key==='nickname'||key==='bio'?'':null))}/>
+  }</View>;
  };
  if(!session.ready||!api.account)return <SceneBackground><GlassPanel><LoadingOverlay/></GlassPanel></SceneBackground>;
  const visibleProfile=loadedAccount===api.account.accountId?profile:null;
@@ -210,22 +230,21 @@ export function DatingProfileScreen(){
    {selectedTraits.map(t=><View key={t} style={{paddingHorizontal:10,paddingVertical:3,borderRadius:999,backgroundColor:'rgba(255,122,162,.16)',borderWidth:1,borderColor:colors.rose}}><Text style={{fontSize:11,color:'#ffd9e6',fontWeight:'700'}}>{t}</Text></View>)}
   </View>}
   <View style={{width:'100%',paddingTop:10,borderTopWidth:1,borderColor:'rgba(255,255,255,.12)',gap:10}}>
-   <PrimaryButton label="預覽同意後的名片" compact disabled={busy} secondary={!!card} onPress={()=>run(async()=>setCard(await api.request('/me/card-preview')))}/>
-   {card&&<View style={{gap:8,padding:12,borderRadius:16,backgroundColor:'rgba(255,255,255,.05)',borderWidth:1,borderColor:colors.line}}>
-    <SubtleBadge text="這是你自己的預覽，尚未授權其他玩家查看；未來須在有效互動中由雙方同意。"/>
-    {Object.entries(card).filter(([key,value])=>typeof value==='string'&&key!=='notice').map(([key,value])=><Text key={key} style={s.body}>{groups[key]?.find(option=>option.id===value)?.label??String(value)}</Text>)}
-    {Object.entries(multi).filter(([key])=>key!=='preferredRegionCodes').map(([key,[label]])=><Text key={key} style={s.body}>{label}：{(card[key]??[]).map((id:string)=>groups[key]?.find(option=>option.id===id)?.label??id).join('、')||'未填寫'}</Text>)}
-    {(card.personalPhotos??[]).map((photo:Photo,index:number)=><Image key={photo.assetId} source={source(`/me/media/${photo.assetId}`)} accessibilityLabel={`名片照片 ${index+1}`} resizeMode="contain" style={{width:'100%',aspectRatio:3/4,maxHeight:240,borderRadius:12}}/>)}
-    <PrimaryButton label="收起名片預覽" compact secondary onPress={()=>setCard(null)}/>
-   </View>}
+   <PrimaryButton label="預覽同意後的名片" compact disabled={busy} onPress={async()=>{if(dirty&&!await save())return;router.push('/card-preview');}}/>
   </View>
  </GlassPanel>;
 
- return <SceneBackground scrollRef={scroll} header={<View style={{alignItems:'center',paddingLeft:12,paddingRight:Platform.OS==='web'?12:52,paddingVertical:8,backgroundColor:'rgba(26,12,36,.92)',borderBottomWidth:1,borderColor:colors.line}}><View style={{width:'100%',maxWidth:isWide?1120:480,gap:8}}>
+ return <SceneBackground scrollRef={scroll} scrollProps={{
+  style:Platform.OS==='web'?({overscrollBehaviorY:'contain'} as any):undefined,
+  refreshControl:Platform.OS==='web'?undefined:<RefreshControl refreshing={busy} onRefresh={reload} tintColor={colors.rose}/>,
+  scrollEventThrottle:16,onScroll:event=>{scrollTop.current=event.nativeEvent.contentOffset.y<=0;},
+  onTouchStart:event=>{pullStart.current=Platform.OS==='web'&&!isWide&&scrollTop.current?touchY(event):null;},
+  onTouchCancel:()=>{pullStart.current=null;},
+  onTouchEnd:event=>{const start=pullStart.current;pullStart.current=null;if(start!==null&&touchY(event)-start>=70)reload();}
+ }} header={<View style={{alignItems:'center',paddingLeft:12,paddingRight:Platform.OS==='web'?12:52,paddingVertical:8,backgroundColor:'rgba(26,12,36,.92)',borderBottomWidth:1,borderColor:colors.line}}><View style={{width:'100%',maxWidth:isWide?1120:480,gap:8}}>
   <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:6}}>
-   <PrimaryButton label="重新整理目前資料" compact secondary disabled={busy} onPress={()=>run(refresh)}/>
-   <PrimaryButton label="儲存目前修改" compact disabled={busy||!profile} onPress={save}/>
-   <PrimaryButton label="返回帳號" compact secondary disabled={busy} onPress={()=>router.push('/account')}/>
+   <PrimaryButton label="返回" compact secondary disabled={busy} onPress={back}/>
+   {dirty&&<PrimaryButton label="儲存" compact disabled={busy||!profile} onPress={save}/>}
   </View>
   <InlineNotice text={avatarModal?'':notice}/>{profile?.draftConflict&&<InlineNotice text="其他地方已有更新；目前草稿保留。重新整理會載入已保存資料。"/>}
  </View></View>}><View style={{width:'100%',maxWidth:isWide?1120:480,flexDirection:isWide?'row':'column',alignItems:'flex-start',gap:22}}>
@@ -234,39 +253,17 @@ export function DatingProfileScreen(){
    {avatarCardPanel}
    <View style={{flex:1,width:'100%',gap:16}}>
     <GlassPanel style={{maxWidth:'100%'}}><Text accessibilityRole="header" style={s.heading}>個人資料</Text>
-     <View style={{flexDirection:isWide?'row':'column',gap:12}}>
-      <View style={{flex:1}}><FormField label="暱稱" rightText={`${[...(profile.nickname??'')].length}/12`} value={profile.nickname} editable={!busy} onChangeText={text=>update('nickname',text)}/></View>
-      <View style={{flex:1}}><FormField label="工作／職業" rightText={`${[...(profile.occupation??'')].length}/60`} placeholder="選填" value={profile.occupation??''} editable={!busy} onChangeText={text=>update('occupation',text.trim()?text:null)}/></View>
-     </View>
-     <View style={{flexDirection:isWide?'row':'column',gap:12}}>
-      <View style={{flex:1}}><FormField label="一句自我介紹" rightText={`${[...(profile.bio??'')].length}/40`} value={profile.bio} editable={!busy} onChangeText={text=>update('bio',text)}/></View>
-      <View style={{flex:1}}><FormField label="生日" placeholder="YYYY-MM-DD" value={profile.birthDate??''} editable={!busy} onChangeText={text=>update('birthDate',text||null)}/></View>
-     </View>
-     {chips('regionCode','目前地區')}
-     <View style={{gap:8}}>
-      <Text style={s.label}>生活步調與期待</Text>
-      <View style={{flexDirection:'row',flexWrap:'wrap',gap:10}}>{Object.entries(habits).map(([key,label])=>chips(key,label,false,1,true))}</View>
-     </View>
-     {Object.entries(multi).map(([key,[label,limit]])=>chips(key,label,true,limit))}
-     <View style={{flexDirection:'row',gap:10}}>
-      <View style={{flex:1}}><FormField label="偏好最小年齡" editable={!busy} keyboardType="number-pad" value={profile.preferredAgeMin?.toString()??''} onChangeText={text=>update('preferredAgeMin',text?Number(text):null)}/></View>
-      <View style={{flex:1}}><FormField label="偏好最大年齡" editable={!busy} keyboardType="number-pad" value={profile.preferredAgeMax?.toString()??''} onChangeText={text=>update('preferredAgeMax',text?Number(text):null)}/></View>
-     </View>
-     <View style={{gap:8}}>
-      <FormField label="共同興趣重視程度" rightText={`${weight}%`} editable={!busy} keyboardType="number-pad" value={String(profile.sharedInterestWeight??50)} onChangeText={text=>update('sharedInterestWeight',text?Number(text):50)}/>
-      <View style={{height:8,borderRadius:999,backgroundColor:'rgba(255,255,255,.14)',overflow:'hidden'}}><View style={{width:`${weight}%`,height:'100%',borderRadius:999,backgroundColor:colors.rose}}/></View>
-     </View>
-     <PrimaryButton label="儲存個人資料" disabled={busy} onPress={save}/>
+     {definitions.slice().sort((a,b)=>a.order-b.order).map(renderField)}
     </GlassPanel>
    </View>
   </>}
-  <Modal visible={avatarModal||!!confirm} transparent animationType="fade" onRequestClose={()=>{if(confirm)setConfirm(null);else setAvatarModal(false);}}>
+  <Modal visible={avatarModal||!!confirm} transparent animationType="fade" onRequestClose={()=>{if(pending.current)return;if(confirm)setConfirm(null);else setAvatarModal(false);}}>
    <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'rgba(14,6,22,.88)',padding:isWide?24:10}}>
     {confirm?<GlassPanel style={{maxWidth:440}}>
-     <Text accessibilityRole="header" style={s.heading}>{confirm.kind==='delete'?'確定刪除這張照片？':'確認採用這張化身'}</Text>
-     <Text style={s.body}>{confirm.kind==='delete'?'刪除後，後續的名片讀取與 AI 生成將無法再使用這張照片。':adoptNotice}</Text>
+     <Text accessibilityRole="header" style={s.heading}>{confirm.kind==='discard'?'捨棄未儲存的修改？':confirm.kind==='delete'?'確定刪除這張照片？':'確認採用這張化身'}</Text>
+     <Text style={s.body}>{confirm.kind==='discard'?'繼續將捨棄目前修改，並載入已保存資料。':confirm.kind==='delete'?'刪除後，後續的名片讀取與 AI 生成將無法再使用這張照片。':adoptNotice}</Text>
      <PrimaryButton label="取消" secondary onPress={()=>setConfirm(null)}/>
-     <PrimaryButton label={confirm.kind==='delete'?'確認刪除':'確認採用'} onPress={confirmAction}/>
+     <PrimaryButton label={confirm.kind==='discard'?'捨棄修改':confirm.kind==='delete'?'確認刪除':'確認採用'} onPress={confirmAction}/>
     </GlassPanel>:profile&&<GlassPanel style={{maxWidth:isWide?780:480,width:'100%',maxHeight:'94%',padding:isWide?22:14,gap:12}}>
      <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
       <Text accessibilityRole="header" style={[s.heading,{fontSize:20,textAlign:'left'}]}>選擇遊戲化身</Text>
@@ -279,9 +276,10 @@ export function DatingProfileScreen(){
      </View>
      <ScrollView contentContainerStyle={{gap:14,paddingBottom:8}} keyboardShouldPersistTaps="handled">
       {modalTab==='free'?<>
+       {(!profile.gender||JSON.parse(profile._savedForm??'{}').gender!==profile.gender)&&<InlineNotice text="請先儲存生理性別，再選擇免費化身"/>}
        {profile.selectedAvatarType==='generated'&&profile.selectedAvatarRef&&<View style={{gap:8}}><Text style={s.label}>目前選用的 AI 化身</Text><Image source={source(`/me/media/${profile.selectedAvatarRef}`)} accessibilityLabel="目前遊戲化身" resizeMode="contain" style={{width:'100%',aspectRatio:3/4,maxHeight:260,borderRadius:16}}/></View>}
        {!!profile.generatedAvatars?.length&&<View style={{gap:8}}><Text style={s.label}>已保存的 AI 化身</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{profile.generatedAvatars.map((avatar:{assetId:string},index:number)=><Pressable key={avatar.assetId} accessibilityRole="button" accessibilityLabel={`選用已保存化身 ${index+1}`} {...pressedState(profile.selectedAvatarType==='generated'&&profile.selectedAvatarRef===avatar.assetId)} accessibilityState={{selected:profile.selectedAvatarType==='generated'&&profile.selectedAvatarRef===avatar.assetId,disabled:busy}} disabled={busy} onPress={()=>selectSaved(avatar.assetId)} style={{width:'23%',borderWidth:2,borderColor:profile.selectedAvatarRef===avatar.assetId?colors.rose:colors.line,borderRadius:14,overflow:'hidden'}}><Image source={source(`/me/media/${avatar.assetId}`)} accessibilityLabel={`已保存的 AI 化身 ${index+1}`} resizeMode="contain" style={{width:'100%',aspectRatio:3/4}}/></Pressable>)}</View></View>}
-       {['male','female'].map(group=><View key={group} style={{gap:8}}><Text style={s.label}>{group==='male'?'男性風格':'女性風格'}</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{avatars.filter(a=>a.group===group).map(avatar=><Pressable key={avatar.id} accessibilityRole="button" accessibilityLabel={`選用 ${avatar.id}`} {...pressedState(profile.selectedAvatarRef===avatar.id)} accessibilityState={{selected:profile.selectedAvatarType==='builtin'&&profile.selectedAvatarRef===avatar.id,disabled:busy}} disabled={busy} onPress={()=>selectBuiltin(avatar.id)} style={{width:'23%',borderWidth:2,borderColor:profile.selectedAvatarRef===avatar.id?colors.rose:colors.line,borderRadius:14,overflow:'hidden',backgroundColor:'rgba(255,255,255,.06)'}}><Image source={avatarAssets[avatar.id]} accessibilityLabel={avatar.id} resizeMode="contain" style={{width:'100%',height:Platform.OS==='web'?'auto':undefined,aspectRatio:3/4}}/>{profile.selectedAvatarRef===avatar.id&&<Text style={{position:'absolute',left:0,right:0,bottom:0,fontSize:10,textAlign:'center',paddingVertical:3,color:colors.gold,fontWeight:'800',backgroundColor:'rgba(20,8,28,.82)'}}>目前選用 · {avatar.id}</Text>}</Pressable>)}</View></View>)}
+       {['male','female'].filter(group=>profile.gender&&JSON.parse(profile._savedForm??'{}').gender===profile.gender&&(profile.gender==='diverse'||profile.gender===group)).map(group=><View key={group} style={{gap:8}}><Text style={s.label}>{group==='male'?'男性風格':'女性風格'}</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{avatars.filter(a=>a.group===group&&profile.gender&&JSON.parse(profile._savedForm??'{}').gender===profile.gender&&(profile.gender==='diverse'||profile.gender===group)).map(avatar=><Pressable key={avatar.id} accessibilityRole="button" accessibilityLabel={`選用 ${avatar.id}`} {...pressedState(profile.selectedAvatarRef===avatar.id)} accessibilityState={{selected:profile.selectedAvatarType==='builtin'&&profile.selectedAvatarRef===avatar.id,disabled:busy}} disabled={busy} onPress={()=>selectBuiltin(avatar.id)} style={{width:'23%',borderWidth:2,borderColor:profile.selectedAvatarRef===avatar.id?colors.rose:colors.line,borderRadius:14,overflow:'hidden',backgroundColor:'rgba(255,255,255,.06)'}}><Image source={avatarAssets[avatar.id]} accessibilityLabel={avatar.id} resizeMode="contain" style={{width:'100%',height:Platform.OS==='web'?'auto':undefined,aspectRatio:3/4}}/>{profile.selectedAvatarRef===avatar.id&&<Text style={{position:'absolute',left:0,right:0,bottom:0,fontSize:10,textAlign:'center',paddingVertical:3,color:colors.gold,fontWeight:'800',backgroundColor:'rgba(20,8,28,.82)'}}>目前選用 · {avatar.id}</Text>}</Pressable>)}</View></View>)}
       </>:<View style={{gap:14}}>
        <View style={{gap:10,padding:14,borderRadius:18,backgroundColor:'rgba(255,255,255,.04)',borderWidth:1,borderColor:colors.line}}>
         <View style={s.labelRow}><Text accessibilityRole="header" style={s.label}>個人照片</Text><Text style={s.counter}>已保存 {profile.personalPhotos.length}/5 張 · 單張上限 8 MiB</Text></View>
