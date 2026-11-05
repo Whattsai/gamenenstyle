@@ -1,1 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../DatingHigh.Application/DatingHigh.Application.csproj" /><FrameworkReference Include="Microsoft.AspNetCore.App" /><PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="4.154.0" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.154.0" />
+    <ProjectReference Include="../DatingHigh.Application/DatingHigh.Application.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
+    <EmbeddedResource Include="Media/StyleReferences/*.jpg" />
+  </ItemGroup>
+</Project>

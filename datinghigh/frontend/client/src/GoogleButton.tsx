@@ -3,6 +3,15 @@ import {Text,View,Pressable,Platform} from 'react-native';
 import {GoogleOneTapSignIn,GoogleSignInButton} from 'react-native-nitro-google-signin';
 import {OperationGate} from './forms';
 export interface GoogleButtonProps {disabled:boolean;sessionId?:string;onCredential:(credential:string)=>Promise<void>;onNotice:(code:string)=>void;onBusy:(busy:boolean)=>void}
+function nativeFailureNotice(error:unknown):string{
+ const code=error&&typeof error==='object'&&'code' in error?error.code:undefined;
+ switch(code){
+  case 'PLAY_SERVICES_NOT_AVAILABLE':return 'GOOGLE_PLAY_SERVICES_UNAVAILABLE';
+  case 'ONE_TAP_START_FAILED':return 'GOOGLE_SIGN_IN_START_FAILED';
+  case 'DEVELOPER_ERROR':return 'GOOGLE_SIGN_IN_CONFIGURATION_ERROR';
+  default:return 'EXTERNAL_PROVIDER_UNAVAILABLE';
+ }
+}
 export default function GoogleButton(props:GoogleButtonProps){
  const [gate]=useState(()=>new OperationGate());
  const [sdkPending,setSdkPending]=useState(false);const timer=useRef<ReturnType<typeof setTimeout>|undefined>(undefined);
@@ -25,9 +34,10 @@ export default function GoogleButton(props:GoogleButtonProps){
    GoogleOneTapSignIn.configure({webClientId:client!,iosClientId:process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,offlineAccess:false,autoSelectOnSignIn:false});
    const response=await GoogleOneTapSignIn.presentExplicitSignIn();
    if(!gate.current(sequence,latest.current.sessionId))return;
+   if(response.type==='noSavedCredentialFound'){props.onNotice('GOOGLE_ACCOUNT_REQUIRED');return;}
    if(response.type!=='success'||!response.data){props.onNotice('GOOGLE_CANCELLED');return;}
    if(timer.current)clearTimeout(timer.current);setSdkPending(false);gate.http=true;await props.onCredential(response.data.idToken);
-  }catch{if(gate.current(sequence,latest.current.sessionId))props.onNotice('EXTERNAL_CREDENTIAL_INVALID');}
+  }catch(error){if(gate.current(sequence,latest.current.sessionId))props.onNotice(gate.http?'EXTERNAL_CREDENTIAL_INVALID':nativeFailureNotice(error));}
   finally{if(gate.finish(sequence)){if(timer.current)clearTimeout(timer.current);setSdkPending(false);props.onBusy(false);}}
  }
  function cancel(){if(gate.cancel()){if(timer.current)clearTimeout(timer.current);setSdkPending(false);latest.current.onBusy(false);latest.current.onNotice('GOOGLE_CANCELLED');}}

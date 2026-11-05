@@ -16,14 +16,15 @@ export class ApiClient {
  onChange:()=>void=()=>{};
  constructor(public origin:string,public platform:ClientPlatform,private store:CredentialStore,private fetcher:typeof fetch=fetch){}
  get serverNow(){return this.serverAnchor+performance.now()-this.monotonicAnchor;}
- private async raw(path:string,method='GET',body?:Record<string,unknown>){
+ private async raw(path:string,method='GET',body?:Record<string,unknown>|Blob){
   const requestedSession=this.sessionId,requestedPendingRevoke=this.pendingRevoke;
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),this.cold?45000:30000);this.cold=false;
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/me/avatar/generations'?110000:this.cold?45000:30000);this.cold=false;
   try{
    const headers:Record<string,string>={'X-DatingHigh-Client':this.platform};
-   if(method!=='GET')headers['Content-Type']='application/json';
+   const photo=path==='/me/photos'&&method==='POST'&&body instanceof Blob;
+   if(method!=='GET')headers['Content-Type']=photo?body.type:'application/json';
    if(this.platform!=='web'&&this.access)headers.Authorization=`Bearer ${this.access}`;
-   const response=await this.fetcher.call(globalThis,`${this.origin}/api/v1${path}`,{method,headers,credentials:this.platform==='web'?'include':'omit',body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
+   const response=await this.fetcher.call(globalThis,`${this.origin}/api/v1${path}`,{method,headers,credentials:this.platform==='web'?'include':'omit',body:photo?body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});
    const intentionalLogin=method==='POST'&&['/accounts','/sessions','/sessions/external/google'].includes(path)&&response.ok;
    if(requestedPendingRevoke!==this.pendingRevoke||requestedSession!==this.sessionId&&!intentionalLogin)throw new ApiFailure('REQUEST_SUPERSEDED');
    const date=Date.parse(response.headers.get('Date')??'');if(Number.isFinite(date)){this.serverAnchor=date;this.monotonicAnchor=performance.now();}
@@ -36,7 +37,7 @@ export class ApiClient {
   }catch(e){if(e instanceof ApiFailure)throw e;throw new ApiFailure('NETWORK_ERROR',0,undefined,0,method!=='GET');}
   finally{clearTimeout(timeout);}
  }
- async request(path:string,method='GET',body?:Record<string,unknown>):Promise<any>{
+ async request(path:string,method='GET',body?:Record<string,unknown>|Blob):Promise<any>{
   if(this.pendingRevoke&&method!=='GET')throw new ApiFailure('LOGOUT_PENDING',401);
   let refreshed=false,readRetried=false;
   for(;;){
@@ -52,6 +53,11 @@ export class ApiClient {
     throw e;
    }
   }
+ }
+ async uploadPhoto(photo:Blob){
+  if(photo.size>8*1024*1024)throw new ApiFailure('IMAGE_TOO_LARGE',413);
+  if(!photo.size||!['image/jpeg','image/png','image/webp'].includes(photo.type))throw new ApiFailure('INVALID_IMAGE',400);
+  return this.request('/me/photos','POST',photo);
  }
  async confirmExternalLogin(previousSessionId?:string){
   if(this.pendingRevoke)throw new ApiFailure('LOGOUT_PENDING',401);

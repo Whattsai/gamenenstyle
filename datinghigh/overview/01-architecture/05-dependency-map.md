@@ -10,16 +10,19 @@
 | .NET | SDK `10.0.204`、`rollForward=disable`、`net10.0`、nullable／implicit usings、warnings as errors；各專案 `packages.lock.json` |
 | Domain | 無 NuGet／ProjectReference |
 | Application | Domain；Logging.Abstractions `10.0.0` |
-| Infrastructure | Application、ASP.NET Core framework、Authentication.JwtBearer `10.0.6`（JWT／IdentityModel 元件；未採用 Identity／EF） |
+| Infrastructure | Application、ASP.NET Core framework、Authentication.JwtBearer `10.0.6`、SkiaSharp／SkiaSharp.NativeAssets.Linux.NoDependencies `4.154.0`（真解碼、壓縮；未採用 Identity／EF） |
 | Api | Infrastructure；ASP.NET Core Web SDK |
 | .NET tests | Unit／Integration 引用 Infrastructure，API 引用 Api；xUnit `2.9.3`、Test SDK `17.14.1`，部分專案用 coverlet `6.0.4`、TimeProvider.Testing `10.0.0`、Mvc.Testing `10.0.6` |
 | E2eHost／PlatformProbe | E2eHost 引用 Api、Integration.Tests、Mvc.Testing；Probe 引用 Infrastructure |
 | Worker | Containers SDK `0.3.7`、Zod `4.6.7`、Wrangler `4.155.0`、workers-types `5.20261029.1`；TypeScript `7.0.2`、Vitest `5.0.5`、Miniflare `5.20261023.2-beta` |
 | Expo client | Expo `58.0.22`、React／React DOM `19.3.0`、React Native `0.88.1`、React Native Web；Expo Router／SecureStore／dev-client、safe-area-context／screens |
 | Google native | react-native-nitro-google-signin `2.3.0`、nitro-modules `0.37.1`；Web 使用遠端 GIS script |
+| 照片／UUID | expo-image-picker、expo-file-system、expo-crypto 的 SDK58相容版本（精確版本見 lock）；原生 picker 需要重建 APK |
 | Client tests／build | TypeScript `6.0.3`、Vitest `5.0.5`、Testing Library、jsdom、Playwright；glob `14.0.2`／minimatch `11.0.1` overrides |
 
 三個 npm 專案獨立安裝，沒有 npm workspaces。`prototypes/prototype.v2/` 的 Next.js 相依不屬正式應用。版本變更須同步 lockfile；Windows 的 Worker 套件變更後也須重跑 `setup:wsl` 更新隔離 Linux toolchain。
+
+Worker測試另直接依賴esbuild `0.28.2`，將平台程式打包後在兩個獨立Miniflare Worker runtime共用D1／R2，驗證跨實例CAS；此依賴不進入產品瀏覽器或.NET容器。鎖檔及隔離Linux toolchain已同步。
 
 ## DI（Program.cs）
 
@@ -27,7 +30,8 @@
 |---|---|
 | Singleton | AuthOptions、TimeProvider.System、PasswordHashService／IPasswordHashService、AccessTokens／IAccessTokenIssuer、IAuthCryptography→AuthCryptography、IExternalCredentialValidator→GoogleExternalCredentialValidator |
 | Typed HttpClient | IPlatformClient→CloudflarePlatformClient；base `http://platform.internal/`、timeout 15 秒 |
-| Scoped | RateLimiter／Application IRateLimiter、IEmailCodeSender→EmailCodeSender、AuthApplication、Readiness、IPrivateObjectStore→PrivateObjectStore |
+| 媒體／AI | IImageCompressionService→ImageCompressionService（singleton）；IPrivateMediaStore→PrivateMediaStore、IAvatarCandidateStore→AvatarCandidateStore（內部HTTP30秒）；IAvatarImageGenerator→GeminiAvatarImageGenerator（HTTP100秒、單次生成90秒、無redirect／自動重送）；AvatarService、OwnCardPreviewService scoped |
+| Scoped | DatingProfileService、PersonalPhotosService、RateLimiter／Application IRateLimiter、IEmailCodeSender→EmailCodeSender、AuthApplication、Readiness、IPrivateObjectStore→PrivateObjectStore |
 | Framework | 自訂 Platform authentication scheme、PlatformAccess authorization policy、允許單一 Web origin 的 CORS |
 
 Google validator 由 factory 建立，讀取各 platform allowlist，並使用平台 client 取得 JWKS。不要繞過這些介面在頁面或 Domain 加外部 I/O。
@@ -39,7 +43,8 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 | Cloudflare bindings | Worker 的 `API` Durable Object／Container、`DB` D1、`FILES` 私人 R2、`ASSETS` 靜態檔；cloud sender 另需 `EMAIL`／`EMAIL_FROM` |
 | .NET Linux container | Dockerfile 固定 SDK／ASP.NET 10 映像 digest、非 root、8080；Worker 傳入認證與 Google 設定 |
 | D1 | 所有寫入經固定 prepared commands／batch；.NET 不直接連 SQLite／D1 HTTP API |
-| R2 | owner 私有物件與 `_system/foundation/probe.txt`；無公開 bucket／圖片 CDN／業務上傳 API |
+| R2 | owner 私人照片、短效候選、正式生成化身、attempt manifest及固定 probe；無公開 bucket／私人圖片 CDN |
+| Gemini | .NET 固定 generativelanguage.googleapis.com generateContent；server header secret；來源為本人已壓縮照片，每次只產一張；失敗及未知成本不自動重試 |
 | Google | Web GIS `https://accounts.google.com/gsi/client`；native SDK；Worker 只取 `https://www.googleapis.com/oauth2/v3/certs`，.NET 驗 RS256／audience／azp／Email |
 | Email | local／Log 在專用 category；staging／production 使用 Cloudflare sender binding，目前缺設定且未驗收 |
 | Client API | Web／iOS 預設 localhost:8787，Android emulator 預設 10.0.2.2:8787；EXPO_PUBLIC_API_ORIGIN 可覆寫，cloud 需 HTTPS |

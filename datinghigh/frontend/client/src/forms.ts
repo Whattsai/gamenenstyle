@@ -6,6 +6,7 @@ const messages:Record<string,string>={
  EMAIL_DELIVERY_FAILED:'驗證碼暫時無法寄送，請稍後重試',RATE_LIMITED:'操作過於頻繁，請稍後再試',CREDENTIAL_CHANGED:'帳號安全設定已變更，請重新操作',
  SESSION_REVOKED:'帳號已在其他裝置登入，請重新登入',SESSION_CHANGED:'登入狀態已變更，請重新登入',GOOGLE_SESSION_CHANGED:'登入狀態已變更，請重新操作',REFRESH_REVOKED:'登入狀態已失效，請重新登入',REFRESH_EXPIRED:'登入狀態已失效，請重新登入',REFRESH_INVALID:'登入狀態已失效，請重新登入',REFRESH_TOKEN_REUSE:'登入狀態已失效，請重新登入',
  EXTERNAL_EMAIL_MISMATCH:'Google Email 必須與目前帳號相同',EXTERNAL_IDENTITY_IN_USE:'此 Google 登入已被使用，無法連結',LAST_LOGIN_METHOD:'請先保留至少一種登入方式',PASSWORD_NOT_SET:'請先透過 Email 設定密碼',
+ GOOGLE_PLAY_SERVICES_UNAVAILABLE:'Google Play 服務無法使用或需要更新，請先在 Google Play 更新後再試',GOOGLE_SIGN_IN_START_FAILED:'無法開啟 Google 登入，請更新 Google Play 服務並確認裝置已登入 Google 帳號後再試',GOOGLE_SIGN_IN_CONFIGURATION_ERROR:'Google 登入設定異常，請稍後再試或使用 Email 登入',GOOGLE_ACCOUNT_REQUIRED:'這台裝置沒有可用的 Google 登入資訊，請先登入 Google 帳號後再試',
  EXTERNAL_CREDENTIAL_INVALID:'Google 登入驗證失敗，請重新登入 Google',EXTERNAL_EMAIL_UNTRUSTED:'此 Google 帳號的 Email 未通過網域信任檢查，請改用 Email 驗證碼註冊或先以密碼登入',EXTERNAL_EMAIL_CHANGED:'Google Email 已變更，請先使用原有方式登入',EXTERNAL_PROVIDER_UNAVAILABLE:'Google 登入暫時無法使用，請稍後再試',
  GOOGLE_CANCELLED:'已取消 Google 登入',NETWORK_ERROR:'網路連線中斷，請檢查連線後重試',SECURE_STORAGE_FAILED:'無法保存安全登入，請重新登入',LOGOUT_PENDING:'尚未完成伺服器登出，請重試',
 };

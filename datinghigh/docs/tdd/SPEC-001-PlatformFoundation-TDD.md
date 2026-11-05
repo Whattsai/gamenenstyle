@@ -1,5 +1,8 @@
 # SPEC-001-PlatformFoundation TDD 測試清單
 
+**目前MVP範圍（2026-11-04，D-051／D-052）**：無障礙專項設計、實作及驗收不納入整個遊戲目前範圍，不列待補或結案條件；iOS暫緩。此決策覆蓋以下舊規劃中的無障礙要求，保留歷史命名／證據不代表仍有實作義務。
+
+
 > **來源 BDD**：[SPEC-001-PlatformFoundation-BDD.md](../bdd/SPEC-001-PlatformFoundation-BDD.md)
 > **來源 SPEC**：[SPEC-001-PlatformFoundation.md](../specs/SPEC-001-PlatformFoundation.md)
 > **來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)
@@ -1043,9 +1046,9 @@
   - **來源**：PF-BDD-024、PF-BDD-068、PF-BDD-069；PF-AC-001、PF-AC-002、PF-AC-003、PF-AC-018、PF-AC-019
   - **平台／環境**：Web與Android／iOS，local／staging。
   - **目標**：原型視覺及可操作性。
-  - **前提**：小螢幕／大螢幕、實際鍵盤與safearea，Web鍵盤／減少動態偏好。
-  - **動作**：開開始頁及帳號表單，捲動／focus／讀屏label／Google未就緒替代。
-  - **預期**：玫瑰深紫／半透明風格，鍵盤不遮按鈕；focus可見、錯誤不只顏色、動態可減少；Google未就緒明示而Email仍可用。
+  - **前提**：小螢幕／大螢幕、實際鍵盤與safearea；無障礙專項不在範圍。
+  - **動作**：開開始頁及帳號表單，捲動／文字輸入／Google未就緒替代。
+  - **預期**：玫瑰深紫／半透明風格，鍵盤不遮按鈕；Google未就緒明示而Email仍可用；無障礙專項不作本案預期。
 
 - [ ] **PF-E2E-003** `RegisterEmail_ValidationCodeResendAndDuplicate_CreatesOneVerifiedAccount`（P0）
   - **位置**：`tests/e2e/web/email-registration.spec.ts`

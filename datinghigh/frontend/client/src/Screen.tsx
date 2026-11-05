@@ -7,9 +7,17 @@ import type {EmailFlow} from './flow';
 import {maskEmail,messageFor,validateForm} from './forms';
 import GoogleButton from './GoogleButton';
 import {usePendingBackGuard} from './pending-back-guard';
-import {SceneBackground,GlassPanel,PrimaryButton,FormField,InlineNotice,LoadingOverlay,s} from './ui';
+import {SceneBackground,GlassPanel,PrimaryButton,FormField,SubtleBadge,InlineNotice,LoadingOverlay,s} from './ui';
+
 const titles:Record<string,string>={'':'心動迴路',register:'讓相遇開始',login:'歡迎回來','verify-email':'確認你的 Email','forgot-password':'找回你的帳號','reset-password':'設定新密碼',account:'你的帳號','account/password':'更新密碼','account/connections':'登入方式'};
-function isCompleteAccount(value:unknown):value is Account{if(!value||typeof value!=='object')return false;const account=value as Partial<Account>;return typeof account.accountId==='string'&&account.accountId.length>0&&typeof account.email==='string'&&account.email.length>0&&account.emailVerified===true&&typeof account.hasLocalPassword==='boolean'&&Array.isArray(account.linkedProviders)&&account.linkedProviders.every(provider=>typeof provider==='string');}
+const features:[string,string][]=[['虛擬化身','16 款免費角色與 AI 客製'],['每日配對','雙向契合度興趣推薦'],['互動闖關','破冰問答與默契小遊戲'],['雙向解鎖','雙方同意才交換真人名片']];
+
+function isCompleteAccount(value:unknown):value is Account{
+ if(!value||typeof value!=='object')return false;
+ const account=value as Partial<Account>;
+ return typeof account.accountId==='string'&&account.accountId.length>0&&typeof account.email==='string'&&account.email.length>0&&account.emailVerified===true&&typeof account.hasLocalPassword==='boolean'&&Array.isArray(account.linkedProviders)&&account.linkedProviders.every(provider=>typeof provider==='string');
+}
+
 export function Screen({screen}:{screen:string}){
  const router=useRouter(),session=useSession();
  const params=useLocalSearchParams<{notice?:string}>();
@@ -95,46 +103,52 @@ export function Screen({screen}:{screen:string}){
   const result=await api.request(`/email-challenges/${flow.challengeId}/resend`,'POST',{flowToken:flow.flowToken});
   const next={...flow,...result,deliveryFailed:false};await flows.save(next);setFlow(next);setNotice(flow.purpose==='reset_password'?'若此 Email 可處理，將收到新的驗證碼，請使用最新的驗證碼':'已重新寄送驗證碼，請使用最新的驗證碼');setFields(f=>({...f,code:''}));
  });
- const field=(key:keyof typeof fields,label:string,password=false)=><FormField key={key} label={label} value={fields[key]} onChangeText={change(key)} secureTextEntry={password} editable={!busy} autoComplete="off" textContentType="none" importantForAutofill="no" keyboardType={key==='email'?'email-address':key==='code'?'number-pad':'default'} maxLength={key==='code'?6:undefined} onSubmitEditing={submit} returnKeyType="done"/>;
+ const field=(key:keyof typeof fields,label:string,password=false,placeholder?:string)=><FormField key={key} label={label} value={fields[key]} placeholder={placeholder} onChangeText={change(key)} secureTextEntry={password} editable={!busy} autoComplete="off" textContentType="none" importantForAutofill="no" keyboardType={key==='email'?'email-address':key==='code'?'number-pad':'default'} maxLength={key==='code'?6:undefined} onSubmitEditing={submit} returnKeyType="done"/>;
  const action=(label:string,path:string,secondary=true)=><PrimaryButton key={path} label={label} onPress={()=>navigate(path)} disabled={busy} secondary={secondary}/>;
  const googleButton=<GoogleButton disabled={busy} sessionId={api.sessionId} onCredential={google} onNotice={code=>setNotice(messageFor(code))} onBusy={setBusy}/>;
  const verification=['verify-email','reset-password'].includes(screen);
- return <SceneBackground><View style={{width:'100%',maxWidth:460,gap:22}}>
-  <Text style={s.eyebrow}>DATINGHIGH · 心 動 迴 路</Text>
-  <GlassPanel><Text accessibilityRole="header" style={s.heading}>{titles[screen]}</Text>
+ return <SceneBackground><View style={{width:'100%',maxWidth:460,gap:18}}>
+  <GlassPanel>
+   <Text style={s.eyebrow}>HEARTLINK · AVATAR LOVE SIM</Text>
+   <Text accessibilityRole="header" style={[s.heading,screen===''&&{fontSize:38,lineHeight:46}]}>{titles[screen]}</Text>
    {!session.ready?<LoadingOverlay/>:<>
     <InlineNotice text={effectiveNotice}/>
     {canRetryRecovery&&!(screen.startsWith('account')&&api.account&&!accountReady)&&<><PrimaryButton label="重試" disabled={busy} onPress={()=>{setRecoveryRequested(true);void run(async()=>{try{const outcome=await api.restore();setRecoveryRequested(false);if(outcome==='logged-out'){session.setNotice('LOGGED_OUT');router.replace('/');}else if(outcome==='session-changed'){session.setNotice('SESSION_CHANGED');router.replace('/login');}else router.replace(api.account?'/account':'/login');}catch(error){if(error instanceof ApiFailure&&error.code==='ACCESS_TOKEN_MISSING'){setRecoveryRequested(false);session.setNotice('REFRESH_INVALID');router.replace('/login');return;}throw error;}});}} secondary/>{screen!=='login'&&action('返回登入','/login')}</>}
     {screen.startsWith('account')&&api.account&&!accountReady&&<><InlineNotice text="帳號資料暫時無法確認，請重試"/><PrimaryButton label="重試" disabled={busy} onPress={()=>void run(async()=>{const account=await api.request('/me');if(!isCompleteAccount(account))throw new ApiFailure('SERVICE_UNAVAILABLE',503);api.account=account;api.onChange();})} secondary/></>}
-    {screen===''&&<><Text style={[s.body,{textAlign:'center'}]}>每一次靠近，都從真誠開始。{`\n`}為下一段相遇，留一個位置。</Text><View style={{height:1,backgroundColor:'#785273',marginVertical:6}}/>{action('使用 Email 註冊','/register',false)}{action('使用 Email 登入','/login')}{googleButton}<Text style={s.footer}>以自己的步調，開始認識彼此。</Text></>}
+    {screen===''&&<>
+     <Text style={[s.body,{textAlign:'center'}]}>先用虛擬化身遇見彼此的心，再一起走向真實世界的約會。</Text>
+     <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}>{features.map(([title,desc])=><View key={title} style={{width:'48%',padding:11,borderRadius:14,backgroundColor:'rgba(255,255,255,.05)',borderWidth:1,borderColor:'rgba(255,255,255,.10)',gap:2}}><Text style={s.label}>{title}</Text><Text style={s.subtleText}>{desc}</Text></View>)}</View>
+     {action('使用 Email 註冊','/register',false)}{action('使用 Email 登入','/login')}{googleButton}
+    </>}
     {['register','login','forgot-password'].includes(screen)&&<>
-     <Text style={s.body}>{screen==='register'?'輸入 Email，我們將寄送驗證碼。':screen==='forgot-password'?'輸入你的 Email，透過驗證碼設定新密碼。':'登入後，繼續你的相遇。'}</Text>
      {field('email','Email')}{screen==='login'&&field('password','密碼',true)}
      <PrimaryButton label={screen==='login'?'登入':'寄送驗證碼'} disabled={busy||seconds>0} onPress={submit}/>
      {screen==='login'&&<>{action('忘記密碼','/forgot-password')}{googleButton}{action('建立帳號','/register')}</>}
      {screen==='register'&&action('前往登入','/login')}
     </>}
     {verification&&(flow&&flow.purpose===(screen==='verify-email'?'register_email':'reset_password')?<>
-     <Text style={s.body}>{screen==='reset-password'?'若此 Email 可處理，將收到驗證碼':flow.deliveryFailed?'驗證碼暫時無法寄送，請稍後重試':'驗證碼已寄出，請查看信箱'}{`\n`}{flow.emailMasked}{`\n`}驗證碼有效至 {new Date(flow.expiresAt).toLocaleTimeString()}</Text>
-     {field('code','六位數驗證碼')}{field('password',screen==='reset-password'?'新密碼':'密碼',true)}{field('confirm','確認密碼',true)}
-     <Text style={s.footer}>密碼需為 12–128 個字元。</Text>
+     <SubtleBadge text={`${screen==='reset-password'?'若此 Email 可處理，將收到驗證碼':flow.deliveryFailed?'驗證碼暫時無法寄送，請稍後重試':'驗證碼已寄出，請查看信箱'} · ${flow.emailMasked} · 有效至 ${new Date(flow.expiresAt).toLocaleTimeString()}`}/>
+     {field('code','六位數驗證碼')}{field('password',screen==='reset-password'?'新密碼':'密碼',true,'12–128 個字元')}{field('confirm','確認密碼',true,'再次輸入密碼')}
      <PrimaryButton label={screen==='reset-password'?'重設密碼':'驗證並建立帳號'} disabled={busy||seconds>0&&retryUntil>api.serverNow} onPress={submit}/>
      <PrimaryButton label={seconds>0?`請稍候再重寄驗證碼（${seconds} 秒）`:'重新寄送驗證碼'} disabled={busy||seconds>0} onPress={resend} secondary/>
      {action('重新申請驗證碼',screen==='reset-password'?'/forgot-password':'/register')}
     </>:<><InlineNotice text="驗證流程已失效，請重新申請"/>{action('重新申請',screen==='reset-password'?'/forgot-password':'/register',false)}</>)}
     {screen==='account'&&accountReady&&<>
-     <View style={{gap:4}}><Text style={s.body}>{account!.email}</Text><Text style={s.body}>Email 已驗證</Text></View>
-     <Text style={s.body}>{account!.linkedProviders.includes('google')?'Google 已連結':'尚未連結 Google'}</Text>
-     {action(account!.hasLocalPassword?'修改密碼':'透過 Email 設定密碼',account!.hasLocalPassword?'/account/password':'/forgot-password',false)}
+     <View style={{padding:14,borderRadius:16,backgroundColor:'rgba(255,255,255,.05)',borderWidth:1,borderColor:'rgba(255,255,255,.10)',gap:8}}>
+      <Text style={[s.label,{fontSize:16}]}>{account!.email}</Text>
+      <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><SubtleBadge text="Email 已驗證"/><SubtleBadge text={account!.linkedProviders.includes('google')?'Google 已連結':'尚未連結 Google'}/></View>
+     </View>
+     {action('個人資料與遊戲化身','/profile',false)}
+     {action(account!.hasLocalPassword?'修改密碼':'透過 Email 設定密碼',account!.hasLocalPassword?'/account/password':'/forgot-password')}
      {action('管理登入方式','/account/connections')}
      <PrimaryButton label="登出" onPress={()=>run(async()=>{const confirmed=await api.logout();session.setNotice(confirmed?'LOGGED_OUT':'SESSION_CHANGED');router.replace(confirmed?'/':'/login');})} disabled={busy} secondary/>
     </>}
     {screen==='account/password'&&accountReady&&(account!.hasLocalPassword?<>
-     {field('currentPassword','目前密碼',true)}{field('password','新密碼',true)}{field('confirm','確認密碼',true)}
+     {field('currentPassword','目前密碼',true)}{field('password','新密碼',true,'12–128 個字元')}{field('confirm','確認密碼',true)}
      <PrimaryButton label="更新密碼" onPress={submit} disabled={busy}/>
     </>:<><InlineNotice text="請先透過 Email 設定密碼"/>{action('寄送重設驗證碼','/forgot-password',false)}</>)}
     {screen==='account/connections'&&accountReady&&<>
-     <Text style={s.body}>{account!.linkedProviders.includes('google')?'Google 已連結':'尚未連結 Google'}</Text>
+     <SubtleBadge text={account!.linkedProviders.includes('google')?'Google 已連結':'尚未連結 Google'}/>
      {account!.linkedProviders.includes('google')?(account!.hasLocalPassword?<>
       {field('currentPassword','目前密碼',true)}<PrimaryButton label="解除 Google 連結" disabled={busy||!fields.currentPassword} onPress={()=>run(async()=>{await api.request('/me/identities/google','DELETE',{currentPassword:fields.currentPassword});session.setNotice('IDENTITY_UNLINKED');await api.forget();router.replace('/login');})} secondary/>
      </>:<><InlineNotice text="請先透過 Email 設定密碼，再管理登入方式。"/>{action('透過 Email 設定密碼','/forgot-password',false)}</>):googleButton}
@@ -143,6 +157,6 @@ export function Screen({screen}:{screen:string}){
     {busy&&<LoadingOverlay/>}
     {screen!==''&&action(screen.startsWith('account/')?'返回帳號':'返回開始畫面',screen.startsWith('account/')?'/account':'/')}
    </>}
-  </GlassPanel><Text style={s.footer}>溫柔相遇，從這裡開始。</Text>
+  </GlassPanel>
  </View></SceneBackground>;
 }

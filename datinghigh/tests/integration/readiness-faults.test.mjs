@@ -9,7 +9,7 @@ async function waitFor(pathname,status,timeout=150000){const end=Date.now()+time
 
 test('PF-IT-034 actual isolated Worker and .NET container reject resource, schema, secret, origin and sender faults',{timeout:1500000},async()=>{
  const name=`fault-ready-${Date.now()}`,fixture=resolveInstance(name,true);assert.ok(fixture.cwd.startsWith(path.join(root,'.local','instances')+path.sep));
- const sqlFile=`${root}/.local/${name}.sql`;fs.writeFileSync(sqlFile,fs.readFileSync(`${root}/cloudflare/migrations/0001_foundation.sql`,'utf8')+"\nCREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT); INSERT INTO d1_migrations(name) VALUES('0001_foundation.sql');\n");
+ const sqlFile=`${root}/.local/${name}.sql`;fs.writeFileSync(sqlFile,['0001_foundation.sql','0002_avatar_preferences.sql'].map(file=>fs.readFileSync(`${root}/cloudflare/migrations/${file}`,'utf8')).join('\n')+"\nCREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT); INSERT INTO d1_migrations(name) VALUES('0001_foundation.sql'),('0002_avatar_preferences.sql');\n");
  cli(['restore','--file',sqlFile,'--target',name]);cli(['probe','--instance',name]);const baseline=JSON.parse(fs.readFileSync(fixture.config,'utf8'));
  // This test wrapper accepts only its generated fault-* instance, fixed local binding, and fixed test SQL/probe file.
  function wrangler(args){assert.match(name,/^fault-ready-[0-9]+$/);assert.ok(!args.some(a=>a==='--remote'));const r=spawnSync(process.execPath,[`${root}/cloudflare/node_modules/wrangler/bin/wrangler.js`,...args,'--config',fixture.config,'--local'],{cwd:fixture.cwd,encoding:'utf8',windowsHide:true,timeout:120000});assert.equal(r.status,0,'Isolated local fixture mutation succeeds');}

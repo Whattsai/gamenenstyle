@@ -1,10 +1,10 @@
 # 心動迴路（DatingHigh）
 
-DatingHigh 是戀愛養成交友平台；目前只交付 [PlatformFoundation](docs/specs/SPEC-001-PlatformFoundation.md) 的帳號、認證與資料基礎，後續交友業務尚未實作。
+DatingHigh 是戀愛養成交友平台。[PlatformFoundation](docs/specs/SPEC-001-PlatformFoundation.md) 的帳號與認證基礎已有本地驗收；[AvatarAndPreferences](docs/specs/SPEC-001-AvatarAndPreferences.md) 已實作本人資料、照片壓縮與私人 R2、16 款正式插畫、Gemini 逐張生成／比較／採用及 Web／原生共用畫面。兩張授權照片的真 Gemini 最多四張流程已通過，使用者已確認第三版相似度與原型風格；本地Web／Android責任範圍已完成；iOS暫緩，無障礙不在目前整個MVP範圍。現況及限制見[驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)。本功能尚未部署雲端或發布 production。
 
 已建立 Email 驗碼註冊、登入、忘記／重設密碼、修改密碼、Google 登入與連結管理，以及登入恢復／撤銷。技術組成為 Expo SDK 58／React Native、.NET 10、Cloudflare Worker／Container／D1／私人 R2。
 
-依既有 D-033、D-035 決策，本地 Web／Android 驗收已有結案紀錄；iOS、TalkBack、雲端與真收信仍有未驗收項目，production 未發布。詳見 [逐平台驗證紀錄](docs/verification/SPEC-001-PlatformFoundation-Verification.md) 與 [本地範圍](docs/verification/PlatformFoundation-LocalAcceptance.md)。
+依既有 D-033、D-035 決策，本地 Web／Android 驗收已有結案紀錄；iOS依D-052暫緩，無障礙依D-051不在目前MVP範圍；雲端與真收信仍有未驗收項目，production 未發布。詳見 [逐平台驗證紀錄](docs/verification/SPEC-001-PlatformFoundation-Verification.md) 與 [本地範圍](docs/verification/PlatformFoundation-LocalAcceptance.md)。
 
 ## 快速啟動（Windows）
 
@@ -35,6 +35,8 @@ npm --prefix frontend/client start -- --dev-client --localhost --port 8082
 ```
 
 安裝 APK、ADB reverse 與連線步驟見 [Android 操作](overview/04-deployment/01-deployment-checklist.md#android-development-build)。iOS 需要 macOS／Xcode 或另行配置可簽署的 development build；目前沒有 iOS 驗收證據。
+
+手動驗證的 Metro 應正常載入 `frontend/client/.env.local`；設定 Google 登入時須帶入公開的 `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`。若以 `EXPO_NO_DOTENV=1` 啟動卻未明確提供此值，原生畫面會停用 Google 登入，即使既有 Web 匯出檔仍可使用。
 
 ## 常用驗證
 

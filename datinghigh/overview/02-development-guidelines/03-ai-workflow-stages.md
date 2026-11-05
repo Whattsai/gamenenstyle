@@ -47,7 +47,7 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 
 `docs/verification/foundation-evidence.json` 記平台／環境證據；`foundation-case-review.json` 為人工案例覆核，`foundation-traceability.json` 與 DeepAudit 提供完整追溯。不要只因函式名稱含 PF ID 就改成 passed。
 
-既有 D-033／D-035 暫緩 iOS／staging，TalkBack 亦有跳過決策；這些不記為通過。評估器的 `accepted`／`missing` 是完整原規劃，`scopedAccepted`／`scopedMissing` 是明確決策下的本地範圍。真 Google 本地 Web／Android 已有證據，仍不能代替 iOS／staging；真收信與雲端內部行為各自保留缺項。
+既有 D-033／D-035 暫緩 iOS／staging，無障礙專項已依2026-11-04 D-051排除整個目前MVP，iOS依D-052暫緩；歷史未驗不記為通過。評估器的 `accepted`／`missing` 是完整原規劃，`scopedAccepted`／`scopedMissing` 是明確決策下的本地範圍。真 Google 本地 Web／Android 已有證據，仍不能代替 iOS／staging；真收信與雲端內部行為各自保留缺項。
 
 目前狀態以 [驗證紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)、[本地矩陣](../../docs/verification/PlatformFoundation-LocalMatrix.md) 與 [深度稽核](../../docs/verification/SPEC-001-PlatformFoundation-DeepAudit.md) 為準，overview 不另維護易過期的測試數字。
 
@@ -70,3 +70,23 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 ## 交付格式
 
 說明最終行為、修改位置及原因，列出實際執行命令／結果／平台／環境與必要前提；沒執行或不具證據的項目明確保留。補充 overview 更新處或無影響原因、剩餘風險與下一個真正需要外部條件的缺項。只改文件時明確說明只修改 Markdown。
+
+## AvatarAndPreferences增補驗證
+
+真媒體整合為 `backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs` 及Worker四個AP測試檔；Web基本流程與明確opt-in真Gemini流程在 `tests/e2e/web/avatar-*.spec.ts`。default local二進位／Cookie／Bearer界線可用 `node --test tests/integration/avatar-http-live.test.mjs`，只傳虛構圖片、不呼叫Gemini。原生新腳本 `tests/e2e/android/avatar-preferences.mjs` 使用support與真local平台，不依賴上述舊fixture路徑；需目前含picker的新APK、8082 Metro與明確指定本專案QA device／ADB port。基本腳本以外的照片上傳／排序／刪除由 `avatar-photos.mjs` 使用專用QA相簿內虛構插畫驗證；`avatar-gemini-live.mjs` 需DATINGHIGH_GEMINI_LIVE=1及兩張已授權來源環境路徑，來源只經本人binary API讀入RAM，不複製至模擬器／證據。候選數預設1；明確設定DATINGHIGH_NATIVE_CANDIDATES=4才走四張真生成／完整frame／回選第2張。僅整輪及最後清理通過才產生匿名摘要；單張／四張證據分開，TalkBack等無障礙專項不在目前範圍。
+
+真Gemini／原生操作期間也不能修改觸發hot reload的Worker／backend／frontend程式。原始碼、export及wrapper restart先完成並等ready，再依序測；測試中的503不能憑推測歸咎供應商，需凍結環境重現。匿名完整ID追溯由 `node tools/audit-avatar-traceability.mjs` 依人工覆核map重建，不能把275個規劃名稱當275個已通過測試。
+
+追溯同時保留73個BDD完整斷言及每項證據；業務SQL／Application場景與13項完整三平台UX分開核對。GC多頁壓力驗證使用隔離Miniflare與可控IO耗時，核對多次有限預算的持續前進及有效物件保留；不將它擴推成雲端長期排程負載證據。
+
+Web可選狀態須確認實際DOM的aria-pressed／aria-checked，不能只檢查React Native的accessibilityState prop；原生核對一般操作與選用結果；TalkBack／VoiceOver依D-051不列實作或驗收工作。Android UI XML只在記憶體處理；Escape收合API36 predictive-back未收合的測試鍵盤，啟動前確認專用DatingHighQA／DatingHighQA31及明確device。API36的System UI ANR／UiAutomation.connect timeout不能當成App功能通過，API31結果也不能擴推API36。
+
+原生靜態圖片須用實際frame驗3:4：React Native Image先套用bundled source的intrinsic height，只寫width及aspectRatio仍會留下過長卡片；本畫面明確清除height後，原生基本腳本實測比例。UiAutomator的十進位／十六進位emoji entity需單次解碼，不能把鎖頭按鈕定位失敗當provider故障。本人名片預覽在成功資料變更／重新讀取後清除舊投影，避免已刪照片或舊職業仍留在畫面。
+
+候選到期同時關閉已開啟的採用確認窗；實際按確認仍重驗api.serverNow，不能只依賴背景可能延遲的timer。Web `avatar-expiry-ui.spec.ts` 是明確的HTTP故障／候選讀取注入，不能作真Gemini或SQL證據；真帳號及虛構來源照清理須完整通過，Android對應行為已由`avatar-controlled.mjs`獨立實測：已開採用窗到期後不可提交；iOS依D-052暫緩。
+
+`tests/integration/avatar-controlled-host.test.mjs`驗真HTTP／Application／Miniflare D1／R2的供應商失敗與重播；`tests/e2e/android/avatar-controlled.mjs`使用隔離E2eHost及8084 Metro，僅供應商回應受控，不作真Gemini品質證據。已修正其共用fixture搬移前的tools／frontend路徑。不得與其他操作同一QA裝置／8084的測試並跑；新增相依後須先restore E2eHost再build，不能沿用過期assets。
+
+靜態圖片的Web分支以height:auto覆寫原始高度，Android保留height:undefined；兩平台均須量實際3:4框，不能只檢查aspectRatio宣告或載入成功。
+
+`avatar-managed.mjs`補原生超8MiB／可重選、照片配額回收、revision衝突與表單／重登；`avatar-privacy.mjs`以兩個真隔離帳號驗Native Bearer猜私人asset回404及原生畫面無他人照片入口。這些腳本只用專用QA裝置，不與其他UiAutomator讀取同時執行。替換表單既有文字時先定位實際EditText、移到末尾逐字刪除再輸入，不能點到同名標籤，也不能假設數字鍵盤支援Ctrl+A；捲動必須讓輸入框本身可見。

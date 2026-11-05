@@ -1,5 +1,8 @@
 # PlatformFoundation 本地案例覆核
 
+**範圍更新（2026-11-04，D-051／D-052）**：以下TalkBack／VoiceOver／無障礙紀錄保留為歷史證據；無障礙專項已排除目前整個遊戲MVP，不再是待補工作。iOS暫緩；本地一般功能與安全仍按現行範圍核對。
+
+
 本表依使用者 D-033、D-035 決策檢查 Web 與 Android 本地範圍。2026-10-31 使用者另決定先跳過 TalkBack 實際讀屏，僅保留已完成的可及性節點與操作檢查；不將 TalkBack 記為通過。原 TDD／BDD 的完整狀態仍保留 iOS、staging 與真收信要求，見[逐項深度稽核](SPEC-001-PlatformFoundation-DeepAudit.md)。受控 SDK／寄信案例只證明被控邊界及其後的實際程式與資料庫，不能取代真 OAuth 或實際收信。
 
 | 規劃案例 | 本地證據與未完成項 |

@@ -7,6 +7,16 @@ using DatingHigh.Infrastructure;
 var options=AuthOptions.Load(Environment.GetEnvironmentVariable);
 using var http=new HttpClient{BaseAddress=new Uri("http://platform.internal/"),Timeout=TimeSpan.FromSeconds(15)};
 var platform=new CloudflarePlatformClient(http);
+if(args.Length==1&&args[0]=="avatar-provider-health"&&options.Environment=="local")
+{
+    // 不含圖片或計費生成；只驗本容器到固定 Gemini 主機的 TLS 與 server secret。
+    using var provider=new HttpClient(new SocketsHttpHandler{AllowAutoRedirect=false}){Timeout=TimeSpan.FromSeconds(20)};
+    using var request=new HttpRequestMessage(HttpMethod.Get,"https://generativelanguage.googleapis.com/v1beta/models");
+    request.Headers.Add("x-goog-api-key",Environment.GetEnvironmentVariable("GEMINI_API_KEY")??"");
+    try{using var response=await provider.SendAsync(request);Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{status=(int)response.StatusCode,boundary="container-gemini-models"}));}
+    catch(HttpRequestException e){Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{status="network-failure",kind=e.HttpRequestError.ToString()}));Environment.ExitCode=1;}
+    return;
+}
 if(args.Length==0||args[0]=="probe")
 {
     await new Readiness(platform,options).CheckAsync();Console.WriteLine("{\"status\":\"passed\",\"boundary\":\"dotnet-outbound-d1-r2\"}");return;

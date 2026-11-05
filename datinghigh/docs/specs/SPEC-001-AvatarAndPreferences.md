@@ -1,15 +1,18 @@
 # SPEC-001-AvatarAndPreferences: AI／免費化身、真人照與交友資料
 
+**目前MVP範圍（2026-11-04，D-051／D-052）**：無障礙專項設計、實作及驗收不納入整個遊戲目前範圍，不列待補或結案條件；iOS暫緩。此決策覆蓋以下舊規劃中的無障礙要求，保留歷史命名／證據不代表仍有實作義務。
+
+
 **功能 ID**: `SPEC-001-AvatarAndPreferences`  
 **關聯需求**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)  
 **優先級**: 高（MVP 第 2 順位）  
-**狀態**: 2026-11-02 使用者確認 D-050 逐張產圖修訂，沿用已確認之本份完整 SDD（含 D-047 不使用 SQL Trigger）；RiskAudit RQ-01=A／RQ-02=A 已確認，14項稽核補強及 TDD 交接完成；**Ready for well-done（D-050 文件重審後，尚未實作）**
-**最後更新**: 2026-11-02
+**狀態**: 2026-11-02 使用者確認 D-050 逐張產圖修訂，沿用已確認之本份完整 SDD（含 D-047 不使用 SQL Trigger）；RiskAudit RQ-01=A／RQ-02=A 已確認，14項稽核補強及 TDD 交接完成。**Well-Done實作與逐項驗收進行中**；真Gemini、16款正式圖、私人媒體及Web已有證據，完整Gate尚未通過，見[驗證紀錄](../verification/SPEC-001-AvatarAndPreferences-Verification.md)。
+**最後更新**: 2026-11-03
 **前置 SPEC**: [SPEC-001-PlatformFoundation](SPEC-001-PlatformFoundation.md)  
 **後續依賴者**: `SPEC-001-MatchingSessions`、`SPEC-001-StoryDialogueAndExit`、`SPEC-001-AffectionAndFeedback`  
 **責任範圍**: `US-001`～`US-003` 共 **13 條 MVP 驗收**；`US-020 / AC-020-02、AC-020-07` 的即時名片資料來源契約；不在本份實作 25 分門檻、邀請／同意／實際名片揭露或付款。
 
-> 本輪已確認的產品決策以 MVP `D-036`～`D-050` 為準，取代 2026-11-01 前一版 SDD 中「每次上傳／每次 1 張、生成後刪照片、名片排除真人照、配對快照、刻意避免高度相似、暫不能選 Gemini」的提案。本份 SDD 細部設計已於 2026-11-01 經使用者確認，仍不得聲稱已實作或已完成測試。
+> 本輪已確認的產品決策以 MVP `D-036`～`D-050` 為準，取代 2026-11-01 前一版 SDD 中「每次上傳／每次 1 張、生成後刪照片、名片排除真人照、配對快照、刻意避免高度相似、暫不能選 Gemini」的提案。本份 SDD 細部設計已於 2026-11-01 經使用者確認；以下設計基線不作執行證據，現行實作／通過／未驗收依驗證紀錄及TDD逐ID追溯。
 
 ## 1. 功能概述與交付成果
 

@@ -2,6 +2,20 @@
 
 更新：2026-11-01（Asia/Taipei）。範圍為 MVP-001 的 SPEC-001；其餘七份 SPEC、親密度及交換名片業務尚未實作。
 
+## 2026-11-05 原生Google手動驗證排障補記
+
+以下是本次操作與UI修正，前述日期及後續327項／真Google紀錄仍為各自歷史批次，不擴推本次登入結果；目前AvatarAndPreferences範圍及D-051／D-052見其獨立驗證紀錄。
+
+- 初次手動預覽使用`EXPO_NO_DOTENV=1`，Android bundle未帶入`.env.local`已配置的公開Google Client ID；恢復標準Metro啟動後，bundle及Google按鈕已恢復。server Android allowlist原本即包含該ID，未修改OAuth、server secret或驗簽規則。
+- 使用者再按登入時，DatingHighQA31的系統日誌明確顯示`com.datinghigh.app`要求Google Play服務230815045、裝置只有225014047（22.50.14）；裝置Google帳號數0。該Google APIs映像的商店套件為LicenseChecker、沒有可用商店Activity，不能靠開商店更新。
+- 保留API31資料，改開既有DatingHighQA／Android36 Google Play映像；Google Play服務26.43.30（264330038）、商店Activity可用、APK SHA與本次build相同。冷啟曾出現System UI無回應提示，按Wait後進入App，未把該提示視為功能通過。只登出確認為保留測試網域的舊QA帳號，未清除App或Google系統資料。
+- 修正`GoogleButton.tsx`及`forms.ts`：只以白名單SDK code區分Play服務不可用、SDK啟動失敗、OAuth設定異常；無可用credential另提示先登入裝置Google帳號，取消仍獨立處理。未知SDK錯誤提示provider不可用，不再一律指責憑證無效；已取得SDK proof後的交換失敗仍維持原分類。沒有輸出SDK原始message／userInfo／token，沒有自動重試、改變認證或新增HTTP／DB契約。
+- TDD先Red：原生controller新增故障案例，14項中5失敗／9通過；最小修改後14/14通過，前端完整139/139及typecheck通過。原始結果在`.local/evidence/google-native-device-errors-red.log`、`google-native-device-errors-client.log`；此為新增UI測試，不把前次671項回歸改稱新批次677項。
+- 真裝置UI確認：Google按鈕呼叫真SDK後，畫面正確顯示「這台裝置沒有可用的 Google 登入資訊，請先登入 Google 帳號後再試」。本次沒有完成新的Google授權或平台登入；需要使用者在模擬器Google Play完成自己的帳號登入。開啟官方Google Play更新頁的操作遭自動審查以`blocked by policy`拒絕，未繞過；交由使用者手動開商店。
+- 當前視窗`Android Emulator - DatingHighQA:5662`；本專案ADB5038透過已驗明的同一QEMU loopback5663重新連線，reverse8082已存在，Metro8082及平台8787各回200。未操作其他專案的ADB server／裝置，未安裝第三方來源Google APK。
+
+Overview影響矩陣：已更新模組責任與部署／操作前提；HTTP、DB、外部驗簽及session政策沒有變更，因此資料契約、API合約與依賴套件不變。
+
 2026-11-01 追加完成[本地 Email 與相依套件補驗](PlatformFoundation-LocalEmailAndDependencies.md)：註冊／reset／重寄真 log 碼通過，三個 npm 專案及 NuGet 9 專案零已知弱點；新版 Android APK 真 Google／SecureStore 冷恢復／登出回歸通過。
 
 ## 最新本地結案

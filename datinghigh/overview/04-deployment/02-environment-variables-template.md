@@ -19,6 +19,8 @@
 | GOOGLE_WEB_CLIENT_ID | 公開ID，Google Web功能需要 | server按逗號分隔為Web audiences／azp allowlist；不提供client secret |
 | GOOGLE_IOS_ALLOWED_CLIENTS | 公開ID清單，iOS Google功能需要 | 逗號分隔，須涵蓋實際SDK產生的audience／azp |
 | GOOGLE_ANDROID_ALLOWED_CLIENTS | 公開ID清單，Android Google功能需要 | 逗號分隔，須配合Web client／native設定與簽章 |
+| GEMINI_API_KEY | Secret，AI 生成需要 | 只在忽略的 server `cloudflare/.dev.vars`／部署 secret 設定；Worker 轉入容器，永不進 EXPO_PUBLIC 或 URL／日誌；缺少時 AI 503，免費角色仍可用 |
+| GEMINI_IMAGE_MODEL | 一般變數，選填 | 預設 gemini-3.1-flash-image；只允許程式內列出的 Gemini image model，不能傳任意 endpoint |
 
 Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Google驗證則503 EXTERNAL_PROVIDER_UNAVAILABLE。前端缺client ID時入口顯示不可用，不能回假成功。
 
@@ -28,10 +30,10 @@ Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Go
 
 | 名稱 | 種類 | 用途 |
 |---|---|---|
-| EXPECTED_MIGRATION | var，必要 | 目前0001_foundation.sql，ready查d1_migrations；不轉入.NET |
+| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0002_avatar_preferences.sql；ready查migration及八表欄位；不轉入.NET。staging 變更未代表已部署 |
 | EMAIL_FROM | 一般設定，cloud必要 | 已完成sender domain驗證的寄件地址；不以任意地址替代 |
 | EMAIL | Email sender binding，cloud必要 | 平台寄信用；目前staging設定尚缺 |
-| DB | D1 binding | 六表與migration metadata；不能換其他專案DB |
+| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表24欄及migration metadata；不能換其他專案DB |
 | FILES | 私人R2 binding | owner物件與固定probe；非公開bucket |
 | API | Durable Object／Container binding | ApiContainer生命週期及api-v1路由 |
 | ASSETS | Wrangler assets binding | local為frontend/client/dist；staging為.local/staging-web |
@@ -68,6 +70,7 @@ GOOGLE_IOS_URL_SCHEME=<reversed-ios-client-id>
 | DATINGHIGH_ADB_PORT | Android驗收wrapper選定ADB server port；不改其他專案程序 |
 | DATINGHIGH_ANDROID_DEVICE | Android測試指定裝置，預設emulator-5554；每次先確認對象 |
 | DATINGHIGH_LINUX_TOOLCHAIN | local.mjs的內部WSL選擇，Windows wrapper設定為1；不手動切remote |
+| DATINGHIGH_E2E_AVATAR_PROFILE | 僅隔離E2eHost明選受控圖片供應商及真D1／R2 bridge；不由正式API讀取，不含真Gemini呼叫 |
 | DATINGHIGH_NATIVE_FAULT_PROFILE | Metro development-only SecureStore故障adapter；正式build／export不得帶1 |
 | DATINGHIGH_NATIVE_GOOGLE_PROFILE | 專用測試Google adapter，須搭配fault profile且僅development；不是真SDK證據 |
 | EXPO_PUBLIC_NATIVE_FAULT_ORIGIN | 僅測試profile的loopback host／emulator對應來源，供SecureStore與clock adapter使用；不得帶入正式bundle |

@@ -9,13 +9,16 @@
 | .NET 模組測試 | `backend/tests/DatingHigh.Unit.Tests/`、`DatingHigh.Api.Tests/`、`DatingHigh.Integration.Tests/` |
 | 測試專用 HTTP host | `backend/tests/DatingHigh.E2eHost/`；不放正式路由或 release 入口 |
 | .NET 平台 probe | `backend/tools/DatingHigh.PlatformProbe/` |
+| 圖片 adapter／共用介面 | `backend/src/DatingHigh.Infrastructure/Media/`、`backend/src/DatingHigh.Application/Media/` |
+| 圖片處理與真 provider probe | `backend/tools/DatingHigh.MediaProbe/`；真人來源不放版本庫 |
 | Worker／commands／strict JSON | `cloudflare/src/` |
-| D1 schema | `cloudflare/migrations/`；既有 `0001_foundation.sql` 是現行六表基線 |
+| D1 schema | `cloudflare/migrations/`；0001六表54欄＋0002兩表24欄，零 Trigger |
 | Worker 單元／真 D1 測試 | `cloudflare/tests/` |
 | Expo 路由畫面 | `frontend/client/app/`；layout 只組合全域 provider／Stack |
 | 前端共用 UI／API／session／storage | `frontend/client/src/`；Web 專用元件用 `.web.tsx` |
 | 前端單元測試 | `frontend/client/tests/unit/` |
 | 正式 UI 素材／原生 plugin | `frontend/client/assets/`、`frontend/client/plugins/` |
+| 化身圖片／來源追溯 | `frontend/client/assets/avatars/` 含 provenance.json；公開免費圖另存 `public/avatars/`，真人照與 AI 候選不在此 |
 | 跨系統整合／資料持久性 | 根 `tests/integration/` |
 | Web／Android E2E | 根 `tests/e2e/web/`、`tests/e2e/android/` |
 | 版面／native adapter | 根 `tests/component-layout/`、`tests/native/`；僅 development 測試 profile 可用 |

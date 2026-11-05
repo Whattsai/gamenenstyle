@@ -136,7 +136,18 @@ public class PlatformFoundationEndpointTests
     public async Task Routing_SixProtectedRoutesExplicitlyAuthorize_UnknownApiRemains404()
     {
         using var f=new ApiFixture();using var client=f.Native();var endpoints=f.Services.GetRequiredService<EndpointDataSource>().Endpoints;
-        Assert.Equal(6,endpoints.Count(e=>e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a=>a.Policy=="PlatformAccess")));
+        var protectedRoutes=endpoints.OfType<RouteEndpoint>()
+            .Where(e=>e.Metadata.GetOrderedMetadata<IAuthorizeData>().Any(a=>a.Policy=="PlatformAccess")).ToArray();
+        // Foundation 原6個受保護路由仍須全部保留；新增 SPEC 路由不應讓固定總數斷言誤報退步。
+        var foundationPaths=new[]{
+            "/api/v1/session","/api/v1/me","/api/v1/me/password",
+            "/api/v1/me/identities","/api/v1/me/identities/{provider}"
+        };
+        Assert.Equal(6,protectedRoutes.Count(e=>foundationPaths.Contains(e.RoutePattern.RawText,StringComparer.Ordinal)));
+        Assert.Equal(2,protectedRoutes.Count(e=>e.RoutePattern.RawText=="/api/v1/me/dating-profile"));
+        var privatePhotoPaths=new[]{"/api/v1/me/photos","/api/v1/me/photos/order","/api/v1/me/photos/{assetId}"};
+        Assert.Equal(4,protectedRoutes.Count(e=>privatePhotoPaths.Contains(e.RoutePattern.RawText,StringComparer.Ordinal)));
+        Assert.Single(protectedRoutes,e=>e.RoutePattern.RawText=="/api/v1/me/media/{assetId}");
         var r=await client.GetAsync("/api/v1/not-existing");Assert.Equal(HttpStatusCode.NotFound,r.StatusCode);Assert.Equal("application/problem+json",r.Content.Headers.ContentType!.MediaType);
     }
 }

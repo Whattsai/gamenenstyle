@@ -23,7 +23,7 @@
 
 `app/` 組合帳號畫面與導覽；`src/api.ts` 統一 HTTP、refresh、未知結果及登出復原；`src/session.tsx` 提供全應用狀態；`src/storage*.ts`／`flow.ts` 限定儲存欄位；`GoogleButton` 的 Web／native 實作隔離 SDK。頁面不得自行持久化平台 token、解讀 client profile 為可信 Google 身分，或繞過 ApiClient 重送資料變更。
 
-私人 R2 的 owner 取自已驗證 context，Worker 在實際物件操作前再驗 family。未定義的未來資源權限預設拒絕；原型 UI 的固定對象不作正式授權資料。
+私人 R2 的 owner 取自已驗證 context，Worker 在實際物件操作前後再驗 family／資產。Application 的 `Media/` 定義共用壓縮、媒體與 provider 介面；Infrastructure 用 Skia／固定 Gemini endpoint 實作，Domain 不引用圖片套件。`ProfileProjections` 只是欄位白名單，不授權；`ICurrentCardAuthorization` 預設拒絕跨帳號，未建立後續 SPEC 的雙方同意或名片 API。原型圖片只作風格參考，固定對象不作正式資料。
 
 ## 測試與文件
 

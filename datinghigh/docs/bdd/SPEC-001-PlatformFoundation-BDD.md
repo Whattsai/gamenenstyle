@@ -1,5 +1,8 @@
 # SPEC-001-PlatformFoundation 跨平台應用、使用者身分與 Cloudflare 資料基礎 — BDD 場景規格
 
+**目前MVP範圍（2026-11-04，D-051／D-052）**：無障礙專項設計、實作及驗收不納入整個遊戲目前範圍，不列待補或結案條件；iOS暫緩。此決策覆蓋以下舊規劃中的無障礙要求，保留歷史命名／證據不代表仍有實作義務。
+
+
 > **從 SDD 規格文件轉換生成**
 > **SPEC 來源**: [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md)
 > **MVP 來源**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
@@ -1201,7 +1204,7 @@ Feature: PlatformFoundation 帳號、Session、資料及部署基礎
     Given Web大/小視窗及Android/iOS小螢幕、安全區、軟鍵盤
     When 逐頁操作開始/註冊/驗碼/登入/復原/帳號/連結
     Then 單欄可捲且提交/返回可達，不採700px最小高度裁切，大螢幕置中
-    And Web鍵盤順序可操作、有可見focus、欄位accessibility label、錯誤不只顏色
+    And 表單及按鈕在支援螢幕與鍵盤開啟時可操作；無障礙專項依D-051不在範圍
     And 尊重減少動態偏好，無需動畫才能理解成功/失敗
   ```
 

@@ -1,6 +1,6 @@
 # 本地操作與部署檢查
 
-本文件整理現有 wrappers、Docker／Wrangler 與 runbooks；不是發布授權或新驗收證據。2026-11-01 的既有紀錄顯示本地 Web／Android 已結案；iOS、TalkBack、雲端／真收信仍保留界限。D-033／D-035 暫緩 iOS／staging，不啟用付費、不部署；production 未配置／發布。詳見 [本地範圍](../../docs/verification/PlatformFoundation-LocalAcceptance.md) 與 [逐平台紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)。
+本文件整理現有 wrappers、Docker／Wrangler 與 runbooks；不是發布授權或新驗收證據。2026-11-01 的既有紀錄顯示本地 Web／Android 已結案；iOS依D-052暫緩、無障礙依D-051不在目前MVP範圍，雲端／真收信仍保留界限。D-033／D-035 暫緩 iOS／staging，不啟用付費、不部署；production 未配置／發布。詳見 [本地範圍](../../docs/verification/PlatformFoundation-LocalAcceptance.md) 與 [逐平台紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)。
 
 ## 本地啟動與資料
 
@@ -65,6 +65,7 @@ iOS 的 `com.datinghigh.app`／scheme 設定已存在，但目前沒有可驗收
 
 - 本地熱重載後 ready 正常、Google 503：先確認固定 JWKS bridge 與本專案容器網路。2026-10-30 曾重啟 wrapper 後恢復，但尚未證明上游確切根因；可用 `dev:platform:restart`，保留 D1／R2，不動其他專案。
 - Android Google UI 取消且沒送登入 API：先查 emulator 路由／DNS。2026-11-01 曾無網路，重連原有 AndroidWifi 後相同 APK 真 Google／冷啟／登出通過；ADB reverse 能連 Metro 不代表 emulator 對外有網路。
+- 2026-11-05原生Google入口排障：先確認Metro載入公開Google client ID，再查裝置Google Play服務版本與是否已有可用Google帳號。DatingHighQA31的Google APIs映像當時只有22.50.14（225014047），SDK日誌要求230815045；其`com.android.vending`實際為LicenseChecker而無商店啟動Activity，不能視為可更新的Google Play。手動Google驗證改用既有DatingHighQA的Android36 Google Play映像，服務26.43.30、APK雜湊與本次build相同。帳號登入需使用者在裝置完成；SDK回`noSavedCredentialFound`時只表示缺可用登入資訊，不是密碼錯誤或使用者取消。這些裝置前提不等於新的真Google登入已通過。
 - WSL／Docker outbound 位址由本專案 `wsl-egress.mjs` 的 loopback relay 處理，不開 LAN、不設公開 SQL 管理端點。
 
 ## 雲端部署前後（目前暫緩）
@@ -85,3 +86,15 @@ iOS 的 `com.datinghigh.app`／scheme 設定已存在，但目前沒有可驗收
 rollback 只允許與現有 schema 相容的舊 Worker／image／assets，不自動清空或還原 D1；資料復原另按具體操作處理。production target 目前為 null，沒有現成 production 配置；只在具體版本已獲授權時發布。
 
 驗證矩陣、序列執行限制與交付格式見 [AI 工作流](../02-development-guidelines/03-ai-workflow-stages.md)。
+
+## AvatarAndPreferences本地驗證（2026-11-03）
+
+0002已在本專案default local套用，local／staging設定EXPECTED_MIGRATION為0002；staging未部署。Skia native Linux資產已隨container publish，修改adapter／secret後使用正式wrapper重啟、等ready再測。重啟等待窗240秒，不以Docker build結束當API ready。
+
+Gemini只在忽略的 `cloudflare/.dev.vars` 設 `GEMINI_API_KEY`，選填 `GEMINI_IMAGE_MODEL`；不進client env。真測必須使用本次已授權照片，路徑由stdin／該次測試process環境讀入，報告只保留匿名結果。`tools/verify-avatar-live.mjs` 為真本地最多4張／採用／配額流程；Web `avatar-gemini-live.spec.ts` 需明確設定DATINGHIGH_GEMINI_LIVE=1及兩個來源路徑才執行，預設skip，不自動發生費用。
+
+真生成／原生UI測試期間凍結frontend export、Worker／backend原始碼及平台重啟；熱重載亦可能中斷正在執行的操作。先完成編譯／restart及ready，再依序跑平台操作。Android僅使用本專案專用QA AVD／指定ADB port，不操作其他專案裝置。development build的右上Tools overlay可能蓋住右側導覽按鈕，QA腳本在同按鈕左緣點擊，不把overlay故障算成產品授權成功。
+
+GC每小時清理；Foundation、照片、候選分配時間預算，R2 `_system/avatar-preferences/cleanup.json` 保存tombstone cursor與未處理清單頁，預算耗盡下次接續。只有固定私人key、D1已deleted／未提交orphan及已到期候選可清除；正式ready化身保持。無新增D1 job表。
+
+完整Gate與平台缺項以[AvatarAndPreferences驗證紀錄](../../docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)為準，Foundation歷史結案不擴推本份。

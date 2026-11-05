@@ -12,7 +12,7 @@
     "ACCESS_TOKEN_ISSUER": "datinghigh-staging",
     "ACCESS_TOKEN_AUDIENCE": "datinghigh-staging-client",
     "EmailDeliveryMode": "Cloudflare",
-    "EXPECTED_MIGRATION": "0001_foundation.sql"
+    "EXPECTED_MIGRATION": "0002_avatar_preferences.sql"
   },
   "assets": {
     "directory": "../.local/staging-web",

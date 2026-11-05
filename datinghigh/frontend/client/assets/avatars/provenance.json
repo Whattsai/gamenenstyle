@@ -1,0 +1,156 @@
+{
+  "version": "2026-11-03.v2",
+  "provenance": "16 張逐張獨立生成的虛構成年人立繪；未使用真人測試照片。依使用者確認的 prototype.v2 風格重新生成；不複製四張原型圖充當新角色。",
+  "terms": "https://openai.com/policies/terms-of-use/",
+  "styleReferences": [
+    "prototypes/prototype.v2/app/assets/avatar-sun.jpg",
+    "prototypes/prototype.v2/app/assets/avatar-sakura.jpg",
+    "prototypes/prototype.v2/app/assets/avatar-forest.jpg"
+  ],
+  "assets": [
+    {
+      "id": "male-01",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "以 prototype.v2 avatar-sun / avatar-sakura / avatar-forest 為美術參考；成年暖陽男性、栗棕短髮、米色連帽外套、3:4 半身至腰。",
+      "generationFile": "exec-efe58b45-1e31-4cc4-9b78-ef5a0573e8bc.png",
+      "sha256": "45201e53a7585967d10c52ce6a52516932d94f426efc381b157687554e1f1f2f"
+    },
+    {
+      "id": "male-02",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 29, tidy black side-part hair, thin round gold glasses, elegant calm smile, navy jacket and white shirt, midnight-blue/lavender bokeh background.",
+      "generationFile": "exec-480ad637-043c-49c3-af4c-f72a16eaeabb.png",
+      "sha256": "b2c755832d881f96a6bba9d16331ec377daf1d3a9695f160d2bcb9af4a002654"
+    },
+    {
+      "id": "male-03",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 26, short black spiky hair, warm tanned complexion, athletic build and friendly smile, forest green casual outdoor jacket, mint bokeh background.",
+      "generationFile": "exec-9fea56a1-e1c9-4f33-8510-1806fdd9f221.png",
+      "sha256": "9d1b69a78aa466b538d17ef0b99e19c2fbbdb574cc0e9bd99324efac8c4c6d89"
+    },
+    {
+      "id": "male-04",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 28, shoulder-length wavy dark auburn hair tied loosely back, small ear stud, artistic relaxed expression, rust linen shirt, pale peach bokeh background.",
+      "generationFile": "exec-59a1a75e-a888-4828-9e46-48e0f18a3e74.png",
+      "sha256": "4972b5cef563d647349ed989c09210157d338a61f01574185cfbdc60695abc88"
+    },
+    {
+      "id": "male-05",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 30, silver swept fringe hair, green eyes and angular adult face, composed expression, charcoal jacket and headphones around neck, mint green bokeh background.",
+      "generationFile": "exec-31a6105a-058d-4ada-8fe4-d52b3d30f22d.png",
+      "sha256": "d762b52a7fa550053e2e0d6938330e60d13b12cc2b1c2b4832dfb956c4ba852b"
+    },
+    {
+      "id": "male-06",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 27, curly chestnut hair, round black glasses, rounder face and cheerful smile, blue denim shirt, sky-blue bokeh background.",
+      "generationFile": "exec-1ce70a08-de5f-4c5e-84bb-24d6007a28bc.png",
+      "sha256": "175d0008cab73002663f39f65b66da4ec5b7f6020cf609072e8282ae2b68a343"
+    },
+    {
+      "id": "male-07",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 32, swept-back black hair, strong eyebrows and mature face, quiet reassuring smile, charcoal vest and open-collar pale shirt, plum bokeh background.",
+      "generationFile": "exec-0c7b5531-c2fe-4efc-b80f-3ed74cbe1635.png",
+      "sha256": "33dab21edbf2cedae7f945b3d30f02eb104886fb38e84e5daec3c243aab6f98b"
+    },
+    {
+      "id": "male-08",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult man age 25, ash-brown layered hair with side fringe, slightly shy smile, muted teal knit sweater, warm cream bokeh background.",
+      "generationFile": "exec-7cbea7a4-3b05-469d-ab24-34404bfc0f7e.png",
+      "sha256": "9ac7445f390b07a36516532ebd2604a1d3b179d491ff4a32abc0a88343aae0b5"
+    },
+    {
+      "id": "female-01",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 27, long dark brown hair with side fringe, brown eyes and gentle smile, ivory cardigan and blush blouse, soft pink bokeh background.",
+      "generationFile": "exec-6f1ac277-08ff-4d74-b165-fd983feab8b6.png",
+      "sha256": "703b357e0806554869482fbce8e61fe198430a5bc273b3666a55b28fbffa342b"
+    },
+    {
+      "id": "female-02",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 29, sleek black bob hairstyle, thin rectangular glasses, confident thoughtful expression, navy casual blazer, lavender-blue bokeh background.",
+      "generationFile": "exec-06087e3f-7af6-45c2-90eb-898316e9d169.png",
+      "sha256": "373f2ea6ab1707c377cb9587563db80cae711a8a6ad57f328b8f87d086208744"
+    },
+    {
+      "id": "female-03",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 26, high dark ponytail, warm tanned complexion, athletic build and bright energetic smile, green jacket and white tee, mint bokeh background.",
+      "generationFile": "exec-c25a7094-d04a-4ee3-8d1a-7a6113d1c9f5.png",
+      "sha256": "d486804e38890e68b53fe837217c592538ed877d06a54a61c13103877142fc28"
+    },
+    {
+      "id": "female-04",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 28, chestnut wavy shoulder-length hair, subtle gold earrings, artistic relaxed smile, rust blouse, peach bokeh background.",
+      "generationFile": "exec-6ec0a141-810d-4298-9c46-1ab9fbef1f78.png",
+      "sha256": "51a682a10b2cd39217ee41f44318819e1fad8ea8110c453f7e2f94a3ebea48e2"
+    },
+    {
+      "id": "female-05",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 30, short silver layered bob with swept fringe, green eyes, calm self-assured expression, forest green bomber jacket and black headphones around neck, mint bokeh background.",
+      "generationFile": "exec-f316b3d4-61c5-45f7-838a-dd2470f3696b.png",
+      "sha256": "54e0ad4100e24b8bba70dd95d74f3a238da8783c723dab41a40f0ad9001223d3"
+    },
+    {
+      "id": "female-06",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 27, curly dark brown shoulder-length hair, round black glasses, warm rounded face and cheerful smile, blue denim jacket, sky-blue bokeh background.",
+      "generationFile": "exec-e32bc681-a0a5-4f23-a21f-57ace88bc7bc.png",
+      "sha256": "1affaddf0056e185a9e424e1f219809b69736b2e86a359cc3ff24f4e8566b39f"
+    },
+    {
+      "id": "female-07",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 31, long black hair in low bun, mature oval face, composed gentle smile, ivory tailored vest and plum blouse, mauve bokeh background.",
+      "generationFile": "exec-a4060756-3635-4dca-9a6b-a1188727670d.png",
+      "sha256": "5c200c3917af9a483b4a8cef43b0de08c5dfb04fc1d0e26c45a544ccdaad5ace"
+    },
+    {
+      "id": "female-08",
+      "source": "OpenAI built-in imagegen",
+      "createdAt": "2026-11-03",
+      "style": "prototype.v2 anime ADV",
+      "prompt": "Create ONE new original fictional ADULT character portrait for DatingHigh. The attached prototype images are ART STYLE references: closely match their Japanese dating visual-novel / otome-game ANIME style, crisp dark tapered lineart, clean soft cel shading, polished anime hair highlights, luminous expressive anime eyes, warm blush, colorful pastel bokeh and small sparkles. NOT photorealistic, NOT a realistic painted portrait, NOT 3D, no skin texture. Vertical 3:4 WAIST-UP standing portrait, full head comfortably inside frame, body visible down to waist, unobscured face, natural hands. One clearly adult character only, no letters, borders, logos or UI. Design a new distinctive face, do not copy faces from the reference images. Subject: Adult woman age 25, short ash-brown pixie cut, lively brown eyes, playful gentle smile, teal knit sweater, cream and light green bokeh background.",
+      "generationFile": "exec-33ad0ab2-385b-48a5-b372-08b9180c17d1.png",
+      "sha256": "cc6ec2ad533ff5ce964964af65c072d3149602c414a6d47f0bdaa8a2b9aad119"
+    }
+  ]
+}

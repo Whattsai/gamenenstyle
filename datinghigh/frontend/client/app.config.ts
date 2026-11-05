@@ -4,5 +4,5 @@ const config:ExpoConfig={
  web:{output:'single',name:'心動迴路'},
  ios:{bundleIdentifier:'com.datinghigh.app',supportsTablet:true},
  android:{package:'com.datinghigh.app'},
- plugins:['expo-router','expo-secure-store','expo-dev-client','./plugins/with-no-network-retry.cjs',...(process.env.GOOGLE_IOS_URL_SCHEME?[['react-native-nitro-google-signin',{iosUrlScheme:process.env.GOOGLE_IOS_URL_SCHEME}]] as ExpoConfig['plugins']:[])],
+ plugins:['expo-router','expo-secure-store','expo-dev-client',['expo-image-picker',{photosPermission:'選擇個人照片，用於你主動啟用的 AI 化身及未來雙方同意的名片查閱。',cameraPermission:false,microphonePermission:false}],'./plugins/with-no-network-retry.cjs',...(process.env.GOOGLE_IOS_URL_SCHEME?[['react-native-nitro-google-signin',{iosUrlScheme:process.env.GOOGLE_IOS_URL_SCHEME}]] as ExpoConfig['plugins']:[])],
 };export default config;

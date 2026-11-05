@@ -1,10 +1,10 @@
 # 資料與儲存契約
 
-現況來源為 [migration](../../cloudflare/migrations/0001_foundation.sql)、[prepared commands](../../cloudflare/src/commands.ts)、[platform](../../cloudflare/src/platform.ts)、Domain／Infrastructure 與 client storage。業務責任以已確認 SPEC 為準。
+基礎版本來源為 [0001 migration](../../cloudflare/migrations/0001_foundation.sql)、[prepared commands](../../cloudflare/src/commands.ts)、[platform](../../cloudflare/src/platform.ts)、Domain／Infrastructure 與 client storage。業務責任以已確認 SPEC 為準。
 
 ## D1 schema
 
-六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每表首欄為 NOT NULL TEXT PRIMARY KEY，由程式建立小寫 canonical UUIDv7。D1 的 `d1_migrations` 是工具維護表，不計入自有六表。日期欄位使用 Unix epoch **milliseconds INTEGER**；DB row snake_case，公開 DTO camelCase。
+Foundation 原六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每表首欄為 NOT NULL TEXT PRIMARY KEY，由程式建立小寫 canonical UUIDv7。D1 的 `d1_migrations` 是工具維護表，不計入自有六表。日期欄位使用 Unix epoch **milliseconds INTEGER**；DB row snake_case，公開 DTO camelCase。
 
 以下完整列出現行欄位；`?` 表示 DB 可為 NULL，其餘 NOT NULL；ID／文字為 TEXT，時間／計數為 INTEGER。
 
@@ -20,6 +20,47 @@
 `auth_sessions` 的 partial UNIQUE index `idx_auth_sessions_active_account` 限定 `account_id WHERE revoked_at IS NULL`；已到期但未撤銷仍占此唯一條件，新登入同 batch 撤舊再建新。其餘索引為 sessions account／expiry、challenges email+purpose／expiry、rate bucket expiry。
 
 challenge purpose 為 `register_email | reset_password`，state 為 `active | consumed | locked | expired`。schema provider 留通用欄位，現有 commands／validator 僅接受 google。revocation_reason 是 nullable TEXT，現行寫入 `replaced_by_login`、`logout`、`refresh_reuse`，不是 DB CHECK enum。
+
+## AvatarAndPreferences（2026-11-03）
+
+[0002_avatar_preferences.sql](../../cloudflare/migrations/0002_avatar_preferences.sql) 新增兩表24欄，Foundation六表54欄不變、無SQL Trigger。已對本專案 default local 套用，未部署SIT／production。
+
+| 表 | 欄位 |
+|---|---|
+| user_profiles（15） | profile_id、account_id、nickname、bio、occupation、birth_date、region_code、traits_json、interests_json、preferences_json、selected_avatar_type、selected_avatar_ref、revision、created_at、updated_at |
+| user_media_assets（9） | asset_id、account_id、kind、object_key、mime_type、display_order、status、created_at、deleted_at |
+
+profile首次ensure冪等；嚴格19欄輸入、三組JSON（preferences固定9鍵）及版本化靜態目錄見SPEC。臺灣日期18+，Unicode scalar長度；occupation可空。本人投影含精確生日及私有偏好，名片預覽只用分享白名單。generated profileReady額外要求本人ready正式資產，不單靠type/ref字串。儲存含停用目錄選項時，Application先讀本人目前revision及同欄位歷史值；只允許原值保留，其他欄位出現同碼也不能當作保留依據。撤銷401、版本落後409、新加入停用碼400，不新增JSON鍵或schema欄位。
+
+`profile.photo.reserve` 單條件 INSERT…SELECT COUNT(pending+ready)<5 RETURNING；pending計入配額。ready按當下ready最大序號+1配號。排序核對整個ready集合及revision，刪除同batch先CAS、soft-delete、壓緊其餘序號；零列不假成功。上傳失敗僅透過 `profile.photo.cancel-upload` 撤pending，不因遺失回覆誤刪ready；舊內部delete不供正式HTTP刪除使用。R2先成功寫入才ready，刪除先tombstone才允許R2實體清除。GC清逾30分鐘pending及tombstone物件；R2 `_system/avatar-preferences/cleanup.json`保存photoCursor、r2Cursor及最多100個尚未處理key／到期metadata，分配各段預算並以ETag提交進度，不刪ready原件、不加D1 job表。
+
+AI狀態不加job表：每帳號R2 active pointer與60分鐘manifest以ETag CAS提供排他、成功數1～4、request replay、短效來源ID、已失敗requestID、unknown成本鎖及採用receipt。摘要digest僅在短效manifest去重，D1不存byte_size／hash。來源照片存 `private/{owner}/photos/{asset}`，候選存 `private/{owner}/avatar/temp/{attempt}/{manifest|1..4}`；確認採用後先在既有媒體表保留generated pending，再複製選中圖至 `private/{owner}/avatar/{asset}`，D1同batch條件pending→ready並更新profile revision。正式資產不隨候選到期清除；中斷的未提交副本延後清理。
+
+`profile.avatar.reserve/adopt/cancel-adoption`處理採用媒體生命週期，不增加表或欄位。正式asset UUIDv7由.NET server提出，與attemptId分開，R2 manifest的selectedAssetId保留單次採用身分；失敗重試用新ID，deleted不復活。取消補償可在原Session失效後清理自己的pending，並為較晚reserve留下tombstone；已ready不可被取消。先原子取消再刪R2，避免失敗者刪掉並行已提交圖。D1已ready但R2關輪回覆遺失時，status／begin只修復既有receipt，不重新生成／複製／增加revision。
+
+媒體固定指令的可寫範圍如下；所有輸入採strict schema，現有資產的account_id／kind／object_key／mime_type／created_at不可修改。呼叫端不可傳status、deleted_at或display_order；SQL依目前身分及狀態推導。對外仍只經受保護API，不公開command入口。
+
+| 內部指令 | 允許變更 |
+|---|---|
+| `profile.photo.reserve` | 新建pending照片；owner與照片ID推導固定key，pending＋ready少於5才插入；既有ID不可覆寫 |
+| `profile.photo.ready` | 僅pending→ready，依當前ready尾端推導display_order |
+| `profile.photo.cancel-upload` | 僅pending→deleted及deleted_at；不能取消已ready |
+| `profile.photo.delete` | 本人pending／ready→deleted及deleted_at；只留作內部生命週期指令 |
+| `profile.photo.reorder` | 完整本人ready集合的display_order，及profile revision／updated_at |
+| `profile.photo.delete-compact` | 同batch修改profile revision／updated_at、目標status／deleted_at、其餘ready display_order |
+| `profile.photo.list`、`profile.avatar.list` | 唯讀，只回本人ready metadata |
+| `profile.avatar.reserve` | 新建generated pending；來源及revision有效才插入，既有ID不覆寫 |
+| `profile.avatar.cancel-adoption` | 本人generated pending→deleted／deleted_at，或先建不可復活的deleted保留列；ready不變 |
+| `profile.avatar.adopt` | 本人generated pending→ready，及profile選用欄位／revision／updated_at |
+| `profile.avatar.builtin`、`profile.avatar.generated` | 只改profile選用欄位／revision／updated_at，不改媒體身分或建立副本 |
+
+圖片規則：上傳最多8MiB，安全解碼JPEG／PNG／WebP、像素24M／邊長8192、拒動畫／偽造MIME／損壞圖；校正EXIF方向、白底透明、去EXIF／GPS／ICC、保留比例不放大，來源JPEG≤200000 bytes。AI結果≤2MB、3:4容許小幅供應商尺寸取整，顯示contain不裁切。正式免費圖16張JPG及provenance版本2026-11-03.v2，與真人媒體分開。
+
+本人正式AI圖清單僅回assetId／mimeType／createdAt；重選使用相同資產與profile revision CAS，不建立副本。來源改變會關閉舊manifest；失敗request ID上限64，超限在新lease前拒絕以保持manifest可讀。關閉輪次仍辨識初次request replay，不誤開另一輪付費生成。
+
+前端未儲存表單以記憶體baseline及revision追蹤；metadata重讀可保留草稿，但伺服器欄位已改變時禁止將舊草稿搭配新revision覆寫，須明確重新整理。不將草稿、候選或真人照片另存localStorage／日誌。
+
+完整驗證與尚缺Gate見[本SPEC驗證紀錄](../../docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)；測試通過數不是275項完整驗收數。
 
 ## 認證與序列化規則
 
@@ -61,9 +102,9 @@ storage-policy 只允許上述 key／欄位、JSON object，單值≤4096字元�
 
 ## 私人 R2 與 readiness
 
-私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。現行只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；沒有業務圖片格式、縮圖或公開 URL 契約。
+私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。Foundation測試物件路徑只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；不借用作業務圖片路徑；AvatarAndPreferences使用前述獨立媒體通道，無公開私人圖片URL。
 
-ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、六表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
+ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗六表／八表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
 
 每小時清理過期 rate bucket、challenge（以 absolute expiry 的保留窗）、session／refresh（absolute expiry後7天）。refresh 自參照先分批解除再刪除，最後刪無 token 的 session；不刪帳號／identity，也不將清理當授權機制。
 
@@ -71,4 +112,4 @@ ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、六表欄位順序�
 
 實際設定 key、binding、build-time／runtime 分類見 [環境變數](../04-deployment/02-environment-variables-template.md)。沒有 appsettings 階層設定；目前讀取的認證名稱不改寫成其他慣例名稱。
 
-schema 變更須先有已確認範圍、migration／prepared SQL／ready 同步與真 D1 失敗測試；不得任意擴充54欄基線或塞入業務表。同步 DTO／storage／設定時也需更新 API、相依地圖與對應測試，保留 local／cloud 資料隔離。
+schema 變更須先有已確認範圍、migration／prepared SQL／ready 同步與真 D1 失敗測試；不得修改 Foundation 原六張 54 欄的既有基線；新增業務表須另立已核准的 migration 與完整業務測試。同步 DTO／storage／設定時也需更新 API、相依地圖與對應測試，保留 local／cloud 資料隔離。

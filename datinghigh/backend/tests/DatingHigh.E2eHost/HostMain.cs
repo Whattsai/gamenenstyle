@@ -12,7 +12,8 @@ public static class HostMain
     {
         await using var platform=new RealPlatform();platform.Clock.SetUtcNow(DateTimeOffset.UtcNow);var crypto=new SequenceCodes(platform.Options);var realGoogle=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_REAL_GOOGLE")=="1";
         foreach(var pair in new Dictionary<string,string>{["APP_ENV"]="local",["WEB_ORIGIN"]=platform.Options.WebOrigin,["ACCESS_TOKEN_ISSUER"]=platform.Options.Issuer,["ACCESS_TOKEN_AUDIENCE"]=platform.Options.Audience,["ACCESS_TOKEN_SECRET"]=Convert.ToBase64String(platform.Options.AccessKey),["EMAIL_CODE_HMAC_KEY"]=Convert.ToBase64String(platform.Options.EmailKey),["RATE_LIMIT_HMAC_KEY"]=Convert.ToBase64String(platform.Options.RateKey),["EmailDeliveryMode"]="Log"})Environment.SetEnvironmentVariable(pair.Key,pair.Value);
-        var racing=new CredentialRacePlatform(platform);await using var factory=new Factory(platform,crypto,racing,realGoogle);using var api=factory.CreateClient(new WebApplicationFactoryClientOptions{HandleCookies=false,AllowAutoRedirect=false});
+        using var avatar=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_AVATAR_PROFILE")=="1"?new AvatarFixtureState(platform):null;
+        var racing=new CredentialRacePlatform(platform);await using var factory=new Factory(platform,crypto,racing,realGoogle,avatar);using var api=factory.CreateClient(new WebApplicationFactoryClientOptions{HandleCookies=false,AllowAutoRedirect=false});
         var builder=WebApplication.CreateBuilder();builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");var host=builder.Build();var key=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));var mailBase=0;
         var denyNativeWrites=false;var delayNativeWritesMs=0;long clockAdvance=0,clockObserved=0;var nativeMetrics=new ConcurrentQueue<JsonElement>();var requests=new ConcurrentQueue<object>();var starts=new ConcurrentQueue<object>();var faults=new List<(string Path,string Mode,int Delay)>();var faultLock=new object();
         var terminations=new ConcurrentQueue<object>();
@@ -26,7 +27,8 @@ public static class HostMain
             var body=await context.Request.ReadFromJsonAsync<JsonElement>();var op=body.GetProperty("op").GetString();
             if(op=="reset"){
                 terminations.Clear();
-                foreach(var sql in new[]{"UPDATE auth_refresh_tokens SET replaced_by_token_id=NULL","DELETE FROM auth_refresh_tokens","DELETE FROM auth_email_challenges","DELETE FROM auth_sessions","DELETE FROM auth_external_identities","DELETE FROM auth_accounts","DELETE FROM common_rate_limit_buckets"})await platform.Sql(sql);
+                foreach(var sql in new[]{"DELETE FROM user_media_assets","DELETE FROM user_profiles","UPDATE auth_refresh_tokens SET replaced_by_token_id=NULL","DELETE FROM auth_refresh_tokens","DELETE FROM auth_email_challenges","DELETE FROM auth_sessions","DELETE FROM auth_external_identities","DELETE FROM auth_accounts","DELETE FROM common_rate_limit_buckets"})await platform.Sql(sql);
+                avatar?.Reset();
                 crypto.Reset();racing.Reset();await platform.Provider("success");mailBase=platform.MailCalls;requests.Clear();starts.Clear();nativeMetrics.Clear();lock(faultLock)faults.Clear();denyNativeWrites=false;delayNativeWritesMs=0;
                 if(body.TryGetProperty("accountKind",out var kind)){if(kind.GetString() is not("local" or "google-only" or "none"))return Results.BadRequest();string? email=null;if(body.TryGetProperty("email",out var supplied)){if(!realGoogle)return Results.BadRequest();try{email=EmailAddress.Normalize(supplied.GetString()??"");}catch(DomainException){return Results.BadRequest();}}if(kind.GetString()!="none")await platform.Seed(kind.GetString()=="local",email);}
                 else if(body.TryGetProperty("seed",out var seed)&&seed.GetBoolean())await platform.Seed(true);return Results.Json(new{ready=true});
@@ -41,6 +43,11 @@ public static class HostMain
                 var rows=await platform.Sql("SELECT challenge_id,generation,failed_attempts,state,absolute_expires_at FROM auth_email_challenges WHERE challenge_id=?",id);return Results.Json(rows.FirstOrDefault());
             }
             if(op=="provider-stats")return Results.Json(await platform.ProviderStats());
+            if(op=="avatar-mode")return avatar is not null&&avatar.Configure(body.GetProperty("mode").GetString()??"")?Results.Json(new{configured=true}):Results.BadRequest();
+            if(op=="avatar-seed-photos"){var count=body.TryGetProperty("count",out var requested)?requested.GetInt32():2;if(count is <1 or >5)return Results.BadRequest();return avatar is null?Results.NotFound():Results.Json(await avatar.SeedPhotos(count,context.RequestAborted));}
+            if(op=="avatar-state")return avatar is null?Results.NotFound():Results.Json(await avatar.Snapshot());
+            if(op=="avatar-revision")return avatar is null?Results.NotFound():Results.Json(await avatar.AdvanceRevision());
+            if(op=="avatar-retire-choice"){if(avatar is null)return Results.NotFound();avatar.RetireChoice();return Results.Json(new{configured=true});}
             if(op=="native-mode"){var delay=body.TryGetProperty("delayWritesMs",out var configuredDelay)?configuredDelay.GetInt32():0;if(delay is <0 or >30000)return Results.BadRequest();denyNativeWrites=body.GetProperty("denyWrites").GetBoolean();delayNativeWritesMs=delay;return Results.Json(new{configured=true});}
             if(op=="native-metrics")return Results.Json(nativeMetrics);
             if(op=="native-clock-observed")return Results.Json(new{milliseconds=Interlocked.Read(ref clockObserved)});
@@ -87,11 +94,12 @@ public static class HostMain
             return await platform.ExecuteAsync(command,payload,cancellationToken);
         }
     }
-    private sealed class Factory(RealPlatform platform,SequenceCodes crypto,CredentialRacePlatform racing,bool realGoogle):WebApplicationFactory<global::Program>
+    private sealed class Factory(RealPlatform platform,SequenceCodes crypto,CredentialRacePlatform racing,bool realGoogle,AvatarFixtureState? avatar):WebApplicationFactory<global::Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder){builder.UseContentRoot(Path.GetFullPath("backend/src/DatingHigh.Api"));builder.ConfigureLogging(log=>log.ClearProviders());builder.ConfigureServices(services=>{
             services.RemoveAll<IPlatformClient>();services.AddSingleton<IPlatformClient>(racing);services.RemoveAll<TimeProvider>();services.AddSingleton<TimeProvider>(platform.Clock);services.RemoveAll<IAuthCryptography>();services.AddSingleton<IAuthCryptography>(crypto);
             services.RemoveAll<IEmailCodeSender>();services.AddSingleton<IEmailCodeSender>(new EmailCodeSender(platform.Options with{Environment="staging",EmailDeliveryMode="Cloudflare"},platform,NullLoggerFactory.Instance));
+            if(avatar is not null){services.RemoveAll<DatingHigh.Application.Media.IPrivateMediaStore>();services.AddSingleton<DatingHigh.Application.Media.IPrivateMediaStore>(avatar.Media);services.RemoveAll<IAvatarCandidateStore>();services.AddSingleton<IAvatarCandidateStore>(avatar.Candidates);services.RemoveAll<DatingHigh.Application.Media.IAvatarImageGenerator>();services.AddSingleton<DatingHigh.Application.Media.IAvatarImageGenerator>(avatar);}
             services.RemoveAll<IExternalCredentialValidator>();if(realGoogle){var clients=(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_GOOGLE_CLIENTS")??"").Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);if(clients.Length==0||clients.Any(id=>!id.EndsWith(".apps.googleusercontent.com",StringComparison.Ordinal)))throw new InvalidOperationException("Missing real Google test client IDs");services.AddSingleton<IExternalCredentialValidator>(new GoogleExternalCredentialValidator(new Dictionary<string,string[]>{["android"]=clients}));}else services.AddSingleton<IExternalCredentialValidator>(new ControlledGoogle());
         });}
     }

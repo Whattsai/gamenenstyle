@@ -3,32 +3,46 @@
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（US-001～003，US-020 的資料來源契約）
 > **來源 SDD**：[SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md)（2026-11-01 使用者已確認，含 D-047 無 SQL Trigger）
 > **生成日期**：2026-11-01
-> **階段**：使用者已確認 SDD／RiskAudit（RQ-01=A、RQ-02=A），2026-11-02 D-050 修訂後規劃交接 Ready for well-done；73 個場景、13 個 @frontend，全部待開發／未驗收。
+> **階段**：使用者已確認 SDD／RiskAudit（RQ-01=A、RQ-02=A），2026-11-02 D-050 修訂後規劃交接 Ready for well-done；73個場景、13個@frontend；2026-11-04本輪Web／Android範圍已完整覆核，iOS暫緩、無障礙不在範圍。
 
 ---
+
+### 2026-11-04 本輪驗收範圍調整
+
+使用者最新決策：無障礙專項設計、實作及驗收不納入目前整個遊戲MVP範圍（D-051），不列待補、不作完成阻擋；iOS開發／驗收則依D-052暫緩。原始規劃及歷史證據保留，不將排除或暫緩改記通過；原始275項的覆核比例不是調整範圍後的完成率，Web／Android其餘功能與故障斷言仍須逐項驗證。
+
+「跨SPEC授權」指後續MatchingSessions的輪次／參與者、AffectionAndFeedback的雙方名片同意，以及StoryDialogueAndExit的終止狀態整合。本份依已確認SPEC只交付資料契約、分享欄位白名單及私人媒體界線；目前本人可管理／預覽，他人讀取預設拒絕。後續模組完成後再驗同輪有效同意可讀、跨輪／終止拒絕的新讀取；這項後續整合不要求在本份先實作其他SPEC。
+
+**本輪Web／Android BDD**：65/65個範圍內場景完整覆核；UX 13/13；後續SPEC正向整合8項另列，iOS暫緩、無障礙不在範圍。
 
 ## 📝 Feature 描述
 
 Feature：登入本人安全維護工作／偏好、私人真人照片及免費／AI 遊戲化身；本輪僅交付即時名片資料查詢與授權協作契約，不建立交換名片的邀請／雙方同意／計分路由。
 
-**追溯慣例**：每個 `AP-BDD-###` 唯一且不可重編；標註 `AP-AC` 來源與 `MVP` 跨 SPEC 邊界。所有 `Then/And` 均為待實測的可觀察斷言，不代表目前產品已通過。D1 必須用真 Miniflare D1 驗證，保留兩張新 `user_` 表共 24 欄、**零個 SQL Trigger**；圖片壓縮及 AI 實際呼叫不可用 Fixture 冒充。
+**追溯慣例**：每個 `AP-BDD-###` 唯一且不可重編；標註 `AP-AC` 來源與 `MVP` 跨 SPEC 邊界。所有 `Then/And` 均為可觀察斷言，通過與範圍以本輪追溯索引的逐項證據為準。D1 必須用真 Miniflare D1 驗證，保留兩張新 `user_` 表共 24 欄、**零個 SQL Trigger**；圖片壓縮及 AI 實際呼叫不可用 Fixture 冒充。
 
 ## 🎯 前端 UX 實作進度
 
 ```text
 📦 AvatarAndPreferences 前端 UX
-├─ 狀態：⏸️ 未開始
-├─ 完整場景：0/13
-└─ 進度：[░░░░░░░░░░░░░░░░░░░░] 0%
+├─ 狀態：🟢 Web／Android範圍完整覆核
+├─ 當前範圍：Web／Android；iOS暫緩、無障礙不在範圍
+└─ 完整場景：本輪65/65，UX 13/13；後續SPEC正向整合8項另列
 ```
 
 | 畫面／元件 | BDD 覆蓋 | 完整驗收 | 狀態 |
 |---|---|---|---|
-| PersonalPhotos 照片管理 | 照片空狀態／提示／上傳／排序／刪除 | 0 | 未開始 |
-| FreeAvatarCatalog 化身選擇 | 16 款、跨分組、切換／記錄 | 0 | 未開始 |
-| AvatarGenerationChoices | AI 鎖頭、Loading、4 選 1、故障 | 0 | 未開始 |
-| DatingProfileForm | 資料設定、年齡、工作、偏好 | 0 | 未開始 |
-| MyCardPreview／權限協作 | 本人預覽與跨帳號拒絕 | 0 | 未開始 |
+| PersonalPhotos 照片管理 | 照片空狀態／提示／上傳／排序／刪除 | Web／Android通過 | 本輪功能矩陣已覆核 |
+| FreeAvatarCatalog 化身選擇 | 16 款、跨分組、切換／記錄 | Web／Android通過 | 本輪功能矩陣已覆核 |
+| AvatarGenerationChoices | AI 鎖頭、Loading、4 選 1、故障 | Web／Android通過 | 本輪功能矩陣已覆核 |
+| DatingProfileForm | 資料設定、年齡、工作、偏好 | Web／Android通過 | 本輪功能矩陣已覆核 |
+| MyCardPreview／權限協作 | 本人預覽與跨帳號拒絕 | Web／Android通過 | 本輪功能矩陣已覆核 |
+
+## 2026-11-04 現況與證據
+
+正式前端為 `frontend/client/src/DatingProfileScreen.tsx` 與 `app/profile.tsx`，已包含13個UX範圍；16款真正式圖、私人照片、名片預覽、資料／生活／擇偶條件、AI逐張與比較採用。使用者確認第三版AI相似度及prototype風格方向；Web真生成「先取消、再採用」通過，且只送一次生成。固定手機導覽與儲存已補。
+
+Web基本／照片／表單／重登／跨帳號拒絕6/6；受控錯誤與到期6/6；既有真Gemini單張採用與本輪真四張流程分別通過，四張同時驗第2／第4張跨分頁競爭、冪等重播、滿額拒絕及回選第2張。Android API31專用QA：16圖與跨組選取、空picker取消、超8MiB後重試／五張名額回收、排序及revision衝突／刪除、表單及實際UI重登、兩帳號私人媒體拒絕與七種受控故障均整輪通過；真Gemini單張及四候選也有獨立完整證據。當前BDD 65/65、UX 13/13；其餘8項正向跨SPEC授權整合另列，iOS依D-052暫緩，無障礙依D-051不在目前整個MVP範圍。沒有用Web替代Android或宣稱iOS通過。分環境結果、歷史失敗與證據見[驗證紀錄](../verification/SPEC-001-AvatarAndPreferences-Verification.md)、[逐ID索引](../verification/SPEC-001-AvatarAndPreferences-Traceability.md)。
 
 ## 📋 Background（前置條件）
 
@@ -56,7 +70,7 @@ Feature: AvatarAndPreferences 私人照片、化身與即時名片來源
 
 ### @smoke @happy-path @critical @AP-BDD-001
 
-- [ ] **Scenario: 照片是個人資料且顯示用途提醒**（`AP-BDD-001`）
+- [x] **Scenario: 照片是個人資料且顯示用途提醒**（`AP-BDD-001`）
   - **追溯**：AP-AC-001、AP-AC-020；SPEC §4～§8
   - **測試方法基名**：`PhotoPurposeNotice`
 
@@ -70,7 +84,7 @@ Scenario: AP-BDD-001 照片是個人資料且顯示用途提醒
 
 ### @smoke @happy-path @critical @AP-BDD-002
 
-- [ ] **Scenario: 上傳兩張真人照並保存壓縮版本**（`AP-BDD-002`）
+- [x] **Scenario: 上傳兩張真人照並保存壓縮版本**（`AP-BDD-002`）
   - **追溯**：AP-AC-001、AP-AC-009、AP-AC-019；SPEC §4～§8
   - **測試方法基名**：`PersonalPhotoUpload`
 
@@ -84,7 +98,7 @@ Scenario: AP-BDD-002 上傳兩張真人照並保存壓縮版本
 
 ### @happy-path @critical @AP-BDD-003
 
-- [ ] **Scenario: 重新排列本人照片**（`AP-BDD-003`）
+- [x] **Scenario: 重新排列本人照片**（`AP-BDD-003`）
   - **追溯**：AP-AC-001；SPEC §4～§8
   - **測試方法基名**：`PersonalPhotoReorder`
 
@@ -112,7 +126,7 @@ Scenario: AP-BDD-004 刪除照片後名片下次讀取反映刪除
 
 ### @smoke @happy-path @normal @AP-BDD-005
 
-- [ ] **Scenario: 列出十六款真正不同的免費插畫角色**（`AP-BDD-005`）
+- [x] **Scenario: 列出十六款真正不同的免費插畫角色**（`AP-BDD-005`）
   - **追溯**：AP-AC-004、AP-AC-017；SPEC §4～§8
   - **測試方法基名**：`BuiltinAvatarCatalog`
 
@@ -126,7 +140,7 @@ Scenario: AP-BDD-005 列出十六款真正不同的免費插畫角色
 
 ### @happy-path @normal @AP-BDD-006
 
-- [ ] **Scenario: 選取免費角色並重新登入仍維持選用**（`AP-BDD-006`）
+- [x] **Scenario: 選取免費角色並重新登入仍維持選用**（`AP-BDD-006`）
   - **追溯**：AP-AC-004、AP-AC-006；SPEC §4～§8
   - **測試方法基名**：`SelectBuiltinAvatar`
 
@@ -140,7 +154,7 @@ Scenario: AP-BDD-006 選取免費角色並重新登入仍維持選用
 
 ### @smoke @happy-path @critical @AP-BDD-007
 
-- [ ] **Scenario: 儲存個人資料與配對偏好**（`AP-BDD-007`）
+- [x] **Scenario: 儲存個人資料與配對偏好**（`AP-BDD-007`）
   - **追溯**：AP-AC-005、AP-AC-012、AP-AC-013；SPEC §4～§8
   - **測試方法基名**：`SaveDatingProfile`
 
@@ -154,7 +168,7 @@ Scenario: AP-BDD-007 儲存個人資料與配對偏好
 
 ### @happy-path @critical @AP-BDD-008
 
-- [ ] **Scenario: 完成成年個人資料設定**（`AP-BDD-008`）
+- [x] **Scenario: 完成成年個人資料設定**（`AP-BDD-008`）
   - **追溯**：AP-AC-021；SPEC §4～§8
   - **測試方法基名**：`AdultProfileReady`
 
@@ -168,7 +182,7 @@ Scenario: AP-BDD-008 完成成年個人資料設定
 
 ### @happy-path @normal @AP-BDD-009
 
-- [ ] **Scenario: 興趣目錄與標籤可維護**（`AP-BDD-009`）
+- [x] **Scenario: 興趣目錄與標籤可維護**（`AP-BDD-009`）
   - **追溯**：AP-AC-011；SPEC §4～§8
   - **測試方法基名**：`InterestCatalog`
 
@@ -238,7 +252,7 @@ Scenario: AP-BDD-013 有效名片同意讀取當前真人照
 
 ### @happy-path @critical @AP-BDD-014
 
-- [ ] **Scenario: 本人預覽將交換的即時名片**（`AP-BDD-014`）
+- [x] **Scenario: 本人預覽將交換的即時名片**（`AP-BDD-014`）
   - **追溯**：AP-AC-020；SPEC §4～§8
   - **測試方法基名**：`MyCardPreview`
 
@@ -252,7 +266,7 @@ Scenario: AP-BDD-014 本人預覽將交換的即時名片
 
 ### @smoke @happy-path @normal @AP-BDD-015
 
-- [ ] **Scenario: AI 鎖頭首次只產生一張真結果（`AP-BDD-015`）
+- [x] **Scenario: AI 鎖頭首次只產生一張真結果（`AP-BDD-015`）
   - **追溯**：AP-AC-002、AP-AC-003、AP-AC-018；SPEC §4～§8
   - **測試方法基名**：`GenerateOneAvatar`
 
@@ -266,7 +280,7 @@ Scenario: AP-BDD-015 AI 鎖頭首次只產生一張真結果
 
 ### @smoke @happy-path @critical @AP-BDD-016
 
-- [ ] **Scenario: 任選已成功候選只保存一張（`AP-BDD-016`）
+- [x] **Scenario: 任選已成功候選只保存一張（`AP-BDD-016`）
   - **追溯**：AP-AC-003、AP-AC-006；SPEC §4～§8
   - **測試方法基名**：`SelectGeneratedAvatar`
 
@@ -280,7 +294,7 @@ Scenario: AP-BDD-016 任選已成功候選只保存一張
 
 ### @happy-path @critical @AP-BDD-017
 
-- [ ] **Scenario: 重新選用先前的正式生成化身**（`AP-BDD-017`）
+- [x] **Scenario: 重新選用先前的正式生成化身**（`AP-BDD-017`）
   - **追溯**：AP-AC-003、AP-AC-004；SPEC §4～§8
   - **測試方法基名**：`ReselectGeneratedAvatar`
 
@@ -294,7 +308,7 @@ Scenario: AP-BDD-017 重新選用先前的正式生成化身
 
 ### @happy-path @critical @AP-BDD-018
 
-- [ ] **Scenario: 共用壓縮可被非化身圖片功能呼叫**（`AP-BDD-018`）
+- [x] **Scenario: 共用壓縮可被非化身圖片功能呼叫**（`AP-BDD-018`）
   - **追溯**：AP-AC-019；SPEC §4～§8
   - **測試方法基名**：`ReusableImageCompression`
 
@@ -308,7 +322,7 @@ Scenario: AP-BDD-018 共用壓縮可被非化身圖片功能呼叫
 
 ### @happy-path @critical @AP-BDD-019
 
-- [ ] **Scenario: 使用 server secret 真正逐張呼叫 Gemini（`AP-BDD-019`）
+- [x] **Scenario: 使用 server secret 真正逐張呼叫 Gemini（`AP-BDD-019`）
   - **追溯**：AP-AC-024；SPEC §4～§8
   - **測試方法基名**：`GeminiLiveVerification`
 
@@ -327,7 +341,7 @@ Scenario: AP-BDD-019 使用 server secret 真正逐張呼叫 Gemini
 
 ### @alternative-path @critical @AP-BDD-020
 
-- [ ] **Scenario: 沒有照片可以先選免費化身**（`AP-BDD-020`）
+- [x] **Scenario: 沒有照片可以先選免費化身**（`AP-BDD-020`）
   - **追溯**：AP-AC-001、AP-AC-004；SPEC §4
   - **測試方法基名**：`FreeWithoutPhotos`
 
@@ -341,7 +355,7 @@ Scenario: AP-BDD-020 沒有照片可以先選免費化身
 
 ### @alternative-path @critical @AP-BDD-021
 
-- [ ] **Scenario: 照片不足時 AI 提供上傳引導**（`AP-BDD-021`）
+- [x] **Scenario: 照片不足時 AI 提供上傳引導**（`AP-BDD-021`）
   - **追溯**：AP-AC-001、AP-AC-018；SPEC §4
   - **測試方法基名**：`InsufficientSourcePhotos`
 
@@ -355,7 +369,7 @@ Scenario: AP-BDD-021 照片不足時 AI 提供上傳引導
 
 ### @alternative-path @critical @AP-BDD-022
 
-- [ ] **Scenario: 五張照片可刪除後補上新照片**（`AP-BDD-022`）
+- [x] **Scenario: 五張照片可刪除後補上新照片**（`AP-BDD-022`）
   - **追溯**：AP-AC-001；SPEC §4
   - **測試方法基名**：`ReplaceAtPhotoLimit`
 
@@ -369,7 +383,7 @@ Scenario: AP-BDD-022 五張照片可刪除後補上新照片
 
 ### @alternative-path @critical @AP-BDD-023
 
-- [ ] **Scenario: 本輪未採用仍保留既有化身（`AP-BDD-023`）
+- [x] **Scenario: 本輪未採用仍保留既有化身（`AP-BDD-023`）
   - **追溯**：AP-AC-003；SPEC §4
   - **測試方法基名**：`AbandonGeneratedCandidates`
 
@@ -383,7 +397,7 @@ Scenario: AP-BDD-023 本輪未採用仍保留既有化身
 
 ### @alternative-path @normal @AP-BDD-024
 
-- [ ] **Scenario: 職業留空不阻擋基本設定**（`AP-BDD-024`）
+- [x] **Scenario: 職業留空不阻擋基本設定**（`AP-BDD-024`）
   - **追溯**：AP-AC-005、AP-AC-012；SPEC §4
   - **測試方法基名**：`OptionalOccupation`
 
@@ -397,7 +411,7 @@ Scenario: AP-BDD-024 職業留空不阻擋基本設定
 
 ### @alternative-path @normal @AP-BDD-025
 
-- [ ] **Scenario: 過期本輪可以重新開始逐張產圖（`AP-BDD-025`）
+- [x] **Scenario: 過期本輪可以重新開始逐張產圖（`AP-BDD-025`）
   - **追溯**：AP-AC-003；SPEC §4
   - **測試方法基名**：`RetryExpiredAttempt`
 
@@ -425,7 +439,7 @@ Scenario: AP-BDD-026 更新自介與照片後授權讀最新資料
 
 ### @alternative-path @normal @AP-BDD-027
 
-- [ ] **Scenario: 登入登出後個人資料保持一致**（`AP-BDD-027`）
+- [x] **Scenario: 登入登出後個人資料保持一致**（`AP-BDD-027`）
   - **追溯**：AP-AC-014；SPEC §4
   - **測試方法基名**：`PersistAfterRelogin`
 
@@ -444,7 +458,7 @@ Scenario: AP-BDD-027 登入登出後個人資料保持一致
 
 ### @error-handling @critical @AP-BDD-028
 
-- [ ] **Scenario: 超過8 MiB的原始照片必須拒絕**（`AP-BDD-028`）
+- [x] **Scenario: 超過8 MiB的原始照片必須拒絕**（`AP-BDD-028`）
   - **追溯**：AP-AC-009；SPEC §9.3
   - **測試方法基名**：`RejectOversizePhoto`
 
@@ -458,7 +472,7 @@ Scenario: AP-BDD-028 超過8 MiB的原始照片必須拒絕
 
 ### @error-handling @normal @AP-BDD-029
 
-- [ ] **Scenario: 偽造 MIME 或毀損圖片拒絕**（`AP-BDD-029`）
+- [x] **Scenario: 偽造 MIME 或毀損圖片拒絕**（`AP-BDD-029`）
   - **追溯**：AP-AC-009；SPEC §9.3
   - **測試方法基名**：`RejectForgedImage`
 
@@ -472,7 +486,7 @@ Scenario: AP-BDD-029 偽造 MIME 或毀損圖片拒絕
 
 ### @error-handling @normal @AP-BDD-030
 
-- [ ] **Scenario: 圖片無法壓縮到200KB時拒絕**（`AP-BDD-030`）
+- [x] **Scenario: 圖片無法壓縮到200KB時拒絕**（`AP-BDD-030`）
   - **追溯**：AP-AC-009、AP-AC-019；SPEC §9.3
   - **測試方法基名**：`RejectUncompressibleImage`
 
@@ -486,7 +500,7 @@ Scenario: AP-BDD-030 圖片無法壓縮到200KB時拒絕
 
 ### @error-handling @critical @AP-BDD-031
 
-- [ ] **Scenario: 照片數量上限拒絕第六張**（`AP-BDD-031`）
+- [x] **Scenario: 照片數量上限拒絕第六張**（`AP-BDD-031`）
   - **追溯**：AP-AC-001；SPEC §9.3
   - **測試方法基名**：`RejectSixthPhoto`
 
@@ -500,7 +514,7 @@ Scenario: AP-BDD-031 照片數量上限拒絕第六張
 
 ### @error-handling @critical @AP-BDD-032
 
-- [ ] **Scenario: 另一帳號不能讀取本人照片和 AI 圖片**（`AP-BDD-032`）
+- [x] **Scenario: 另一帳號不能讀取本人照片和 AI 圖片**（`AP-BDD-032`）
   - **追溯**：AP-AC-007、AP-AC-008；SPEC §9.3
   - **測試方法基名**：`RejectForeignMedia`
 
@@ -514,7 +528,7 @@ Scenario: AP-BDD-032 另一帳號不能讀取本人照片和 AI 圖片
 
 ### @error-handling @normal @AP-BDD-033
 
-- [ ] **Scenario: 登入已撤銷不得存取私人媒體**（`AP-BDD-033`）
+- [x] **Scenario: 登入已撤銷不得存取私人媒體**（`AP-BDD-033`）
   - **追溯**：AP-AC-007；SPEC §9.3
   - **測試方法基名**：`RejectRevokedSession`
 
@@ -528,7 +542,7 @@ Scenario: AP-BDD-033 登入已撤銷不得存取私人媒體
 
 ### @error-handling @normal @AP-BDD-034
 
-- [ ] **Scenario: 當次沒有產出一張不得回報成功（`AP-BDD-034`）
+- [x] **Scenario: 當次沒有產出一張不得回報成功（`AP-BDD-034`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`RejectPartialGeneration`
 
@@ -542,7 +556,7 @@ Scenario: AP-BDD-034 當次沒有產出一張不得回報成功
 
 ### @error-handling @critical @AP-BDD-035
 
-- [ ] **Scenario: 與既有候選相同不得計入下一張（`AP-BDD-035`）
+- [x] **Scenario: 與既有候選相同不得計入下一張（`AP-BDD-035`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`RejectDuplicateGeneratedImages`
 
@@ -556,7 +570,7 @@ Scenario: AP-BDD-035 與既有候選相同不得計入下一張
 
 ### @error-handling @critical @AP-BDD-036
 
-- [ ] **Scenario: 單張逾時或限額不污染舊化身及候選（`AP-BDD-036`）
+- [x] **Scenario: 單張逾時或限額不污染舊化身及候選（`AP-BDD-036`）
   - **追溯**：AP-AC-003、AP-AC-018、AP-AC-024；SPEC §9.3
   - **測試方法基名**：`HandleGeminiFailure`
 
@@ -570,7 +584,7 @@ Scenario: AP-BDD-036 單張逾時或限額不污染舊化身及候選
 
 ### @error-handling @normal @AP-BDD-037
 
-- [ ] **Scenario: 過期候選不可讀或選用**（`AP-BDD-037`）
+- [x] **Scenario: 過期候選不可讀或選用**（`AP-BDD-037`）
   - **追溯**：AP-AC-003；SPEC §9.3
   - **測試方法基名**：`RejectExpiredCandidate`
 
@@ -584,7 +598,7 @@ Scenario: AP-BDD-037 過期候選不可讀或選用
 
 ### @error-handling @normal @AP-BDD-038
 
-- [ ] **Scenario: 候選與正式資產不能跨帳號選用**（`AP-BDD-038`）
+- [x] **Scenario: 候選與正式資產不能跨帳號選用**（`AP-BDD-038`）
   - **追溯**：AP-AC-003、AP-AC-006；SPEC §9.3
   - **測試方法基名**：`RejectForeignAvatarSelection`
 
@@ -598,7 +612,7 @@ Scenario: AP-BDD-038 候選與正式資產不能跨帳號選用
 
 ### @error-handling @critical @AP-BDD-039
 
-- [ ] **Scenario: R2 寫入失敗時補償 pending**（`AP-BDD-039`）
+- [x] **Scenario: R2 寫入失敗時補償 pending**（`AP-BDD-039`）
   - **追溯**：AP-AC-001；SPEC §9.3
   - **測試方法基名**：`CompensateFailedPhotoStorage`
 
@@ -612,7 +626,7 @@ Scenario: AP-BDD-039 R2 寫入失敗時補償 pending
 
 ### @error-handling @normal @AP-BDD-040
 
-- [ ] **Scenario: 生成化身正式化失敗要補償**（`AP-BDD-040`）
+- [x] **Scenario: 生成化身正式化失敗要補償**（`AP-BDD-040`）
   - **追溯**：AP-AC-003；SPEC §9.3
   - **測試方法基名**：`CompensateFailedAvatarSelection`
 
@@ -626,7 +640,7 @@ Scenario: AP-BDD-040 生成化身正式化失敗要補償
 
 ### @error-handling @critical @AP-BDD-041
 
-- [ ] **Scenario: 不合法個人資料 JSON 與代碼被拒絕**（`AP-BDD-041`）
+- [x] **Scenario: 不合法個人資料 JSON 與代碼被拒絕**（`AP-BDD-041`）
   - **追溯**：AP-AC-005、AP-AC-013；SPEC §9.3
   - **測試方法基名**：`RejectInvalidProfilePayload`
 
@@ -640,7 +654,7 @@ Scenario: AP-BDD-041 不合法個人資料 JSON 與代碼被拒絕
 
 ### @error-handling @critical @AP-BDD-042
 
-- [ ] **Scenario: 未成年不能啟用交友功能**（`AP-BDD-042`）
+- [x] **Scenario: 未成年不能啟用交友功能**（`AP-BDD-042`）
   - **追溯**：AP-AC-021；SPEC §9.3
   - **測試方法基名**：`RejectUnderageProfile`
 
@@ -654,7 +668,7 @@ Scenario: AP-BDD-042 未成年不能啟用交友功能
 
 ### @error-handling @critical @AP-BDD-043
 
-- [ ] **Scenario: 沒有雙方同意不能讀對方名片照**（`AP-BDD-043`）
+- [x] **Scenario: 沒有雙方同意不能讀對方名片照**（`AP-BDD-043`）
   - **追溯**：AP-AC-016、AP-AC-023；SPEC §9.3
   - **測試方法基名**：`RejectUnconsentedCard`
 
@@ -682,7 +696,7 @@ Scenario: AP-BDD-044 互動終止或跨輪不能再讀更新資料
 
 ### @error-handling @critical @AP-BDD-045
 
-- [ ] **Scenario: 個人資料版本過期不得覆寫**（`AP-BDD-045`）
+- [x] **Scenario: 個人資料版本過期不得覆寫**（`AP-BDD-045`）
   - **追溯**：AP-AC-005；SPEC §9.3
   - **測試方法基名**：`RejectStaleProfileRevision`
 
@@ -696,7 +710,7 @@ Scenario: AP-BDD-045 個人資料版本過期不得覆寫
 
 ### @error-handling @critical @AP-BDD-046
 
-- [ ] **Scenario: 照片排序不得夾帶他人或漏掉ID**（`AP-BDD-046`）
+- [x] **Scenario: 照片排序不得夾帶他人或漏掉ID**（`AP-BDD-046`）
   - **追溯**：AP-AC-001；SPEC §9.3
   - **測試方法基名**：`RejectInvalidPhotoOrder`
 
@@ -715,7 +729,7 @@ Scenario: AP-BDD-046 照片排序不得夾帶他人或漏掉ID
 
 ### @edge-case @critical @AP-BDD-047
 
-- [ ] **Scenario: D1 無 Trigger 的第五第六張並發上傳**（`AP-BDD-047`）
+- [x] **Scenario: D1 無 Trigger 的第五第六張並發上傳**（`AP-BDD-047`）
   - **追溯**：AP-AC-001；SPEC §8.2～8.5
   - **測試方法基名**：`AtomicFifthSixthInsert`
 
@@ -729,7 +743,7 @@ Scenario: AP-BDD-047 D1 無 Trigger 的第五第六張並發上傳
 
 ### @edge-case @normal @AP-BDD-048
 
-- [ ] **Scenario: pending 預留名額不得被並發繞過**（`AP-BDD-048`）
+- [x] **Scenario: pending 預留名額不得被並發繞過**（`AP-BDD-048`）
   - **追溯**：AP-AC-001；SPEC §8.2～8.5
   - **測試方法基名**：`PendingReservationCounts`
 
@@ -743,7 +757,7 @@ Scenario: AP-BDD-048 pending 預留名額不得被並發繞過
 
 ### @edge-case @critical @AP-BDD-049
 
-- [ ] **Scenario: 受控 UPDATE 不得更改 owner、key 或復活照片**（`AP-BDD-049`）
+- [x] **Scenario: 受控 UPDATE 不得更改 owner、key 或復活照片**（`AP-BDD-049`）
   - **追溯**：AP-AC-001、AP-AC-006；SPEC §8.2～8.5
   - **測試方法基名**：`ImmutableMediaIdentity`
 
@@ -757,7 +771,7 @@ Scenario: AP-BDD-049 受控 UPDATE 不得更改 owner、key 或復活照片
 
 ### @edge-case @normal @AP-BDD-050
 
-- [ ] **Scenario: 暱稱 Unicode 與生日滿18歲界限**（`AP-BDD-050`）
+- [x] **Scenario: 暱稱 Unicode 與生日滿18歲界限**（`AP-BDD-050`）
   - **追溯**：AP-AC-005、AP-AC-021；SPEC §8.2～8.5
   - **測試方法基名**：`UnicodeAndAgeBoundary`
 
@@ -771,13 +785,13 @@ Scenario: AP-BDD-050 暱稱 Unicode 與生日滿18歲界限
 
 ### @edge-case @normal @AP-BDD-051
 
-- [ ] **Scenario: 固定 JSON 陣列與年齡範圍上下界**（`AP-BDD-051`）
+- [x] **Scenario: 固定 JSON 陣列與年齡範圍上下界**（`AP-BDD-051`）
   - **追溯**：AP-AC-011、AP-AC-013；SPEC §8.2～8.5
   - **測試方法基名**：`JsonPreferenceBoundaries`
 
 ```gherkin
 Scenario: AP-BDD-051 固定 JSON 陣列與年齡範圍上下界
-  Given 本人提供剛好上限的 traits、interest、topic、value 與 region 陣列
+  Given 本人提供各組可達的合法最大選取數（取欄位上限與目前目錄數的較小值；topic 上限仍為8、現有6碼）的 traits、interest、topic、value 與 region 陣列
   When 本人儲存並接著測試重複及超上限元素
   Then 上限合法資料保存且重複、未知鍵、超限資料被拒絕
   And preferredAgeMin/Max 成對且18至120、Min不大於Max
@@ -785,7 +799,7 @@ Scenario: AP-BDD-051 固定 JSON 陣列與年齡範圍上下界
 
 ### @edge-case @critical @AP-BDD-052
 
-- [ ] **Scenario: 200000 bytes 精確邊界與分段串流**（`AP-BDD-052`）
+- [x] **Scenario: 200000 bytes 精確邊界與分段串流**（`AP-BDD-052`）
   - **追溯**：AP-AC-019；SPEC §8.2～8.5
   - **測試方法基名**：`CompressionExactBoundary`
 
@@ -799,7 +813,7 @@ Scenario: AP-BDD-052 200000 bytes 精確邊界與分段串流
 
 ### @edge-case @normal @AP-BDD-053
 
-- [ ] **Scenario: 只有實際產出的候選索引可讀（`AP-BDD-053`）
+- [x] **Scenario: 只有實際產出的候選索引可讀（`AP-BDD-053`）
   - **追溯**：AP-AC-003；SPEC §8.2～8.5
   - **測試方法基名**：`CandidateIndexBoundary`
 
@@ -813,7 +827,7 @@ Scenario: AP-BDD-053 只有實際產出的候選索引可讀
 
 ### @edge-case @critical @AP-BDD-054
 
-- [ ] **Scenario: 選用並發只更新一個當前化身**（`AP-BDD-054`）
+- [x] **Scenario: 選用並發只更新一個當前化身**（`AP-BDD-054`）
   - **追溯**：AP-AC-003；SPEC §8.2～8.5
   - **測試方法基名**：`AvatarSelectionRace`
 
@@ -841,7 +855,7 @@ Scenario: AP-BDD-055 已終止與授權讀取同時發生
 
 ### @edge-case @critical @AP-BDD-056
 
-- [ ] **Scenario: AI 記錄與前端打包均不含機密**（`AP-BDD-056`）
+- [x] **Scenario: AI 記錄與前端打包均不含機密**（`AP-BDD-056`）
   - **追溯**：AP-AC-024；SPEC §8.2～8.5
   - **測試方法基名**：`SecretExposureBoundary`
 
@@ -856,11 +870,11 @@ Scenario: AP-BDD-056 AI 記錄與前端打包均不含機密
 
 ---
 
-## 🖥️ Frontend UX — 介面及無障礙
+## 🖥️ Frontend UX — 介面操作
 
 ### @frontend @critical @AP-BDD-057
 
-- [ ] **Scenario: 照片頁空狀態和指定用途提示**（`AP-BDD-057`）
+- [x] **Scenario: 照片頁空狀態和指定用途提示**（`AP-BDD-057`）
   - **追溯**：AP-AC-001、AP-AC-020；SPEC §5.1／§7
   - **測試方法基名**：`PhotoScreenEmptyState`
 
@@ -874,7 +888,7 @@ Scenario: AP-BDD-057 照片頁空狀態和指定用途提示
 
 ### @frontend @normal @AP-BDD-058
 
-- [ ] **Scenario: 免費角色畫面載入與切換**（`AP-BDD-058`）
+- [x] **Scenario: 免費角色畫面載入與切換**（`AP-BDD-058`）
   - **追溯**：AP-AC-004、AP-AC-017；SPEC §5.1／§7
   - **測試方法基名**：`FreeAvatarPickerUi`
 
@@ -888,7 +902,7 @@ Scenario: AP-BDD-058 免費角色畫面載入與切換
 
 ### @frontend @critical @AP-BDD-059
 
-- [ ] **Scenario: 相片上傳進度及錯誤提示**（`AP-BDD-059`）
+- [x] **Scenario: 相片上傳進度及錯誤提示**（`AP-BDD-059`）
   - **追溯**：AP-AC-001、AP-AC-009；SPEC §5.1／§7
   - **測試方法基名**：`PersonalPhotoUploadUi`
 
@@ -902,7 +916,7 @@ Scenario: AP-BDD-059 相片上傳進度及錯誤提示
 
 ### @frontend @critical @AP-BDD-060
 
-- [ ] **Scenario: 照片排序及刪除確認**（`AP-BDD-060`）
+- [x] **Scenario: 照片排序及刪除確認**（`AP-BDD-060`）
   - **追溯**：AP-AC-001；SPEC §5.1／§7
   - **測試方法基名**：`PhotoOrderDeleteUi`
 
@@ -916,7 +930,7 @@ Scenario: AP-BDD-060 照片排序及刪除確認
 
 ### @frontend @normal @AP-BDD-061
 
-- [ ] **Scenario: AI 鎖頭進入逐張產圖且 MVP 不收費（`AP-BDD-061`）
+- [x] **Scenario: AI 鎖頭進入逐張產圖且 MVP 不收費（`AP-BDD-061`）
   - **追溯**：AP-AC-018；SPEC §5.1／§7
   - **測試方法基名**：`AiLockEntryUi`
 
@@ -930,7 +944,7 @@ Scenario: AP-BDD-061 AI 鎖頭進入逐張產圖且 MVP 不收費
 
 ### @frontend @normal @AP-BDD-062
 
-- [ ] **Scenario: 逐張 Loading 與重複點擊防護（`AP-BDD-062`）
+- [x] **Scenario: 逐張 Loading 與重複點擊防護（`AP-BDD-062`）
   - **追溯**：AP-AC-003、AP-AC-018；SPEC §5.1／§7
   - **測試方法基名**：`AiGenerateLoadingUi`
 
@@ -944,7 +958,7 @@ Scenario: AP-BDD-062 逐張 Loading 與重複點擊防護
 
 ### @frontend @normal @AP-BDD-063
 
-- [ ] **Scenario: 最多四張逐步比較後任選一張（`AP-BDD-063`）
+- [x] **Scenario: 最多四張逐步比較後任選一張（`AP-BDD-063`）
   - **追溯**：AP-AC-003、AP-AC-022；SPEC §5.1／§7
   - **測試方法基名**：`AiFourChoicesUi`
 
@@ -958,7 +972,7 @@ Scenario: AP-BDD-063 最多四張逐步比較後任選一張
 
 ### @frontend @normal @AP-BDD-064
 
-- [ ] **Scenario: 單張失敗、候選過期與不確定計費的提示（`AP-BDD-064`）
+- [x] **Scenario: 單張失敗、候選過期與不確定計費的提示（`AP-BDD-064`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §5.1／§7
   - **測試方法基名**：`AiFailureRecoveryUi`
 
@@ -972,7 +986,7 @@ Scenario: AP-BDD-064 單張失敗、候選過期與不確定計費的提示
 
 ### @frontend @critical @AP-BDD-065
 
-- [ ] **Scenario: 個人資料表單驗證及空白職業**（`AP-BDD-065`）
+- [x] **Scenario: 個人資料表單驗證及空白職業**（`AP-BDD-065`）
   - **追溯**：AP-AC-005、AP-AC-012、AP-AC-013、AP-AC-021；SPEC §5.1／§7
   - **測試方法基名**：`DatingProfileFormUi`
 
@@ -986,7 +1000,7 @@ Scenario: AP-BDD-065 個人資料表單驗證及空白職業
 
 ### @frontend @critical @AP-BDD-066
 
-- [ ] **Scenario: 我的名片預覽提示分享範圍**（`AP-BDD-066`）
+- [x] **Scenario: 我的名片預覽提示分享範圍**（`AP-BDD-066`）
   - **追溯**：AP-AC-020、AP-AC-015；SPEC §5.1／§7
   - **測試方法基名**：`MyCardPreviewUi`
 
@@ -1000,7 +1014,7 @@ Scenario: AP-BDD-066 我的名片預覽提示分享範圍
 
 ### @frontend @critical @AP-BDD-067
 
-- [ ] **Scenario: 無同意時禁止直接跳到他人名片**（`AP-BDD-067`）
+- [x] **Scenario: 無同意時禁止直接跳到他人名片**（`AP-BDD-067`）
   - **追溯**：AP-AC-016、AP-AC-023；SPEC §5.1／§7
   - **測試方法基名**：`ConsentGateUi`
 
@@ -1014,14 +1028,14 @@ Scenario: AP-BDD-067 無同意時禁止直接跳到他人名片
 
 ### @frontend @critical @AP-BDD-068
 
-- [ ] **Scenario: 手機／Web 重登與無障礙操作**（`AP-BDD-068`）
+- [x] **Scenario: 手機／Web 重登與資料一致性**（`AP-BDD-068`）
   - **追溯**：AP-AC-001、AP-AC-003、AP-AC-012；SPEC §5.1／§7
-  - **測試方法基名**：`ProfileAccessibilityUi`
+  - **測試方法基名**：`ProfileReloginConsistencyUi`
 
 ```gherkin
-Scenario: AP-BDD-068 手機／Web 重登與無障礙操作
+Scenario: AP-BDD-068 手機／Web 重登與資料一致性
   Given 本人於 iOS、Android 或 Web 使用個人資料與選角
-  When 使用鍵盤、螢幕閱讀器、字體放大並重新登入
+  When 完成表單與選角操作並重新登入
   Then 表單與照片及化身選擇可操作且資料重讀一致
   And 不以原型 Fixture／舊照片快取遮蔽目前值
 ```
@@ -1035,7 +1049,7 @@ Scenario: AP-BDD-068 手機／Web 重登與無障礙操作
 
 ### @happy-path @critical @AP-BDD-069
 
-- [ ] **Scenario: 第一張滿意即可提前採用**（`AP-BDD-069`）
+- [x] **Scenario: 第一張滿意即可提前採用**（`AP-BDD-069`）
   - **追溯**：AP-AC-003、AP-AC-018；SPEC §4.2／§7／§8.4／§9
   - **測試方法基名**：`QuickAdoptFirstCandidate`
 
@@ -1049,7 +1063,7 @@ Scenario: AP-BDD-069 第一張滿意即可提前採用
 
 ### @alternative-path @critical @AP-BDD-070
 
-- [ ] **Scenario: 暫不採用可回選之前候選**（`AP-BDD-070`）
+- [x] **Scenario: 暫不採用可回選之前候選**（`AP-BDD-070`）
   - **追溯**：AP-AC-003；SPEC §4.2／§7／§8.4／§9
   - **測試方法基名**：`RevisitEarlierCandidate`
 
@@ -1063,7 +1077,7 @@ Scenario: AP-BDD-070 暫不採用可回選之前候選
 
 ### @edge-case @critical @AP-BDD-071
 
-- [ ] **Scenario: 跨頁同時請求不可多產或超出四張**（`AP-BDD-071`）
+- [x] **Scenario: 跨頁同時請求不可多產或超出四張**（`AP-BDD-071`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §4.2／§7／§8.4／§9
   - **測試方法基名**：`AtomicCandidateBudget`
 
@@ -1077,7 +1091,7 @@ Scenario: AP-BDD-071 跨頁同時請求不可多產或超出四張
 
 ### @error-handling @critical @AP-BDD-072
 
-- [ ] **Scenario: 單張逾時不自動再產及保留成功候選**（`AP-BDD-072`）
+- [x] **Scenario: 單張逾時不自動再產及保留成功候選**（`AP-BDD-072`）
   - **追溯**：AP-AC-003、AP-AC-024；SPEC §4.2／§7／§8.4／§9
   - **測試方法基名**：`UncertainGenerationRetry`
 
@@ -1091,7 +1105,7 @@ Scenario: AP-BDD-072 單張逾時不自動再產及保留成功候選
 
 ### @frontend @critical @AP-BDD-073
 
-- [ ] **Scenario: 確認採用視窗與未來重新生成費用提示**（`AP-BDD-073`）
+- [x] **Scenario: 確認採用視窗與未來重新生成費用提示**（`AP-BDD-073`）
   - **追溯**：AP-AC-003、AP-AC-018；SPEC §4.2／§7／§8.4／§9
   - **測試方法基名**：`AdoptionConfirmationPaymentNoticeUi`
 
@@ -1116,4 +1130,4 @@ Scenario: AP-BDD-073 確認採用視窗與未來重新生成費用提示
 - [TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
 - [風險稽核](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)
 
-**狀態**：SDD 與 RiskAudit 已確認、風險決策 RQ-01=A／RQ-02=A 已回寫，規劃文件 Ready for well-done；73 個唯一 Scenario、13 個 @frontend；0 項完整驗收。
+**狀態**：SDD 與 RiskAudit 已確認、風險決策 RQ-01=A／RQ-02=A 已回寫，規劃文件 Ready for well-done；73 個唯一 Scenario、13 個 @frontend；17 項業務場景完整覆核，前端完整三平台0/13。

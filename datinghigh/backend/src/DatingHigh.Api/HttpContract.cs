@@ -36,11 +36,72 @@ public sealed class RequestPayload(Dictionary<string,string> values)
     }
 }
 
+/// <summary>交友資料獨立完整 JSON parser；不放寬 Foundation 16 KiB 限制與其他路由的純字串契約。</summary>
+public static class ProfileInputPayload
+{
+    public static async Task<ProfileUpdateInput> ReadAsync(HttpRequest request,TimeProvider clock,CancellationToken ct)
+    {
+        if(!request.HasJsonContentType()) throw new DomainException("INVALID_REQUEST");
+        if(request.ContentLength>16384) throw new DomainException("REQUEST_TOO_LARGE",413);
+        using var buffer=new MemoryStream();
+        var chunk=new byte[4096];
+        int read;
+        while((read=await request.Body.ReadAsync(chunk,ct))>0)
+        {
+            if(buffer.Length+read>16384) throw new DomainException("REQUEST_TOO_LARGE",413);
+            await buffer.WriteAsync(chunk.AsMemory(0,read),ct);
+        }
+        return ProfileUpdateInput.Parse(buffer.ToArray(),clock);
+    }
+}
+
+/// <summary>僅本人照片重排 PUT 可傳送 UUIDv7 陣列；其他認證入口維持原 JSON 契約。</summary>
+public static class PhotoOrderPayload
+{
+    public static async Task<PhotoOrderInput> ReadAsync(HttpRequest request,CancellationToken ct)
+    {
+        if(!request.HasJsonContentType())throw new DomainException("INVALID_REQUEST");
+        if(request.ContentLength>16384)throw new DomainException("REQUEST_TOO_LARGE",413);
+        using var buffer=new MemoryStream();
+        var chunk=new byte[4096];int read;
+        while((read=await request.Body.ReadAsync(chunk,ct))>0)
+        {
+            if(buffer.Length+read>16384)throw new DomainException("REQUEST_TOO_LARGE",413);
+            await buffer.WriteAsync(chunk.AsMemory(0,read),ct);
+        }
+        return PhotoOrderInput.Parse(buffer.ToArray());
+    }
+}
+
+/// <summary>化身專用完整 JSON parser；保留其他認證端點的字串白名單及 16 KiB 限制。</summary>
+public static class AvatarPayload
+{
+    public static async Task<System.Text.Json.Nodes.JsonObject> ReadAsync(HttpRequest request,bool selection,CancellationToken ct)
+    {
+        if(!request.HasJsonContentType())throw new DomainException("INVALID_REQUEST");
+        if(request.ContentLength>16384)throw new DomainException("REQUEST_TOO_LARGE",413);
+        using var buffer=new MemoryStream();var chunk=new byte[4096];int read;
+        while((read=await request.Body.ReadAsync(chunk,ct))>0){if(buffer.Length+read>16384)throw new DomainException("REQUEST_TOO_LARGE",413);await buffer.WriteAsync(chunk.AsMemory(0,read),ct);}
+        return AvatarInput.Parse(buffer.ToArray(),selection);
+    }
+}
+
 /// <summary>Web 僅 Cookie、原生僅 Bearer/body；Origin 不可偽裝原生。</summary>
 public static class HttpContract
 {
     public static RequestPayload Payload(this HttpContext c)=>(RequestPayload)c.Items["payload"]!;
     public static string ClientPlatform(this HttpContext c)=>(string)c.Items["platform"]!;
+    /// <summary>只從已驗簽並完成 D1 family 驗證的 ClaimsPrincipal 建立本人資源身分。</summary>
+    public static CurrentUser CurrentPlatformUser(this HttpContext c)
+    {
+        var account=c.User.FindFirst("sub")?.Value;
+        var session=c.User.FindFirst("sid")?.Value;
+        if(!EntityId.IsValid(account)||!EntityId.IsValid(session)||
+           !long.TryParse(c.User.FindFirst("cv")?.Value,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var cv)||
+           !long.TryParse(c.User.FindFirst("exp")?.Value,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var exp))
+            throw new DomainException("SESSION_REVOKED",401);
+        return new CurrentUser(account!,session!,cv,checked(exp*1000));
+    }
     public static string Ip(this HttpContext c)
     {
         var raw=c.Request.Headers["X-DatingHigh-Internal-Client-Ip"].ToString();

@@ -1,5 +1,8 @@
 # SPEC-001-PlatformFoundation: 跨平台應用、使用者身分與 Cloudflare 資料基礎
 
+**目前MVP範圍（2026-11-04，D-051／D-052）**：無障礙專項設計、實作及驗收不納入整個遊戲目前範圍，不列待補或結案條件；iOS暫緩。此決策覆蓋以下舊規劃中的無障礙要求，保留歷史命名／證據不代表仍有實作義務。
+
+
 **功能 ID**: SPEC-001-PlatformFoundation
 **關聯需求**: [MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 **優先級**: 高
@@ -652,7 +655,7 @@ CREATE INDEX idx_common_rate_limit_buckets_expiry ON common_rate_limit_buckets(e
 | 設計 token | 原型 `rose #ff7aa2`、`roseDeep #ff4f86`、`gold #ffd27a`、`ink #2a1730`、`plum #3a1a48`；深紫底、人物／場景氛圍與半透明卡片 |
 | 元件 | `SceneBackground`、`GlassPanel`、`PrimaryButton`、`FormField`、`InlineNotice`、`LoadingOverlay`，以 React Native 元件實作並支援 Web |
 | 版面 | 小螢幕單欄，可捲動、避開安全區與鍵盤；Web 大螢幕置中內容，保留原型氛圍，不沿用原型固定最小 700px 的高度裁切 |
-| 可操作性 | Web 可鍵盤操作並有可見 focus；欄位有 accessibility label；錯誤不只靠顏色；遵循減少動態偏好 |
+| 可操作性 | 表單與按鈕在支援螢幕及鍵盤開啟時可見且可操作；無障礙專項不在目前MVP範圍（D-051）。 |
 | 產品文案 | 僅說明帳號與登入狀態；D1、SQL、Docker、binding 等開發資訊放開發文件，不出現在一般帳號操作流程 |
 
 ### 畫面與狀態

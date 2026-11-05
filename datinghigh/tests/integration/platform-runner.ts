@@ -5,7 +5,9 @@ import {dispatch,ready,probeKey,probeText} from '../../cloudflare/src/platform';
 async function main(){
  const root=process.argv[2];const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("test")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'isolated-application-test'},r2Buckets:{FILES:'isolated-application-files'}}));
  const db=await mf.getD1Database('DB') as unknown as D1Database;const files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
- const sql=readFileSync(`${root}/cloudflare/migrations/0001_foundation.sql`,'utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql']){
+  const sql=readFileSync(`${root}/cloudflare/migrations/${name}`,'utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+ }
  await db.prepare('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT)').run();await db.prepare('INSERT INTO d1_migrations(name) VALUES(?)').bind('0001_foundation.sql').run();await files.put(probeKey,probeText);
  const env={DB:db,FILES:files,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0001_foundation.sql'};
  let providerMode='success',providerCalls=0,templatesValid=true,mailCode='000001';
@@ -19,6 +21,16 @@ async function main(){
    if(command==='$test-provider'){providerMode=payload.mode;if(payload.reset!==false){providerCalls=0;templatesValid=true;}result={configured:true};}
    else if(command==='$test-provider-stats')result={calls:providerCalls,templatesValid};
    else if(command==='$test-sql')result={rows:(await db.prepare(payload.sql).bind(...payload.values).all()).results};
+   else if(command==='$test-r2-list'){const page=await files.list({prefix:'private/',limit:1000});result={keys:page.objects.map(object=>object.key),truncated:page.truncated};}
+   else if(command==='$test-media'){
+    const path=payload.path??`/v1/media/personal-photos/${payload.assetId}`;
+    if(!/^\/v1\/(?:media\/(?:personal-photos|assets)\/[0-9a-f-]+|avatar\/candidates\/[0-9a-f-]+(?:\/[1-4])?)$/.test(path))throw new Error('Invalid private test media path');
+    const response=await dispatch(new Request(`http://platform.internal${path}`,{
+     method:payload.method,headers:payload.headers,
+     ...(payload.content===null?{}:{body:Buffer.from(payload.content,'base64')})
+    }),env,now);
+    result={status:response.status,mime:response.headers.get('Content-Type'),content:Buffer.from(await response.arrayBuffer()).toString('base64')};
+   }
    else if(command==='email.code.send'){
     mailCode=String(payload.code);
     const response=await dispatch(new Request('http://platform.internal/v1/commands/email.code.send',{method:'POST',body:JSON.stringify(payload)}),cloud,now);
