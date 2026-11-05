@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,useWindowDimensions,View} from 'react-native';
+import {BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,TextInput,useWindowDimensions,View} from 'react-native';
 import {useFocusEffect,useRouter,useNavigation} from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Crypto from 'expo-crypto';
@@ -161,10 +161,20 @@ export function DatingProfileScreen(){
    await refresh(true);
   });
  }
- const chips=(key:string,label:string,multiple=false,limit=1,cardBox=false)=>{
-  const values=groups[definitions.find(f=>f.key===key)?.options??key]??[],chosenList:string[]=multiple?(profile?.[key]??[]):[];
+ const chips=(field:ProfileField,cardBox=false)=>{
+  const key=field.key,label=field.label,multiple=(field.editor??field.type)==='multi',limit=field.limit??1;
+  const values=groups[field.options??key]??[],chosenList:string[]=multiple?(profile?.[key]??[]):[];
   return <View key={key} style={[cardBox?{flex:1,minWidth:'46%',padding:12,borderRadius:16,backgroundColor:'rgba(255,255,255,.04)',borderWidth:1,borderColor:'rgba(255,255,255,.10)',gap:8}:{gap:8}]}>
-   <View style={s.labelRow}><Text style={[s.label,cardBox&&{fontSize:12,color:colors.muted}]}>{label}</Text>{multiple&&<Text style={s.counter}>{chosenList.length}/{limit}</Text>}</View>
+   <View style={s.labelRow}>
+    <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+     <Text style={[s.label,cardBox&&{fontSize:12,color:colors.muted}]}>{label}</Text>
+     {field.required&&<Text style={{color:colors.rose,fontSize:11,fontWeight:'700'}}>（必填）</Text>}
+    </View>
+    <View style={{flexDirection:'row',alignItems:'center',gap:8}}>
+     {multiple&&<Text style={s.counter}>{chosenList.length}/{limit}</Text>}
+     {field.shareable&&!field.required&&<Switch accessibilityLabel={`開放${field.cardLabel??field.label}`} disabled={busy} value={visibleOnCard(field,profile?.cardVisibility??{})} onValueChange={value=>update('cardVisibility',{...profile?.cardVisibility,[field.cardKey]:value})}/>}
+    </View>
+   </View>
    <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>{values.map(option=>{
     const chosen=multiple?chosenList.includes(option.id):profile?.[key]===option.id;
     const disabled=busy||!option.active&&!chosen,optionLabel=option.label+(option.active?'':'（已停用）');
@@ -189,17 +199,20 @@ export function DatingProfileScreen(){
  });return()=>handler.remove();},[dirty,avatarModal]);
  const pullStart=useRef<number|null>(null),scrollTop=useRef(true);
  const reload=()=>requestDiscard(()=>{void run(async()=>{await refresh();setNotice('已更新目前資料');});});
- const shareToggle=(field:ProfileField)=>field.shareable?<View style={{flexDirection:'row',alignItems:'center',gap:8}}>
-  <Switch accessibilityLabel={`開放${field.cardLabel??field.label}`} disabled={busy} value={visibleOnCard(field,profile?.cardVisibility??{})} onValueChange={value=>update('cardVisibility',{...profile?.cardVisibility,[field.cardKey]:value})}/>
-  <Text style={s.footer}>開放{field.cardLabel??field.label}</Text>
- </View>:null;
  const renderField=(field:ProfileField)=>{
   const key=field.key,editor=field.editor??field.type;
-  return <View key={key} style={{gap:8}}>{shareToggle(field)}{
-   editor==='choice'||editor==='multi'?chips(key,field.label,editor==='multi',field.limit??1):
-   editor==='photos'?<PrimaryButton label="管理個人照片" secondary disabled={busy} onPress={()=>{setAvatarModal(true);setModalTab('ai');}}/>:
-   <FormField label={field.label} placeholder={field.type==='date'?'YYYY-MM-DD':undefined} editable={!busy} keyboardType={field.type==='number'?'number-pad':'default'} value={String(profile?.[key]??'')} onChangeText={text=>update(key,field.type==='number'?(text?Number(text):key==='sharedInterestWeight'?50:null):text||(key==='nickname'||key==='bio'?'':null))}/>
-  }</View>;
+  if(editor==='choice'||editor==='multi')return chips(field);
+  if(editor==='photos')return null;
+  return <View key={key} style={{gap:8}}>
+   <View style={s.labelRow}>
+    <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+     <Text style={s.label}>{field.label}</Text>
+     {field.required&&<Text style={{color:colors.rose,fontSize:11,fontWeight:'700'}}>（必填）</Text>}
+    </View>
+    {field.shareable&&!field.required&&<Switch accessibilityLabel={`開放${field.cardLabel??field.label}`} disabled={busy} value={visibleOnCard(field,profile?.cardVisibility??{})} onValueChange={value=>update('cardVisibility',{...profile?.cardVisibility,[field.cardKey]:value})}/>}
+   </View>
+   <TextInput accessibilityLabel={field.label} placeholder={field.type==='date'?'YYYY-MM-DD':undefined} placeholderTextColor="#9c82a0" autoCapitalize="none" editable={!busy} keyboardType={field.type==='number'?'number-pad':'default'} value={String(profile?.[key]??'')} onChangeText={text=>update(key,field.type==='number'?(text?Number(text):key==='sharedInterestWeight'?50:null):text||(key==='nickname'||key==='bio'?'':null))} style={s.input}/>
+  </View>;
  };
  if(!session.ready||!api.account)return <SceneBackground><GlassPanel><LoadingOverlay/></GlassPanel></SceneBackground>;
  const visibleProfile=loadedAccount===api.account.accountId?profile:null;
@@ -229,9 +242,6 @@ export function DatingProfileScreen(){
    {regionLabel&&<View style={{paddingHorizontal:10,paddingVertical:3,borderRadius:999,backgroundColor:'rgba(255,210,122,.16)',borderWidth:1,borderColor:colors.gold}}><Text style={{fontSize:11,color:colors.gold,fontWeight:'700'}}>{regionLabel}</Text></View>}
    {selectedTraits.map(t=><View key={t} style={{paddingHorizontal:10,paddingVertical:3,borderRadius:999,backgroundColor:'rgba(255,122,162,.16)',borderWidth:1,borderColor:colors.rose}}><Text style={{fontSize:11,color:'#ffd9e6',fontWeight:'700'}}>{t}</Text></View>)}
   </View>}
-  <View style={{width:'100%',paddingTop:10,borderTopWidth:1,borderColor:'rgba(255,255,255,.12)',gap:10}}>
-   <PrimaryButton label="預覽同意後的名片" compact disabled={busy} onPress={async()=>{if(dirty&&!await save())return;router.push('/card-preview');}}/>
-  </View>
  </GlassPanel>;
 
  return <SceneBackground scrollRef={scroll} scrollProps={{
@@ -252,8 +262,28 @@ export function DatingProfileScreen(){
   {!visibleProfile||!profile?<GlassPanel><LoadingOverlay/></GlassPanel>:<>
    {avatarCardPanel}
    <View style={{flex:1,width:'100%',gap:16}}>
-    <GlassPanel style={{maxWidth:'100%'}}><Text accessibilityRole="header" style={s.heading}>個人資料</Text>
-     {definitions.slice().sort((a,b)=>a.order-b.order).map(renderField)}
+    <GlassPanel style={{maxWidth:'100%',gap:14}}>
+     <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:8}}>
+      <Text accessibilityRole="header" style={[s.heading,{fontSize:20,textAlign:'left'}]}>個人資料</Text>
+      <PrimaryButton label="我的名片" compact disabled={busy} onPress={async()=>{if(dirty&&!await save())return;router.push('/card-preview');}}/>
+     </View>
+     <Text style={{color:colors.muted,fontSize:12,lineHeight:18}}>
+      💡 提示：開啟欄位開關，在雙方同意交換名片時將開放該資訊給對方查看。
+     </Text>
+     {definitions.find(f=>f.type==='photos')&&(()=>{
+      const photosField=definitions.find(f=>f.type==='photos')!;
+      return <View style={{gap:8,paddingBottom:12,borderBottomWidth:1,borderColor:'rgba(255,255,255,.10)'}}>
+       <View style={s.labelRow}>
+        <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
+         <Text style={s.label}>{photosField.label}</Text>
+         {photosField.required&&<Text style={{color:colors.rose,fontSize:11,fontWeight:'700'}}>（必填）</Text>}
+        </View>
+        {photosField.shareable&&!photosField.required&&<Switch accessibilityLabel={`開放${photosField.cardLabel??photosField.label}`} disabled={busy} value={visibleOnCard(photosField,profile?.cardVisibility??{})} onValueChange={value=>update('cardVisibility',{...profile?.cardVisibility,[photosField.cardKey]:value})}/>}
+       </View>
+       <PrimaryButton label="管理個人照片" secondary disabled={busy} onPress={()=>{setAvatarModal(true);setModalTab('ai');}}/>
+      </View>;
+     })()}
+     {definitions.slice().sort((a,b)=>a.order-b.order).filter(f=>f.type!=='photos').map(renderField)}
     </GlassPanel>
    </View>
   </>}

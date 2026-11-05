@@ -44,6 +44,10 @@ public static class ProfileProjections
                 result[key]=photos;
             }else result[key]=own[field.Key]?.DeepClone();
         }
+
+        // 保留選擇的遊戲化身引用
+        result["selectedAvatarType"]=own["selectedAvatarType"]?.DeepClone();
+        result["selectedAvatarRef"]=own["selectedAvatarRef"]?.DeepClone();
         return result;
     }
 }

@@ -345,7 +345,8 @@ public sealed class DatingProfileApplicationTests
         Assert.Equal("工程師",first.Text("occupation"));Assert.Single(first["personalPhotos"]!.AsArray());
         Assert.Equal(2,store.Calls.Count(c=>c.Command=="profile.read"));Assert.Equal(2,store.Calls.Count(c=>c.Command=="profile.photo.list"));
         Assert.Contains("本人預覽不代表已授權",second.Text("notice"));
-        foreach(var key in new[]{"email","birthDate","preferredAgeMin","preferredAgeMax","preferredRegionCodes","sharedInterestWeight","accountId","sessionId","selectedAvatarRef","object_key"})Assert.Null(second[key]);
+        foreach(var key in new[]{"email","birthDate","preferredAgeMin","preferredAgeMax","preferredRegionCodes","sharedInterestWeight","accountId","sessionId","object_key"})Assert.Null(second[key]);
+        Assert.NotNull(second["selectedAvatarRef"]);
         Assert.Equal(403,(await Assert.ThrowsAsync<DomainException>(()=>new DenyCurrentCardAuthorization().AuthorizeAsync(Owner,EntityId.New(),EntityId.New()))).Status);
         store.Revoke=true;Assert.Equal(401,(await Assert.ThrowsAsync<DomainException>(()=>service.ReadAsync(Owner))).Status);
     }

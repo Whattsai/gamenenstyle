@@ -20,7 +20,7 @@
 | POST `/me/avatar/generations` | styleId、UUIDv7 clientRequestId、expectedProducedCount，續產加attemptId；200單張 `{attemptId,index,producedCount,maxCandidates:4,expiresAt}` |
 | GET `/me/avatar/candidates/{attemptId}/{index}` | 本人本輪1～4短效圖；過期410、未產404、無效Session401 |
 | PUT `/me/avatar/selection` | builtin:{type,builtinAvatarId,expectedRevision}；新生成:{type,attemptId,index,expectedRevision}；既有正式圖:{type,assetId,expectedRevision} |
-| GET `/me/card-preview` | 本人分享欄位／照片metadata／概略年齡／提醒；無Email、精確生日、擇偶私有資料 |
+| GET `/me/card-preview` | 本人分享欄位／化身設定／照片metadata／概略年齡／提醒；無Email、精確生日、擇偶私有資料 |
 
 其餘5條 profile／photo metadata／排序／刪除見下表。首次 generation 不會自動補齊4張；重播相同 request 不重送 provider；同帳號競爭409。未知provider用量503 `IMAGE_PROVIDER_UNCERTAIN` 並鎖住本輪，已有候選保留可採用。每輪60分鐘；採用前顯示未來付費／目前免費提醒，取消不提交。已關閉或滿額409。`GET /me/dating-profile` 附安全 `avatarAttempt` 供未知結果後只讀復原；狀態依賴故障時附 `avatarAttemptUnavailable`，前端保留原候選。
 

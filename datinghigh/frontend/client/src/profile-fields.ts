@@ -1,7 +1,7 @@
 export type Gender='male'|'female'|'diverse';
 export type CardVisibility=Record<string,boolean>;
-export type ProfileField={key:string;label:string;type:'text'|'date'|'choice'|'multi'|'number'|'photos';order:number;storage:string;editor:string;shareable:boolean;defaultVisible?:boolean;cardKey:string;cardLabel?:string;maxLength?:number;limit?:number;options?:string};
-export const visibleOnCard=(field:ProfileField,settings:Record<string,boolean>)=>field.shareable&&(settings[field.cardKey]??field.defaultVisible??false);
+export type ProfileField={key:string;label:string;type:'text'|'date'|'choice'|'multi'|'number'|'photos';order:number;storage:string;editor:string;shareable:boolean;defaultVisible?:boolean;cardKey:string;cardLabel?:string;maxLength?:number;limit?:number;options?:string;required?:boolean};
+export const visibleOnCard=(field:ProfileField,settings:Record<string,boolean>)=>field.shareable&&(field.required||(settings[field.cardKey]??field.defaultVisible??false));
 export function profilePayload(profile:Record<string,any>,fields:ProfileField[]){
  const values=Object.fromEntries(fields.filter(f=>f.type!=='photos').map(field=>{
   let value=profile[field.key]??(field.type==='multi'?[]:field.key==='sharedInterestWeight'?50:field.key==='nickname'||field.key==='bio'?'':null);

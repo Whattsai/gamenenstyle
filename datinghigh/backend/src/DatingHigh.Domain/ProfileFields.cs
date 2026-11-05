@@ -3,7 +3,7 @@ namespace DatingHigh.Domain;
 
 /// <summary>共用契約的欄位；新增欄位預設不分享，資料庫與固定命令仍須明確升級。</summary>
 public sealed record ProfileField(string Key,string Label,string Type,int Order,string Storage,string Editor,
-    bool Shareable=false,bool DefaultVisible=false,string? CardKey=null,string? CardLabel=null,int? MaxLength=null,int? Limit=null,string? Options=null);
+    bool Shareable=false,bool DefaultVisible=false,string? CardKey=null,string? CardLabel=null,int? MaxLength=null,int? Limit=null,string? Options=null,bool Required=false);
 public static class ProfileFields
 {
     public static readonly IReadOnlyList<ProfileField> All=Load();

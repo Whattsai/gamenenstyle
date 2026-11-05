@@ -77,7 +77,7 @@ it('duplicate generated output preserves both candidates and explains an explici
  expect(state.request.mock.calls.filter(([path])=>path==='/me/avatar/generations')).toHaveLength(1);
 });
 it('clean preview opens the separate page without a save request',async()=>{
- setup();render(<DatingProfileScreen/>);fireEvent.click(await screen.findByLabelText('預覽同意後的名片'));
+ setup();render(<DatingProfileScreen/>);fireEvent.click(await screen.findByLabelText('我的名片'));
  expect(state.router.push).toHaveBeenCalledWith('/card-preview');
  expect(state.request.mock.calls.some(([,method])=>method==='PUT')).toBe(false);
 });
@@ -223,8 +223,10 @@ it('save is hidden until a semantic change, and restoring values hides it again'
  expect(screen.queryByLabelText('儲存')).toBeNull();
  fireEvent.change(bio,{target:{value:'改過'}});expect(screen.getByLabelText('儲存')).toBeTruthy();
  fireEvent.change(bio,{target:{value:'  '}});expect(screen.queryByLabelText('儲存')).toBeNull();
- fireEvent.click(screen.getByLabelText('開放生理性別'));expect(screen.getByLabelText('儲存')).toBeTruthy();
- fireEvent.click(screen.getByLabelText('開放生理性別'));expect(screen.queryByLabelText('儲存')).toBeNull();
+ expect(screen.queryByLabelText('開放生理性別')).toBeNull();
+ expect(screen.queryByLabelText('開放暱稱')).toBeNull();
+ fireEvent.click(screen.getByLabelText('開放工作／職業'));expect(screen.getByLabelText('儲存')).toBeTruthy();
+ fireEvent.click(screen.getByLabelText('開放工作／職業'));expect(screen.queryByLabelText('儲存')).toBeNull();
 });
 it('back confirms dirty changes; cancellation preserves the draft and discard uses the account fallback',async()=>{
  setup();render(<DatingProfileScreen/>);fireEvent.change(await screen.findByLabelText('一句自我介紹'),{target:{value:'草稿'}});
@@ -244,7 +246,7 @@ it.each([null,'conflict','uncertain','read-failure'])('preview saves a changed d
   return base(path,method,...args);
  });
  render(<DatingProfileScreen/>);fireEvent.change(await screen.findByLabelText('一句自我介紹'),{target:{value:'先儲存'}});
- fireEvent.click(screen.getByLabelText('預覽同意後的名片'));
+ fireEvent.click(screen.getByLabelText('我的名片'));
  await waitFor(()=>expect(state.request.mock.calls.filter(([p,m])=>p==='/me/dating-profile'&&m==='PUT')).toHaveLength(1));
  await waitFor(()=>expect(screen.queryByLabelText('連線中，請稍候…')).toBeNull());
  if(!failure)await waitFor(()=>expect(state.router.push).toHaveBeenCalledWith('/card-preview'));

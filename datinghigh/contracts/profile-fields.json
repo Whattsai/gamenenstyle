@@ -9,7 +9,8 @@
     "shareable": true,
     "defaultVisible": true,
     "cardKey": "nickname",
-    "maxLength": 12
+    "maxLength": 12,
+    "required": true
   },
   {
     "key": "bio",
@@ -45,7 +46,8 @@
     "shareable": true,
     "defaultVisible": true,
     "cardKey": "ageBand",
-    "cardLabel": "年齡區間"
+    "cardLabel": "年齡區間",
+    "required": true
   },
   {
     "key": "gender",
@@ -56,7 +58,8 @@
     "editor": "choice",
     "shareable": true,
     "defaultVisible": false,
-    "cardKey": "gender"
+    "cardKey": "gender",
+    "required": true
   },
   {
     "key": "romanticOrientation",
@@ -68,7 +71,8 @@
     "shareable": true,
     "defaultVisible": false,
     "cardKey": "romanticOrientation",
-    "limit": 3
+    "limit": 3,
+    "required": true
   },
   {
     "key": "regionCode",
