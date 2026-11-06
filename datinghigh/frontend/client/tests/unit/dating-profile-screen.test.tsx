@@ -81,6 +81,13 @@ it('clean preview opens the separate page without a save request',async()=>{
  expect(state.router.push).toHaveBeenCalledWith('/card-preview');
  expect(state.request.mock.calls.some(([,method])=>method==='PUT')).toBe(false);
 });
+it('the initial incomplete profile has a direct account entry that still protects unsaved edits',async()=>{
+ setup();render(<DatingProfileScreen/>);await screen.findByLabelText('暱稱');
+ fireEvent.click(await screen.findByLabelText('你的帳號'));expect(state.router.push).toHaveBeenCalledWith('/account');
+ state.router.push.mockClear();fireEvent.change(screen.getByLabelText('一句自我介紹'),{target:{value:'未儲存修改'}});
+ fireEvent.click(screen.getByLabelText('你的帳號'));expect(state.router.push).not.toHaveBeenCalled();
+ fireEvent.click(await screen.findByLabelText('取消'));expect(state.router.push).not.toHaveBeenCalled();
+});
 function setup(photos:unknown[]=[]){
  let saved:Record<string,any>={};
  state.request.mockImplementation(async(path:string,method?:string,payload?:Record<string,any>)=>{

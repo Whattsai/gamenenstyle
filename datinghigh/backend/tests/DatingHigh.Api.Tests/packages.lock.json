@@ -348,6 +348,11 @@
         "resolved": "10.0.6",
         "contentHash": "L8P21mqaG+CXvPheLndean/cHCOcItJqH8nx+0YQnK7wAiOR0G1IOC418ZSzTMD2D6Gmo0f2M5WR70XtpX2B8g=="
       },
+      "Microsoft.Extensions.TimeProvider.Testing": {
+        "type": "Transitive",
+        "resolved": "10.0.0",
+        "contentHash": "aX2J/3k8BNWzIVCATarxY3xcS2iZm9kW2aN+tAD/qE29OcaySBU+8DC/KhoDk9gfqfYtptnN/eJ+WOZ4yT/hcQ=="
+      },
       "Microsoft.IdentityModel.Abstractions": {
         "type": "Transitive",
         "resolved": "8.0.1",
@@ -514,6 +519,16 @@
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.6, )",
           "SkiaSharp": "[4.154.0, )",
           "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.154.0, )"
+        }
+      },
+      "datinghigh.integration.tests": {
+        "type": "Project",
+        "dependencies": {
+          "DatingHigh.Infrastructure": "[1.0.0, )",
+          "Microsoft.Extensions.TimeProvider.Testing": "[10.0.0, )",
+          "Microsoft.NET.Test.Sdk": "[17.14.1, )",
+          "xunit": "[2.9.3, )",
+          "xunit.runner.visualstudio": "[3.1.4, )"
         }
       }
     }

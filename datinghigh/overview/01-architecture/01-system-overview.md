@@ -1,11 +1,17 @@
 # 系統概覽
 
+## MatchingSessions（2026-11-06）
+
+正式應用已加入受限候選探索、`match-score-v1` 雙向計分、72小時邀請、雙方確認及持久雙人房間。`user_profiles` 是唯一個資來源，四張新表承接搜尋投影、邀請、遊戲與帳號唯一占用；房間只顯示真實輪次與安全角色。登入／恢復後由 `/start` 分流至 `/profile`、`/matching` 或 `/game-round/{roundId}`。逐項與平台證據以 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md) 為準。
+
+下列2026-11-05個人資料段落保留當時基線；配對現況以上述新增模組為準。劇情收發、產品退出入口、分數及名片同意仍由後續 SPEC 承接。
+
 ## 個人資料修訂（2026-11-05）
 
 新增生理性別／戀愛性向及欄位分享開關、依性別的免費化身選擇、獨立唯讀名片預覽。業務仍限本人管理與預覽，跨帳號名片持續預設拒絕；未建立配對流程。現行schema為Foundation六表54欄＋業務兩表27欄，實際驗證狀態見AvatarAndPreferences驗證紀錄同日修訂。
 
 
-DatingHigh（心動迴路）是戀愛養成交友平台。現行正式程式包含 PlatformFoundation，以及已完成本地Web／Android範圍驗收的 AvatarAndPreferences：本人交友資料、照片私人儲存、16 款免費化身與 Gemini 多照片逐張生成。配對、劇情、親密度、雙方名片同意流程、遊戲、約會及告白仍由後續規格承接；本人預覽不代表授權他人查看。
+DatingHigh（心動迴路）是戀愛養成交友平台。現行正式程式包含 PlatformFoundation、AvatarAndPreferences 與 MatchingSessions。本人交友資料、私人照片、16款免費化身及 Gemini 逐張生成供真正配對流程使用；劇情、親密度、雙方名片同意流程、小遊戲、約會及告白仍由後續規格承接。本人預覽或配對成立不代表授權他人查看名片。
 
 ## 技術輪廓與主要模組
 

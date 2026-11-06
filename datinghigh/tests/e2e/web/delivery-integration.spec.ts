@@ -1,3 +1,4 @@
+import {openAccountAfterLogin} from './support';
 import{test,expect,type APIRequestContext}from'@playwright/test';import{startBackend,stopBackend,control,routeBackend,advance,type Backend}from'./backend';
 test.setTimeout(150000);let backend:Backend,management:APIRequestContext;
 test.beforeAll(async({playwright})=>{management=await playwright.request.newContext();backend=await startBackend();});test.afterAll(async()=>{if(backend)await stopBackend(backend,management);await management?.dispose();});
@@ -19,7 +20,7 @@ for(const purpose of ['register','reset'] as const)for(const mode of ['success',
   await page.getByLabel('六位數驗證碼',{exact:true}).filter({visible:true}).fill('000001');await page.getByLabel(purpose==='register'?'密碼':'新密碼',{exact:true}).filter({visible:true}).fill('A recovered integration password');await page.getByLabel('確認密碼',{exact:true}).filter({visible:true}).fill('A recovered integration password');
   await page.getByRole('button',{name:purpose==='register'?'驗證並建立帳號':'重設密碼',exact:true}).click();await expect(page.getByText('驗證碼錯誤或已失效，請重新確認',{exact:true}).filter({visible:true})).toBeVisible();
   await page.getByLabel('六位數驗證碼',{exact:true}).filter({visible:true}).fill('000003');await page.getByRole('button',{name:purpose==='register'?'驗證並建立帳號':'重設密碼',exact:true}).click();
-  if(purpose==='register')await expect(page.getByText('owner@example.com',{exact:true}).filter({visible:true})).toBeVisible();else await expect(page.getByText('密碼已重設，請使用新密碼重新登入',{exact:true}).filter({visible:true})).toBeVisible();
+  if(purpose==='register'){await openAccountAfterLogin(page);await expect(page.getByText('owner@example.com',{exact:true}).filter({visible:true})).toBeVisible();}else await expect(page.getByText('密碼已重設，請使用新密碼重新登入',{exact:true}).filter({visible:true})).toBeVisible();
   expect((await control(backend,request,{op:'provider-stats'})).templatesValid).toBe(true);
  });
 }

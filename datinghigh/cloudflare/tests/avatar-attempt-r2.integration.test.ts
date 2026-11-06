@@ -2,7 +2,7 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFileSync} from 'node:fs';
 import {beforeAll,beforeEach,afterAll,it,expect,vi} from 'vitest';
 import {cleanup,dispatch,type PlatformEnv} from '../src/platform';
-import {executeCommand} from '../src/commands';
+import {executeCommand,planCommand} from '../src/commands';
 vi.setConfig({testTimeout:20000});
 
 let mf:Miniflare,env:PlatformEnv;
@@ -26,14 +26,14 @@ const publish=(attempt:string,request:number,etag:string,bytes=new Uint8Array([1
 beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'avatar-attempts'},r2Buckets:{FILES:'avatar-attempts'}}));
  env={DB:await mf.getD1Database('DB') as unknown as D1Database,FILES:await mf.getR2Bucket('FILES') as unknown as R2Bucket,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0001_foundation.sql'};
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql']){
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql']){
   const sql=readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8');
   await env.DB.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>env.DB.prepare(s)));
  }
 });
 afterAll(async()=>{await mf?.dispose();});
 beforeEach(async()=>{
- await env.DB.batch(['DELETE FROM user_media_assets','DELETE FROM user_profiles','DELETE FROM auth_sessions','DELETE FROM auth_accounts'].map(s=>env.DB.prepare(s)));
+ await env.DB.batch(['DELETE FROM match_conditions','DELETE FROM user_media_assets','DELETE FROM user_profiles','DELETE FROM auth_sessions','DELETE FROM auth_accounts'].map(s=>env.DB.prepare(s)));
  const list=await env.FILES.list();if(list.objects.length)await env.FILES.delete(list.objects.map(o=>o.key));
  await env.DB.prepare("INSERT INTO auth_accounts VALUES(?,?,?,NULL,'active',1,?,?)").bind(auth.accountId,'anonymous@example.test',now,now,now).run();
  await env.DB.prepare("INSERT INTO auth_sessions VALUES(?,?,'android',1,0,?,?,?,NULL,NULL)").bind(auth.sessionId,auth.accountId,now,now+2592000000,now+604800000).run();
@@ -280,11 +280,12 @@ it('AP-IT-063: an overlapping adoption cannot commit a formal image removed by f
  await executeCommand(env.DB,'profile.avatar.builtin',{...auth,avatarId:'female-01',expectedRevision:1},now);
  const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
  let enterFirst!:()=>void,enterSecond!:()=>void,releaseFirst!:()=>void,releaseSecond!:()=>void;
+ const adoptionStatements=planCommand('profile.avatar.adopt',{...auth,expectedRevision:2,assetId:first.attemptId,sourceAssetIds:[id(10),id(11)]},now).length;
  const firstEntered=new Promise<void>(r=>enterFirst=r),secondEntered=new Promise<void>(r=>enterSecond=r);
  const firstGate=new Promise<void>(r=>releaseFirst=r),secondGate=new Promise<void>(r=>releaseSecond=r);let writes=0;
  const failingDb=new Proxy(env.DB,{get(target,key){
   if(key==='batch')return async(statements:D1PreparedStatement[])=>{
-   if(statements.length!==2)return target.batch(statements); // select中的adopt才是兩條SQL；驗Session／profile讀取不暫停。
+   if(statements.length!==adoptionStatements)return target.batch(statements); // 精確注入adopt整批，包含同交易配對投影；驗Session／profile讀取不暫停。
    writes++;if(writes===1){enterFirst();await firstGate;throw new Error('Controlled pre-commit adoption failure');}
    if(writes===2){enterSecond();await secondGate;}
    return target.batch(statements);
@@ -309,9 +310,10 @@ it('AP-IT-063: an overlapping adoption cannot commit a formal image removed by f
 
 it('a lost D1 adoption acknowledgement recovers the receipt without deleting ready media or increasing revision twice',async()=>{
  const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
+ const adoptionStatements=planCommand('profile.avatar.adopt',{...auth,expectedRevision:1,assetId:id(998),sourceAssetIds:[id(10),id(11)]},now).length;
  let lost=false;
  const droppingDb=new Proxy(env.DB,{get(target,key){
-  if(key==='batch')return async(statements:D1PreparedStatement[])=>{const result=await target.batch(statements);if(statements.length===2&&!lost){lost=true;throw new Error('Controlled lost commit acknowledgement');}return result;};
+  if(key==='batch')return async(statements:D1PreparedStatement[])=>{const result=await target.batch(statements);if(statements.length===adoptionStatements&&!lost){lost=true;throw new Error('Controlled lost commit acknowledgement');}return result;};
   const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
  }});
  const selected=await dispatch(new Request('http://platform.internal/v1/commands/avatar.attempt.select',{method:'POST',body:JSON.stringify({...auth,attemptId:first.attemptId,proposedAssetId:id(998),index:1,expectedRevision:1})}),{...env,DB:droppingDb},now);

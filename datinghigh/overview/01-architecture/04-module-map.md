@@ -1,5 +1,23 @@
 # 模組與修改入口
 
+## MatchingSessions 新增入口（2026-11-06）
+
+本地測試維運另有`tools/local-game-policy.mjs`固定結束SQL，僅由`tools/local.mjs`／`local-policy.mjs`的`game-end`及`query --view games`使用；package scripts為`game:end:local`／`game:list:local`。不打包到Api／Worker，沒有新增公開路由。探索卡與邀請列表共用永久婉拒確認。
+
+| 責任 | 位置 |
+|---|---|
+| 純雙向計分／固定縣市代表點 | `backend/src/DatingHigh.Domain/MatchingScore.cs` |
+| 受限 reader 契約、候選排序、邀請及輪次用例 | `backend/src/DatingHigh.Application/MatchingSessionService.cs` |
+| 固定指令 reader | `backend/src/DatingHigh.Infrastructure/MatchingCandidateProfileReader.cs` |
+| 數字 JSON parser／九端點／DI | `backend/src/DatingHigh.Api/MatchingPayload.cs`、`Program.cs` |
+| 四表及原子命令／來源同步判斷 | `cloudflare/migrations/0004_matching_sessions.sql`、`src/matching-commands.ts`、`src/commands.ts` |
+| 限定正式生成化身的 R2 讀取／重新授權 | `cloudflare/src/platform.ts` |
+| 登入分流、探索、邀請、真輪次房間 | `frontend/client/src/MatchingScreen.tsx`、`src/matching.ts`；`app/start.tsx`、`matching.tsx`、`invitations.tsx`、`game-round/[roundId].tsx` |
+| 計分／HTTP＋真 D1／SQL 故障證據 | `backend/tests/DatingHigh.Unit.Tests/Domain/MatchingScoreTests.cs`、`backend/tests/DatingHigh.Api.Tests/Matching{Endpoint,RealD1}Tests.cs`、`cloudflare/tests/matching-sessions-d1.integration.test.ts` |
+| 共用 UI／Web／Android／真平台 | `frontend/client/tests/unit/matching-sessions.test.tsx`、`tests/e2e/{web,android}/matching-sessions.*`、`tests/integration/matching-sessions-live.test.mjs` |
+
+上述相對 `src`／`app` 路徑依該列模組根目錄解讀；確切驗收與後續 Story 退出邊界見 [驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md)。
+
 ## 2026-11-05 新增入口
 
 - `contracts/profile-fields.json`、Domain `ProfileFields.cs`：跨.NET／Worker共用定義，API目錄提供client；不是任意資料寫入引擎。

@@ -3,12 +3,12 @@
 **功能 ID**：SPEC-001-MatchingSessions
 **關聯需求**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 **優先級**：高
-**狀態**：SDD／實作前 RiskAudit 已確認，BDD／TDD 已補強；規劃完成並可交接 `well-done`（尚未實作）
+**狀態**：`well-done` 本地責任173/173完成（完整原規劃173/174）；正式實作及逐項／分平台驗證見 [Verification](../verification/SPEC-001-MatchingSessions-Verification.md)
 **最後更新**：2026-11-06
 **建議實作順序**：本 MVP 第 3 順位
 **前置 SPEC**：`SPEC-001-PlatformFoundation`、`SPEC-001-AvatarAndPreferences`
 **後續消費者**：`SPEC-001-StoryDialogueAndExit`、`SPEC-001-AffectionAndFeedback`、`SPEC-001-OnlineGamesAndQuests`、`SPEC-001-OfflineDating`、`SPEC-001-Confession`
-**本輪工作邊界**：追加2026-11-06使用者確認的資料表／搜尋／邀請沿用／測試資料重建決議；更新規劃文件，不代表 D1 migration、API 或配對功能已實作。
+**本輪工作邊界**：依2026-11-06已確認四表／搜尋／邀請沿用決策實作 MatchingSessions。StoryDialogueAndExit 的產品退出、劇情與完整退出E2E仍不屬本份完成聲明。
 
 ## 1. 功能概述及需求追溯
 
@@ -27,11 +27,11 @@
 ## 2. 現有契約與此次已確認的設計調整（2026-11-06）
 1. PlatformFoundation：原六張 auth_/common_ 表、有效 Session、固定 prepared commands、D1 原子提交、零 SQL Trigger 不變。
 2. AvatarAndPreferences：目前 user_profiles 18 欄及 user_media_assets 9 欄已實作。user_profiles 保留玩家自身資料（暱稱、生日、性別、名片、照片／化身引用、供本人檢視的興趣／生活資料）；match_conditions 是只供搜尋使用的受限投影，不是第二套可由玩家直接寫入的 Profile。既有欄位可為不同用途重複，但個人資料以 user_profiles 為唯一事實來源。
-3. 新增 match_conditions（僅合格者有列）；match_invitations 保留；原預定 match_rounds 改為 game_rounds；原預定 match_active_round_claims 改為 game_round_participants。上述四張皆為待開發設計，舊三張 match_ 表尚未在資料庫建立，故非既存資料表的線上 rename。
+3. 0004建立 match_conditions（僅合格者有列）、match_invitations、game_rounds、game_round_participants。原規劃名稱 match_rounds／match_active_round_claims 在實作前即改名，沒有線上 rename 或舊新ETL。
 4. `user_profiles` 可保存未完成個資；**只有配對資格或投影欄位實際變更時**才在同一 D1 原子操作內重算資格、UPSERT／DELETE `match_conditions`：資格成立則有且僅有一筆，未成立則無列。單純修改照片排序、非配對個資或分享設定，不更新 `match_conditions`，也不影響搜尋。**移除 `source_profile_revision` 和兩表 revision 相等檢查**；原本 user_profiles 的 `revision`／Session CAS 繼續用於個資寫入併發控制，不得拿來作配對查詢的兩表一致性條件。所有可能改變配對輸入的既有操作須走共用同步判斷，失敗時不得提交半套資料。
-5. 初次完成登入後加入明確導航分流：Profile 未完成→引導 /profile；有進行中遊戲→進入原遊戲入口；已完成且無遊戲→配對探索。API 無法確認則提供重試、不能當已就緒。這是本次待實作的 UX 需求，不宣稱原登入畫面已完成。
+5. 初次完成登入後加入明確導航分流：Profile 未完成→引導 /profile；有進行中遊戲→進入原遊戲入口；已完成且無遊戲→配對探索。API 無法確認則提供重試、不能當已就緒。由共用 `/start` 承接，實測狀態見Verification。
 6. 現有 IAvatarAndPreferencesReader 需真 RoundId，不得偽造 RoundId 供搜尋；新 matching reader 只讀取 match_conditions 受限配對欄位及經授權的 CandidatePersona。真人照片、Email、精確生日及私有偏好不外洩。
-7. 尚未上線：不寫舊 Schema→新 Schema 的資料搬移或雙軌相容程式。此輪只完成文件；進入 well-done 才在已確認屬於 datinghigh 的指定 local／SIT 測試環境，依原本安全規範先辨識目標再清除測試資料及重建 schema／測資；不得對未確認目標、其他專案或 production 自動清空。R2 已存媒體須與 DB 清除後的一致性一併處理，不可殘留可公開存取的孤兒物件。
+7. 尚未上線：不寫舊 Schema→新 Schema 的資料搬移或雙軌相容程式。原規劃交接後，本輪well-done已在已確認屬於 datinghigh 的指定 local／SIT 測試環境，依原本安全規範先辨識目標再清除測試資料及重建 schema／測資；不得對未確認目標、其他專案或 production 自動清空。R2 已存媒體須與 DB 清除後的一致性一併處理，不可殘留可公開存取的孤兒物件。
 8. UUIDv7 首欄 PK、固定 SQL、Unix ms、無外部排程／Job／名片快照，Web＋Android 為本輪驗證，iOS 暫緩。
 
 ## 3. 領域語言與狀態
@@ -105,7 +105,7 @@ score = clamp(round_half_up(
 | Infrastructure | IMatchingCandidateProfileReader 只讀受限投影；IPlatformClient + 既有固定 Worker/D1 指令。不得用不存在的 RoundId 偽造舊 reader 授權 |
 | API／Expo | 候選排序清單與 GET 單筆安全人物卡、登入後依 Profile／遊戲狀態導航、預載下一至三張；邀請／遊戲共用 Web＋Android |
 
-### 6.2 四張 D1 業務表（規劃，尚未建立）
+### 6.2 四張 D1 業務表（0004正式schema）
 **match_conditions**：合格 Profile 的原子衍生投影；一個帳號至多一筆，未合格則無列，無人工開關、無獨立可編輯 UI。
 | 欄位 | 約束／用途 |
 |---|---|
@@ -145,17 +145,20 @@ score = clamp(round_half_up(
 | POST /match-invitations/{id}/cancel | {}；200 cancelled、不永久排除 |
 | GET /game-rounds | 本人目前至多一個 active game_rounds 與安全參與者資料 |
 | GET /game-rounds/{roundId} | 本人參與且 active 的單一遊戲容器，須驗真正雙人參與權限 |
-新錯誤需含過期 410、Session 401、私人資料 403、profile not ready/active/pair excluded 409、限流429及依賴503；不把 0 changes 誤回成功。無法確認結果先唯讀 GET 回查。候選清單用 profile_id 作 candidateId 而非帳號 ID；單筆請求須再驗授權。九個對外端點，不宣稱已實作。
+新錯誤需含過期 410、Session 401、私人資料 403、profile not ready/active/pair excluded 409、限流429及依賴503；不把 0 changes 誤回成功。無法確認結果先唯讀 GET 回查。候選清單用 profile_id 作 candidateId 而非帳號 ID；單筆請求須再驗授權。九個對外端點已接線，逐項驗證以Verification為準。
 
 ## 8. UI 操作、授權及跨 SPEC 交接
 1. 新註冊／登入完成，GET /me/dating-profile＋GET /game-rounds；Profile 未 ready→/profile 引導必填，已在遊戲→目前 round，ready 且空閒→探索。帳號／API 無法確定時展示重試，不自行當 ready。登入及 Profile 原功能本次需回歸。
 2. 探索頁先呼叫 POST /match-candidates/search 取得排序 ID、分數及 pending 方向；依使用者滑動到的對象再 GET /match-candidates/{candidateId} 取安全人物卡，可預載接續一至三筆，避免全量人物資料在搜尋首屏傳輸與 N+1 阻塞。清單或按需取得時對方狀態已變，展示『目前無法配對，請重新搜尋』而非成功。
 3. 即使原 pair 已有 pending，incoming 仍保留回覆入口；outgoing 顯示等待而不可重複新送。排序以全部適格候選先計分再分頁，不能先分頁後計分。
 4. 邀請 pending 72 小時，到期時由伺服器懶惰失效，未來仍可相遇；婉拒前顯示永久排除提示；取消與到期不是婉拒。
+   2026-11-06使用者驗收修正：探索卡遇incoming邀請時，接受與「婉拒邀請」同時提供；邀請清單的婉拒仍保留。兩者共用相同確認與既有decline API。
 5. 配對成立時雙方進入相同 game_rounds.round_id，其他 pending invalidated（other_round_started），本人同時僅能有一場；已有遊戲時配對入口導回該遊戲。
 6. 玩家在邀請之後改性向／偏好，原 pending 不被撤回或重算，可在期限內依原發邀資格接受；新的探索／邀請用最新值。若真的失去有效帳號／成年／化身等硬性資格，邀請依 eligibility_changed 安全失效，不透漏具體資料。
 7. 本次不做暫停探索或配對開關；符合最新 Profile 條件且非遊戲中就自動可探索。未來遊戲終止、名片互相同意／真人照公開仍交由 StoryDialogueAndExit／AffectionAndFeedback；候選或配對成功絕不直接開放真人照片。
 8. Web／Android 真驗證，不以 prototype 的假候選替代真 API；iOS 與無障礙專項維持既定延後範圍。
+
+手動本地測試另提供`game:list:local`／`game:end:local -- --round-id UUID`維運指令，保留ended歷史及永久pair，只原子解除指定遊戲占用；詳[本地操作](../../overview/04-deployment/01-deployment-checklist.md#本地測試結束指定遊戲)。它不新增公開端點或產品退出UX，MS-ET-017仍未驗收。
 
 ## 9. 安全、效能及故障策略
 1. `match_conditions` 只在 Profile 完整就緒時存在；**沒有 source_profile_revision 或與 user_profiles.revision 相等的條件**。只有配對輸入／資格發生實質變更才同步建立、更新、刪除；同步失敗不可半套提交。個資無關異動即使 revision 增加，既有條件列與被探索資格仍保持原狀。完整 match_conditions 永不對前端公開，CandidatePersona 僅經授權的 GET 讀取。
@@ -217,8 +220,8 @@ score = clamp(round_half_up(
 ## 12. 文件追溯、現況與交接
 
 - 需求：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)；依賴：[PlatformFoundation SPEC](SPEC-001-PlatformFoundation.md)、[AvatarAndPreferences SPEC](SPEC-001-AvatarAndPreferences.md)。
-- BDD：`docs/bdd/SPEC-001-MatchingSessions-BDD.md`（已生成；尚未實作驗收）。
-- TDD：`docs/tdd/SPEC-001-MatchingSessions-TDD.md`（已生成；尚未實作驗收）。
+- BDD：`docs/bdd/SPEC-001-MatchingSessions-BDD.md`（已逐項覆核；範圍見Verification）。
+- TDD：`docs/tdd/SPEC-001-MatchingSessions-TDD.md`（已逐項覆核；範圍見Verification）。
 - RiskAudit：`docs/specs/SPEC-001-MatchingSessions-RiskAudit.md`（Q1～Q4、RQ-01=A／RQ-02=A及2026-11-06新決策；20項風險已記錄）。
-- BDD／TDD 已同步75場景／174項待實作測試（原150＋先前22＋本次2）；規劃Ready for well-done只表示可以開始實作，不是功能完成或通過測試。
-- 本次僅規劃新的模組，不改現行 API、D1、畫面或 overview 的**現況**。待開始實作時，須同步 `overview/01-architecture/04-module-map.md`、`overview/03-contracts/01-api-contracts.md`、`02-data-contracts.md` 與受影響的其他 overview；不得將本 SDD 提案冒充已上線契約。
+- BDD／TDD 已同步75場景／174項完整測試ID；本輪已覆核75/75 BDD與173/174 TDD，MS-ET-017仍未驗收（原150＋先前22＋本次2）；規劃Ready for well-done只表示可以開始實作，不是功能完成或通過測試。
+- `well-done` 已實作正式模組並同步 overview、API／資料契約；實際完成數、故障修復與各平台證據集中於 [Verification](../verification/SPEC-001-MatchingSessions-Verification.md)，不以本SPEC敘述代替驗收。

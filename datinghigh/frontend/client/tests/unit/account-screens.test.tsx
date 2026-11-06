@@ -19,10 +19,15 @@ it('PF-BDD-075 a changed Google linking session asks the user to retry the opera
 it('PF-BDD-027 password validation uses the specified message both locally and from the server',()=>{const expected='密碼須為 12 至 128 個字元，且不可包含控制字元';expect(messageFor('INVALID_PASSWORD')).toBe(expected);expect(validateForm('account/password',{currentPassword:'old',password:'short',confirm:'short'})).toBe(expected);});
 it('PF-UT-083 entry waits for server restore and routes only a verified owner to the account',()=>{
  state.session.ready=false;const view=render(<Screen screen=""/>);expect(screen.queryByRole('button',{name:'使用 Email 註冊'})).toBeNull();expect(screen.getByText('連線中，請稍候…')).toBeTruthy();expect(state.router.replace).not.toHaveBeenCalled();
- state.session.ready=true;state.api.account=owner;view.rerender(<Screen screen=""/>);expect(state.router.replace).toHaveBeenCalledWith('/account');
+ state.session.ready=true;state.api.account=owner;view.rerender(<Screen screen=""/>);expect(state.router.replace).toHaveBeenCalledWith('/start');
 });
 it('PF-BDD-085 failed account recovery offers an explicit retry and return to login',async()=>{
- state.session.notice='NETWORK_ERROR';state.api.restore.mockImplementation(async()=>{state.api.account=owner;});render(<Screen screen=""/>);expect(screen.getByText('網路連線中斷，請檢查連線後重試')).toBeTruthy();expect(screen.getByRole('button',{name:'返回登入'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'重試'}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/account'));expect(state.api.restore).toHaveBeenCalledOnce();
+ state.session.notice='NETWORK_ERROR';state.api.restore.mockImplementation(async()=>{state.api.account=owner;});render(<Screen screen=""/>);expect(screen.getByText('網路連線中斷，請檢查連線後重試')).toBeTruthy();expect(screen.getByRole('button',{name:'返回登入'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'重試'}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/start'));expect(state.api.restore).toHaveBeenCalledOnce();
+});
+it('MS-UT-055 a recovered entry session never briefly bypasses the matching state router',async()=>{
+ state.session.notice='NETWORK_ERROR';state.api.restore.mockImplementation(async()=>{state.api.account=owner;});render(<Screen screen=""/>);
+ fireEvent.click(screen.getByRole('button',{name:'重試'}));await waitFor(()=>expect(state.api.restore).toHaveBeenCalledOnce());
+ await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/start'));expect(state.router.replace).not.toHaveBeenCalledWith('/account');
 });
 it('PF-BDD-085 repeated recovery failure retains retry, presents trace and never invents an account',async()=>{
  state.session.notice='DEPENDENCY_UNAVAILABLE';state.session.noticeTrace='safe-trace';state.api.restore.mockRejectedValueOnce(new ApiFailure('DEPENDENCY_UNAVAILABLE',503,'retry-trace'));render(<Screen screen=""/>);expect(screen.getByText(/服務暫時無法使用.*safe-trace/)).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'重試'}));await screen.findByText(/服務暫時無法使用.*retry-trace/);expect(screen.getByRole('button',{name:'重試'})).toBeTruthy();expect(state.api.account).toBeUndefined();expect(state.router.replace).not.toHaveBeenCalled();const back=screen.getByRole('button',{name:'返回登入'});await waitFor(()=>expect(back.getAttribute('aria-disabled')).not.toBe('true'));fireEvent.click(back);await waitFor(()=>expect(state.router.push).toHaveBeenCalledWith('/login'));
@@ -45,7 +50,7 @@ it('PF-BDD-091 incomplete account retry accepts only a complete verified account
 it('PF-UT-085 PF-UT-087 login prevents duplicate writes and does not navigate before confirmed success',async()=>{
  let resolve!:(v:any)=>void;state.api.request.mockReturnValue(new Promise(r=>{resolve=r;}));render(<Screen screen="login"/>);fill('Email','owner@example.com');fill('密碼','A valid component password');
  const button=screen.getByRole('button',{name:'登入'});fireEvent.click(button);fireEvent.click(button);expect(state.api.request).toHaveBeenCalledOnce();expect(state.router.replace).not.toHaveBeenCalled();expect(state.api.accept).not.toHaveBeenCalled();
- await act(async()=>resolve({account:owner,session:{sessionId:'s'}}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/account'));expect(state.api.accept).toHaveBeenCalledOnce();
+ await act(async()=>resolve({account:owner,session:{sessionId:'s'}}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/start'));expect(state.api.accept).toHaveBeenCalledOnce();
 });
 it('PF-UT-087 request and reset success choose the correct recovery route without accepting a session',async()=>{
  for(const [route,target] of [['register','/verify-email'],['forgot-password','/reset-password']]){
@@ -64,7 +69,7 @@ it('PF-UT-089 resend uses server clock and respects a 429 retry deadline',async(
 });
 it('PF-UT-093 an unknown Google login performs one read-only confirmation and never replays the proof',async()=>{
  state.api.request.mockRejectedValueOnce(new ApiFailure('NETWORK_ERROR',0,undefined,0,true)).mockResolvedValueOnce({account:owner,session:{sessionId:'verified'}});render(<Screen screen="login"/>);fireEvent.click(screen.getByRole('button',{name:'受控 Google SDK'}));
- await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/account'));expect(state.api.request.mock.calls.map(c=>[c[0],c[1]??'GET'])).toEqual([['/sessions/external/google','POST'],['/session','GET']]);expect(state.api.account).toEqual(owner);
+ await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/start'));expect(state.api.request.mock.calls.map(c=>[c[0],c[1]??'GET'])).toEqual([['/sessions/external/google','POST'],['/session','GET']]);expect(state.api.account).toEqual(owner);
 });
 it('PF-UT-095 link preserves the current session, unlink clears it, and Google-only users are guided to Email',async()=>{
  state.api.account=owner;state.api.sessionId='same-family';state.api.request.mockResolvedValueOnce({provider:'google',linked:true}).mockResolvedValueOnce({...owner,linkedProviders:['google']});render(<Screen screen="account/connections"/>);fireEvent.click(screen.getByRole('button',{name:'受控 Google SDK'}));await screen.findAllByText('Google 已連結');expect(state.api.forget).not.toHaveBeenCalled();expect(state.api.sessionId).toBe('same-family');cleanup();
@@ -90,7 +95,7 @@ it.each(['change','link','unlink','logout'] as const)('PF-BDD-083 pending %s can
  await act(async()=>reject(new ApiFailure('DEPENDENCY_UNAVAILABLE',503)));await screen.findByText('服務暫時無法使用，請稍後再試');expect(screen.getByRole('button',{name:label}).getAttribute('aria-disabled')).not.toBe('true');expect(state.router.replace).not.toHaveBeenCalled();
 });
 it.each([200,201])('PF-UT-087 a confirmed Google %i accepts the returned session before navigating',async status=>{
- state.api.request.mockResolvedValue({account:owner,session:{sessionId:'confirmed'},status});render(<Screen screen="login"/>);fireEvent.click(screen.getByRole('button',{name:'受控 Google SDK'}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/account'));expect(state.api.accept).toHaveBeenCalledOnce();expect(state.api.accept.mock.invocationCallOrder[0]).toBeLessThan(state.router.replace.mock.invocationCallOrder[0]);
+ state.api.request.mockResolvedValue({account:owner,session:{sessionId:'confirmed'},status});render(<Screen screen="login"/>);fireEvent.click(screen.getByRole('button',{name:'受控 Google SDK'}));await waitFor(()=>expect(state.router.replace).toHaveBeenCalledWith('/start'));expect(state.api.accept).toHaveBeenCalledOnce();expect(state.api.accept.mock.invocationCallOrder[0]).toBeLessThan(state.router.replace.mock.invocationCallOrder[0]);
 });
 it.each([
  ['EXTERNAL_CREDENTIAL_INVALID','Google 登入驗證失敗，請重新登入 Google'],

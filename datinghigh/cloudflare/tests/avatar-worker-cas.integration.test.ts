@@ -16,7 +16,7 @@ beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({workers:[worker('qa-one'),worker('qa-two')]}));
  one=await mf.getWorker('qa-one');two=await mf.getWorker('qa-two');
  const db=await mf.getD1Database('DB','qa-one');
- for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql'])await db.batch(readFileSync(new URL(`../migrations/${migration}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+ for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql'])await db.batch(readFileSync(new URL(`../migrations/${migration}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
  await db.prepare("INSERT INTO auth_accounts VALUES(?,?,?,NULL,'active',1,?,?)").bind(auth.accountId,'worker-fixture@example.test',now,now,now).run();
  await db.prepare("INSERT INTO auth_sessions VALUES(?,?,'android',1,0,?,?,?,NULL,NULL)").bind(auth.sessionId,auth.accountId,now,now+2592000000,now+604800000).run();
  for(const command of [ ['profile.ensure',{...auth,profileId:id(3)}],...([10,11].flatMap(n=>[['profile.photo.reserve',{...auth,assetId:id(n),objectKey:`private/${auth.accountId}/photos/${id(n)}`,mimeType:'image/jpeg'}],['profile.photo.ready',{...auth,assetId:id(n)}]]))] as [string,Record<string,unknown>][]){

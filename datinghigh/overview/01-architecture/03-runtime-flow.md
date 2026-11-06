@@ -1,5 +1,13 @@
 # 啟動與執行流程
 
+## MatchingSessions（2026-11-06）
+
+登入／註冊／有效 Session 恢復後，`/start` 讀本人 Profile 及目前遊戲；已有遊戲優先回原房間，其次依 profileReady 分流。查詢未知時保留重試，不視為已就緒。探索先取得完整適格集合，Application 計分排序再取 offset／limit；清單只有 ID、總分與邀請方向，畫面按需讀一張並預載其後最多三張安全人物卡。
+
+配對搜尋 POST 使用獨立數字 JSON parser，其餘配對 POST 沿用嚴格字串／空物件 parser。九端點沿用 PlatformAccess、no-store、Origin／Cookie 或 Bearer；無效配對輸入回 `INVALID_MATCH_REQUEST`。邀請清單或操作以伺服器時間懶惰到期／安全失效，不靠背景 job；未知 mutation 先 GET 輪次／邀請回查，不盲目重送。
+
+個資／正式化身命令僅在配對輸入實際變更時同步 conditions；無關個資、分享設定及照片排序不變更投影。接受在一個 D1 batch 內提交 accepted、round、兩個 participants 與其餘 pending 失效；SQL guard 拒絕零列中途更新。內部 `game.round.end` 原子保存 ended 及釋放占用，尚無產品退出 HTTP／UI。正式生成化身只從私人 R2 讀取，等待後重新核對 Session／目前候選或輪次授權。
+
 ## 2026-11-05 個人資料編輯流程
 
 profile-catalog.fields提供同一欄位定義供表單、欄位前開關與名片。草稿snapshot比較有效預設，僅有語意差異顯示儲存。預覽有修改先PUT，再成功GET最新本人資料後push `/card-preview`；任何失敗保留編輯頁且不重送。名片focus每次GET已過濾投影，不由草稿或cache組合。Android RefreshControl／手機Web頂端touch下拉及返回皆先保護草稿；成功照片／化身操作保留未存欄位與visibility並檢查revision衝突。
@@ -39,3 +47,7 @@ Google Web 從 GIS popup 取得 proof；native 從原生 SDK 取得 proof。proo
 Worker 每小時 cron 執行分批清理；每批最多 1000 筆，預算 20 秒，剩餘 backlog 留至後續排程。不使用常駐帳號 worker 或 queue。
 
 本機 `serve-web.mjs` 在 loopback 8081 提供匯出檔與無副檔名 SPA fallback。這與 Worker 的正式 assets 路由分開；目前沒有 SignalR、WebSocket 業務通道或 .NET SPA fallback。
+
+## 2026-11-06 化身版面與失效房間修正
+
+CandidatePersona的圖片由前端固定3:4容器控制，Image以100%寬高及contain在框內縮放，避免免費資產的原始尺寸覆蓋版面；不變更圖片資料或生成流程。房間頁於Web回焦／原生前景重讀目前輪次；403經`/start`重驗Profile與active輪次，503保留重試，不自行認定遊戲已結束。後端交易、schema、API與配對規則不變。

@@ -1,5 +1,11 @@
 # AI 程式修改規範
 
+## MatchingSessions 維護規則（2026-11-06）
+
+配對來源異動必須與 `match_conditions` 同批，並證明新增、更新、刪除各種同步失敗都完整回滾；不使用 `source_profile_revision`。無關個資異動不能更新投影或讓玩家消失。接受舊 pending 不重驗新性向／偏好，但須驗硬性資格、期限、Session 與占用；新邀請仍以最新雙向條件判定。不可移除 SQL 零列 guard 或 participants.account_id UNIQUE；新增入口須用真 Miniflare 故障注入驗證。
+
+匹配成功不授予名片／原照權限，後續故事終止 UI 不屬本模組。變更前核對 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md) 的逐 ID 覆核與平台範圍。
+
 ## 分層與實作要求
 
 - 依 [分層邊界](../01-architecture/02-layer-boundary.md) 修改。Domain 保持純規則；Application 協調用例與介面；Infrastructure 處理外部 I/O；API 處理 HTTP。D1 SQL 放 Worker，頁面透過共用 ApiClient。

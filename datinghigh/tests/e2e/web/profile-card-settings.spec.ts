@@ -1,10 +1,11 @@
 import {test,expect} from '@playwright/test';
 import {startBackend,stopBackend,routeBackend,control,avatarFixturePassword,type Backend} from './backend';
+import {openAccountAfterLogin} from './support';
 test.setTimeout(180000);
 let backend:Backend;
 test.beforeEach(async({page,request})=>{backend=await startBackend({DATINGHIGH_E2E_AVATAR_PROFILE:'1'});await control(backend,request,{op:'reset',accountKind:'local'});await routeBackend(page,backend);});
 test.afterEach(async({request})=>{if(backend)await stopBackend(backend,request);});
-async function login(page:any){await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('owner@example.com');await page.getByLabel('密碼',{exact:true}).fill(avatarFixturePassword);await page.getByRole('button',{name:'登入',exact:true}).click();await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();await expect(page.getByLabel('暱稱',{exact:true})).toBeVisible();}
+async function login(page:any){await page.goto('/login');await page.getByLabel('Email',{exact:true}).fill('owner@example.com');await page.getByLabel('密碼',{exact:true}).fill(avatarFixturePassword);await page.getByRole('button',{name:'登入',exact:true}).click();await openAccountAfterLogin(page);await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();await expect(page.getByLabel('暱稱',{exact:true})).toBeVisible();}
 
 test('profile/card settings: saved gender gates 8/8/16, conditional save, atomic clear and private standalone preview',async({page,request})=>{
  await login(page);const save=page.getByRole('button',{name:'儲存',exact:true});await expect(save).toHaveCount(0);

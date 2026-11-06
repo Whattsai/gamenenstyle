@@ -1,5 +1,9 @@
 # 檔案放置規則
 
+MatchingSessions（2026-11-06）：純計分放 Domain `MatchingScore.cs`，用例與受限 reader 契約放 Application，固定 adapter 放 Infrastructure，數字 parser 放 Api。四表 SQL 與投影共用邏輯獨立於 `cloudflare/src/matching-commands.ts`，由既有 commands whitelist 入口呼叫；0004不修改 Foundation／Avatar 的既有欄位。Expo 配對畫面在 `src/MatchingScreen.tsx`，路由在 `app/`；SQL／HTTP／跨平台證據各留原測試層，不把受控 host 或 seed 放正式端點。
+
+本地測試結束工具的SQL政策放`tools/local-game-policy.mjs`，透過既有local wrapper操作；真CLI跨系統測試放`tests/integration/local-game-maintenance.test.mjs`，零列回滾另由真Miniflare測試驗證。不可把維運工具搬成公開game-end API或前端正式退出功能。
+
 共用非秘密靜態契約放根`contracts/`；profile-fields.json由Domain／Worker共讀，前端只取API目錄。新增受支援欄位要同步migration、完整DTO與固定SQL，不另建設定表或動態SQL。名片頁獨立在app/card-preview.tsx，顯示與載入在src/CardPreviewScreen.tsx分離。
 
 

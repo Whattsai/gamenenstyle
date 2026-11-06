@@ -1,5 +1,25 @@
 # HTTP API 契約
 
+## MatchingSessions（2026-11-06）
+
+新增下列9條 PlatformAccess 端點，路徑相對 `/api/v1`。沿用 no-store、Web Origin／Cookie、native Bearer、無 query／未知鍵／重複鍵拒絕；不接受 client score、account owner、SQL 或私人圖片 key。候選 ID 是 profile_id，不是 accountId。
+
+| 方法／路徑 | 輸入／結果 |
+|---|---|
+| POST `/match-candidates/search` | 嚴格數字 `{offset,limit}`，offset 0～5000、limit 1～20；完整合格集合先計分排序後分頁，`{items:[{candidateId,score,invitationState,invitationId}],nextOffset}`；無 persona |
+| GET `/match-candidates/{candidateId}` | 重驗當前授權的單筆 `{candidateId,score,invitationState,invitationId,persona}` |
+| POST `/match-invitations` | 嚴格 UUIDv7 字串 `{candidateId,clientRequestId}`；201 pending，反向既有邀請且本人明確同意可200 accepted＋roundId |
+| GET `/match-invitations` | `{incoming,outgoing}`；每筆 invitationId、candidateId、status、direction、invalidatedReason、expiresAt、roundId、安全 persona |
+| POST `/match-invitations/{id}/accept` | `{}`；只有接收者，200 accepted＋同一個 roundId；不回溯修改後的性向 |
+| POST `/match-invitations/{id}/decline` | `{}`；只有接收者，200 declined，此 accountId pair 永久排除 |
+| POST `/match-invitations/{id}/cancel` | `{}`；只有發起者，200 cancelled，不永久排除 |
+| GET `/game-rounds` | `{items}`，本人目前至多一場 active，含 roundId、status、startedAt、candidateId、persona |
+| GET `/game-rounds/{roundId}` | 本人且真正兩人參與的 active 房間；同上單筆物件，無假聊天／名片／真人照 |
+
+persona 僅 nickname、bio、traitTagIds、interestTagIds、selectedAvatarType／Ref、可空 avatarDataUrl。失去硬資格後的歷史邀請可有空 selectedAvatarType／Ref，畫面不以其他圖片補造；候選仍須有有效正式化身。內建化身由原靜態資產顯示；生成化身僅嵌入目前正式資產的短暫 no-store data URL，R2等待後重新授權，不是原照或公開 R2 URL。角色引用也不授權名片。
+
+本模組 expiresAt／startedAt 使用 **Unix milliseconds number**，與 Foundation 的 ISO Timestamp 回應分開。可空 invitationState／invitationId／invalidatedReason／roundId／nextOffset 以 null 表達。失敗：400 `INVALID_MATCH_REQUEST`、401 Session、403 `RESOURCE_FORBIDDEN`、409 `PROFILE_NOT_READY`／`GAME_IN_PROGRESS`／`MATCH_STATE_CONFLICT`、410 `INVITATION_EXPIRED`、429／Retry-After、503依賴故障。沒有公開 end／command 端點；未知結果先 GET 邀請與輪次回查。
+
 ## 2026-11-05 個人資料與名片修訂
 
 `GET /profile-catalog`新增`fields`，來源唯一contracts/profile-fields.json；既有groups新增gender／romanticOrientation選項。本人GET與完整PUT新增gender、romanticOrientation、cardVisibility（三者必須出現在完整PUT）。`GET /me/card-preview`只回傳有效開放欄位，關閉鍵直接省略，包含照片metadata與ageBand；精確生日、帳號資訊及私有偏好不分享。HTTP路由數不變；client獨立路由`/card-preview`每次進入重讀。MatchingInput新增性別／性向且與分享設定無關，未建立候選配對或他人名片入口。

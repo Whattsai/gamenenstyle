@@ -1,8 +1,29 @@
 # 本地操作與部署檢查
 
+## MatchingSessions 基線（2026-11-06）
+
+default local 已透過原 wrapper 套用 `0004_matching_sessions.sql`；local／staging 的 EXPECTED_MIGRATION 現為0004，ready驗12張表及單場占用唯一索引。staging僅同步設定，未部署；沒有 production 發布。新模組未新增環境秘密、binding、網域或外部服務。
+
+### 本地測試結束指定遊戲
+
+正式產品仍沒有退出HTTP／UI。本地開發可在DatingHigh根目錄執行：
+
+```powershell
+npm run game:list:local
+npm run game:end:local -- --round-id "貼上房間UUID"
+```
+
+第一條只列目前active房間的UUID、開始時間、雙方暱稱與參與者數，不列憑證或照片。第二條只接受一個UUIDv7，經原local wrapper指向已知instance；必要時可明確加`--instance 已存在的本地名稱`，拒絕remote／production／任意SQL。若目標instance正在運行，先經其既有control暫停寫入，於同一真D1 batch驗恰好兩位參與者、保存ended、釋放兩人占用並驗零殘留，最後恢復平台且等待8787 ready。只有選中的房間會變更；未知房間、錯誤占用或中途零列失敗整批回滾，已正確結束的重送為冪等。
+
+成功後重整Web／Android即可回配對入口。保留原accepted邀請及ended輪次，因此原accountId pair依規格永久不再配；這不是「清除同一對測試歷史」的reset。沒有刪帳號／Profile／R2，也沒有替Story建立公開退出入口，不得將CLI證據勾成MS-ET-017產品退出E2E。
+
+`node --test tests/integration/local-game-maintenance.test.mjs`在新建的named local instance驗實際Wrangler CLI與batch回滾，完成後只清理該測試自己建立的目錄；不會代替你結束default現存房間。
+
+配對重建驗證以明確隔離的 Miniflare D1／R2及受控 host 執行：重建四表、建立真測試帳號、按相同範圍清理私有測試資產，不引入ETL／舊資料相容。不要將此流程套到未知／remote／production目標；default既有帳號與私人媒體不作任意推測清除。真平台與各平台證據見 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md)。以下0003／0002段落為歷史操作基線。
+
 ## 現行migration與context（2026-11-05）
 
-default local已經正式wrapper向前套用0003；EXPECTED_MIGRATION local／staging現設0003_profile_gender_card_visibility.sql，staging未部署。root contracts需隨container：Dockerfile仍在backend，build context為DatingHigh根（Wrangler image_build_context=".."），根.dockerignore只送backend及contracts，勿用舊backend-only context。下方2026-11-03的0002為歷史紀錄。所有本地故障、重啟及依賴8787測試仍依序執行。
+default local已經正式wrapper向前套用0003；當時EXPECTED_MIGRATION local／staging設0003_profile_gender_card_visibility.sql，staging未部署。root contracts需隨container：Dockerfile仍在backend，build context為DatingHigh根（Wrangler image_build_context=".."），根.dockerignore只送backend及contracts，勿用舊backend-only context。下方2026-11-03的0002為歷史紀錄。所有本地故障、重啟及依賴8787測試仍依序執行。
 
 
 本文件整理現有 wrappers、Docker／Wrangler 與 runbooks；不是發布授權或新驗收證據。2026-11-01 的既有紀錄顯示本地 Web／Android 已結案；iOS依D-052暫緩、無障礙依D-051不在目前MVP範圍，雲端／真收信仍保留界限。D-033／D-035 暫緩 iOS／staging，不啟用付費、不部署；production 未配置／發布。詳見 [本地範圍](../../docs/verification/PlatformFoundation-LocalAcceptance.md) 與 [逐平台紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)。

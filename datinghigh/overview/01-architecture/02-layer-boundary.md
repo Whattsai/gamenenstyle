@@ -1,5 +1,11 @@
 # 分層與信任邊界
 
+## MatchingSessions（2026-11-06）
+
+Domain `MatchingScore` 只處理純計分與成年／性向規則；Application `MatchingSessionService` 組合受限輸入、完整排序後分頁及授權投影。Infrastructure `IMatchingCandidateProfileReader` 的 adapter 只能呼叫固定候選指令，不偽造舊 reader 的 RoundId。候選與房間只回安全角色，`DenyCurrentCardAuthorization` 繼續拒絕跨帳號名片。
+
+Worker `matching-commands.ts` 封裝四表的固定 prepared SQL 與 SQL 內 fail-closed guard。來源個資與投影同 batch；差異判斷的前讀受原有 Profile revision CAS 保護，不另存跨表版本或 marker。接受既有邀請不回溯性向；participants 的 account UNIQUE 仍是最終單場保護。R2 只供應目前正式生成化身，讀取後重新核對相同授權集合，不提供原照／key。
+
 ## 共用欄位定義（2026-11-05）
 
 根contracts/profile-fields.json為資料與顯示契約，Domain嵌入靜態資源，Worker只據此核對分享鍵；Application仍逐欄驗輸入並使用固定命令，SQL不從storage mapping動態產生。前端只經API取定義，不直接讀D1。名片投影在伺服器排除關閉欄位；顯示元件不擁有授權或資料載入責任。

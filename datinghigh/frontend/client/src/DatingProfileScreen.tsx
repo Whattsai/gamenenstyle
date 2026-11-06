@@ -254,6 +254,8 @@ export function DatingProfileScreen(){
  }} header={<View style={{alignItems:'center',paddingLeft:12,paddingRight:Platform.OS==='web'?12:52,paddingVertical:8,backgroundColor:'rgba(26,12,36,.92)',borderBottomWidth:1,borderColor:colors.line}}><View style={{width:'100%',maxWidth:isWide?1120:480,gap:8}}>
   <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:6}}>
    <PrimaryButton label="返回" compact secondary disabled={busy} onPress={back}/>
+   <PrimaryButton label="你的帳號" compact secondary disabled={busy} onPress={()=>requestDiscard(()=>router.push('/account'))}/>
+   <PrimaryButton label="探索與目前遊戲" compact secondary disabled={busy} onPress={async()=>{if(dirty&&!await save())return;router.push('/start');}}/>
    {dirty&&<PrimaryButton label="儲存" compact disabled={busy||!profile} onPress={save}/>}
   </View>
   <InlineNotice text={avatarModal?'':notice}/>{profile?.draftConflict&&<InlineNotice text="其他地方已有更新；目前草稿保留。重新整理會載入已保存資料。"/>}

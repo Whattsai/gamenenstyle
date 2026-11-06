@@ -31,7 +31,7 @@ export function Screen({screen}:{screen:string}){
  useFocusEffect(useCallback(()=>{
   if(!session.ready)return;
   if(screen.startsWith('account')&&!api.account){router.replace('/login');return;}
-  if(screen===''&&api.account){router.replace('/account');return;}
+  if(screen===''&&api.account){router.replace('/start');return;}
   if(['verify-email','reset-password'].includes(screen)){
    flows.read().then(f=>{if(mounted.current)setFlow(f);});
   }
@@ -72,11 +72,11 @@ export function Screen({screen}:{screen:string}){
     const request={challengeId:flow.challengeId,flowToken:flow.flowToken,code:fields.code};
     const result=await api.request(screen==='verify-email'?'/accounts':'/password-resets','POST',screen==='verify-email'?{...request,password:fields.password,clientPlatform:api.platform}:{...request,newPassword:fields.password});
     await flows.clear();setFields(f=>({...f,password:'',confirm:'',code:''}));
-    if(screen==='verify-email'){await api.accept(result);session.setNotice('EMAIL_VERIFIED');router.replace('/account');}
+    if(screen==='verify-email'){await api.accept(result);session.setNotice('EMAIL_VERIFIED');router.replace('/start');}
     else{session.setNotice('PASSWORD_RESET');await api.forget();router.replace('/login');}
    }else if(screen==='login'){
     const result=await api.request('/sessions','POST',{email:fields.email,password:fields.password,clientPlatform:api.platform});
-    await api.accept(result);setFields(f=>({...f,password:''}));router.replace('/account');
+    await api.accept(result);setFields(f=>({...f,password:''}));router.replace('/start');
    }else if(screen==='account/password'){
     await api.request('/me/password','PUT',{currentPassword:fields.currentPassword,newPassword:fields.password});session.setNotice('PASSWORD_CHANGED');await api.forget();router.replace('/login');
    }
@@ -88,11 +88,11 @@ export function Screen({screen}:{screen:string}){
    try{
     const result=await api.request(linking?'/me/identities/google':'/sessions/external/google','POST',{credential,clientPlatform:api.platform});
     if(linking){const account=await api.request('/me');api.account=account;api.onChange();setNotice('Google 已連結');}
-    else{await api.accept(result);router.replace('/account');}
+    else{await api.accept(result);router.replace('/start');}
    }catch(e){
     if(e instanceof ApiFailure&&e.uncertain){
      try{const current=linking?await api.request('/session'):await api.confirmExternalLogin(previousSessionId);if(linking){const identities=await api.request('/me/identities');if(identities.identities.some((i:{provider:string})=>i.provider==='google')){api.account=current.account;api.onChange();setNotice('Google 已連結');return;}}
-      else{api.sessionId=current.session.sessionId;api.account=current.account;api.onChange();router.replace('/account');return;}}
+      else{api.sessionId=current.session.sessionId;api.account=current.account;api.onChange();router.replace('/start');return;}}
      catch{}
     }throw e;
    }
@@ -113,7 +113,7 @@ export function Screen({screen}:{screen:string}){
    <Text accessibilityRole="header" style={[s.heading,screen===''&&{fontSize:38,lineHeight:46}]}>{titles[screen]}</Text>
    {!session.ready?<LoadingOverlay/>:<>
     <InlineNotice text={effectiveNotice}/>
-    {canRetryRecovery&&!(screen.startsWith('account')&&api.account&&!accountReady)&&<><PrimaryButton label="重試" disabled={busy} onPress={()=>{setRecoveryRequested(true);void run(async()=>{try{const outcome=await api.restore();setRecoveryRequested(false);if(outcome==='logged-out'){session.setNotice('LOGGED_OUT');router.replace('/');}else if(outcome==='session-changed'){session.setNotice('SESSION_CHANGED');router.replace('/login');}else router.replace(api.account?'/account':'/login');}catch(error){if(error instanceof ApiFailure&&error.code==='ACCESS_TOKEN_MISSING'){setRecoveryRequested(false);session.setNotice('REFRESH_INVALID');router.replace('/login');return;}throw error;}});}} secondary/>{screen!=='login'&&action('返回登入','/login')}</>}
+    {canRetryRecovery&&!(screen.startsWith('account')&&api.account&&!accountReady)&&<><PrimaryButton label="重試" disabled={busy} onPress={()=>{setRecoveryRequested(true);void run(async()=>{try{const outcome=await api.restore();setRecoveryRequested(false);if(outcome==='logged-out'){session.setNotice('LOGGED_OUT');router.replace('/');}else if(outcome==='session-changed'){session.setNotice('SESSION_CHANGED');router.replace('/login');}else router.replace(api.account?(screen.startsWith('account')?'/account':'/start'):'/login');}catch(error){if(error instanceof ApiFailure&&error.code==='ACCESS_TOKEN_MISSING'){setRecoveryRequested(false);session.setNotice('REFRESH_INVALID');router.replace('/login');return;}throw error;}});}} secondary/>{screen!=='login'&&action('返回登入','/login')}</>}
     {screen.startsWith('account')&&api.account&&!accountReady&&<><InlineNotice text="帳號資料暫時無法確認，請重試"/><PrimaryButton label="重試" disabled={busy} onPress={()=>void run(async()=>{const account=await api.request('/me');if(!isCompleteAccount(account))throw new ApiFailure('SERVICE_UNAVAILABLE',503);api.account=account;api.onChange();})} secondary/></>}
     {screen===''&&<>
      <Text style={[s.body,{textAlign:'center'}]}>先用虛擬化身遇見彼此的心，再一起走向真實世界的約會。</Text>
@@ -139,6 +139,7 @@ export function Screen({screen}:{screen:string}){
       <View style={{flexDirection:'row',flexWrap:'wrap',gap:8}}><SubtleBadge text="Email 已驗證"/><SubtleBadge text={account!.linkedProviders.includes('google')?'Google 已連結':'尚未連結 Google'}/></View>
      </View>
      {action('個人資料與遊戲化身','/profile',false)}
+     {action('探索與目前遊戲','/start')}{action('查看邀請','/invitations')}
      {action(account!.hasLocalPassword?'修改密碼':'透過 Email 設定密碼',account!.hasLocalPassword?'/account/password':'/forgot-password')}
      {action('管理登入方式','/account/connections')}
      <PrimaryButton label="登出" onPress={()=>run(async()=>{const confirmed=await api.logout();session.setNotice(confirmed?'LOGGED_OUT':'SESSION_CHANGED');router.replace(confirmed?'/':'/login');})} disabled={busy} secondary/>

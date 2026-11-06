@@ -29,7 +29,7 @@ beforeAll(async()=>{
  }));
  db=await mf.getD1Database('DB') as unknown as D1Database;
  files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
- for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql']){
+ for(const migration of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql']){
   const sql=readFileSync(new URL(`../migrations/${migration}`,import.meta.url),'utf8');
   await db.batch(sql.split(';').map(q=>q.trim()).filter(Boolean).map(q=>db.prepare(q)));
  }
@@ -37,7 +37,7 @@ beforeAll(async()=>{
 });
 afterAll(async()=>{await mf?.dispose();});
 beforeEach(async()=>{
- await db.batch(['DELETE FROM user_media_assets','DELETE FROM user_profiles',
+ await db.batch(['DELETE FROM match_conditions','DELETE FROM user_media_assets','DELETE FROM user_profiles',
                  'DELETE FROM auth_sessions','DELETE FROM auth_accounts'].map(q=>db.prepare(q)));
  for(const [accountId,sessionId,email] of [[a,aSession,'a@example.test'],[b,bSession,'b@example.test']]){
   await db.prepare("INSERT INTO auth_accounts(account_id,email_normalized,email_verified_at,status,credential_version,created_at,updated_at) VALUES (?,?,?,'active',1,?,?)").bind(accountId,email,now,now,now).run();

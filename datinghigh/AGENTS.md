@@ -2,6 +2,8 @@
 
 本目錄是「心動迴路」正式應用，包含 PlatformFoundation 與已完成本地Web／Android範圍驗收的 AvatarAndPreferences。使用繁體中文維護說明；不要替其餘 SPEC 建假成功頁、業務表或固定帳號。化身最新證據見 `docs/verification/SPEC-001-AvatarAndPreferences-Verification.md`。
 
+MatchingSessions（2026-11-06）已加入正式四表、候選／邀請／輪次API與共用畫面；逐項與平台現況見 `docs/verification/SPEC-001-MatchingSessions-Verification.md`。原子投影只隨配對輸入／資格改變，不使用source_profile_revision；舊pending不回溯性向。產品退出與劇情仍交由後續SPEC，內部end命令不代表退出UX已完成。
+
 ## 讀取順序
 
 1. [README](README.md)：啟動與驗證入口。

@@ -1,6 +1,7 @@
 import path from 'node:path';import fs from 'node:fs/promises';import {existsSync} from 'node:fs';import {spawn} from 'node:child_process';import {randomBytes,createHash} from 'node:crypto';import {createServer} from 'node:http';
 import {root,resolveInstance,parseLocalArgs,invocation,backupPath,restoreTarget,withPausedControl} from './local-policy.mjs';
 import {watchWslEgress} from './wsl-egress.mjs';
+import {waitLocalReady} from './restart-local.mjs';
 const cli=path.join(root,process.env.DATINGHIGH_LINUX_TOOLCHAIN==='1'?'.local/toolchain/platform/node_modules/wrangler/bin/wrangler.js':'cloudflare/node_modules/wrangler/bin/wrangler.js');
 const command=process.argv[2],opts=parseLocalArgs(command,process.argv.slice(3)),instance=resolveInstance(opts.instance);
 if(command==='dev'&&process.platform==='win32'){
@@ -44,9 +45,13 @@ if(command==='dev'){
  await fs.writeFile(controlFile,JSON.stringify({port:control.address().port,token}),{flag:'w'});start();
  const close=async()=>{await stop();control.close();await fs.rm(controlFile,{force:true});process.exit();};
  process.on('SIGINT',close);process.on('SIGTERM',close);
-}else if(command==='migrate'||command==='query'||command==='execute'){
+}else if(command==='migrate'||command==='query'||command==='execute'||command==='game-end'){
  if(command==='execute'&&!opts.file)throw new Error('--file is required');
- if(command==='query')await invoke(command);else await withPausedWrites(()=>invoke(command));
+ if(command==='query')await invoke(command);else {
+  const resumeRequired=command==='game-end'&&existsSync(controlFile);
+  await withPausedWrites(()=>invoke(command));
+  if(resumeRequired)await waitLocalReady();
+ }
 }else if(command==='seed'){
  // 種子只有無登入能力的 disabled Account，沒有固定雲端密碼。
  const target=path.join(root,'.local','seed.sql');await fs.mkdir(path.dirname(target),{recursive:true});

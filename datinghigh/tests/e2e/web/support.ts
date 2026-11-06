@@ -2,6 +2,12 @@ import {readFileSync} from 'node:fs';
 import {expect,type Page} from '@playwright/test';
 import {execFileSync} from 'node:child_process';
 export const password='A meaningful password 42!';
+// MatchingSessions 已將登入落點改為就緒分流；舊帳號／化身測試明確再開帳號頁作為前置。
+export async function openAccountAfterLogin(page:Page){
+ await expect(page).toHaveURL(/\/(?:profile|matching|game-round\/[0-9a-f-]+)$/);
+ await page.getByRole('button',{name:'你的帳號',exact:true}).filter({visible:true}).click();
+ await expect(page).toHaveURL(/\/account$/);
+}
 export function localCode(challengeId:string){
  const container=execFileSync('docker',['ps','--filter','name=workerd-datinghigh-local-ApiContainer','--format','{{.ID}} {{.Names}}'],{encoding:'utf8',windowsHide:true}).split('\n').find(line=>line.trim()&&!line.includes('-proxy'))?.split(' ')[0];
  if(!container)throw new Error('Local .NET container is not running');
@@ -19,7 +25,7 @@ export async function register(page:Page,email:string){
  await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill(password);await page.getByLabel('確認密碼',{exact:true}).filter({visible:true}).fill(password);
  const confirmed=page.waitForResponse(r=>r.url().endsWith('/api/v1/accounts')&&r.request().method()==='POST');
  await page.getByRole('button',{name:'驗證並建立帳號'}).click();const result=await confirmed;
- expect(result.status()).toBe(201);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();return {metadata,result};
+ expect(result.status()).toBe(201);await openAccountAfterLogin(page);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();return {metadata,result};
 }
 
 // 為既有免費化身整合案例明確保存性別；新修訂的UI路徑由profile-card-settings驗證。
@@ -32,7 +38,7 @@ export async function prepareBuiltinGender(page:Page){
  return {...own,...await saved.json()};
 }
 export async function returnFromProfile(page:Page){
- await page.getByRole('button',{name:'返回',exact:true}).click();
+ await page.getByRole('button',{name:'你的帳號',exact:true}).filter({visible:true}).click();
  const discard=page.getByRole('button',{name:'捨棄修改',exact:true});
  await expect(page.getByRole('button',{name:'登出',exact:true}).or(discard)).toBeVisible();
  if(await discard.isVisible())await discard.click();

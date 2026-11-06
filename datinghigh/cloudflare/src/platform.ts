@@ -26,11 +26,26 @@ export async function ready(env:PlatformEnv){
   auth_email_challenges:'challenge_id,purpose,email_normalized,client_platform,flow_token_hash,code_mac,generation,failed_attempts,account_id,bound_credential_version,state,created_at,expires_at,absolute_expires_at,resend_after,consumed_at',
   common_rate_limit_buckets:'bucket_id,policy_key,subject_type,subject_hash,window_start,attempt_count,expires_at',
  };
- if(['0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql'].includes(env.EXPECTED_MIGRATION)){
+ if(['0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql'].includes(env.EXPECTED_MIGRATION)){
   expected.user_profiles='profile_id,account_id,nickname,bio,occupation,birth_date,region_code,traits_json,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref,revision,created_at,updated_at';
   expected.user_media_assets='asset_id,account_id,kind,object_key,mime_type,display_order,status,created_at,deleted_at';
  }
- if(env.EXPECTED_MIGRATION==='0003_profile_gender_card_visibility.sql')expected.user_profiles+=',gender,romantic_orientation_json,card_visibility_json';
+ if(['0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql'].includes(env.EXPECTED_MIGRATION))expected.user_profiles+=',gender,romantic_orientation_json,card_visibility_json';
+ if(env.EXPECTED_MIGRATION==='0004_matching_sessions.sql'){
+  expected.match_conditions='condition_id,account_id,gender,romantic_orientation_json,birth_date,region_code,interests_json,preferences_json,created_at,updated_at';
+  expected.match_invitations='invitation_id,account_low_id,account_high_id,initiator_account_id,client_request_id,status,invalidated_reason,created_at,expires_at,updated_at,responded_at';
+  expected.game_rounds='round_id,invitation_id,account_low_id,account_high_id,status,started_at,ended_at';
+  expected.game_round_participants='participant_id,account_id,round_id,created_at';
+  for(const name of ['idx_match_pending_pair','idx_game_round_participants_round'])if(!await env.DB.prepare("SELECT 1 FROM sqlite_master WHERE type='index' AND name=?").bind(name).first())throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
+  const participantIndexes=await env.DB.prepare('PRAGMA index_list(game_round_participants)').all();
+  let uniqueAccount=false;
+  for(const index of participantIndexes.results.filter(i=>i.unique===1)){
+   // index 名稱來自 sqlite schema，非呼叫者；仍以 table-valued PRAGMA 綁定名稱。
+   const columns=await env.DB.prepare('SELECT name FROM pragma_index_info(?)').bind(index.name).all();
+   if(columns.results.length===1&&columns.results[0].name==='account_id')uniqueAccount=true;
+  }
+  if(!uniqueAccount)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
+ }
  for(const [table,names] of Object.entries(expected)){
   const columns=await env.DB.prepare(`PRAGMA table_info(${table})`).all();
   if(columns.results.map(column=>column.name).join(',')!==names || columns.results[0].pk!==1 || columns.results[0].notnull!==1) throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
@@ -171,6 +186,7 @@ async function boundedMediaBytes(request:Request,limit:number):Promise<Uint8Arra
 }
 
 export async function dispatch(request:Request,env:PlatformEnv,now=Date.now()):Promise<Response>{
+ const started=Date.now();
  try{
   const url=new URL(request.url);if(url.hostname!=='platform.internal')return problem('NOT_FOUND',404);
   if(url.pathname.startsWith('/v1/avatar/candidates/'))return await avatarMedia(request,env,now);
@@ -208,11 +224,35 @@ export async function dispatch(request:Request,env:PlatformEnv,now=Date.now()):P
    const object=await env.FILES.get(key);if(!object)throw new PlatformError('NOT_FOUND',404);
    const bytes=new Uint8Array(await object.arrayBuffer());return Response.json({content:btoa(String.fromCharCode(...bytes))});
   }
-  const result=await executeCommand(env.DB,command,p,now);return Response.json(result);
+  const result=await executeCommand(env.DB,command,p,now);
+  if(['match.candidate.persona.read','match.invite.list','game.round.list','game.round.get'].includes(command)){
+   // 只供已授權有限角色投影使用：絕不把私人真人照當作頭像，亦不回傳 R2 key。
+   const images=new Map<string,string>();
+   for(const value of result.rows){
+    const row=value as Record<string,any>;
+    if(row.selected_avatar_type!=='generated')continue;
+    const asset=await env.DB.prepare("SELECT object_key,mime_type FROM user_media_assets WHERE asset_id=? AND kind='generated_avatar' AND status='ready' AND deleted_at IS NULL AND EXISTS(SELECT 1 FROM user_profiles p WHERE p.account_id=user_media_assets.account_id AND p.selected_avatar_ref=user_media_assets.asset_id AND p.selected_avatar_type='generated')").bind(row.selected_avatar_ref).first<{object_key:string,mime_type:string}>();
+    if(!asset)continue;
+    if(!images.has(row.selected_avatar_ref)){
+     const object=await env.FILES.get(asset.object_key);if(!object||object.size>2000000)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
+     const bytes=new Uint8Array(await object.arrayBuffer());const parts:string[]=[];
+     for(let offset=0;offset<bytes.length;offset+=8192)parts.push(String.fromCharCode(...bytes.subarray(offset,offset+8192)));
+     images.set(row.selected_avatar_ref,`data:${asset.mime_type};base64,${btoa(parts.join(''))}`);
+    }
+    row.avatar_data_url=images.get(row.selected_avatar_ref);
+   }
+   if(images.size){
+    // R2 等待後重新取得真正相同的授權集合；不輸出已撤銷、已占用或已換化身的舊 bytes。
+    const checked=await executeCommand(env.DB,command,p,now+Math.max(0,Date.now()-started));
+    const fingerprint=(rows:unknown[])=>JSON.stringify(rows.map(value=>{const row=value as Record<string,any>;return [row.profile_id??row.candidate_id,row.round_id,row.invitation_id,row.status,row.selected_avatar_ref];}));
+    if(fingerprint(checked.rows)!==fingerprint(result.rows))throw new PlatformError('MATCH_STATE_CONFLICT',409);
+   }
+  }
+  return Response.json(result);
  }catch(e){
   if(e instanceof PlatformError||e instanceof AvatarError)return problem(e.code,e.status);
   if(e instanceof z.ZodError||e instanceof SyntaxError||e instanceof Error&&['UNKNOWN_COMMAND','INVALID_POLICY'].includes(e.message))return problem('INVALID_REQUEST');
-  if(e instanceof Error && /UNIQUE constraint failed/.test(e.message))return problem(e.message.includes('email_normalized')?'EMAIL_ALREADY_REGISTERED':e.message.includes('auth_refresh_tokens.session_id')?'REFRESH_RETRY':e.message.includes('auth_sessions.account_id')?'CREDENTIAL_CHANGED':'EXTERNAL_IDENTITY_IN_USE',409);
+  if(e instanceof Error && /UNIQUE constraint failed/.test(e.message))return problem(e.message.includes('match_invitations')||e.message.includes('game_round')?'MATCH_STATE_CONFLICT':e.message.includes('email_normalized')?'EMAIL_ALREADY_REGISTERED':e.message.includes('auth_refresh_tokens.session_id')?'REFRESH_RETRY':e.message.includes('auth_sessions.account_id')?'CREDENTIAL_CHANGED':'EXTERNAL_IDENTITY_IN_USE',409);
   return problem('DEPENDENCY_UNAVAILABLE',503);
  }
 }

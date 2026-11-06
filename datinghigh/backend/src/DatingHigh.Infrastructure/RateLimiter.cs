@@ -12,7 +12,8 @@ public static class RateLimitPolicies
         [("email_code_verify.v1","email")]=(900000,10),[("password_login.v1","email")]=(900000,10),[("password_login.v1","ip")]=(900000,60),
         [("external_credential.v1","ip")]=(900000,30),[("credential_change.v1","account")]=(900000,10),
         [("session_refresh.v1","session")]=(60000,10),[("session_refresh.v1","ip")]=(60000,120),
-        [("avatar_generate.v1","account")]=(3600000,8)
+        [("avatar_generate.v1","account")]=(3600000,8),
+        [("matching_search.v1","account")]=(60000,30),[("matching_invite.v1","account")]=(3600000,10)
     };
 }
 /// <summary>請求範圍的去重額度保留；超限與故障皆停止副作用。</summary>

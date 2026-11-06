@@ -21,6 +21,8 @@ builder.Services.AddSingleton(new GeminiOptions(cfg["GEMINI_API_KEY"]??"",cfg["G
 builder.Services.AddHttpClient<IAvatarImageGenerator,GeminiAvatarImageGenerator>(http=>http.Timeout=TimeSpan.FromSeconds(100)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false});
 builder.Services.AddScoped<AvatarService>();
 builder.Services.AddScoped<OwnCardPreviewService>();
+builder.Services.AddScoped<IMatchingCandidateProfileReader,MatchingCandidateProfileReader>();
+builder.Services.AddScoped<MatchingSessionService>();
 builder.Services.AddSingleton<ICurrentCardAuthorization,DenyCurrentCardAuthorization>();
 builder.Services.AddScoped<RateLimiter>();builder.Services.AddScoped<IEmailCodeSender,EmailCodeSender>();builder.Services.AddScoped<AuthApplication>();builder.Services.AddScoped<DatingProfileService>();builder.Services.AddScoped<PersonalPhotosService>();
 builder.Services.AddScoped<DatingHigh.Application.RateLimiting.IRateLimiter>(sp=>sp.GetRequiredService<RateLimiter>());builder.Services.AddScoped<Readiness>();builder.Services.AddScoped<IPrivateObjectStore,PrivateObjectStore>();
@@ -49,6 +51,11 @@ app.Use(async(context,next)=>
             {
                 if(context.Request.ContentLength>8*1024*1024)throw new DomainException("IMAGE_TOO_LARGE",413);
                 if(context.Request.ContentType is not("image/jpeg" or "image/png" or "image/webp"))throw new DomainException("INVALID_IMAGE");
+                payload=new RequestPayload(new Dictionary<string,string>(StringComparer.Ordinal));
+            }
+            else if(context.Request.Method=="POST" && context.Request.Path=="/api/v1/match-candidates/search")
+            {
+                context.Items["matchingSearch"]=await MatchingSearchInput.ReadAsync(context.Request,context.RequestAborted);
                 payload=new RequestPayload(new Dictionary<string,string>(StringComparer.Ordinal));
             }
             else if(context.Request.Method=="POST"&&context.Request.Path=="/api/v1/me/avatar/generations"||context.Request.Method=="PUT"&&context.Request.Path=="/api/v1/me/avatar/selection")
@@ -82,7 +89,10 @@ app.Use(async(context,next)=>
         }
         await next(context);
     }
-    catch(DomainException e){await HttpContract.Problem(context,e);}
+    catch(DomainException e){
+        var failure=e.Code=="INVALID_REQUEST"&&(context.Request.Path.StartsWithSegments("/api/v1/match-candidates")||context.Request.Path.StartsWithSegments("/api/v1/match-invitations")||context.Request.Path.StartsWithSegments("/api/v1/game-rounds"))?new DomainException("INVALID_MATCH_REQUEST"):e;
+        await HttpContract.Problem(context,failure);
+    }
     catch(OperationCanceledException) when(context.RequestAborted.IsCancellationRequested){}
     catch(Exception e)
     {
@@ -92,6 +102,33 @@ app.Use(async(context,next)=>
 });
 app.UseAuthentication();app.UseAuthorization();
 var api=app.MapGroup("/api/v1");
+api.MapPost("/match-candidates/search",async(HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    var input=(MatchingSearchInput)c.Items["matchingSearch"]!;
+    return Results.Ok(await service.SearchAsync(c.CurrentPlatformUser(),input.Offset,input.Limit,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/match-candidates/{candidateId}",async(string candidateId,HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.CandidateAsync(c.CurrentPlatformUser(),candidateId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/match-invitations",async(HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    var p=c.Payload();p.Only("candidateId","clientRequestId");
+    var result=await service.InviteAsync(c.CurrentPlatformUser(),p.Required("candidateId"),p.Required("clientRequestId"),ct);
+    return Results.Json(result,statusCode:result["status"]?.GetValue<string>()=="pending"?201:200);
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/match-invitations",async(HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.InvitationsAsync(c.CurrentPlatformUser(),ct));
+}).RequireAuthorization("PlatformAccess");
+foreach(var action in new[]{"accept","decline","cancel"}){
+    var operation=action;
+    api.MapPost("/match-invitations/{id}/"+operation,async(string id,HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+        c.Payload().Only();return Results.Ok(await service.ResolveAsync(c.CurrentPlatformUser(),id,operation,ct));
+    }).RequireAuthorization("PlatformAccess");
+}
+api.MapGet("/game-rounds",async(HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(new{items=await service.RoundsAsync(c.CurrentPlatformUser(),ct)});
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}",async(string roundId,HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.RoundAsync(c.CurrentPlatformUser(),roundId,ct));
+}).RequireAuthorization("PlatformAccess");
 api.MapGet("/profile-catalog",(HttpContext c)=>{c.Payload().Only();return Results.Ok(new{version=ProfileCatalog.Version,groups=ProfileCatalog.Groups,fields=ProfileFields.All});}).RequireAuthorization("PlatformAccess");
 api.MapGet("/avatar-catalog",(HttpContext c)=>{
     c.Payload().Only();return Results.Ok(new{version="2026-11-03.v2",avatars=new[]{"male","female"}.SelectMany(group=>Enumerable.Range(1,8).Select(n=>new{

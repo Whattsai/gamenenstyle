@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DatingHigh.Api\DatingHigh.Api.csproj" />
+    <ProjectReference Include="..\DatingHigh.Integration.Tests\DatingHigh.Integration.Tests.csproj" />
   </ItemGroup>
 
 </Project>

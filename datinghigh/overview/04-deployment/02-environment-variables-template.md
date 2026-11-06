@@ -1,5 +1,7 @@
 # 環境變數與 bindings
 
+MatchingSessions（2026-11-06）沒有新增產品設定 key／秘密／binding。local與staging的 EXPECTED_MIGRATION 改為 `0004_matching_sessions.sql`，ready核對12張自有表；DB增加四張配對／遊戲表。`DATINGHIGH_E2E_MATCHING_PROFILE=1` 僅供測試 host 開啟受保護的合成測資控制，不屬正式 Api／Worker 或 Expo production 設定。
+
 來源為 `AuthOptions.Load`、`Program.cs`、`ApiContainer.envVars`、`PlatformEnv`、client／Expo 設定與本地工具。以下只列名稱及用途，不含可用秘密。現行 .NET 直接讀頂層名稱，沒有 appsettings 階層；不要自行改成 `Auth__...`。未來若引入階層設定，才依 ASP.NET Core 的 `__` 映射規則同步修改 loader 與文件。
 
 ## Worker vars 與 .NET runtime
@@ -30,10 +32,10 @@ Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Go
 
 | 名稱 | 種類 | 用途 |
 |---|---|---|
-| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0003_profile_gender_card_visibility.sql；ready查migration及八表欄位；不轉入.NET。staging 變更未代表已部署 |
+| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0004_matching_sessions.sql；ready查migration及12表欄位／占用索引；不轉入.NET。staging 變更未代表已部署 |
 | EMAIL_FROM | 一般設定，cloud必要 | 已完成sender domain驗證的寄件地址；不以任意地址替代 |
 | EMAIL | Email sender binding，cloud必要 | 平台寄信用；目前staging設定尚缺 |
-| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表27欄及migration metadata；不能換其他專案DB |
+| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表27欄＋MatchingSessions四表32欄及migration metadata；不能換其他專案DB |
 | FILES | 私人R2 binding | owner物件與固定probe；非公開bucket |
 | API | Durable Object／Container binding | ApiContainer生命週期及api-v1路由 |
 | ASSETS | Wrangler assets binding | local為frontend/client/dist；staging為.local/staging-web |

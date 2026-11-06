@@ -1,5 +1,7 @@
 # SPEC-001-MatchingSessions — 實作前風險與缺漏稽核（RiskAudit）
 
+2026-11-06實作追蹤：以下為已確認的實作前風險基線；`well-done` 已完成本地責任173/173；完整原規劃173/174（Story退出E2E未驗），新增程式、真SQL／HTTP／平台證據及每項風險覆核集中於 [Verification](../verification/SPEC-001-MatchingSessions-Verification.md)。下文「未實作」與0項通過是交接當時數字，不取代目前驗證紀錄。
+
 **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)
 **已確認 SDD**：[SPEC-001-MatchingSessions](SPEC-001-MatchingSessions.md)（2026-11-05 Q1～Q4）
 **BDD**：[SPEC-001-MatchingSessions-BDD](../bdd/SPEC-001-MatchingSessions-BDD.md)
@@ -17,7 +19,7 @@
 | BDD 唯一場景 | **75**：原63＋第一輪11＋本輪1場景 |
 | TDD 唯一測試項 | **174**：Unit 60、Integration 64、API 31、E2E 19（原150＋前輪22＋本輪2） |
 | BDD→TDD 規劃追溯 | **75/75** 場景至少兩個層級案例（不表示端點／原子細分已全面覆蓋） |
-| 真實實作／驗收 | **0/75 BDD、0/174 TDD**；不存在配對功能通過證據 |
+| 規劃交接時實作／驗收（歷史） | 當時為0/75 BDD、0/174 TDD；2026-11-06 well-done現況為75/75 BDD、173/174 TDD，逐案見Verification |
 | 使用者 SDD 決策 | Q1 65/20/15軟性加權、Q2拒絕或結束永久互斥、Q3單人同時一場、Q4自動列入候選 **均已確認** |
 | 風險決策／缺漏 | **RQ-01=A、RQ-02=A 已確認**；20項風險已列緩解／實作門檻，原24項補強及後續新增24項已回寫 TDD |
 

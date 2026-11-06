@@ -1,5 +1,7 @@
 # 心動迴路（DatingHigh）
 
+2026-11-06 MatchingSessions：已接上真候選雙向計分、72小時邀請、雙方確認及單場持久房間。登入後依個資／目前遊戲分流；schema基線為0004、配對四表。逐項進度與Web／Android證據見 [MatchingSessions驗證紀錄](docs/verification/SPEC-001-MatchingSessions-Verification.md)；產品退出與劇情由下一份SPEC承接，未發布雲端。
+
 2026-11-05個人資料修訂：加入性別／性向、欄位分享設定、性別對應免費化身及獨立`/card-preview`。現行0003將業務兩表擴至27欄；共用欄位定義在`contracts/profile-fields.json`。本次驗證狀態與歷史驗收分開，見[驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)同日修訂。
 
 
@@ -29,6 +31,19 @@ npm run dev:platform
 另一個終端執行 `node tools/serve-web.mjs`，開啟 **http://localhost:8081**；API 為 http://localhost:8787。網站來源請保持 `localhost`，以符合 Origin／Strict Cookie 設定。種子只有無登入能力的 disabled 帳號。
 
 第一次啟動會在忽略的 `cloudflare/.dev.vars` 產生三個秘密，之後沿用。註冊／重設碼只在 local／Log 的容器 `LocalEmailVerification` 日誌取得；查看方式、Google 設定、重啟及資料備份見 [本地操作與部署](overview/04-deployment/01-deployment-checklist.md) 和 [環境變數](overview/04-deployment/02-environment-variables-template.md)。
+
+## 配對測試：婉拒與結束遊戲
+
+收到邀請時，探索卡的「接受邀請」下方及「邀請 → 收到的邀請」均可婉拒；須再按「確認永久婉拒」，按「保留邀請」不會拒絕。
+
+正式遊戲退出畫面由後續Story實作。目前可在本目錄的終端結束指定**本地**測試房間：
+
+```powershell
+npm run game:list:local
+npm run game:end:local -- --round-id "貼上房間UUID"
+```
+
+房間UUID也會顯示在遊戲畫面。結束指令原子釋放雙方占用並保留ended歷史；若原本local平台正在運行，會先暫停寫入，執行後恢復並等ready，命令成功後重整Web或Android。**原本兩個帳號結束後永久不再配對**；要反覆測同一對，需另建測試帳號，這個指令不清除永久歷史。它不修改帳號、個資、照片或其他房間，也沒有remote模式。完整步驟見[本地操作](overview/04-deployment/01-deployment-checklist.md#本地測試結束指定遊戲)。
 
 Android 另需 JDK 17、Android SDK 與 emulator：
 

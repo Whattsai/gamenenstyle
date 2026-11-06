@@ -1,5 +1,15 @@
 # AI 工作階段與交付
 
+## MatchingSessions 驗證入口（2026-11-06）
+
+手動測試可用`npm run game:list:local`及`npm run game:end:local -- --round-id UUID`結束指定本地房間。CLI測試使用`node --test tests/integration/local-game-maintenance.test.mjs`；參與者數不符或零列更新／釋放必須真D1整批回滾。它保留永久pair歷史，不代替Story的MS-ET-017。探索卡婉拒追加驗證可設Android `DATINGHIGH_MATCHING_NATIVE_GROUP=card`，其XML仍只留RAM。
+
+`npm --prefix cloudflare test -- matching-sessions-d1.integration.test.ts` 驗真 SQL／R2／故障注入；`dotnet test backend/tests/DatingHigh.Api.Tests/DatingHigh.Api.Tests.csproj --filter FullyQualifiedName~Matching` 驗 HTTP 及真 D1 串接；`npm --prefix frontend/client test -- matching-sessions.test.tsx` 驗共用 UI。完整模組回歸仍使用下方既有命令。
+
+Web 先 export 與 build:e2e-host，再 `npx playwright test --config tests/playwright.config.ts matching-sessions.spec.ts`；本套使用獨立真 Application／Miniflare D1，與 `node --test tests/integration/matching-sessions-live.test.mjs` 的實際 Worker／Container 證據分開。Android 先建 E2E host，明確指定本專案 QA device／ADB port，再執行 `node tests/e2e/android/matching-sessions.mjs`；會建立自有8084 Metro與獨立測試 host，結束時自行收掉。可設 `DATINGHIGH_MATCHING_NATIVE_GROUP=basic`、`extended`、`routing` 分組依序跑，每組完整建立／清理自有host；default為all。一般8082 Metro不受影響。受控到期／斷線不可當成72小時真人等待或雲端證據；產品退出的完整 E2E 仍由後續 Story SPEC 承接。
+
+逐項追溯以 `node tools/audit-matching-traceability.mjs` 檢查，不代替測試執行；`--write`依已明列覆核結果重建JSON／勾選，需三組Android證據。最新命令結果與MS-ET-017後續Story界線見MatchingSessions Verification。
+
 ## 2026-11-05 修訂驗證原則
 
 兩表27欄及0003、性別／性向／分享白名單用真Miniflare D1證明升級與原子性；HTTP fixture仍僅證HTTP。獨立名片頁每次重讀已過濾資料，UI測關閉照片無請求、預覽前儲存失敗不導頁、下拉與返回捨棄確認。2026-11-04原Android／Web結案不擴推本次追加修訂；依同日Verification逐平台記錄。記憶體壓力下依序跑模組，逾時／ECONNRESET不可記通過。

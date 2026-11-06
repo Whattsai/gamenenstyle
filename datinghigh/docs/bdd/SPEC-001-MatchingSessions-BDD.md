@@ -1,7 +1,7 @@
 # SPEC-001-MatchingSessions — BDD 場景規格
 
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)；**已確認 SDD**：[SPEC-001-MatchingSessions](../specs/SPEC-001-MatchingSessions.md)（Q1～Q4、RQ-01=A、RQ-02=A；2026-11-06四表架構及邀請沿用決策）
-> **日期**：2026-11-06；**規劃狀態**：已生成、實作尚未開始；iOS 暫緩、無障礙專項不在本 MVP 範圍。
+> **日期**：2026-11-06；**規劃狀態**：本輪本地責任實作及驗收完成；iOS 暫緩、無障礙專項不在本 MVP 範圍。
 
 ## Feature 描述
 
@@ -9,10 +9,10 @@ Feature：根據雙方適格性及年齡／地區／興趣生活契合度，安�
 
 ## 前端 UX 與規劃進度
 
-- 整體 BDD：**0/75** 驗收完成（0%）；本文件生成不代表已實作。
-- 前端 UX：**0/18** 完成；Web／Android均尚未驗收。
-- 追溯：每項 `MS-AC-001～014` 都有獨立場景；BDD 場景對應 TDD 至少兩項不同層級的待實作測試。
-- 界線：`StoryDialogueAndExit` 才負責真正的遊戲結束入口，本份在規劃時驗證預留的原子終止契約，未宣稱已完成後續模組。
+- 整體 BDD：**75/75** 完整業務斷言覆核（100%）；結束相關場景只含本份內部契約。
+- 前端 UX：**18/18** 完成；Web／Android已各別驗證。
+- 追溯：每項 `MS-AC-001～014` 都有獨立場景；BDD 場景對應 TDD 至少兩項不同層級的測試／完整斷言證據。
+- 界線：`StoryDialogueAndExit` 才負責真正的遊戲結束入口，本份已以真D1驗證內部原子終止契約，未宣稱已完成後續模組。
 
 ## Background（共同前提）
 
@@ -30,7 +30,7 @@ Feature: 條件契合配對與雙方確認
 
 ### MS-BDD-001：資料完成即可被探索
 
-- [ ] **Scenario: 資料完成即可被探索**
+- [x] **Scenario: 資料完成即可被探索**
   **SPEC 對應**：`MS-AC-005`；**優先級**：critical；**標籤**：@smoke @happy-path @critical
 
 ```gherkin
@@ -44,7 +44,7 @@ Scenario: MS-BDD-001 資料完成即可被探索
 
 ### MS-BDD-002：雙方以同一契合分數排序
 
-- [ ] **Scenario: 雙方以同一契合分數排序**
+- [x] **Scenario: 雙方以同一契合分數排序**
   **SPEC 對應**：`MS-AC-001`；**優先級**：critical；**標籤**：@smoke @happy-path @critical
 
 ```gherkin
@@ -58,7 +58,7 @@ Scenario: MS-BDD-002 雙方以同一契合分數排序
 
 ### MS-BDD-003：年齡不符合偏好也不淘汰
 
-- [ ] **Scenario: 年齡不符合偏好也不淘汰**
+- [x] **Scenario: 年齡不符合偏好也不淘汰**
   **SPEC 對應**：`MS-AC-003`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -72,7 +72,7 @@ Scenario: MS-BDD-003 年齡不符合偏好也不淘汰
 
 ### MS-BDD-004：地區距離只扣分不封鎖
 
-- [ ] **Scenario: 地區距離只扣分不封鎖**
+- [x] **Scenario: 地區距離只扣分不封鎖**
   **SPEC 對應**：`MS-AC-003`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -86,7 +86,7 @@ Scenario: MS-BDD-004 地區距離只扣分不封鎖
 
 ### MS-BDD-005：雙向性別性向相容才互配
 
-- [ ] **Scenario: 雙向性別性向相容才互配**
+- [x] **Scenario: 雙向性別性向相容才互配**
   **SPEC 對應**：`MS-AC-002`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -100,7 +100,7 @@ Scenario: MS-BDD-005 雙向性別性向相容才互配
 
 ### MS-BDD-006：一方邀請只建立待回覆
 
-- [ ] **Scenario: 一方邀請只建立待回覆**
+- [x] **Scenario: 一方邀請只建立待回覆**
   **SPEC 對應**：`MS-AC-006`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -114,7 +114,7 @@ Scenario: MS-BDD-006 一方邀請只建立待回覆
 
 ### MS-BDD-007：接收者接受後建立唯一遊戲
 
-- [ ] **Scenario: 接收者接受後建立唯一遊戲**
+- [x] **Scenario: 接收者接受後建立唯一遊戲**
   **SPEC 對應**：`MS-AC-007`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -128,7 +128,7 @@ Scenario: MS-BDD-007 接收者接受後建立唯一遊戲
 
 ### MS-BDD-008：反向主動邀請視為第二次同意
 
-- [ ] **Scenario: 反向主動邀請視為第二次同意**
+- [x] **Scenario: 反向主動邀請視為第二次同意**
   **SPEC 對應**：`MS-AC-007`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -142,7 +142,7 @@ Scenario: MS-BDD-008 反向主動邀請視為第二次同意
 
 ### MS-BDD-009：明確婉拒永久排除這一對
 
-- [ ] **Scenario: 明確婉拒永久排除這一對**
+- [x] **Scenario: 明確婉拒永久排除這一對**
   **SPEC 對應**：`MS-AC-008`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -156,7 +156,7 @@ Scenario: MS-BDD-009 明確婉拒永久排除這一對
 
 ### MS-BDD-010：取消邀請不構成永久拒絕
 
-- [ ] **Scenario: 取消邀請不構成永久拒絕**
+- [x] **Scenario: 取消邀請不構成永久拒絕**
   **SPEC 對應**：`MS-AC-006`；**優先級**：normal；**標籤**：@happy-path @normal
 
 ```gherkin
@@ -170,7 +170,7 @@ Scenario: MS-BDD-010 取消邀請不構成永久拒絕
 
 ### MS-BDD-011：72小時未回覆不構成永久拒絕
 
-- [ ] **Scenario: 72小時未回覆不構成永久拒絕**
+- [x] **Scenario: 72小時未回覆不構成永久拒絕**
   **SPEC 對應**：`MS-AC-006`；**優先級**：normal；**標籤**：@happy-path @normal
 
 ```gherkin
@@ -184,7 +184,7 @@ Scenario: MS-BDD-011 72小時未回覆不構成永久拒絕
 
 ### MS-BDD-012：遊戲結束恢復與其他人配對
 
-- [ ] **Scenario: 遊戲結束恢復與其他人配對**
+- [x] **Scenario: 遊戲結束恢復與其他人配對**
   **SPEC 對應**：`MS-AC-010`；**優先級**：critical；**標籤**：@happy-path @critical
 
 ```gherkin
@@ -201,7 +201,7 @@ Scenario: MS-BDD-012 遊戲結束恢復與其他人配對
 
 ### MS-BDD-013：雙方都沒填年齡與地區偏好
 
-- [ ] **Scenario: 雙方都沒填年齡與地區偏好**
+- [x] **Scenario: 雙方都沒填年齡與地區偏好**
   **SPEC 對應**：`MS-AC-004`；**優先級**：normal；**標籤**：@alternative-path @normal
 
 ```gherkin
@@ -215,7 +215,7 @@ Scenario: MS-BDD-013 雙方都沒填年齡與地區偏好
 
 ### MS-BDD-014：只有A設定年齡偏好
 
-- [ ] **Scenario: 只有A設定年齡偏好**
+- [x] **Scenario: 只有A設定年齡偏好**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@alternative-path @critical
 
 ```gherkin
@@ -229,7 +229,7 @@ Scenario: MS-BDD-014 只有A設定年齡偏好
 
 ### MS-BDD-015：只有B設定地區偏好
 
-- [ ] **Scenario: 只有B設定地區偏好**
+- [x] **Scenario: 只有B設定地區偏好**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@alternative-path @critical
 
 ```gherkin
@@ -243,7 +243,7 @@ Scenario: MS-BDD-015 只有B設定地區偏好
 
 ### MS-BDD-016：對方未提供所在地區
 
-- [ ] **Scenario: 對方未提供所在地區**
+- [x] **Scenario: 對方未提供所在地區**
   **SPEC 對應**：`MS-AC-003`；**優先級**：normal；**標籤**：@alternative-path @normal
 
 ```gherkin
@@ -257,7 +257,7 @@ Scenario: MS-BDD-016 對方未提供所在地區
 
 ### MS-BDD-017：多個偏好地區選距離最近者
 
-- [ ] **Scenario: 多個偏好地區選距離最近者**
+- [x] **Scenario: 多個偏好地區選距離最近者**
   **SPEC 對應**：`MS-AC-003`；**優先級**：normal；**標籤**：@alternative-path @normal
 
 ```gherkin
@@ -271,7 +271,7 @@ Scenario: MS-BDD-017 多個偏好地區選距離最近者
 
 ### MS-BDD-018：沒有共同標籤仍可得分
 
-- [ ] **Scenario: 沒有共同標籤仍可得分**
+- [x] **Scenario: 沒有共同標籤仍可得分**
   **SPEC 對應**：`MS-AC-004`；**優先級**：normal；**標籤**：@alternative-path @normal
 
 ```gherkin
@@ -285,7 +285,7 @@ Scenario: MS-BDD-018 沒有共同標籤仍可得分
 
 ### MS-BDD-019：等待期間可同時收到不同邀請
 
-- [ ] **Scenario: 等待期間可同時收到不同邀請**
+- [x] **Scenario: 等待期間可同時收到不同邀請**
   **SPEC 對應**：`MS-AC-009`；**優先級**：critical；**標籤**：@alternative-path @critical
 
 ```gherkin
@@ -299,7 +299,7 @@ Scenario: MS-BDD-019 等待期間可同時收到不同邀請
 
 ### MS-BDD-020：修改個人偏好後重算排序
 
-- [ ] **Scenario: 修改個人偏好後重算排序**
+- [x] **Scenario: 修改個人偏好後重算排序**
   **SPEC 對應**：`MS-AC-004`；**優先級**：normal；**標籤**：@alternative-path @normal
 
 ```gherkin
@@ -313,7 +313,7 @@ Scenario: MS-BDD-020 修改個人偏好後重算排序
 
 ### MS-BDD-021：遊戲結束後第三人的邀請可重新發起
 
-- [ ] **Scenario: 遊戲結束後第三人的邀請可重新發起**
+- [x] **Scenario: 遊戲結束後第三人的邀請可重新發起**
   **SPEC 對應**：`MS-AC-009`；**優先級**：critical；**標籤**：@alternative-path @critical
 
 ```gherkin
@@ -330,7 +330,7 @@ Scenario: MS-BDD-021 遊戲結束後第三人的邀請可重新發起
 
 ### MS-BDD-022：成年生日界線依台灣日期
 
-- [ ] **Scenario: 成年生日界線依台灣日期**
+- [x] **Scenario: 成年生日界線依台灣日期**
   **SPEC 對應**：`MS-AC-002`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -344,7 +344,7 @@ Scenario: MS-BDD-022 成年生日界線依台灣日期
 
 ### MS-BDD-023：偏好閉區間端點給滿分
 
-- [ ] **Scenario: 偏好閉區間端點給滿分**
+- [x] **Scenario: 偏好閉區間端點給滿分**
   **SPEC 對應**：`MS-AC-003`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -358,7 +358,7 @@ Scenario: MS-BDD-023 偏好閉區間端點給滿分
 
 ### MS-BDD-024：年齡超出一歲扣五分
 
-- [ ] **Scenario: 年齡超出一歲扣五分**
+- [x] **Scenario: 年齡超出一歲扣五分**
   **SPEC 對應**：`MS-AC-003`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -372,7 +372,7 @@ Scenario: MS-BDD-024 年齡超出一歲扣五分
 
 ### MS-BDD-025：年齡差二十歲扣至零
 
-- [ ] **Scenario: 年齡差二十歲扣至零**
+- [x] **Scenario: 年齡差二十歲扣至零**
   **SPEC 對應**：`MS-AC-003`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -386,7 +386,7 @@ Scenario: MS-BDD-025 年齡差二十歲扣至零
 
 ### MS-BDD-026：同一地區代碼距離為零
 
-- [ ] **Scenario: 同一地區代碼距離為零**
+- [x] **Scenario: 同一地區代碼距離為零**
   **SPEC 對應**：`MS-AC-003`；**優先級**：normal；**標籤**：@edge-case @normal
 
 ```gherkin
@@ -400,7 +400,7 @@ Scenario: MS-BDD-026 同一地區代碼距離為零
 
 ### MS-BDD-027：距離150公里地區分量約37
 
-- [ ] **Scenario: 距離150公里地區分量約37**
+- [x] **Scenario: 距離150公里地區分量約37**
   **SPEC 對應**：`MS-AC-003`；**優先級**：normal；**標籤**：@edge-case @normal
 
 ```gherkin
@@ -414,7 +414,7 @@ Scenario: MS-BDD-027 距離150公里地區分量約37
 
 ### MS-BDD-028：雙方年齡評價不同仍共用一分
 
-- [ ] **Scenario: 雙方年齡評價不同仍共用一分**
+- [x] **Scenario: 雙方年齡評價不同仍共用一分**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -428,7 +428,7 @@ Scenario: MS-BDD-028 雙方年齡評價不同仍共用一分
 
 ### MS-BDD-029：雙方地區偏好取兩向平均
 
-- [ ] **Scenario: 雙方地區偏好取兩向平均**
+- [x] **Scenario: 雙方地區偏好取兩向平均**
   **SPEC 對應**：`MS-AC-004`；**優先級**：normal；**標籤**：@edge-case @normal
 
 ```gherkin
@@ -442,7 +442,7 @@ Scenario: MS-BDD-029 雙方地區偏好取兩向平均
 
 ### MS-BDD-030：共同興趣權重零只看生活
 
-- [ ] **Scenario: 共同興趣權重零只看生活**
+- [x] **Scenario: 共同興趣權重零只看生活**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -456,7 +456,7 @@ Scenario: MS-BDD-030 共同興趣權重零只看生活
 
 ### MS-BDD-031：共同興趣權重滿分只看興趣
 
-- [ ] **Scenario: 共同興趣權重滿分只看興趣**
+- [x] **Scenario: 共同興趣權重滿分只看興趣**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -470,7 +470,7 @@ Scenario: MS-BDD-031 共同興趣權重滿分只看興趣
 
 ### MS-BDD-032：所有分量最後才四捨五入
 
-- [ ] **Scenario: 所有分量最後才四捨五入**
+- [x] **Scenario: 所有分量最後才四捨五入**
   **SPEC 對應**：`MS-AC-004`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -484,7 +484,7 @@ Scenario: MS-BDD-032 所有分量最後才四捨五入
 
 ### MS-BDD-033：恰好72小時邀請已過期
 
-- [ ] **Scenario: 恰好72小時邀請已過期**
+- [x] **Scenario: 恰好72小時邀請已過期**
   **SPEC 對應**：`MS-AC-006`；**優先級**：critical；**標籤**：@edge-case @critical
 
 ```gherkin
@@ -501,7 +501,7 @@ Scenario: MS-BDD-033 恰好72小時邀請已過期
 
 ### MS-BDD-034：單向性向相容不能配對
 
-- [ ] **Scenario: 單向性向相容不能配對**
+- [x] **Scenario: 單向性向相容不能配對**
   **SPEC 對應**：`MS-AC-002`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -515,7 +515,7 @@ Scenario: MS-BDD-034 單向性向相容不能配對
 
 ### MS-BDD-035：個人資料不就緒不能探索
 
-- [ ] **Scenario: 個人資料不就緒不能探索**
+- [x] **Scenario: 個人資料不就緒不能探索**
   **SPEC 對應**：`MS-AC-002`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -529,7 +529,7 @@ Scenario: MS-BDD-035 個人資料不就緒不能探索
 
 ### MS-BDD-036：正在遊戲的人不得再次被探索
 
-- [ ] **Scenario: 正在遊戲的人不得再次被探索**
+- [x] **Scenario: 正在遊戲的人不得再次被探索**
   **SPEC 對應**：`MS-AC-009`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -543,7 +543,7 @@ Scenario: MS-BDD-036 正在遊戲的人不得再次被探索
 
 ### MS-BDD-037：被婉拒的pair反向也不能再邀
 
-- [ ] **Scenario: 被婉拒的pair反向也不能再邀**
+- [x] **Scenario: 被婉拒的pair反向也不能再邀**
   **SPEC 對應**：`MS-AC-008`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -557,7 +557,7 @@ Scenario: MS-BDD-037 被婉拒的pair反向也不能再邀
 
 ### MS-BDD-038：曾結束遊戲不能重新配對
 
-- [ ] **Scenario: 曾結束遊戲不能重新配對**
+- [x] **Scenario: 曾結束遊戲不能重新配對**
   **SPEC 對應**：`MS-AC-010`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -572,7 +572,7 @@ Scenario: MS-BDD-038 曾結束遊戲不能重新配對
 
 ### MS-BDD-039：開始遊戲時第三方邀請失效
 
-- [ ] **Scenario: 開始遊戲時第三方邀請失效**
+- [x] **Scenario: 開始遊戲時第三方邀請失效**
   **SPEC 對應**：`MS-AC-009`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -586,7 +586,7 @@ Scenario: MS-BDD-039 開始遊戲時第三方邀請失效
 
 ### MS-BDD-040：不同pair共用一人同時接受只准一場
 
-- [ ] **Scenario: 不同pair共用一人同時接受只准一場**
+- [x] **Scenario: 不同pair共用一人同時接受只准一場**
   **SPEC 對應**：`MS-AC-011`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -600,7 +600,7 @@ Scenario: MS-BDD-040 不同pair共用一人同時接受只准一場
 
 ### MS-BDD-041：同一對雙向競爭不建立兩個房間
 
-- [ ] **Scenario: 同一對雙向競爭不建立兩個房間**
+- [x] **Scenario: 同一對雙向競爭不建立兩個房間**
   **SPEC 對應**：`MS-AC-011`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -614,7 +614,7 @@ Scenario: MS-BDD-041 同一對雙向競爭不建立兩個房間
 
 ### MS-BDD-042：冪等鍵重送不增加邀請
 
-- [ ] **Scenario: 冪等鍵重送不增加邀請**
+- [x] **Scenario: 冪等鍵重送不增加邀請**
   **SPEC 對應**：`MS-AC-011`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -627,7 +627,7 @@ Scenario: MS-BDD-042 冪等鍵重送不增加邀請
 ```
 
 ### MS-BDD-043：已建立邀請不因後續性向修改而失效
-- [ ] **Scenario: 已建立邀請不因後續性向修改而失效**
+- [x] **Scenario: 已建立邀請不因後續性向修改而失效**
   **SPEC 對應**：`MS-AC-012`、`MS-AC-009`；**優先級**：critical；**標籤**：@alternative @critical
 ```gherkin
 @alternative @critical
@@ -642,7 +642,7 @@ Scenario: MS-BDD-043 已建立邀請不因後續性向修改而失效
 
 ### MS-BDD-044：已撤銷Session不能接受
 
-- [ ] **Scenario: 已撤銷Session不能接受**
+- [x] **Scenario: 已撤銷Session不能接受**
   **SPEC 對應**：`MS-AC-012`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -656,7 +656,7 @@ Scenario: MS-BDD-044 已撤銷Session不能接受
 
 ### MS-BDD-045：D1中途失敗全部回滾
 
-- [ ] **Scenario: D1中途失敗全部回滾**
+- [x] **Scenario: D1中途失敗全部回滾**
   **SPEC 對應**：`MS-AC-007`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -670,7 +670,7 @@ Scenario: MS-BDD-045 D1中途失敗全部回滾
 
 ### MS-BDD-046：猜邀請或輪次ID不能越權
 
-- [ ] **Scenario: 猜邀請或輪次ID不能越權**
+- [x] **Scenario: 猜邀請或輪次ID不能越權**
   **SPEC 對應**：`MS-AC-012`；**優先級**：critical；**標籤**：@error-handling @critical
 
 ```gherkin
@@ -684,7 +684,7 @@ Scenario: MS-BDD-046 猜邀請或輪次ID不能越權
 
 ### MS-BDD-047：邀請超過速率限制遭拒
 
-- [ ] **Scenario: 邀請超過速率限制遭拒**
+- [x] **Scenario: 邀請超過速率限制遭拒**
   **SPEC 對應**：`MS-AC-012`；**優先級**：normal；**標籤**：@error-handling @normal
 
 ```gherkin
@@ -698,7 +698,7 @@ Scenario: MS-BDD-047 邀請超過速率限制遭拒
 
 ### MS-BDD-048：嚴格JSON拒絕未知或重複鍵
 
-- [ ] **Scenario: 嚴格JSON拒絕未知或重複鍵**
+- [x] **Scenario: 嚴格JSON拒絕未知或重複鍵**
   **SPEC 對應**：`MS-AC-012`；**優先級**：normal；**標籤**：@error-handling @normal
 
 ```gherkin
@@ -715,7 +715,7 @@ Scenario: MS-BDD-048 嚴格JSON拒絕未知或重複鍵
 
 ### MS-BDD-049：配對頁初始載入顯示安全候選卡
 
-- [ ] **Scenario: 配對頁初始載入顯示安全候選卡**
+- [x] **Scenario: 配對頁初始載入顯示安全候選卡**
   **SPEC 對應**：`MS-AC-005`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -730,7 +730,7 @@ Scenario: MS-BDD-049 配對頁初始載入顯示安全候選卡
 
 ### MS-BDD-050：沒有對象時呈現空狀態
 
-- [ ] **Scenario: 沒有對象時呈現空狀態**
+- [x] **Scenario: 沒有對象時呈現空狀態**
   **SPEC 對應**：`MS-AC-005`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -744,7 +744,7 @@ Scenario: MS-BDD-050 沒有對象時呈現空狀態
 
 ### MS-BDD-051：發起邀請後顯示等待
 
-- [ ] **Scenario: 發起邀請後顯示等待**
+- [x] **Scenario: 發起邀請後顯示等待**
   **SPEC 對應**：`MS-AC-006`；**優先級**：critical；**標籤**：@frontend @critical @frontend
 
 ```gherkin
@@ -758,13 +758,14 @@ Scenario: MS-BDD-051 發起邀請後顯示等待
 
 ### MS-BDD-052：婉拒前先明示永遠不再配對
 
-- [ ] **Scenario: 婉拒前先明示永遠不再配對**
+- [x] **Scenario: 婉拒前先明示永遠不再配對**
   **SPEC 對應**：`MS-AC-008`；**優先級**：critical；**標籤**：@frontend @critical @frontend
 
 ```gherkin
 @frontend @critical @frontend
 Scenario: MS-BDD-052 婉拒前先明示永遠不再配對
   Given B收到A的pending邀請
+  And B可從探索卡或收到的邀請清單選擇婉拒
   When B點婉拒
   Then 顯示婉拒後你們將無法再次互相配對
   And 只有B確認後才送出decline
@@ -772,7 +773,7 @@ Scenario: MS-BDD-052 婉拒前先明示永遠不再配對
 
 ### MS-BDD-053：取消邀請顯示非永久拒絕
 
-- [ ] **Scenario: 取消邀請顯示非永久拒絕**
+- [x] **Scenario: 取消邀請顯示非永久拒絕**
   **SPEC 對應**：`MS-AC-006`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -786,7 +787,7 @@ Scenario: MS-BDD-053 取消邀請顯示非永久拒絕
 
 ### MS-BDD-054：逾期邀請顯示已逾期
 
-- [ ] **Scenario: 逾期邀請顯示已逾期**
+- [x] **Scenario: 逾期邀請顯示已逾期**
   **SPEC 對應**：`MS-AC-006`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -800,7 +801,7 @@ Scenario: MS-BDD-054 逾期邀請顯示已逾期
 
 ### MS-BDD-055：接受成功兩端導向同一場遊戲
 
-- [ ] **Scenario: 接受成功兩端導向同一場遊戲**
+- [x] **Scenario: 接受成功兩端導向同一場遊戲**
   **SPEC 對應**：`MS-AC-007`；**優先級**：critical；**標籤**：@frontend @critical @frontend
 
 ```gherkin
@@ -814,7 +815,7 @@ Scenario: MS-BDD-055 接受成功兩端導向同一場遊戲
 
 ### MS-BDD-056：遊戲中配對入口被阻擋
 
-- [ ] **Scenario: 遊戲中配對入口被阻擋**
+- [x] **Scenario: 遊戲中配對入口被阻擋**
   **SPEC 對應**：`MS-AC-009`；**優先級**：critical；**標籤**：@frontend @critical @frontend
 
 ```gherkin
@@ -828,7 +829,7 @@ Scenario: MS-BDD-056 遊戲中配對入口被阻擋
 
 ### MS-BDD-057：第三方收到的邀請會顯示失效
 
-- [ ] **Scenario: 第三方收到的邀請依原因顯示安全文案**
+- [x] **Scenario: 第三方收到的邀請依原因顯示安全文案**
   **SPEC 對應**：`MS-AC-009`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -850,7 +851,7 @@ Examples:
 
 ### MS-BDD-058：切換裝置後恢復真配對狀態
 
-- [ ] **Scenario: 切換裝置後恢復真配對狀態**
+- [x] **Scenario: 切換裝置後恢復真配對狀態**
   **SPEC 對應**：`MS-AC-013`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -864,7 +865,7 @@ Scenario: MS-BDD-058 切換裝置後恢復真配對狀態
 
 ### MS-BDD-059：網路中斷時不假裝邀請成功
 
-- [ ] **Scenario: 網路中斷時不假裝邀請成功**
+- [x] **Scenario: 網路中斷時不假裝邀請成功**
   **SPEC 對應**：`MS-AC-013`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -878,7 +879,7 @@ Scenario: MS-BDD-059 網路中斷時不假裝邀請成功
 
 ### MS-BDD-060：連點邀請按鈕不得重複發送
 
-- [ ] **Scenario: 連點邀請按鈕不得重複發送**
+- [x] **Scenario: 連點邀請按鈕不得重複發送**
   **SPEC 對應**：`MS-AC-011`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -892,7 +893,7 @@ Scenario: MS-BDD-060 連點邀請按鈕不得重複發送
 
 ### MS-BDD-061：分頁及同分排序穩定
 
-- [ ] **Scenario: 分頁及同分排序穩定**
+- [x] **Scenario: 分頁及同分排序穩定**
   **SPEC 對應**：`MS-AC-001`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -906,7 +907,7 @@ Scenario: MS-BDD-061 分頁及同分排序穩定
 
 ### MS-BDD-062：配對成功仍不可直接看真人照
 
-- [ ] **Scenario: 配對成功仍不可直接看真人照**
+- [x] **Scenario: 配對成功仍不可直接看真人照**
   **SPEC 對應**：`MS-AC-014`；**優先級**：critical；**標籤**：@frontend @critical @frontend
 
 ```gherkin
@@ -920,7 +921,7 @@ Scenario: MS-BDD-062 配對成功仍不可直接看真人照
 
 ### MS-BDD-063：資料尚未完成提供返回設定入口
 
-- [ ] **Scenario: 資料尚未完成提供返回設定入口**
+- [x] **Scenario: 資料尚未完成提供返回設定入口**
   **SPEC 對應**：`MS-AC-002`；**優先級**：normal；**標籤**：@frontend @normal
 
 ```gherkin
@@ -935,7 +936,7 @@ Scenario: MS-BDD-063 資料尚未完成提供返回設定入口
 ## 2026-11-06 補強場景：資料表解耦、既有邀請、按需人物卡與重建
 
 ### MS-BDD-064：只有符合配對資格才建立搜尋投影
-- [ ] **Scenario: 只有符合配對資格才建立搜尋投影**
+- [x] **Scenario: 只有符合配對資格才建立搜尋投影**
   **SPEC 對應**：`MS-AC-005`；**優先級**：critical；**標籤**：@happy-path @critical
 ```gherkin
 @happy-path @critical
@@ -948,7 +949,7 @@ Scenario: MS-BDD-064 只有符合配對資格才建立搜尋投影
 ```
 
 ### MS-BDD-065：失去資格即移除投影但不提前終止遊戲
-- [ ] **Scenario: 失去資格即移除投影但不提前終止遊戲**
+- [x] **Scenario: 失去資格即移除投影但不提前終止遊戲**
   **SPEC 對應**：`MS-AC-005`、`MS-AC-009`；**優先級**：critical；**標籤**：@edge-case @critical
 ```gherkin
 @edge-case @critical
@@ -961,7 +962,7 @@ Scenario: MS-BDD-065 失去資格即移除投影但不提前終止遊戲
 ```
 
 ### MS-BDD-066：既有待決邀請不依賴現行搜尋投影
-- [ ] **Scenario: 既有待決邀請不依賴現行搜尋投影**
+- [x] **Scenario: 既有待決邀請不依賴現行搜尋投影**
   **SPEC 對應**：`MS-AC-007`、`MS-AC-012`；**優先級**：critical；**標籤**：@alternative @critical
 ```gherkin
 @alternative @critical
@@ -974,7 +975,7 @@ Scenario: MS-BDD-066 既有待決邀請不依賴現行搜尋投影
 ```
 
 ### MS-BDD-067：修改性向只影響後續探索與新邀請
-- [ ] **Scenario: 修改性向只影響後續探索與新邀請**
+- [x] **Scenario: 修改性向只影響後續探索與新邀請**
   **SPEC 對應**：`MS-AC-002`、`MS-AC-012`；**優先級**：critical；**標籤**：@alternative @critical
 ```gherkin
 @alternative @critical
@@ -986,7 +987,7 @@ Scenario: MS-BDD-067 修改性向只影響後續探索與新邀請
 ```
 
 ### MS-BDD-068：登入後按Profile與遊戲狀態導引
-- [ ] **Scenario: 登入後按Profile與遊戲狀態導引**
+- [x] **Scenario: 登入後按Profile與遊戲狀態導引**
   **SPEC 對應**：`MS-AC-005`、`MS-AC-009`；**優先級**：critical；**標籤**：@frontend @critical
 ```gherkin
 @frontend @critical
@@ -1002,7 +1003,7 @@ Examples:
 ```
 
 ### MS-BDD-069：先全量排序再按需取安全候選
-- [ ] **Scenario: 先全量排序再按需取安全候選**
+- [x] **Scenario: 先全量排序再按需取安全候選**
   **SPEC 對應**：`MS-AC-001`、`MS-AC-005`、`MS-AC-012`；**優先級**：critical；**標籤**：@frontend @critical
 ```gherkin
 @frontend @critical
@@ -1015,7 +1016,7 @@ Scenario: MS-BDD-069 先全量排序再按需取安全候選
 ```
 
 ### MS-BDD-070：兩個同時接受仍只有一場遊戲
-- [ ] **Scenario: 兩個同時接受仍只有一場遊戲**
+- [x] **Scenario: 兩個同時接受仍只有一場遊戲**
   **SPEC 對應**：`MS-AC-011`；**優先級**：critical；**標籤**：@edge-case @critical
 ```gherkin
 @edge-case @critical
@@ -1027,7 +1028,7 @@ Scenario: MS-BDD-070 兩個同時接受仍只有一場遊戲
 ```
 
 ### MS-BDD-071：遊戲結束不能讓未合格玩家進入候選
-- [ ] **Scenario: 遊戲結束不能讓未合格玩家進入候選**
+- [x] **Scenario: 遊戲結束不能讓未合格玩家進入候選**
   **SPEC 對應**：`MS-AC-009`、`MS-AC-010`；**優先級**：critical；**標籤**：@edge-case @critical
 ```gherkin
 @edge-case @critical
@@ -1039,7 +1040,7 @@ Scenario: MS-BDD-071 遊戲結束不能讓未合格玩家進入候選
 ```
 
 ### MS-BDD-072：原有待決邀請保留方向與回覆入口
-- [ ] **Scenario: 原有待決邀請保留方向與回覆入口**
+- [x] **Scenario: 原有待決邀請保留方向與回覆入口**
   **SPEC 對應**：`MS-AC-006`、`MS-AC-007`；**優先級**：critical；**標籤**：@frontend @critical
 ```gherkin
 @frontend @critical
@@ -1051,7 +1052,7 @@ Scenario: MS-BDD-072 原有待決邀請保留方向與回覆入口
 ```
 
 ### MS-BDD-073：未上線測試環境清除重建而非搬移
-- [ ] **Scenario: 未上線測試環境清除重建而非搬移**
+- [x] **Scenario: 未上線測試環境清除重建而非搬移**
   **SPEC 對應**：`MS-AC-012`；**優先級**：critical；**標籤**：@edge-case @critical
 ```gherkin
 @edge-case @critical
@@ -1064,7 +1065,7 @@ Scenario: MS-BDD-073 未上線測試環境清除重建而非搬移
 ```
 
 ### MS-BDD-075：無關照片排序不影響配對資格
-- [ ] **Scenario: 無關照片排序不影響配對資格**
+- [x] **Scenario: 無關照片排序不影響配對資格**
   **SPEC 對應**：`MS-AC-005`、`MS-AC-012`；**優先級**：critical；**標籤**：@edge-case @critical
 ```gherkin
 @edge-case @critical
@@ -1076,7 +1077,7 @@ Scenario: MS-BDD-075 無關照片排序不影響配對資格
 ```
 
 ### MS-BDD-074：個人資料與搜尋投影不可部分提交
-- [ ] **Scenario: 個人資料與搜尋投影不可部分提交**
+- [x] **Scenario: 個人資料與搜尋投影不可部分提交**
   **SPEC 對應**：`MS-AC-005`、`MS-AC-012`；**優先級**：critical；**標籤**：@error-handling @critical
 ```gherkin
 @error-handling @critical
@@ -1095,7 +1096,7 @@ Scenario: MS-BDD-074 個人資料與搜尋投影不可部分提交
 | 專屬輪次入口 | 雙方確認、重登恢復、禁止未授權名片與真人照 |
 | UX 安全 | Loading／重複點擊、網路不明回覆、陳舊候選刷新、非本人授權 |
 
-**SPEC 補充**：14 項 `MS-AC` 均已映射；原63場景保留ID並修正 BDD-043／045／049／057／061，新補 BDD-064～075 共12項；無暫停探索，原pending不因性向更動失效。新風險與TDD對照見相應 TDD／RiskAudit，未實作。
+**SPEC 補充**：14 項 `MS-AC` 均已映射；原63場景保留ID並修正 BDD-043／045／049／057／061，新補 BDD-064～075 共12項；無暫停探索，原pending不因性向更動失效。新風險與TDD對照見相應TDD／RiskAudit；逐案執行證據見[Verification](../verification/SPEC-001-MatchingSessions-Verification.md)及[追溯JSON](../verification/matching-sessions-traceability.json)。
 
 ## 相關文件
 
@@ -1104,4 +1105,4 @@ Scenario: MS-BDD-074 個人資料與搜尋投影不可部分提交
 - [TDD](../tdd/SPEC-001-MatchingSessions-TDD.md)
 - [RiskAudit](../specs/SPEC-001-MatchingSessions-RiskAudit.md)
 
-**最後更新**：2026-11-06；**狀態**：已移除配對投影跨表revision綁定，加入無關個資異動不影響探索的驗收；0/75 實作驗收（BDD-057／068 為 Scenario Outline，均各計一個場景 ID）。
+**最後更新**：2026-11-06；**狀態**：已移除配對投影跨表revision綁定，加入無關個資異動不影響探索的驗收；75/75本份業務斷言覆核；完整Story退出E2E仍未驗收（BDD-057／068 為 Scenario Outline，均各計一個場景 ID）。

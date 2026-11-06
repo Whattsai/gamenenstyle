@@ -16,6 +16,8 @@
     "db:migrate:local": "node tools/local.mjs migrate",
     "db:seed:local": "node tools/local.mjs seed",
     "db:query:local": "node tools/local.mjs query",
+    "game:list:local": "node tools/local.mjs query --view games",
+    "game:end:local": "node tools/local.mjs game-end",
     "db:execute:local": "node tools/local.mjs execute",
     "db:backup:local": "node tools/local.mjs backup",
     "db:restore:local": "node tools/local.mjs restore",

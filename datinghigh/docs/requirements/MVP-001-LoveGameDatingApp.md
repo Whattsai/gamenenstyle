@@ -18,7 +18,7 @@
 **功能 ID**: MVP-001
 **優先級**: 高
 **狀態**: PlatformFoundation已有本地實作／驗收；AvatarAndPreferences已進入well-done，真Gemini、私人媒體及Web／Android已有證據，逐項覆核持續進行。現況見[驗證紀錄](../verification/SPEC-001-AvatarAndPreferences-Verification.md)；八份SPEC切分不變。
-**最後更新**: 2026-11-06（D-053 繼續有效；MatchingSessions Q1～Q4、RQ-01=A、RQ-02=A 與本日四表／邀請沿用／未上線清空重建決策已確認；BDD 75場景、TDD 174待實作；D-051／D-052 不變）
+**最後更新**: 2026-11-06（D-053 繼續有效；MatchingSessions Q1～Q4、RQ-01=A、RQ-02=A 與本日四表／邀請沿用／未上線清空重建決策已確認；BDD 75場景、TDD本輪173/173、完整173/174已覆核；D-051／D-052 不變）
 **規劃範圍**: `datinghigh`；八份 SPEC 切分與 PlatformFoundation 既有交接不變。本次依 D-036～D-050 更新個人資料／化身／名片來源、`user_` 前綴命名、兩表精簡、不使用 SQL Trigger、AI 第三方照片用途提醒、統一 3:4 半身立繪及逐張生成決策，由 `SPEC-001-AvatarAndPreferences` 承接；使用者已確認整份 SDD 與 RiskAudit，完成 BDD／TDD／RiskAudit 與 Ready for well-done 規劃交接；此段為原規劃交接背景；後續實作與驗收狀態見上方驗證紀錄。當前範圍另受D-051／D-052約束。
 
 ## 2026-11-05 配對規劃決策（MVP-001／SPEC-001-MatchingSessions）
@@ -40,7 +40,7 @@
 - 候選先從 match_conditions 篩 ready、雙向性向，NOT EXISTS 查 declined／ended／遊戲占用，pending 必須區分 incoming 可接受與 outgoing 等候。對全部合格候選先計分排序再分頁，清單只回ID、分數及狀態；畫面再按需取得安全人物卡（預取少量），避免一次取得全部對象資訊。
 - 本次新增**登入後導引**：Profile 未完成→個人資料、已開始遊戲→目前遊戲、完成且空閒→探索；API 不明→重試，不假設已 ready。此為待開發 UX，不代表目前已實作。
 - 尚未上線，不規劃舊Schema轉新Schema的資料搬移、ETL或線上相容。待well-done 實作時，僅針對已確認屬DatingHigh的非正式測試環境清除舊測試資料並重建 schema／測資，私有 R2 測試媒體一併核對；本次規劃**不立即刪除任何資料**，不准操作未知遠端或正式環境。
-- 此次追加決策同步於 SPEC-001-MatchingSessions、BDD、TDD、RiskAudit；目前 **BDD 75 場景、TDD 174 項，尚未實作或驗收**，Ready for well-done 僅代表文件規劃交接。
+- 此次追加決策同步於 SPEC-001-MatchingSessions、BDD、TDD、RiskAudit；目前 **BDD 75/75、TDD 173/174（本輪173/173）已逐案覆核**；完整Story退出E2E仍未驗，命令與平台證據見[MatchingSessions Verification](../verification/SPEC-001-MatchingSessions-Verification.md)。Ready for well-done保留作原規劃交接紀錄。
 - `MS-D-064`（2026-11-06）：使用者確認不需要 match_conditions.source_profile_revision；符合資格才有搜尋列，不因 user_profiles 中無關資料的 revision 變動而同步／排除。配對條件異動時才重判資格並同批 UPSERT／DELETE，新增 BDD-075 與 TDD UT-060／IT-064 回歸。
 ## 需求概述
 
@@ -588,7 +588,7 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 - 來源：`datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md`。
 - 進入 SDD 前已依完整名稱檢查文件包，沒有 `SPEC-001-PlatformFoundation` 的進行中或已歸檔文件可沿用，無已歸檔 SPEC 需要跳過。
 - 2026-10-24 使用者確認整份 MVP 與八份 SPEC 的切分順序；D-001 至 D-003 亦已確認。
-- 第一份 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md) 的 SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 與 D-019～D-028 更新認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄）。第二份 [SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md) 於 2026-11-01 納入 Q1～Q7 與追加新需求，已於2026-11-01獲使用者確認 SDD 及 RiskAudit（RQ-01=A、RQ-02=A），並產出 [AvatarAndPreferences BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 與 [RiskAudit](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)，已完成規劃交接 Ready for well-done；第三份 [SPEC-001-MatchingSessions](../specs/SPEC-001-MatchingSessions.md) 已於2026-11-06依最新使用者確認決策完成四表／條件投影／既有邀請沿用／不暫停探索／未上線清除重建／登入導航／按需人物卡規劃；BDD 75場景、TDD 174項、RiskAudit 20項風險均已追溯，`Ready for well-done`（未實作，測試0/174）；其餘五份尚未生成。
+- 第一份 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md) 的 SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 與 D-019～D-028 更新認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄）。第二份 [SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md) 於 2026-11-01 納入 Q1～Q7 與追加新需求，已於2026-11-01獲使用者確認 SDD 及 RiskAudit（RQ-01=A、RQ-02=A），並產出 [AvatarAndPreferences BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 與 [RiskAudit](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)，已完成規劃交接 Ready for well-done；第三份 [SPEC-001-MatchingSessions](../specs/SPEC-001-MatchingSessions.md) 已於2026-11-06依最新使用者確認決策完成四表／條件投影／既有邀請沿用／不暫停探索／未上線清除重建／登入導航／按需人物卡規劃；BDD 75場景、TDD 174項、RiskAudit 20項風險均已追溯，已完成well-done本地責任173/173；完整TDD173/174，Story退出E2E未驗；其餘五份尚未生成。
 - [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md) 與 [TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md) 已依 D-019 至 D-028 完成同步精簡重整，定稿為 **92 個唯一 BDD 場景**（含 25 個 `@frontend`；`PF-BDD-006`、`PF-BDD-073` 已依 D-023 移除不重編）與 **227 個唯一 TDD 測試案例**（117 Unit、35 Integration、51 API、24 E2E；`PF-API-007..009` 已依 D-023 移除不重編），100% 雙向追溯；實作與應用測試進度為 0%。
 - [實作前風險稽核](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) 原列 3 高／8 中／2 低及 14 組位置；2026-10-27 依 D-017／D-018 回寫，其後依 D-019 至 D-028 完成全套同步更新（對齊 37 條 `PF-AC`、92 個 BDD 場景、227 個 TDD 案例、17 組端點、6 表 54 欄）：被移除機制對應的項目已改寫為精簡後契約，並納入 Refresh 30 秒寬限重放、背景分頁 409 重讀、Google 非 gmail 網域與單一 HMAC 秘密等取捨說明。Q1／Q2 及現行修訂版均已確認；2026-10-29 交接更新為 `Ready for well-done`，無待使用者確認的產品／風險議題。
 - 2026-10-27 認證修訂僅處理 `SPEC-001-PlatformFoundation`；該次修訂確認後完成交接，不自動規劃下一份 SPEC 或進入程式實作。
@@ -599,7 +599,7 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 
 ## 建議 SPEC 切分
 
-以下切分與實作順序已於 2026-10-24 由使用者確認。所有 SPEC 均繼承來源 MVP 編號 `001`，以不同功能名稱區分；既有 `SPEC-001-PlatformFoundation` 的 SDD／BDD／TDD／風險稽核已交接，第二份 `SPEC-001-AvatarAndPreferences` 的 SDD／BDD／TDD／RiskAudit 已確認及完成規劃交接（Ready for well-done），後續已有本地實作與 Web／Android 驗證紀錄，實際通過範圍須以對應 Verification 為準。第三份 `SPEC-001-MatchingSessions` 已於2026-11-06確認四表分工、性向變更不重驗原邀請、無暫停探索、只對指定非正式測試環境清除重建及按需人物卡；BDD 75場景、TDD 174項（原150＋先前22＋本次2）、RiskAudit 20項風險均已規劃追溯，`Ready for well-done`（尚未實作、測試0/174）；其餘五份SPEC尚未建立。
+以下切分與實作順序已於 2026-10-24 由使用者確認。所有 SPEC 均繼承來源 MVP 編號 `001`，以不同功能名稱區分；既有 `SPEC-001-PlatformFoundation` 的 SDD／BDD／TDD／風險稽核已交接，第二份 `SPEC-001-AvatarAndPreferences` 的 SDD／BDD／TDD／RiskAudit 已確認及完成規劃交接（Ready for well-done），後續已有本地實作與 Web／Android 驗證紀錄，實際通過範圍須以對應 Verification 為準。第三份 `SPEC-001-MatchingSessions` 已於2026-11-06確認四表分工、性向變更不重驗原邀請、無暫停探索、只對指定非正式測試環境清除重建及按需人物卡；BDD 75場景、TDD 174項（原150＋先前22＋本次2）、RiskAudit 20項風險均已規劃追溯，已完成well-done本地責任173/173；完整TDD173/174，Story退出E2E未驗；其餘五份SPEC尚未建立。
 
 | 建議 SPEC | 包含功能 | 建議順序 | 依賴關係 | 說明 |
 |-----------|----------|----------|----------|------|
@@ -1130,7 +1130,7 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 - 來源：`datinghigh/docs/requirements/MVP-001-LoveGameDatingApp.md`。
 - 進入 SDD 前已依完整名稱檢查文件包，沒有 `SPEC-001-PlatformFoundation` 的進行中或已歸檔文件可沿用，無已歸檔 SPEC 需要跳過。
 - 2026-10-24 使用者確認整份 MVP 與八份 SPEC 的切分順序；D-001 至 D-003 亦已確認。
-- 第一份 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md) 的 SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 與 D-019～D-028 更新認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄）。第二份 [SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md) 於 2026-11-01 納入 Q1～Q7 與追加新需求，已於2026-11-01獲使用者確認 SDD 及 RiskAudit（RQ-01=A、RQ-02=A），並產出 [AvatarAndPreferences BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 與 [RiskAudit](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)，已完成規劃交接 Ready for well-done；第三份 [SPEC-001-MatchingSessions](../specs/SPEC-001-MatchingSessions.md) 已於2026-11-06依最新使用者確認決策完成四表／條件投影／既有邀請沿用／不暫停探索／未上線清除重建／登入導航／按需人物卡規劃；BDD 75場景、TDD 174項、RiskAudit 20項風險均已追溯，`Ready for well-done`（未實作，測試0/174）；其餘五份尚未生成。
+- 第一份 [SPEC-001-PlatformFoundation](../specs/SPEC-001-PlatformFoundation.md) 的 SDD 已於 2026-10-25 確認；2026-10-27 依 D-017／D-018 與 D-019～D-028 更新認證機制（37 條 `PF-AC`、17 組公開 API 端點、六表合計 54 欄）。第二份 [SPEC-001-AvatarAndPreferences](../specs/SPEC-001-AvatarAndPreferences.md) 於 2026-11-01 納入 Q1～Q7 與追加新需求，已於2026-11-01獲使用者確認 SDD 及 RiskAudit（RQ-01=A、RQ-02=A），並產出 [AvatarAndPreferences BDD](../bdd/SPEC-001-AvatarAndPreferences-BDD.md)、[TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md) 與 [RiskAudit](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)，已完成規劃交接 Ready for well-done；第三份 [SPEC-001-MatchingSessions](../specs/SPEC-001-MatchingSessions.md) 已於2026-11-06依最新使用者確認決策完成四表／條件投影／既有邀請沿用／不暫停探索／未上線清除重建／登入導航／按需人物卡規劃；BDD 75場景、TDD 174項、RiskAudit 20項風險均已追溯，已完成well-done本地責任173/173；完整TDD173/174，Story退出E2E未驗；其餘五份尚未生成。
 - [BDD](../bdd/SPEC-001-PlatformFoundation-BDD.md) 與 [TDD](../tdd/SPEC-001-PlatformFoundation-TDD.md) 已依 D-019 至 D-028 完成同步精簡重整，定稿為 **92 個唯一 BDD 場景**（含 25 個 `@frontend`；`PF-BDD-006`、`PF-BDD-073` 已依 D-023 移除不重編）與 **227 個唯一 TDD 測試案例**（117 Unit、35 Integration、51 API、24 E2E；`PF-API-007..009` 已依 D-023 移除不重編），100% 雙向追溯；實作與應用測試進度為 0%。
 - [實作前風險稽核](../specs/SPEC-001-PlatformFoundation-RiskAudit.md) 原列 3 高／8 中／2 低及 14 組位置；2026-10-27 依 D-017／D-018 回寫，其後依 D-019 至 D-028 完成全套同步更新（對齊 37 條 `PF-AC`、92 個 BDD 場景、227 個 TDD 案例、17 組端點、6 表 54 欄）：被移除機制對應的項目已改寫為精簡後契約，並納入 Refresh 30 秒寬限重放、背景分頁 409 重讀、Google 非 gmail 網域與單一 HMAC 秘密等取捨說明。Q1／Q2 及現行修訂版均已確認；2026-10-29 交接更新為 `Ready for well-done`，無待使用者確認的產品／風險議題。
 - 2026-10-27 認證修訂僅處理 `SPEC-001-PlatformFoundation`；該次修訂確認後完成交接，不自動規劃下一份 SPEC 或進入程式實作。
@@ -1141,7 +1141,7 @@ D-001 至 D-003 已確認。2026-10-24 使用者以「好 執行」確認當時�
 
 ## 建議 SPEC 切分
 
-以下切分與實作順序已於 2026-10-24 由使用者確認。所有 SPEC 均繼承來源 MVP 編號 `001`，以不同功能名稱區分；既有 `SPEC-001-PlatformFoundation` 的 SDD／BDD／TDD／風險稽核已交接，第二份 `SPEC-001-AvatarAndPreferences` 的 SDD／BDD／TDD／RiskAudit 已確認及完成規劃交接（Ready for well-done），後續已有本地實作與 Web／Android 驗證紀錄，實際通過範圍須以對應 Verification 為準。第三份 `SPEC-001-MatchingSessions` 已於2026-11-06確認四表分工、性向變更不重驗原邀請、無暫停探索、只對指定非正式測試環境清除重建及按需人物卡；BDD 75場景、TDD 174項（原150＋先前22＋本次2）、RiskAudit 20項風險均已規劃追溯，`Ready for well-done`（尚未實作、測試0/174）；其餘五份SPEC尚未建立。
+以下切分與實作順序已於 2026-10-24 由使用者確認。所有 SPEC 均繼承來源 MVP 編號 `001`，以不同功能名稱區分；既有 `SPEC-001-PlatformFoundation` 的 SDD／BDD／TDD／風險稽核已交接，第二份 `SPEC-001-AvatarAndPreferences` 的 SDD／BDD／TDD／RiskAudit 已確認及完成規劃交接（Ready for well-done），後續已有本地實作與 Web／Android 驗證紀錄，實際通過範圍須以對應 Verification 為準。第三份 `SPEC-001-MatchingSessions` 已於2026-11-06確認四表分工、性向變更不重驗原邀請、無暫停探索、只對指定非正式測試環境清除重建及按需人物卡；BDD 75場景、TDD 174項（原150＋先前22＋本次2）、RiskAudit 20項風險均已規劃追溯，已完成well-done本地責任173/173；完整TDD173/174，Story退出E2E未驗；其餘五份SPEC尚未建立。
 
 | 建議 SPEC | 包含功能 | 建議順序 | 依賴關係 | 說明 |
 |-----------|----------|----------|----------|------|

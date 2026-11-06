@@ -4,7 +4,7 @@
  "main":"src/index.ts",
  "compatibility_date":"2026-10-24",
  "compatibility_flags":["nodejs_compat"],
- "vars":{"APP_ENV":"local","WEB_ORIGIN":"http://localhost:8081","ACCESS_TOKEN_ISSUER":"datinghigh-local","ACCESS_TOKEN_AUDIENCE":"datinghigh-local-client","EmailDeliveryMode":"Log","EXPECTED_MIGRATION":"0003_profile_gender_card_visibility.sql"},
+ "vars":{"APP_ENV":"local","WEB_ORIGIN":"http://localhost:8081","ACCESS_TOKEN_ISSUER":"datinghigh-local","ACCESS_TOKEN_AUDIENCE":"datinghigh-local-client","EmailDeliveryMode":"Log","EXPECTED_MIGRATION":"0004_matching_sessions.sql"},
  "assets":{"directory":"../frontend/client/dist","binding":"ASSETS","not_found_handling":"single-page-application","run_worker_first":["/api","/api/*","/health","/health/*","/internal","/internal/*","/v1/commands/*"]},
  "d1_databases":[{"binding":"DB","database_name":"datinghigh-local","database_id":"local-foundation","migrations_dir":"migrations"}],
  "r2_buckets":[{"binding":"FILES","bucket_name":"datinghigh-local-private"}],

@@ -22,7 +22,8 @@ public class RateLimitPolicyTests
     [Fact,Trait("Case","PF-UT-055")]
     public void ResolveRatePolicy_NineAuthenticationEntries_UsesStaticRateLimitPolicies()
     {
-        Assert.Equal(9,RateLimitPolicies.Entries.Count(e=>e.Key.Policy!="avatar_generate.v1"));Assert.Equal((3600000L,8),RateLimitPolicies.Entries[("avatar_generate.v1","account")]);Assert.Equal((3600000L,5),RateLimitPolicies.Entries[("email_code_send.v1","email")]);Assert.Equal((60000L,120),RateLimitPolicies.Entries[("session_refresh.v1","ip")]);Assert.Equal((900000L,10),RateLimitPolicies.Entries[("credential_change.v1","account")]);
+        Assert.Equal(9,RateLimitPolicies.Entries.Count(e=>e.Key.Policy is not("avatar_generate.v1" or "matching_search.v1" or "matching_invite.v1")));Assert.Equal((3600000L,8),RateLimitPolicies.Entries[("avatar_generate.v1","account")]);Assert.Equal((3600000L,5),RateLimitPolicies.Entries[("email_code_send.v1","email")]);Assert.Equal((60000L,120),RateLimitPolicies.Entries[("session_refresh.v1","ip")]);Assert.Equal((900000L,10),RateLimitPolicies.Entries[("credential_change.v1","account")]);
+        Assert.Equal((60000L,30),RateLimitPolicies.Entries[("matching_search.v1","account")]);Assert.Equal((3600000L,10),RateLimitPolicies.Entries[("matching_invite.v1","account")]);
     }
     [Fact,Trait("Case","PF-UT-056")]
     public async Task ConsumeRatePolicy_UnknownPolicySubjectOrClientQuota_RejectsConfiguration()

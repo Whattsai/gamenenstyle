@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test.setTimeout(90000);
 import fs from 'node:fs';
-import {register,password,localCode} from './support';
+import {register,password,localCode,openAccountAfterLogin} from './support';
 
 test('PF-E2E-002 PF-UT-084 PF-UT-116 Web prototype visuals, small viewport, accessible labels and keyboard focus',async({page})=>{
  await page.route('https://accounts.google.com/gsi/client',route=>route.abort('failed'));
@@ -38,7 +38,7 @@ test('PF-E2E-003 real localhost registration, login, refresh and logout retain o
  const email=`chain-${Date.now()}@example.com`;const {result}=await register(page,email);const account=(await result.json()).account.accountId;
  await page.getByRole('button',{name:'登出',exact:true}).click();await expect(page.getByText('已登出',{exact:true}).filter({visible:true})).toBeVisible();await page.getByRole('button',{name:'使用 Email 登入',exact:true}).click();
  await page.getByLabel('Email',{exact:true}).filter({visible:true}).fill(email);await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill(password);const login=page.waitForResponse(r=>r.url().endsWith('/api/v1/sessions')&&r.request().method()==='POST');await page.getByRole('button',{name:'登入',exact:true}).click();const signedIn=await login;expect(signedIn.status()).toBe(201);expect((await signedIn.json()).account.accountId).toBe(account);
- await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();await context.clearCookies({name:'datinghigh_access_dev'});const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/v1/session/refresh')&&r.request().method()==='POST');await page.evaluate(()=>window.dispatchEvent(new Event('focus')));const rotation=await refreshed;expect(rotation.status()).toBe(200);expect((await rotation.json()).account.accountId).toBe(account);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
+ await openAccountAfterLogin(page);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();await context.clearCookies({name:'datinghigh_access_dev'});const refreshed=page.waitForResponse(r=>r.url().endsWith('/api/v1/session/refresh')&&r.request().method()==='POST');await page.evaluate(()=>window.dispatchEvent(new Event('focus')));const rotation=await refreshed;expect(rotation.status()).toBe(200);expect((await rotation.json()).account.accountId).toBe(account);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
  const revoked=page.waitForResponse(r=>r.url().endsWith('/api/v1/session')&&r.request().method()==='DELETE');await page.getByRole('button',{name:'登出',exact:true}).click();expect((await revoked).status()).toBe(204);await expect(page.getByText('已登出',{exact:true}).filter({visible:true})).toBeVisible();expect((await context.cookies('http://localhost:8787')).filter(c=>c.name.startsWith('datinghigh_'))).toHaveLength(0);
 });
 test('PF-E2E-010 changing a password rejects old session and permits only the new password',async({page})=>{
@@ -46,14 +46,14 @@ test('PF-E2E-010 changing a password rejects old session and permits only the ne
  await page.getByLabel('目前密碼',{exact:true}).filter({visible:true}).fill(password);await page.getByLabel('新密碼',{exact:true}).filter({visible:true}).fill('A different password 43!');await page.getByLabel('確認密碼',{exact:true}).filter({visible:true}).fill('A different password 43!');
  await page.getByRole('button',{name:'更新密碼',exact:true}).click();await expect(page.getByText('密碼已更新，所有裝置都需要重新登入',{exact:true}).filter({visible:true})).toBeVisible();
  await page.getByLabel('Email',{exact:true}).filter({visible:true}).fill(email);await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill(password);await page.getByRole('button',{name:'登入',exact:true}).click();await expect(page.getByText('Email 或密碼不正確',{exact:true}).filter({visible:true})).toBeVisible();
- await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill('A different password 43!');await page.getByRole('button',{name:'登入',exact:true}).click();await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
+ await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill('A different password 43!');await page.getByRole('button',{name:'登入',exact:true}).click();await openAccountAfterLogin(page);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
 });
 test('PF-E2E-008 local password reset consumes the code and returns to login',async({page})=>{
  const email=`reset-${Date.now()}@example.com`;await register(page,email);await page.getByRole('button',{name:'登出',exact:true}).click();await page.getByRole('button',{name:'使用 Email 登入',exact:true}).click();await page.getByRole('button',{name:'忘記密碼',exact:true}).click();
  await expect(page.getByRole('heading',{name:'找回你的帳號'})).toBeVisible();await page.getByLabel('Email',{exact:true}).filter({visible:true}).fill(email);const requested=page.waitForResponse(r=>r.url().endsWith('/password-reset-requests')&&r.request().method()==='POST');await page.getByRole('button',{name:'寄送驗證碼',exact:true}).click();const metadata=await (await requested).json();
  await expect(page.getByText(/若此 Email 可處理，將收到驗證碼/)).toBeVisible();await page.getByLabel('六位數驗證碼',{exact:true}).filter({visible:true}).fill(localCode(metadata.challengeId));
  await page.getByLabel('新密碼',{exact:true}).filter({visible:true}).fill('Reset with Email code 44!');await page.getByLabel('確認密碼',{exact:true}).filter({visible:true}).fill('Reset with Email code 44!');await page.getByRole('button',{name:'重設密碼',exact:true}).click();await expect(page.getByText('密碼已重設，請使用新密碼重新登入',{exact:true}).filter({visible:true})).toBeVisible();
- await page.getByLabel('Email',{exact:true}).filter({visible:true}).fill(email);await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill('Reset with Email code 44!');await page.getByRole('button',{name:'登入',exact:true}).click();await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
+ await page.getByLabel('Email',{exact:true}).filter({visible:true}).fill(email);await page.getByLabel('密碼',{exact:true}).filter({visible:true}).fill('Reset with Email code 44!');await page.getByRole('button',{name:'登入',exact:true}).click();await openAccountAfterLogin(page);await expect(page.getByText(email,{exact:true}).filter({visible:true})).toBeVisible();
 });
 test('PF-E2E-014 another device login invalidates the old family on foreground',async({page,browser})=>{
  const email=`single-${Date.now()}@example.com`;const {result}=await register(page,email);const original=(await result.json()).account.accountId;

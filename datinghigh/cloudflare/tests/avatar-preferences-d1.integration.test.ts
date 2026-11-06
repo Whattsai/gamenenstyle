@@ -23,7 +23,7 @@ beforeAll(async () => {
     compatibilityDate: '2026-10-24', d1Databases: { DB: 'avatar-preferences-test' }
   }));
   db = await mf.getD1Database('DB') as unknown as D1Database;
-  for (const migration of ['0001_foundation.sql', '0002_avatar_preferences.sql', '0003_profile_gender_card_visibility.sql']) {
+  for (const migration of ['0001_foundation.sql', '0002_avatar_preferences.sql', '0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql']) {
     const sql = readFileSync(new URL(`../migrations/${migration}`, import.meta.url), 'utf8');
     await db.batch(sql.split(';').map(s => s.trim()).filter(Boolean).map(s => db.prepare(s)));
   }
@@ -31,7 +31,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await db.batch([
-    'DELETE FROM user_media_assets', 'DELETE FROM user_profiles',
+    'DELETE FROM match_conditions','DELETE FROM user_media_assets', 'DELETE FROM user_profiles',
     'DELETE FROM auth_sessions', 'DELETE FROM auth_accounts'
   ].map(sql => db.prepare(sql)));
   await db.prepare(`INSERT INTO auth_accounts

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import profileFields from '../../contracts/profile-fields.json';
+import { matchingSchemas, planMatchingCommand, projectionPlan, profileAffectsMatching } from './matching-commands';
 const gender=z.enum(['male','female','diverse']);
 const shareable=new Set(profileFields.filter(f=>f.shareable).map(f=>f.cardKey));
 const visibility=z.record(z.string(),z.boolean()).refine(v=>Object.keys(v).every(k=>shareable.has(k)));
@@ -48,6 +49,7 @@ const defaultPreferences=JSON.stringify({
  preferredAgeMin:null,preferredAgeMax:null,preferredRegionCodes:[],sharedInterestWeight:50
 });
 const schemas={
+ ...matchingSchemas,
  'account.lookup-credentials':z.strictObject({email:text}),
  'identity.lookup':z.strictObject({provider:z.literal('google'),subject:text}),
  'email.challenge.get':z.strictObject({challengeId:id}),
@@ -103,6 +105,8 @@ export const RateLimitPolicies:Record<string,Record<string,[number,number]>>={
  'credential_change.v1':{account:[900000,10]},
  'session_refresh.v1':{session:[60000,10],ip:[60000,120]},
  'avatar_generate.v1':{account:[3600000,8]},
+ 'matching_search.v1':{account:[60000,30]},
+ 'matching_invite.v1':{account:[3600000,10]},
 };
 export type Statement={sql:string,values:unknown[]};
 const stmt=(sql:string,...values:unknown[]):Statement=>({sql,values});
@@ -114,8 +118,9 @@ function validChallenge(p:any,purpose:string,now:number){return [p.challengeId,p
 function sessionInsert(p:any,now:number,cv:number,guard:string,guardValues:unknown[]){return stmt(`INSERT INTO auth_sessions(session_id,account_id,client_platform,credential_version,current_generation,created_at,absolute_expires_at,idle_expires_at) SELECT ?,?,?,?,0,?,?,? WHERE EXISTS(${guard})`,p.sessionId,p.accountId,p.clientPlatform,cv,now,p.absoluteExpiresAt,p.idleExpiresAt,...guardValues);}
 function refreshInsert(p:any,now:number){return stmt(`INSERT INTO auth_refresh_tokens(token_id,session_id,token_hash,generation,created_at,expires_at) SELECT ?,?,?,0,?,? WHERE changes()=1 AND EXISTS(SELECT 1 FROM auth_sessions WHERE session_id=?)`,p.tokenId,p.sessionId,p.tokenHash,now,p.idleExpiresAt,p.sessionId);}
 
-export function planCommand(command:string,payload:unknown,now:number):Statement[]{
+function planCoreCommand(command:string,payload:unknown,now:number):Statement[]{
  const p=parseCommand(command,payload);
+ if(Object.hasOwn(matchingSchemas,command))return planMatchingCommand(command,p,now);
  switch(command){
  case 'account.lookup-credentials':return [stmt(`SELECT * FROM auth_accounts WHERE email_normalized=?`,p.email)];
  case 'identity.lookup':return [stmt(`SELECT a.* FROM auth_accounts a JOIN auth_external_identities i ON i.account_id=a.account_id WHERE i.provider=? AND i.subject=?`,p.provider,p.subject)];
@@ -317,8 +322,22 @@ export function planCommand(command:string,payload:unknown,now:number):Statement
  }
 }
 
+const projectionCommands=new Set(['profile.update','profile.avatar.builtin','profile.avatar.generated','profile.avatar.adopt']);
+export function planCommand(command:string,payload:unknown,now:number):Statement[]{
+ const core=planCoreCommand(command,payload,now);
+ return projectionCommands.has(command)?[...core,...projectionPlan(parseCommand(command,payload),now)]:core;
+}
 export async function executeCommand(db:D1Database,command:string,payload:unknown,now=Date.now()){
- const plans=planCommand(command,payload,now);
+ const p=parseCommand(command,payload);
+ const core=planCoreCommand(command,p,now);
+ let sync=projectionCommands.has(command);
+ if(sync&&command==='profile.update'){
+  // 只讀本人來源並以原有 revision CAS 保護差異判斷；不接受外部傳入舊 snapshot。
+  const previous=await db.prepare('SELECT * FROM user_profiles WHERE account_id=? AND revision=?').bind(p.accountId,p.expectedRevision).first();
+  sync=profileAffectsMatching(command,p,previous);
+ }
+ const plans=sync?[...core,...projectionPlan(p,now)]:core;
  const results=await db.batch(plans.map(p=>db.prepare(p.sql).bind(...p.values)));
- return {rows:results.flatMap(r=>r.results??[]),changes:results.map(r=>r.meta.changes)};
+ const visible=sync?results.slice(0,core.length):results;
+ return {rows:visible.flatMap(r=>r.results??[]).filter(r=>r!==null&&typeof r==='object'&&!Object.hasOwn(r,'__matching_guard')),changes:visible.map(r=>r.meta.changes)};
 }

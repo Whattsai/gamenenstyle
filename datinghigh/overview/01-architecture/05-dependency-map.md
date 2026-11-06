@@ -1,5 +1,11 @@
 # 相依關係地圖
 
+## MatchingSessions（2026-11-06）
+
+未新增產品 runtime 套件或外部服務。DI 新增 scoped `MatchingSessionService` 與 `IMatchingCandidateProfileReader → MatchingCandidateProfileReader`；共用 D1 限流增加搜尋每帳號30次／分鐘、邀請10次／小時。正式程式仍只有既有四層參考鏈。
+
+API 測試專案另引用 Integration.Tests，以私有 stdin／stdout runner 串接真正 Miniflare D1，並透過 InternalsVisibleTo 使用測試 harness；此相依不進產品 Api 專案。Worker ready 的目前 schema 基線為0004及12張自有表；staging 僅同步設定，未部署。
+
 ## 2026-11-05 共用契約與建置
 
 Domain csproj嵌入根`contracts/profile-fields.json`，Worker import同檔，前端透過既有API目錄讀取；未增runtime套件或外部服務。backend Dockerfile改以DatingHigh根目錄為context，COPY backend與contracts，根.dockerignore只允許兩者並排除bin／obj／測試結果；Wrangler local／staging及restore wrapper同步image_build_context。staging未部署。

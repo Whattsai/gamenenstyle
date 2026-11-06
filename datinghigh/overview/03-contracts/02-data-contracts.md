@@ -1,5 +1,22 @@
 # 資料與儲存契約
 
+## MatchingSessions（2026-11-06）
+
+0004新增四表32欄，自有表共12張113欄；Foundation六表54欄、AvatarAndPreferences兩表27欄不變，零 SQL Trigger。四表首欄皆為程式提供的 UUIDv7 TEXT NOT NULL PK，時間為Unix ms。未上線測資採指定隔離環境 fresh schema／重建，不做舊新 ETL 或來源回填相容。
+
+| 表（欄數） | 依序欄位／主要約束 |
+|---|---|
+| match_conditions（10） | condition_id、account_id UNIQUE FK、gender、romantic_orientation_json、birth_date、region_code?、interests_json、preferences_json、created_at、updated_at；只供搜尋，不是可直接編輯的 Profile |
+| match_invitations（11） | invitation_id、account_low_id、account_high_id、initiator_account_id、client_request_id、status、invalidated_reason?、created_at、expires_at、updated_at、responded_at?；排序 pair、帳號FK、initiator屬於pair、UNIQUE(initiator,request)、pending pair partial UNIQUE |
+| game_rounds（7） | round_id、invitation_id UNIQUE FK、account_low_id、account_high_id、status、started_at、ended_at?；active／ended，保留永久 pair 歷史 |
+| game_round_participants（4） | participant_id、account_id UNIQUE FK、round_id FK、created_at；每場恰好兩位，結束時原子釋放；round索引 |
+
+conditions 無 gaming status、人工開關或 source_profile_revision。個資仍是 user_profiles 唯一事實來源；只有配對欄位／資格異動才同 batch UPSERT／DELETE，無關照片排序、工作／自介、分享設定不碰投影。condition_id 使用來源 profile_id（同樣是 UUIDv7），不是新增可供 client 寫入的識別。user_profiles.revision 僅維持原本人 CAS，不作跨表相等查詢。
+
+invitation 狀態為 pending／accepted／declined／cancelled／expired／invalidated；invalidated_reason 只允許 other_round_started／eligibility_changed，其他狀態為 NULL。72小時由伺服器懶惰失效；性向／軟偏好異動不撤銷原 pending。declined 或 ended 的原 accountId pair 永久互斥，不追蹤重新註冊的真人。
+
+固定內部命令為 `match.candidate.search`、`match.candidate.persona.read`、`match.invite.create/list/resolve`、`game.round.list/get/end`。接受及結束的 SQL CASE guard 在不滿足完整後置條件時使 statement 失敗，讓同 D1 batch 真正回滾；不能以應用層提交後檢查代替。正式生成化身沿既有私人 R2，沒有配對照片副本、名片快照或 job 表。新增共用限流 matching_search.v1＝account／1分鐘30，matching_invite.v1＝account／1小時10。
+
 ## 現行資料版本（2026-11-05 D-053）
 
 [0003](../../cloudflare/migrations/0003_profile_gender_card_visibility.sql)新增gender、romantic_orientation_json、card_visibility_json，user_profiles18欄＋media9欄＝兩表27欄；Foundation六表54欄及零Trigger不變。已在default local套用；staging設定更新但未部署。下方0002兩表24欄是歷史建表基線。
@@ -111,7 +128,7 @@ storage-policy 只允許上述 key／欄位、JSON object，單值≤4096字元�
 
 私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。Foundation測試物件路徑只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；不借用作業務圖片路徑；AvatarAndPreferences使用前述獨立媒體通道，無公開私人圖片URL。
 
-ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗六表／八表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
+ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗六表／八表／十二表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
 
 每小時清理過期 rate bucket、challenge（以 absolute expiry 的保留窗）、session／refresh（absolute expiry後7天）。refresh 自參照先分批解除再刪除，最後刪無 token 的 session；不刪帳號／identity，也不將清理當授權機制。
 
