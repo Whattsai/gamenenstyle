@@ -194,8 +194,8 @@
             "line": 86
           },
           {
-            "path": "frontend/client/assets/avatars/provenance.json",
-            "line": 3
+            "path": "docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md",
+            "line": 75
           }
         ],
         "gap": null
@@ -1053,8 +1053,8 @@
             "line": 21
           },
           {
-            "path": "frontend/client/assets/avatars/provenance.json",
-            "line": 3
+            "path": "docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md",
+            "line": 75
           }
         ],
         "gap": null
@@ -4018,8 +4018,8 @@
           "line": 86
         },
         {
-          "path": "frontend/client/assets/avatars/provenance.json",
-          "line": 3
+          "path": "docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md",
+          "line": 75
         }
       ],
       "gap": null,
@@ -7149,8 +7149,8 @@
           "line": 86
         },
         {
-          "path": "frontend/client/assets/avatars/provenance.json",
-          "line": 3
+          "path": "docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md",
+          "line": 75
         }
       ],
       "gap": null,

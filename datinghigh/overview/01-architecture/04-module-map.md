@@ -1,8 +1,29 @@
 # 模組與修改入口
 
-## MatchingSessions 新增入口（2026-11-06）
+## 化身與場景
 
-本地測試維運另有`tools/local-game-policy.mjs`固定結束SQL，僅由`tools/local.mjs`／`local-policy.mjs`的`game-end`及`query --view games`使用；package scripts為`game:end:local`／`game:list:local`。不打包到Api／Worker，沒有新增公開路由。探索卡與邀請列表共用永久婉拒確認。
+Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控背景解碼／去背：`Media/AvatarChromaMask.cs`（Infrastructure既有Skia）。免費圖片由 contracts/builtin-avatar-packs.json 對應 public 目錄中的正式 WebP。
+
+角色讀取與演出模組：Application `AvatarReadService.cs`、Domain `StoryPresentationPolicy.cs`、Infrastructure `Media/AvatarReadStore.cs`；Worker `round-avatar.ts`／`avatar-notification.ts`／`builtin-avatar.ts`；client `StoryStage.tsx`／`StoryPortrait.tsx`／`story-stage-geometry.ts`／`story-avatar.ts`。`tools/generate-builtin-avatar-assets.mjs` 依正式目錄與SHA重建16張neutral的選角import，直接匯入同一public來源。書店分層背景／透明前景在 `contracts/story-assets/`，prompt留同目錄provenance。`tools/avatar-reset-policy.mjs` 與既有local wrapper提供具名清單預覽／重試，沒有玩家公開重置API。
+
+表情製作用例位於 Application `AvatarExpressionService.cs`／`Media/AvatarExpressionStore.cs`（介面），Infrastructure `Media/AvatarExpressionStore.cs`／既有 Gemini adapter 表情方法；Worker `avatar-adoption.ts`、`avatar-expression-manifest.ts`、`avatar-expression-store.ts`、`transparent-webp.ts`；client `avatar-adoption.ts` 接 `DatingProfileScreen`，ADVStage 接收單一 partner 參數；測試留在對應模組與跨系統測試目錄。
+
+## 劇情與即時通訊
+
+| 責任 | 位置 |
+|---|---|
+| 推薦／投票／文字／圖驗證 | `backend/src/DatingHigh.Domain/StoryPolicies.cs`、`StoryGraphPolicy.cs` |
+| 共用用例／通知port | `backend/src/DatingHigh.Application/StoryDialogueService.cs` |
+| 通知adapter／HTTP嚴格JSON／DI | `backend/src/DatingHigh.Infrastructure/CloudflareRoundRealtimeNotifier.cs`、`backend/src/DatingHigh.Api/StoryPayload.cs`、`Program.cs` |
+| 劇情四表／active claims／固定SQL | `cloudflare/migrations/0005_story_dialogue_exit.sql`、`cloudflare/src/story-commands.ts`、`matching-commands.ts` |
+| 標準WS／ticket／內容 | `cloudflare/src/room-socket.ts`、`realtime-ticket.ts`、`story-content.ts` |
+| 共用場景／演出／互動／音訊／transport | `frontend/client/src/StoryExperienceScreen.tsx`、`ADVStage.tsx`、`InteractionRenderer.tsx`、`StoryAudio.tsx`、`RealtimeRoomClient.ts`、`story.ts` |
+| 正式內容／發布 | `contracts/story-scenes.json`、`contracts/story-assets/`、`tools/story-content-policy.mjs`、`tools/local.mjs` |
+| 真D1／DO／HTTP／UX證據 | `cloudflare/tests/story-dialogue-*.test.ts`、`backend/tests/DatingHigh.Api.Tests/StoryDialogueEndpointTests.cs`、`frontend/client/tests/unit/story-dialogue*`、`tests/e2e/{web,android}/story-dialogue.*`、`tests/integration/story-dialogue-live.test.mjs` |
+
+## 配對與邀請
+
+本地測試維運另有`tools/local-game-policy.mjs`固定結束SQL，僅由`tools/local.mjs`／`local-policy.mjs`的`game-end`及`query --view games`使用；package scripts為`game:end:local`／`game:list:local`。不打包到Api／Worker，不提供公開管理路由。探索卡與邀請列表共用永久婉拒確認。
 
 | 責任 | 位置 |
 |---|---|
@@ -16,32 +37,34 @@
 | 計分／HTTP＋真 D1／SQL 故障證據 | `backend/tests/DatingHigh.Unit.Tests/Domain/MatchingScoreTests.cs`、`backend/tests/DatingHigh.Api.Tests/Matching{Endpoint,RealD1}Tests.cs`、`cloudflare/tests/matching-sessions-d1.integration.test.ts` |
 | 共用 UI／Web／Android／真平台 | `frontend/client/tests/unit/matching-sessions.test.tsx`、`tests/e2e/{web,android}/matching-sessions.*`、`tests/integration/matching-sessions-live.test.mjs` |
 
-上述相對 `src`／`app` 路徑依該列模組根目錄解讀；確切驗收與後續 Story 退出邊界見 [驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md)。
+上述相對 `src`／`app` 路徑依該列模組根目錄解讀；產品退出由 StoryDialogueService 處理，本地維運命令不屬公開 API。
 
-## 2026-11-05 新增入口
+## 個資欄位與名片
 
 - `contracts/profile-fields.json`、Domain `ProfileFields.cs`：跨.NET／Worker共用定義，API目錄提供client；不是任意資料寫入引擎。
 - `cloudflare/migrations/0003_profile_gender_card_visibility.sql`：三欄向前升級，固定commands維持原子性。
 - `frontend/client/src/profile-fields.ts`：型別、有效分享預設、payload與草稿比較。
-- `frontend/client/app/card-preview.tsx`、`src/CardPreviewScreen.tsx`：獨立名片載入與可重用唯讀CardDisplay，照片來源由載入端注入。DatingProfileScreen不再內嵌名片。
+- `frontend/client/app/card-preview.tsx`、`src/CardPreviewScreen.tsx`：獨立名片載入與可重用唯讀CardDisplay，照片來源由載入端注入。DatingProfileScreen 透過獨立路由開啟名片。
 
+
+## 基礎平台與共用模組
 
 所有路徑以 DatingHigh 根目錄為基準。端點與欄位詳見 [API](../03-contracts/01-api-contracts.md)／[資料契約](../03-contracts/02-data-contracts.md)。
 
 | 模組 | 主要位置 | 常見修改 |
 |---|---|---|
-| Domain 規則 | `backend/src/DatingHigh.Domain/Policies.cs`、`SessionLifetime.cs`、`AvatarAndPreferencesPolicies.cs` | Email、密碼、ID、期限、資源預設拒絕；新增 AvatarAndPreferences nickname／age／photo quota／AI 索引領域規則；媒體／AI用例及分平台證據見下方模組與驗證紀錄 |
+| Domain 規則 | `backend/src/DatingHigh.Domain/Policies.cs`、`SessionLifetime.cs`、`AvatarAndPreferencesPolicies.cs` | Email、密碼、ID、期限、資源預設拒絕；AvatarAndPreferences nickname／age／photo quota／AI 索引領域規則 |
 | 認證用例 | `backend/src/DatingHigh.Application/AuthApplication.cs` | 註冊、登入、refresh、重設、密碼與 identity |
 | 本人交友資料用例 | `backend/src/DatingHigh.Application/DatingProfileService.cs` | 本人完整 JSON 驗證、18+、Unicode scalar、首次 profile ensure、Session／revision CAS、無秘密讀取投影；目錄驗證／停用值僅保留同欄歷史值／安全投影 |
-| 本人真人照管理（局部） | `backend/src/DatingHigh.Application/PersonalPhotosService.cs` | 只讀本人 ready 照片安全 metadata，D1 原子完整重排與 CAS、ready soft-delete＋壓緊、失效 Session 二次查核；**未接私人 R2 刪除、上傳與共用壓縮** |
+| 本人真人照管理 | `backend/src/DatingHigh.Application/PersonalPhotosService.cs` | 本人照片上傳、共用壓縮、私人 R2 讀取／刪除、安全 metadata、D1 完整重排／CAS、soft-delete／壓緊與 Session 重驗 |
 | 介面契約 | Application 的 `Contracts.cs`、`SecurityContracts.cs`、`RateLimiting.cs`、`PrivateObjects.cs` | adapter／CurrentUser／結果協作 |
 | 密碼學 | Infrastructure 的 `PasswordHashService.cs`、`AccessTokens.cs`、`AuthCryptography.cs`、`Crypto.cs` | 雜湊、JWT、opaque token、HMAC |
 | 外部與資料 bridge | Infrastructure 的 `PlatformClient.cs`、`GoogleExternalCredentialValidator.cs`、`EmailCodeSender.cs`、`PrivateObjectStore.cs` | 固定指令、驗簽、sender、owner |
 | 就緒與限流 | Infrastructure 的 `Readiness.cs`、`RateLimiter.cs`、`AuthOptions.cs` | 設定、依賴檢查與限流 adapter |
 | HTTP | `backend/src/DatingHigh.Api/Program.cs`、`HttpContract.cs`、`PlatformAuthentication.cs` | 路由／DI、嚴格輸入、Cookie、ProblemDetails、family 驗證；交友資料 GET/PUT、真人照 metadata GET／排序 PUT／邏輯刪除 DELETE；特定 PUT 使用獨立完整 JSON parser，原認證入口不變 |
 | Worker ingress／container | `cloudflare/src/index.ts`、`router.ts` | assets、CORS、可信標頭與容器生命週期 |
-| Worker 內部平台 | `cloudflare/src/platform.ts`、`strict-json.ts` | ready、Foundation R2、sender、固定 JWKS、清理及嚴格解析；內部binary照片PUT／GET／DELETE及GC已接.NET |
-| D1 | `cloudflare/src/commands.ts`、`migrations/0001_foundation.sql`、`migrations/0002_avatar_preferences.sql` | Zod 輸入、prepared SQL、原子 batch 與 schema；新增 profile.ensure/read/update CAS、profile.avatar.builtin/generated CAS、photo.reserve/ready/delete/list/reorder/delete-compact，及 Unicode scalar 一致性；真 D1 局部完成，個人 GET/PUT API 已接通，已接私人R2媒體 |
+| Worker 內部平台 | `cloudflare/src/platform.ts`、`strict-json.ts` | ready、Foundation R2、sender、固定 JWKS、清理及嚴格解析；內部 binary 照片 PUT／GET／DELETE 與 GC |
+| D1 | `cloudflare/src/commands.ts`、`migrations/0001_foundation.sql`、`migrations/0002_avatar_preferences.sql` | Zod 輸入、prepared SQL、原子 batch 與 schema；profile.ensure/read/update CAS、profile.avatar.builtin/generated CAS、photo.reserve/ready/delete/list/reorder/delete-compact，及 Unicode scalar 一致性；個資與私人 R2 媒體由固定命令協調 |
 | Expo 啟動與頁面 | `frontend/client/app/_layout.tsx`、`index.tsx`、`register.tsx`、`verify-email.tsx`、`login.tsx`、`forgot-password.tsx`、`reset-password.tsx`、`account.tsx`、`account/password.tsx`、`account/connections.tsx` | 九條帳號路由與共用 provider |
 | 前端共用 UI | `frontend/client/src/Screen.tsx`、`ui.tsx`、`forms.ts`、`pending-back-guard.ts`、`app/global.css`、`assets/bg-cafe.jpg` | 版面、表單／等待、返回防護與視覺 |
 | 前端連線與儲存 | `src/api.ts`、`api-origin.ts`、`session.tsx`、`storage.ts`、`storage-policy.ts`、`flow.ts` | refresh、復原、允許持久化欄位 |
@@ -72,13 +95,13 @@
 
 Android 測試的部分 import／Metro／APK 路徑尚未隨搬移更新，現況限制見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md#目前重跑限制)。
 
-## AvatarAndPreferences 新增模組（2026-11-03）
+## 媒體與生成角色
 
 - `Application/AvatarService.cs`：本人明確生成／重播／採用；`ProfileProjections.cs`：分享欄位白名單及預設拒絕授權介面。
 - `Application/Media/`、`Infrastructure/Media/`：Skia壓縮、私人媒體bridge、Gemini adapter、候選binary I/O；StyleReferences為原型圖風格參考。
 - `cloudflare/src/media-cleanup.ts`：有預算的私人媒體清理與R2進度metadata；`cloudflare/src/avatar-attempts.ts`：R2 manifest CAS、同帳號排他、短效候選、採用與復原；固定D1命令仍在commands.ts。
-- `frontend/client/app/profile.tsx`、`src/DatingProfileScreen.tsx`：資料、照片、16款免費化身、AI候選與本人名片預覽；`avatar-assets.ts`及assets/avatars保存正式免費素材與來源。
+- `frontend/client/app/profile.tsx`、`src/DatingProfileScreen.tsx`：資料、照片、16款免費化身、AI候選與本人名片預覽；`avatar-assets.ts`匯入public/avatars的正式neutral圖片。
 - `tools/verify-avatar-live.mjs`、`backend/tools/DatingHigh.MediaProbe/`：明確授權真人照片的本地真測，不保存憑證／原始照片；MediaProbe只擷取白名單模型／token／耗時，成本按官方費率估算、不是帳單。
 - `tests/e2e/web/avatar-*.spec.ts`、`tests/e2e/android/avatar-{preferences,photos,gemini-live}.mjs`：跨系統UI證據，分別驗基本資料、系統picker與照片CRUD、明確opt-in真生成採用；分平台限制見驗證紀錄。
-- `backend/src/DatingHigh.Application/AvatarPreferencesReadContracts.cs`：後續SPEC五項內部讀取契約；目前只有介面與白名單投影，尚未註冊跨帳號授權adapter。
+- `backend/src/DatingHigh.Application/AvatarPreferencesReadContracts.cs`：內部讀取介面與白名單投影；介面不提供跨帳號授權，須由用例另驗參與／同意條件。
 - `cloudflare/tests/avatar-worker-cas.integration.test.ts`：兩個獨立Worker runtime共享真Miniflare D1／R2的首次／第4張競態、重播與到期證據。

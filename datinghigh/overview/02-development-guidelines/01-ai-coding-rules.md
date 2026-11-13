@@ -1,10 +1,14 @@
 # AI 程式修改規範
 
-## MatchingSessions 維護規則（2026-11-06）
+## 劇情規則
 
-配對來源異動必須與 `match_conditions` 同批，並證明新增、更新、刪除各種同步失敗都完整回滾；不使用 `source_profile_revision`。無關個資異動不能更新投影或讓玩家消失。接受舊 pending 不重驗新性向／偏好，但須驗硬性資格、期限、Session 與占用；新邀請仍以最新雙向條件判定。不可移除 SQL 零列 guard 或 participants.account_id UNIQUE；新增入口須用真 Miniflare 故障注入驗證。
+Story驗收分成Gate A技術證據與Gate B使用者完整試玩，不能由自動測試替代Gate B，也不能先做其餘九場。內容由完整無環圖及共用互動renderer驅動，入口固定 `entry`；不以story_id分支寫死引擎。所有認證／資料修改先有有意義的失敗證據，再修實作；SQL失敗原子性用真正Miniflare D1，UI fixture不替代。`story`事件名稱上的ID不是完整規劃案例已通過的證明，需逐項斷言覆核。
 
-匹配成功不授予名片／原照權限，後續故事終止 UI 不屬本模組。變更前核對 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md) 的逐 ID 覆核與平台範圍。
+## 配對規則
+
+配對來源異動必須與 `match_conditions` 同批，並證明新增、更新、刪除各種同步失敗都完整回滾；不使用 `source_profile_revision`。無關個資異動不能更新投影或讓玩家消失。接受舊 pending 不重驗新性向／偏好，但須驗硬性資格、期限、Session 與占用；新邀請仍以最新雙向條件判定。不可移除 SQL 零列 guard 或 game_active_round_claims.account_id UNIQUE；新增入口須用真 Miniflare 故障注入驗證。
+
+匹配成功不授予名片／原照權限，故事終止 UI 由劇情模組處理。變更前核對 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md) 的逐 ID 覆核與平台範圍。
 
 ## 分層與實作要求
 
@@ -27,6 +31,8 @@ Worker 的 Zod／strict JSON 拒未知與重複欄位，SQL 自然約束依現�
 
 ## 測試與文件
 
+AGENTS.md、README.md、overview 等非需求文件禁止記錄需求流水帳。架構、契約、原則與操作方式須整合成現行說明，不得以日期、需求批次、續接或增量段落追加；進度、測試數量、故障經過、人工確認與未完事項只更新對應 docs/verification 權威文件。
+
 D1 的條件更新、UNIQUE、FK、rollback 用真 Miniflare D1；HTTP fixture、受控 Google SDK／sender 只證明其受控範圍。Web 不替代 Android／iOS；local log 不替代實際收信。
 
 依變更執行對應測試，認證跨層改動以 `npm run check:foundation` 及必要的 live／UI 回歸驗證。測試函式數與規劃案例數分開；有 ID 或局部參數通過不代表整案完成。文件同步依 [工作流影響矩陣](03-ai-workflow-stages.md#overview-同步矩陣)；沒有影響也需在交付說明原因。
@@ -40,8 +46,6 @@ D1 的條件更新、UNIQUE、FK、rollback 用真 Miniflare D1；HTTP fixture�
 3. 修改 Domain／Application／prepared command 的必要部分，再同步 HTTP 與前端型別／UI；不增額外 version 欄位。
 4. 證明成功與拒絕分支、舊憑證失效、未知回應不重送，執行相關 UI／live 回歸。
 5. 回寫追溯與平台缺項，更新資料／API／runtime／模組等受影響 overview，交付變更及驗證證據。
-
-這是後續修改方法，不表示本次文件整理執行該開發。
 
 ## 常見任務與 Review
 

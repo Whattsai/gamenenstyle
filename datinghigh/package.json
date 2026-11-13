@@ -12,6 +12,7 @@
     "test:worker": "npm --prefix cloudflare test",
     "dev:client": "npm --prefix frontend/client start",
     "dev:platform": "node tools/local.mjs dev",
+    "dev:platform:stop": "node tools/local.mjs dev-stop",
     "dev:platform:restart": "node tools/restart-local.mjs",
     "db:migrate:local": "node tools/local.mjs migrate",
     "db:seed:local": "node tools/local.mjs seed",
@@ -41,7 +42,14 @@
     "test:android:account": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite account-matrix",
     "test:android:identity": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite identity-matrix",
     "test:android:pending": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite pending-matrix",
-    "test:android:real-identity": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite real-identity"
+    "test:android:real-identity": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite real-identity",
+    "db:upgrade-story:local": "node tools/local.mjs story-upgrade",
+    "content:publish:local": "node tools/local.mjs story-publish",
+    "test:story:web": "playwright test --config tests/playwright.config.ts story-dialogue.spec.ts",
+    "test:story:live": "node --test tests/integration/story-dialogue-live.test.mjs",
+    "avatar:reset:preview:local": "node tools/local.mjs avatar-reset-preview",
+    "avatar:reset:apply:local": "node tools/local.mjs avatar-reset-apply",
+    "test:story:android": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite story-dialogue"
   },
   "license": "ISC",
   "devDependencies": {

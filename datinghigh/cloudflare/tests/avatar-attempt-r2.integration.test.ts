@@ -3,6 +3,8 @@ import {readFileSync} from 'node:fs';
 import {beforeAll,beforeEach,afterAll,it,expect,vi} from 'vitest';
 import {cleanup,dispatch,type PlatformEnv} from '../src/platform';
 import {executeCommand,planCommand} from '../src/commands';
+import {beginAvatarAdoption,avatarAdoptionStatus,acquireAvatarExpression,publishAvatarExpression,cancelAvatarAdoption} from '../src/avatar-adoption';
+import {expressionIds} from '../src/avatar-expression-manifest';
 vi.setConfig({testTimeout:20000});
 
 let mf:Miniflare,env:PlatformEnv;
@@ -13,9 +15,33 @@ const headers={
  'X-DatingHigh-Media-Account-Id':auth.accountId,'X-DatingHigh-Media-Session-Id':auth.sessionId,
  'X-DatingHigh-Media-Cv':'1','X-DatingHigh-Media-Expires-At':String(auth.accessExpiresAt)
 };
-const call=(command:string,payload:Record<string,unknown>,time=now)=>dispatch(new Request(`http://platform.internal/v1/commands/avatar.attempt.${command}`,{
+// 本檔保留候選與 D1 競態斷言；新的 B1 權限／序列另由 adoption suites 驗證。
+// 正式採用的舊案例先建立隔離、合成 binary 的完整套組前置條件，不代表美術驗收。
+let fixturePreparation=Promise.resolve();
+async function prepareAdoption(payload:Record<string,unknown>){
+ const owner=String(payload.accountId??auth.accountId),attempt=String(payload.attemptId);
+ if(owner!==auth.accountId)return;
+ const object=await env.FILES.get(`private/${owner}/avatar/temp/${attempt}/manifest`);if(!object)return;
+ const state=await object.json() as any;if(state.status==='closed'||!state.results.some((r:any)=>r.index===payload.index))return;
+ const old=await avatarAdoptionStatus(env.FILES,owner,now);
+ if(old){
+  const raw=await(await env.FILES.get(`private/${owner}/avatar/temp/adoption`))!.json() as any;
+  if(raw.expectedRevision===payload.expectedRevision)return;
+  await cancelAvatarAdoption(env.FILES,owner,old.clientRequestId,now);
+ }
+ const asset=String(payload.proposedAssetId??attempt),workflow=id(9000+Number(payload.expectedRevision));
+ await beginAvatarAdoption(env.FILES,{ownerAccountId:owner,assetId:asset,attemptId:attempt,index:Number(payload.index),requestId:workflow,expectedRevision:Number(payload.expectedRevision),sourceImageSha256:state.results.find((r:any)=>r.index===payload.index).digest,expiresAt:state.expiresAt,generatorModel:'controlled-fixture',promptVersion:'controlled-fixture.v1'},now);
+ for(const [n,e] of expressionIds.entries()){
+  const step=await acquireAvatarExpression(env.FILES,owner,workflow,e,id(9100+n),now);
+  await publishAvatarExpression(env.FILES,owner,workflow,e,id(9100+n),step.lease!,new Uint8Array([n,10,20]),{width:768,height:1024},now);
+ }
+}
+const call=async(command:string,payload:Record<string,unknown>,time=now)=>{
+ if(command==='select'){const setup=fixturePreparation.then(()=>prepareAdoption(payload));fixturePreparation=setup.catch(()=>{});await setup;}
+ return dispatch(new Request(`http://platform.internal/v1/commands/avatar.attempt.${command}`,{
  method:'POST',body:JSON.stringify({...auth,...(command==='select'?{proposedAssetId:payload.attemptId}:{}),...payload})
-}),env,time);
+ }),env,time);
+};
 const begin=(request=100,attemptId:string|null=null,count=0)=>call('begin',{
  proposedAttemptId:id(50+request),attemptId,styleId:'warm',clientRequestId:id(request),expectedProducedCount:count
 });
@@ -33,6 +59,7 @@ beforeAll(async()=>{
 });
 afterAll(async()=>{await mf?.dispose();});
 beforeEach(async()=>{
+ fixturePreparation=Promise.resolve();
  await env.DB.batch(['DELETE FROM match_conditions','DELETE FROM user_media_assets','DELETE FROM user_profiles','DELETE FROM auth_sessions','DELETE FROM auth_accounts'].map(s=>env.DB.prepare(s)));
  const list=await env.FILES.list();if(list.objects.length)await env.FILES.delete(list.objects.map(o=>o.key));
  await env.DB.prepare("INSERT INTO auth_accounts VALUES(?,?,?,NULL,'active',1,?,?)").bind(auth.accountId,'anonymous@example.test',now,now,now).run();
@@ -276,9 +303,10 @@ it('AP-IT-063: revision conflict during adoption preserves prior avatar and leav
  expect((await call('select',{attemptId:first.attemptId,proposedAssetId:id(999),index:1,expectedRevision:2})).status).toBe(200);
 });
 
-it('AP-IT-063: an overlapping adoption cannot commit a formal image removed by failure compensation',async()=>{
+it('AP-IT-063: failed B1 adoption retains stable pending bytes so an overlapping guarded commit stays readable',async()=>{
  await executeCommand(env.DB,'profile.avatar.builtin',{...auth,avatarId:'female-01',expectedRevision:1},now);
  const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
+ await prepareAdoption({attemptId:first.attemptId,index:1,expectedRevision:2});
  let enterFirst!:()=>void,enterSecond!:()=>void,releaseFirst!:()=>void,releaseSecond!:()=>void;
  const adoptionStatements=planCommand('profile.avatar.adopt',{...auth,expectedRevision:2,assetId:first.attemptId,sourceAssetIds:[id(10),id(11)]},now).length;
  const firstEntered=new Promise<void>(r=>enterFirst=r),secondEntered=new Promise<void>(r=>enterSecond=r);
@@ -295,21 +323,22 @@ it('AP-IT-063: an overlapping adoption cannot commit a formal image removed by f
  const select=()=>dispatch(new Request('http://platform.internal/v1/commands/avatar.attempt.select',{method:'POST',body:JSON.stringify({...auth,attemptId:first.attemptId,proposedAssetId:first.attemptId,index:1,expectedRevision:2})}),{...env,DB:failingDb},now);
  const pendingFirst=select();await firstEntered;const pendingSecond=select();
  try{
-  // 完全依同步gate，不靠睡眠猜排程：讓失敗補償發生在第二筆D1提交前。
+  // 完全依同步gate，不靠睡眠猜排程：讓首筆失敗發生在第二筆D1提交前；B1不再刪並行者的同一套組。
   await Promise.race([secondEntered,pendingSecond]);releaseFirst();expect((await pendingFirst).status).toBe(503);releaseSecond();const secondResult=await pendingSecond;
   const current=(await executeCommand(env.DB,'profile.read',auth,now)).rows[0] as {selected_avatar_ref:string};
   const generated=(await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE kind='generated_avatar' AND status='ready'").all()).results;
-  expect({avatar:current.selected_avatar_ref,ready:generated.length,formalExists:!!await env.FILES.head(`private/${auth.accountId}/avatar/${first.attemptId}`)}).toEqual({avatar:'female-01',ready:0,formalExists:false});
-  expect((await env.DB.prepare('SELECT status FROM user_media_assets WHERE asset_id=?').bind(first.attemptId).first())?.status).toBe('deleted');
-  expect(secondResult.status).toBe(409);
-  expect((await dispatch(new Request(`http://platform.internal/v1/avatar/candidates/${first.attemptId}/1`,{headers}),env,now)).status).toBe(200);
+  expect({avatar:current.selected_avatar_ref,ready:generated.length,formalExists:!!await env.FILES.head(`private/${auth.accountId}/avatar/${first.attemptId}`)}).toEqual({avatar:first.attemptId,ready:1,formalExists:true});
+  expect((await env.DB.prepare('SELECT status FROM user_media_assets WHERE asset_id=?').bind(first.attemptId).first())?.status).toBe('ready');
+  expect(secondResult.status).toBe(200);
+  expect((await dispatch(new Request(`http://platform.internal/v1/avatar/candidates/${first.attemptId}/1`,{headers}),env,now)).status).toBe(404);
   expect((await call('select',{attemptId:first.attemptId,proposedAssetId:id(999),index:1,expectedRevision:2})).status).toBe(200);
-  const image=await dispatch(new Request(`http://platform.internal/v1/media/assets/${id(999)}`,{headers}),env,now);expect(image.status).toBe(200);expect(new Uint8Array(await image.arrayBuffer())).toEqual(new Uint8Array([1,2,3]));
+  const image=await dispatch(new Request(`http://platform.internal/v1/media/assets/${first.attemptId}`,{headers}),env,now);expect(image.status).toBe(200);expect(new Uint8Array(await image.arrayBuffer())).toEqual(new Uint8Array([1,2,3]));
  }finally{releaseFirst();releaseSecond();await Promise.allSettled([pendingFirst,pendingSecond]);}
 });
 
 it('a lost D1 adoption acknowledgement recovers the receipt without deleting ready media or increasing revision twice',async()=>{
  const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
+ await prepareAdoption({attemptId:first.attemptId,proposedAssetId:id(998),index:1,expectedRevision:1});
  const adoptionStatements=planCommand('profile.avatar.adopt',{...auth,expectedRevision:1,assetId:id(998),sourceAssetIds:[id(10),id(11)]},now).length;
  let lost=false;
  const droppingDb=new Proxy(env.DB,{get(target,key){
@@ -326,6 +355,7 @@ it('a lost D1 adoption acknowledgement recovers the receipt without deleting rea
 
 it.each(['status','begin'])('a committed avatar with failed manifest closure is reconciled by %s without another generation',async(recovery)=>{
  const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
+ await prepareAdoption({attemptId:first.attemptId,proposedAssetId:id(997),index:1,expectedRevision:1});
  const failingFiles=new Proxy(env.FILES,{get(target,key){
   if(key==='put')return async(name:string,value:any,options:any)=>{if(name.endsWith('/manifest')&&typeof value==='string'&&JSON.parse(value).status==='closed')throw new Error('Controlled manifest storage outage');return target.put(name,value,options);};
   const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
@@ -364,4 +394,18 @@ it('AP-IT-064/GC: refreshed session still gets 410 at candidate expiry; GC prese
  expect(await env.FILES.get(prefix+first.attemptId)).not.toBeNull();
  expect(await env.FILES.get(prefix+'temp/'+first.attemptId+'/manifest')).toBeNull();
  expect(await env.FILES.get(prefix+'temp/'+first.attemptId+'/1')).toBeNull();
+});
+
+it('full-body GC removes only expired orphan expressions and preserves ready, young, and unrelated objects',async()=>{
+ const first=await(await begin()).json() as any;await publish(first.attemptId,100,first.lease);
+ expect((await call('select',{attemptId:first.attemptId,index:1,expectedRevision:1})).status).toBe(200);
+ const base=`private/${auth.accountId}/avatar/`,old=id(998),young=id(999);
+ const stale=[base+old+'/expressions/v1/full-body.v1/neutral.webp',base+old+'/expressions/v1/full-body.v1/manifest.json'];
+ const protectedKeys=[base+young+'/expressions/v1/full-body.v1/neutral.webp',base+old+'/other-module/neutral.webp'];
+ for(const key of stale)await env.FILES.put(key,'orphan',{customMetadata:{orphanAfter:String(now+7200000)}});
+ for(const key of protectedKeys)await env.FILES.put(key,'keep',{customMetadata:{orphanAfter:String(key.includes(young)?now+14400000:now+7200000)}});
+ await cleanup(env,now+7200001);
+ for(const key of stale)expect(await env.FILES.get(key)).toBeNull();
+ for(const key of protectedKeys)expect(await env.FILES.get(key)).not.toBeNull();
+ for(const expression of [...expressionIds.map(e=>e+'.webp'),'manifest.json'])expect(await env.FILES.get(base+first.attemptId+'/expressions/v1/full-body.v1/'+expression)).not.toBeNull();
 });

@@ -1,43 +1,51 @@
 # 分層與信任邊界
 
-## MatchingSessions（2026-11-06）
-
-Domain `MatchingScore` 只處理純計分與成年／性向規則；Application `MatchingSessionService` 組合受限輸入、完整排序後分頁及授權投影。Infrastructure `IMatchingCandidateProfileReader` 的 adapter 只能呼叫固定候選指令，不偽造舊 reader 的 RoundId。候選與房間只回安全角色，`DenyCurrentCardAuthorization` 繼續拒絕跨帳號名片。
-
-Worker `matching-commands.ts` 封裝四表的固定 prepared SQL 與 SQL 內 fail-closed guard。來源個資與投影同 batch；差異判斷的前讀受原有 Profile revision CAS 保護，不另存跨表版本或 marker。接受既有邀請不回溯性向；participants 的 account UNIQUE 仍是最終單場保護。R2 只供應目前正式生成化身，讀取後重新核對相同授權集合，不提供原照／key。
-
-## 共用欄位定義（2026-11-05）
-
-根contracts/profile-fields.json為資料與顯示契約，Domain嵌入靜態資源，Worker只據此核對分享鍵；Application仍逐欄驗輸入並使用固定命令，SQL不從storage mapping動態產生。前端只經API取定義，不直接讀D1。名片投影在伺服器排除關閉欄位；顯示元件不擁有授權或資料載入責任。
-
-
 ## 後端
 
-| 層 | 實際責任 | 邊界 |
+| 層 | 責任 | 邊界 |
 |---|---|---|
-| Domain | Email／密碼／UUIDv7／session 期限、DomainException、預設拒絕政策 | 不引用 HTTP、Cloudflare、UI 或資料庫套件 |
-| Application | `AuthApplication`、限流／密碼學／權杖／寄信／外部身分／私人儲存介面 | 依賴 Domain 與介面；不拼 SQL、不寫 Cookie、不直接叫 Google SDK |
-| Infrastructure | BCL PBKDF2、JWT、Google JWKS、sender、Readiness、固定 outbound client | 實作 Application 介面；不公開任意 SQL 或檔案 key 給 client |
-| Api | DI、嚴格 JSON、platform／Origin、Cookie／Bearer、授權、ProblemDetails | 將輸入交用例；不取代 Domain 或 D1 原子條件 |
+| Domain | 認證／資料／配對／劇情純規則、ID、期限、DomainException | 不引用 HTTP、Cloudflare、UI 或資料庫套件 |
+| Application | 認證、個資、媒體、配對、劇情用例與 adapter 契約 | 不拼 SQL、不寫 Cookie、不直接呼叫平台 SDK |
+| Infrastructure | 密碼學、JWT／Google 驗簽、sender、固定 outbound client、Skia／Gemini adapter | 實作 Application 介面，不公開任意 SQL 或物件 key |
+| Api | DI、嚴格 JSON、platform／Origin、Cookie／Bearer、授權、ProblemDetails | 將輸入交用例，不取代 Domain 規則或 D1 原子條件 |
 
-專案參考鏈為 `Api -> Infrastructure -> Application -> Domain`；API 可透過傳遞參考使用內層型別。實際 DI 與套件見 [相依地圖](05-dependency-map.md)。
+專案參考鏈為 `Api -> Infrastructure -> Application -> Domain`；API 可透過傳遞參考使用內層型別。DI 與套件見 [相依地圖](05-dependency-map.md)。
 
-## Cloudflare
+## Cloudflare 與資料權威
 
-- `router.ts` 負責 ingress、可信標頭、preflight、API／assets 優先序；外部 `X-DatingHigh-Internal-*` 一律移除再建。
-- `ApiContainer`／Durable Object wrapper 只管容器生命週期與路由，不存帳號或 session 狀態。
-- `platform.ts` 只由容器 `platform.internal` outbound handler 存取，處理 ready、寄信、固定 Google JWKS 與私人 R2。
-- `commands.ts` 驗證嚴格輸入並產生固定 prepared statements，透過 D1 batch 實現條件更新與原子性；不得改成接受呼叫者 SQL。
-- 公開 `/internal`、其子路徑與 `/v1/commands/*` 拒絕存取。不得為方便操作而公開 bridge。
+- `router.ts` 負責 ingress、可信標頭、preflight 與 API／assets 路由；外部 `X-DatingHigh-Internal-*` 先移除再建。
+- `ApiContainer` 管容器生命週期與路由，不保存帳號或 Session 狀態。
+- `platform.ts` 僅由容器的 `platform.internal` outbound handler 存取，處理 ready、固定命令、寄信、Google JWKS 與私人 R2。
+- `commands.ts`、`matching-commands.ts`、`story-commands.ts` 使用嚴格輸入、固定 prepared SQL 與 D1 batch；不接受呼叫者 SQL。
+- `GameRoomSocket` 負責 WebSocket、短效 ticket、連線、presence 與安全通知；不自行決定選場或劇情節點。
+- 公開 `/internal`、其子路徑與 `/v1/commands/*` 拒絕存取；bridge 不能改成公開管理入口。
 
-## 前端
+## 個資、配對與授權
 
-`app/` 組合帳號畫面與導覽；`src/api.ts` 統一 HTTP、refresh、未知結果及登出復原；`src/session.tsx` 提供全應用狀態；`src/storage*.ts`／`flow.ts` 限定儲存欄位；`GoogleButton` 的 Web／native 實作隔離 SDK。頁面不得自行持久化平台 token、解讀 client profile 為可信 Google 身分，或繞過 ApiClient 重送資料變更。
+`contracts/profile-fields.json` 是共用欄位／顯示契約，Domain 嵌入靜態資源，Worker 據此核對分享鍵；Application 逐欄驗輸入並使用固定命令，SQL 不從 storage mapping 動態產生。前端透過 API 取定義，不直接讀 D1。
 
-私人 R2 的 owner 取自已驗證 context，Worker 在實際物件操作前後再驗 family／資產。Application 的 `Media/` 定義共用壓縮、媒體與 provider 介面；Infrastructure 用 Skia／固定 Gemini endpoint 實作，Domain 不引用圖片套件。`ProfileProjections` 只是欄位白名單，不授權；`ICurrentCardAuthorization` 預設拒絕跨帳號，未建立後續 SPEC 的雙方同意或名片 API。原型圖片只作風格參考，固定對象不作正式資料。
+`MatchingScore` 只處理純計分與成年／性向規則；`MatchingSessionService` 組合受限輸入、排序、分頁及安全投影。Infrastructure 的候選 reader 只能呼叫固定候選指令，不偽造舊 reader 的 RoundId。
+
+來源個資與配對投影在同 batch 更新，前讀受 Profile revision CAS 保護；不新增跨表 marker 或相等版本條件。接受舊 pending 不回溯性向，其他資格依 SPEC 驗證。`game_active_round_claims.account_id` UNIQUE 是單場占用的最終保護。
+
+`ProfileProjections` 只處理欄位白名單，不授權；`ICurrentCardAuthorization` 預設拒絕跨帳號名片。名片顯示元件不擁有授權或載入責任。
+
+## 化身與媒體
+
+Application 的 `Media/` 定義壓縮、provider 與媒體儲存介面；Infrastructure 使用 Skia 與固定 Gemini endpoint。Domain 不引用圖片套件。`AvatarExpressionService` 每次協調一種表情，provider 與 binary I/O 由 adapter 處理。
+
+R2 adoption CAS／ready Manifest 管套組完整性，D1 Profile revision 與條件交易管正式選用；取消以既有 revision fence 阻止晚到提交。`AvatarReadService` 經 `IAvatarReadStore` 讀固定內部 binary URL；Worker `round-avatar.ts` 保有 Session、Round、claims 與目前選角權威，物件讀取後重新驗證授權。
+
+`StoryPresentationPolicy` 是無 I/O 的內容規則。免費角色只有 public 目錄的一份正式 WebP；前端靜態匯入與 Worker ASSETS 讀取共用來源。
+
+## 劇情與前端
+
+`StoryGraphPolicy`、推薦與文字政策屬 Domain；HTTP 與 WebSocket 共用 `StoryDialogueService`，依釘選 manifest 計算轉移。`IRoundRealtimeNotifier` 不含 Cloudflare 型別；adapter 只發送提交成功後的安全提示。
+
+`app/` 組合畫面與導覽；`src/api.ts` 統一 HTTP、refresh 與未知結果復原；`session.tsx` 管應用狀態，`storage*.ts`／`flow.ts` 限制持久化欄位，Google 平台元件隔離 SDK。頁面不得自行持久化平台 token、採信 client 自報身分，或繞過 ApiClient 重送 mutation。
 
 ## 測試與文件
 
-模組單元測試留在該模組，根 `tests/` 保留跨系統與平台驗收。HTTP fixture 證明 HTTP 契約；D1 條件、UNIQUE、FK、rollback 必須有真 Miniflare D1 證據。受控 sender／SDK 不證明實際收件或真 Google。
+模組單元測試留在模組，根 `tests/` 保留跨系統與平台測試。HTTP fixture 只證明 HTTP；D1 條件、UNIQUE、FK、rollback 必須有真 Miniflare D1 證據，受控 sender／SDK 不證明實際收件或真 Google。
 
-`docs/` 保存需求與驗收權威；`overview/` 描述現行實作與維護入口；`prototypes/` 僅供原型／視覺參考。擴大業務範圍須先有對應已確認文件。
+`overview/` 描述現行結構、契約與維護方式，禁止以需求流水帳維護；需求、進度與驗收權威放 `docs/` 對應文件。`prototypes/` 僅供原型／視覺參考。

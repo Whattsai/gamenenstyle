@@ -1,5 +1,5 @@
+import {builtinAvatarPath} from '../../fixtures/builtin-avatar.mjs';
 import assert from 'node:assert/strict';
-import path from 'node:path';
 import fs from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {api,code,waitReady} from '../../integration/local-fixture.mjs';
@@ -11,10 +11,10 @@ assert.ok(process.env.DATINGHIGH_ANDROID_DEVICE,'Select the own QA device explic
 const avd=invoke('shell','getprop','ro.boot.qemu.avd_name').trim();assert.ok(['DatingHighQA','DatingHighQA31'].includes(avd));
 const sdk=invoke('shell','getprop','ro.build.version.sdk').trim();
 invoke('shell','input','keyevent','224');invoke('shell','wm','dismiss-keyguard');invoke('shell','svc','power','stayon','true');
-const directory='/sdcard/Pictures/DatingHighQA';const names=['qa-photo-01.jpg','qa-photo-02.jpg','qa-photo-03.jpg'];
+const directory='/sdcard/Pictures/DatingHighQA';const names=['qa-photo-01.webp','qa-photo-02.webp','qa-photo-03.webp'];
 invoke('shell','mkdir','-p',directory);
 for(let n=0;n<names.length;n++){
- const remote=`${directory}/${names[n]}`;invoke('push',path.resolve(`frontend/client/assets/avatars/${n===1?'female-04':n===2?'male-03':'male-01'}.jpg`),remote);
+ const remote=`${directory}/${names[n]}`;invoke('push',builtinAvatarPath(n===1?'female-04':n===2?'male-03':'male-01'),remote);
  invoke('shell','am','broadcast','-a','android.intent.action.MEDIA_SCANNER_SCAN_FILE','-d',`file://${remote}`);
 }
 async function reveal(label,direction='down'){

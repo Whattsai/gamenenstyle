@@ -1,6 +1,6 @@
+import {builtinAvatarPath} from '../../fixtures/builtin-avatar.mjs';
 import {test,expect} from '@playwright/test';
 import {register,password,prepareBuiltinGender,returnFromProfile,openAccountAfterLogin} from './support';
-import path from 'node:path';
 import {readFileSync} from 'node:fs';
 
 test.setTimeout(180000);
@@ -39,7 +39,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  await expect(page.getByRole('img',{name:'個人照片 1',exact:true})).toHaveCount(0);
  const chooser=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片'}).click();
  await expect(page.getByRole('button',{name:'新增個人照片',exact:true})).toBeDisabled();
- await (await chooser).setFiles(path.resolve('frontend/client/assets/avatars/female-08.jpg'));
+ await (await chooser).setFiles(builtinAvatarPath('female-08'));
  await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible({timeout:60000});
  await expect(page.getByRole('img',{name:'個人照片 1',exact:true})).toBeVisible();
  await page.getByRole('button',{name:'關閉',exact:true}).click();
@@ -66,7 +66,7 @@ test('AP Web profile, sixteen real assets, free selection, photo picker, delete 
  await page.setViewportSize({width:360,height:800});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
- const again=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片'}).click();await(await again).setFiles(path.resolve('frontend/client/assets/avatars/female-08.jpg'));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible();
+ const again=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片'}).click();await(await again).setFiles(builtinAvatarPath('female-08'));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible();
  const before=await(await page.request.get('http://localhost:8787/api/v1/me/dating-profile',{headers:{'X-DatingHigh-Client':'web'}})).json();
  await page.getByRole('button',{name:'關閉',exact:true}).click();
  await returnFromProfile(page);await page.getByRole('button',{name:'登出',exact:true}).click();
@@ -96,7 +96,7 @@ test('AP Web empty photo picker cancellation keeps notice and never uploads',asy
 test('AP Web three photos reorder, stale revision and delete confirmation preserve current list',async({page})=>{
  await register(page,`ap-order-web-${Date.now()}@example.com`);await prepareBuiltinGender(page);await page.getByRole('button',{name:'個人資料與遊戲化身'}).filter({visible:true}).click();await expect(page).toHaveURL(/\/profile$/);await expect(page.getByLabel('暱稱',{exact:true}).filter({visible:true})).toBeVisible();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();await page.getByRole('button',{name:'AI 客製化',exact:true}).click();
- for(const n of ['01','02','03']){const picker=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片',exact:true}).click();await(await picker).setFiles(path.resolve(`frontend/client/assets/avatars/female-${n}.jpg`));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible({timeout:60000});}
+ for(const n of ['01','02','03']){const picker=page.waitForEvent('filechooser');await page.getByRole('button',{name:'新增個人照片',exact:true}).click();await(await picker).setFiles(builtinAvatarPath(`female-${n}`));await expect(page.getByText('照片已壓縮並安全儲存',{exact:true})).toBeVisible({timeout:60000});}
  const base='http://localhost:8787/api/v1',headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'};
  const profile=async()=>await(await page.request.get(`${base}/me/dating-profile`,{headers})).json();
  const first=await profile(),ids=first.personalPhotos.map((p:{assetId:string})=>p.assetId);expect(ids).toHaveLength(3);
@@ -158,7 +158,7 @@ test('AP Web profile gives specific birthday and paired-age feedback, then saves
 test('AP Web no consent exposes no other-player photo entry and rejects guessed own-media routes',async({page,browser})=>{
  const a=await register(page,`ap-private-a-${Date.now()}@example.com`);const created=await a.result.json();
  const headers={'X-DatingHigh-Client':'web',Origin:'http://localhost:8081'},base='http://localhost:8787/api/v1';
- const upload=await page.request.post(base+'/me/photos',{headers:{...headers,'Content-Type':'image/jpeg'},data:readFileSync(path.resolve('frontend/client/assets/avatars/male-04.jpg'))});expect(upload.status()).toBe(201);const asset=(await upload.json()).assetId;
+ const upload=await page.request.post(base+'/me/photos',{headers:{...headers,'Content-Type':'image/webp'},data:readFileSync(builtinAvatarPath('male-04'))});expect(upload.status()).toBe(201);const asset=(await upload.json()).assetId;
  const other=await browser.newContext({baseURL:'http://localhost:8081'});const b=await other.newPage();
  try{
   await register(b,`ap-private-b-${Date.now()}@example.com`);await b.getByRole('button',{name:'個人資料與遊戲化身'}).click();

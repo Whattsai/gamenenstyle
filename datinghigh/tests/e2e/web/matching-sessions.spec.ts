@@ -1,3 +1,4 @@
+import {builtinAvatarPath} from '../../fixtures/builtin-avatar.mjs';
 import {test,expect,type Page,type APIRequestContext,type Route} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {startBackend,stopBackend,control,routeBackend,type Backend,avatarFixturePassword} from './backend';
@@ -36,7 +37,7 @@ for(const format of ['built-in','data-url'])test(`${format} avatar keeps the sam
  const portraitRequests=new Set<Promise<void>>();let portraitRoute:((route:Route)=>Promise<void>)|undefined;
  if(format==='data-url'){
   // 只替換UI圖像傳輸格式，使用既有無個資插畫；不是Gemini或SQL驗收證據。
-  const data='data:image/jpeg;base64,'+readFileSync('frontend/client/assets/avatars/female-08.jpg').toString('base64');
+  const data='data:image/webp;base64,'+readFileSync(builtinAvatarPath('female-08')).toString('base64');
   portraitRoute=async route=>{
    if(route.request().method()!=='GET')return route.fallback();
    const request=(async()=>{try{
@@ -93,8 +94,8 @@ test('an ended real D1 room leaves the old page on foreground and cannot trap a 
   await b.getByRole('button',{name:'邀請',exact:true}).click();await b.getByRole('button',{name:'接受 測試旅人0',exact:true}).click();await expect(b).toHaveURL(/\/game-round\/[0-9a-f-]+$/);
   const room=b.url().split('/').at(-1)!;await page.getByRole('button',{name:'重新整理配對狀態',exact:true}).click();await expect(page).toHaveURL(new RegExp('/game-round/'+room+'$'));
   await control(backend,request,{op:'matching-end',roundId:room});expect((await control(backend,request,{op:'matching-state'})).participants).toHaveLength(0);
-  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page).toHaveURL(/\/matching$/);
-  await page.goto('/game-round/'+room);await expect(page).toHaveURL(/\/matching$/);await expect(page.getByText('測試旅人2',{exact:true}).filter({visible:true})).toBeVisible();
+  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(page.getByText('本輪互動已結束',{exact:true})).toBeVisible();
+  await page.goto('/game-round/'+room);await expect(page.getByText('本輪互動已結束',{exact:true})).toBeVisible();await page.getByRole('button',{name:'回到配對',exact:true}).click();await expect(page).toHaveURL(/\/matching$/);await expect(page.getByText('測試旅人2',{exact:true}).filter({visible:true})).toBeVisible();
  }finally{await other.close();}
 });
 test('MS-ET-001/003/005/007/008/009/011/013/019 true two-party accept, third-party invalidation and restored same room',async({browser,page,request})=>{
@@ -105,14 +106,14 @@ test('MS-ET-001/003/005/007/008/009/011/013/019 true two-party accept, third-par
   await select(page,'測試旅人1');await page.getByRole('button',{name:'想認識',exact:true}).dblclick();await select(page,'測試旅人1');await expect(page.getByRole('button',{name:'等待回覆',exact:true})).toBeDisabled();
   expect((await control(backend,request,{op:'matching-state'})).rounds).toHaveLength(0);
   await b.getByRole('button',{name:'邀請',exact:true}).click();await expect(b.getByRole('button',{name:'接受 測試旅人0',exact:true})).toBeVisible();
-  await b.getByRole('button',{name:'接受 測試旅人0',exact:true}).click();await expect(b.getByText('專屬雙人房間',{exact:true})).toBeVisible();
+  await b.getByRole('button',{name:'接受 測試旅人0',exact:true}).click();await expect(b.getByText('雨聲書店',{exact:true})).toBeVisible();
   const room=b.url().split('/').at(-1);await page.reload();await expect(page).toHaveURL(new RegExp('/game-round/'+room+'$'));
-  await expect(page.getByText('房間編號：'+room,{exact:true})).toBeVisible();expect(await page.getByRole('button',{name:'傳送訊息'}).count()).toBe(0);
+  await expect(page.getByText('房間編號：'+room,{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'傳送訊息',exact:true})).toBeVisible();
   await c.getByRole('button',{name:'邀請',exact:true}).click();await expect(c.getByText('對方目前無法配對，這次邀請已失效',{exact:true})).toBeVisible();
   await c.getByRole('button',{name:'探索',exact:true}).click();await expect(c.getByText('目前沒有可配對的對象',{exact:true})).toBeVisible();
   const state=await control(backend,request,{op:'matching-state'});expect(state.rounds).toHaveLength(1);expect(state.participants).toHaveLength(2);expect(state.invitations.filter((i:any)=>i.status==='accepted')).toHaveLength(1);
   await page.setViewportSize({width:360,height:800});expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
-  await page.getByRole('button',{name:'配對入口',exact:true}).click();await expect(page).toHaveURL(new RegExp('/game-round/'+room+'$'));
+  await page.goto('/start');await expect(page).toHaveURL(new RegExp('/game-round/'+room+'$'));
   const replacement=await browser.newContext();try{
    const restored=await replacement.newPage();await login(restored,0,new RegExp('/game-round/'+room+'$'));
    await expect(restored.getByText('房間編號：'+room,{exact:true})).toBeVisible();
@@ -188,7 +189,7 @@ test('MS-BDD-066/067 existing invitation remains actionable after orientation re
   const b=await other.newPage();await login(page,0);await login(b,1);await select(page,'測試旅人1');
   const created=page.waitForResponse(r=>r.url().endsWith('/match-invitations')&&r.request().method()==='POST');await page.getByRole('button',{name:'想認識',exact:true}).click();expect((await created).status()).toBe(201);
   await control(backend,request,{op:'matching-profile',player:1,mode:'orientation-empty'});
-  await b.getByRole('button',{name:'邀請',exact:true}).click();await b.getByRole('button',{name:'接受 測試旅人0',exact:true}).click();await expect(b.getByText('專屬雙人房間',{exact:true})).toBeVisible();
+  await b.getByRole('button',{name:'邀請',exact:true}).click();await b.getByRole('button',{name:'接受 測試旅人0',exact:true}).click();await expect(b.getByText('雨聲書店',{exact:true})).toBeVisible();
   expect((await control(backend,request,{op:'matching-state'})).invitations[0].status).toBe('accepted');
  }finally{await other.close();}
 });

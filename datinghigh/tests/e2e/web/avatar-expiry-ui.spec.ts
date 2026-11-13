@@ -1,6 +1,6 @@
+import {builtinAvatarPath} from '../../fixtures/builtin-avatar.mjs';
 import {test,expect} from '@playwright/test';
 import {readFileSync} from 'node:fs';
-import path from 'node:path';
 import {register,prepareBuiltinGender,returnFromProfile} from './support';
 
 test.setTimeout(90000);
@@ -12,8 +12,8 @@ test('AP Web expiry UI: an already-open adoption dialog closes and cannot submit
  const own=await prepareBuiltinGender(page);
  expect((await page.request.put(`${base}/me/avatar/selection`,{headers,data:{type:'builtin',builtinAvatarId:'male-03',expectedRevision:own.revision}})).status()).toBe(200);
  const photoIds:string[]=[];
- for(const file of ['female-01.jpg','female-02.jpg']){
-  const response=await page.request.post(`${base}/me/photos`,{headers:{...headers,'Content-Type':'image/jpeg'},data:readFileSync(path.resolve('frontend/client/assets/avatars',file))});
+ for(const file of ['female-01','female-02']){
+  const response=await page.request.post(`${base}/me/photos`,{headers:{...headers,'Content-Type':'image/webp'},data:readFileSync(builtinAvatarPath(file))});
   expect(response.status()).toBe(201);photoIds.push((await response.json()).assetId);
  }
  const fixtureAttempt='019a281e-0000-7000-8000-000000099999';
@@ -22,7 +22,7 @@ test('AP Web expiry UI: an already-open adoption dialog closes and cannot submit
   const serverTime=Date.parse(response.headers()['date']);expect(Number.isFinite(serverTime)).toBe(true);
   await route.fulfill({response,json:{...profile,avatarAttempt:{attemptId:fixtureAttempt,producedCount:1,status:'open',expiresAt:serverTime+10000}}});
  });
- await page.route(`**/api/v1/me/avatar/candidates/${fixtureAttempt}/1`,route=>route.fulfill({status:200,contentType:'image/jpeg',body:readFileSync(path.resolve('frontend/client/assets/avatars/female-01.jpg'))}));
+ await page.route(`**/api/v1/me/avatar/candidates/${fixtureAttempt}/1`,route=>route.fulfill({status:200,contentType:'image/webp',body:readFileSync(builtinAvatarPath('female-01'))}));
  let mutations=0;page.on('request',request=>{if(request.method()!=='GET'&&/\/me\/avatar\/(?:generations|selection)$/.test(new URL(request.url()).pathname))mutations++;});
  await page.getByRole('button',{name:'個人資料與遊戲化身'}).click();
  await page.getByRole('button',{name:'選擇化身',exact:true}).click();
@@ -60,8 +60,8 @@ for(const [status,code,notice] of [
  const own=await prepareBuiltinGender(page);
  expect((await page.request.put(`${base}/me/avatar/selection`,{headers,data:{type:'builtin',builtinAvatarId:'male-03',expectedRevision:own.revision}})).status()).toBe(200);
  const photoIds:string[]=[];
- for(const file of ['female-01.jpg','female-02.jpg']){
-  const response=await page.request.post(`${base}/me/photos`,{headers:{...headers,'Content-Type':'image/jpeg'},data:readFileSync(path.resolve('frontend/client/assets/avatars',file))});
+ for(const file of ['female-01','female-02']){
+  const response=await page.request.post(`${base}/me/photos`,{headers:{...headers,'Content-Type':'image/webp'},data:readFileSync(builtinAvatarPath(file))});
   expect(response.status()).toBe(201);photoIds.push((await response.json()).assetId);
  }
  const fixtureAttempt='019a281e-0000-7000-8000-000000099998';let failed=false,calls=0,selections=0;
@@ -69,7 +69,7 @@ for(const [status,code,notice] of [
   const response=await route.fetch(),profile=await response.json(),serverTime=Date.parse(response.headers()['date']);
   await route.fulfill({response,json:{...profile,avatarAttempt:failed&&status===410?null:{attemptId:fixtureAttempt,producedCount:2,status:failed&&code==='IMAGE_PROVIDER_UNCERTAIN'?'uncertain':'open',expiresAt:serverTime+3600000}}});
  });
- await page.route(`**/api/v1/me/avatar/candidates/${fixtureAttempt}/*`,route=>route.fulfill({status:200,contentType:'image/jpeg',body:readFileSync(path.resolve('frontend/client/assets/avatars',route.request().url().endsWith('/2')?'female-02.jpg':'female-01.jpg'))}));
+ await page.route(`**/api/v1/me/avatar/candidates/${fixtureAttempt}/*`,route=>route.fulfill({status:200,contentType:'image/webp',body:readFileSync(builtinAvatarPath(route.request().url().endsWith('/2')?'female-02':'female-01'))}));
  await page.route('**/api/v1/me/avatar/generations',async route=>{
   calls++;const payload=route.request().postDataJSON();expect(payload.attemptId).toBe(fixtureAttempt);expect(payload.expectedProducedCount).toBe(2);
   failed=true;await route.fulfill({status,contentType:'application/problem+json',headers:{'Cache-Control':'no-store'},json:{status,code,title:code,traceId:'controlled-ui-fault'}});

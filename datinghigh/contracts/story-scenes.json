@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "stories": [
+    {
+      "catalogId": "019a281e-0000-7000-8000-000000000102",
+      "storyId": "scene-01",
+      "version": "v2",
+      "title": "雨聲書店",
+      "summary": "一場雨、一本書，與你一起讀懂未完成的推薦卡。",
+      "time": "細雨綿綿的傍晚",
+      "place": "獨立書店",
+      "event": "兩人同時注意到一本書裡的手寫推薦卡",
+      "interestTagIds": [
+        "reading"
+      ],
+      "recommendationPriority": 1,
+      "entry": "entry",
+      "locale": "zh-TW",
+      "backgroundAsset": "rain-bookshop",
+      "audioAsset": "rain",
+      "assets": [
+        {
+          "id": "rain-bookshop",
+          "file": "contracts/story-assets/rain-bookshop-clean-v2.png",
+          "key": "story-content/assets/03710ea0630b3cebc088f0faf30124c2c92c47f25dd5d276a1631925bf5a6a10",
+          "sha256": "03710ea0630b3cebc088f0faf30124c2c92c47f25dd5d276a1631925bf5a6a10",
+          "byteLength": 2257190,
+          "mimeType": "image/png"
+        },
+        {
+          "id": "rain",
+          "file": "contracts/story-assets/rain-v1.wav",
+          "key": "story-content/assets/14eb036899dcc03f39684d7c4245a655e64f75a3ac079a2981c3c0ee63499b55",
+          "sha256": "14eb036899dcc03f39684d7c4245a655e64f75a3ac079a2981c3c0ee63499b55",
+          "byteLength": 128044,
+          "mimeType": "audio/wav"
+        },
+        {
+          "id": "page-turn",
+          "file": "contracts/story-assets/page-turn-v1.wav",
+          "key": "story-content/assets/43c59ddd06cc5af28470328e439cf02ac1e0a156c440868b6ee709fd43c8ec7b",
+          "sha256": "43c59ddd06cc5af28470328e439cf02ac1e0a156c440868b6ee709fd43c8ec7b",
+          "byteLength": 9004,
+          "mimeType": "audio/wav"
+        },
+        {
+          "id": "transition",
+          "file": "contracts/story-assets/transition-v1.wav",
+          "key": "story-content/assets/0f63cc5771f59d072f8dea23474ba0218ac5d68f479f5be804e6fd76a8387f97",
+          "sha256": "0f63cc5771f59d072f8dea23474ba0218ac5d68f479f5be804e6fd76a8387f97",
+          "byteLength": 20844,
+          "mimeType": "audio/wav"
+        },
+        {
+          "id": "reading-table",
+          "file": "contracts/story-assets/rain-bookshop-foreground-v2.png",
+          "key": "story-content/assets/51eeae9c319ad28e0a04e946450c2557df717f6186392c10ff5c0e3ac6ae5eca",
+          "sha256": "51eeae9c319ad28e0a04e946450c2557df717f6186392c10ff5c0e3ac6ae5eca",
+          "byteLength": 862957,
+          "mimeType": "image/png"
+        }
+      ],
+      "suggestions": [
+        {
+          "id": "observe",
+          "label": "觀察型",
+          "text": "你也注意到那張藏在書裡的卡片了嗎？"
+        },
+        {
+          "id": "warm",
+          "label": "溫暖型",
+          "text": "我喜歡有人認真推薦一本書的感覺，你呢？"
+        },
+        {
+          "id": "humor",
+          "label": "幽默型",
+          "text": "我們是不是都被同一本書選中了？"
+        }
+      ],
+      "interactions": [
+        {
+          "id": "bookmark",
+          "version": "v1",
+          "moduleType": "inspect-object",
+          "title": "翻看手寫書籤",
+          "prompt": "泛黃的紙角上，藏著一小行字。",
+          "options": [
+            {
+              "id": "front",
+              "label": "讀書籤正面",
+              "result": "「如果不知道怎麼開口，就說說最近讓你停下腳步的一件小事。」字旁畫了一朵小花。"
+            },
+            {
+              "id": "back",
+              "label": "翻到書籤背面",
+              "result": "背面是書店的舊印章，旁邊寫著「窗邊，第三排」。也許推薦卡還有下一頁。"
+            }
+          ]
+        },
+        {
+          "id": "reading-path",
+          "version": "v1",
+          "moduleType": "cooperative-choice",
+          "title": "給彼此一份閱讀提案",
+          "prompt": "各自選一種今晚想讀的故事。兩份真正的選擇抵達後，才一起翻頁。",
+          "options": [
+            {
+              "id": "warm",
+              "label": "溫暖的日常"
+            },
+            {
+              "id": "adventure",
+              "label": "未知的冒險"
+            }
+          ],
+          "sameNext": "ending-together",
+          "differentNext": "ending-two-pages"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "entry",
+          "title": "雨聲落在書頁上",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "你推開書店的玻璃門，門鈴輕響。雨水沿著窗緣，畫出一條條銀色的小路。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "桌上的書停在同一頁。你與另一位旅人，同時看見夾在頁間的手寫卡。"
+            },
+            {
+              "speaker": "店員・NPC",
+              "text": "慢慢看吧。這間店的推薦卡，常常是留給下一個人的。"
+            }
+          ],
+          "choices": [
+            {
+              "id": "enter",
+              "label": "走近那張推薦卡",
+              "next": "icebreak"
+            }
+          ],
+          "visual": "evening",
+          "objects": [
+            "bookmark"
+          ],
+          "presentation": {
+            "cameraId": "entry-wide",
+            "expression": "neutral",
+            "hotspotIds": []
+          }
+        },
+        {
+          "id": "icebreak",
+          "title": "第一句，從哪裡開始",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "卡片上沒有書名，只有一句話：「想把這一頁，留給願意停留的人。」"
+            },
+            {
+              "speaker": "旁白",
+              "text": "你可以從下方選一個話題，也可以用自己的話，向眼前的旅人打聲招呼。"
+            }
+          ],
+          "choices": [
+            {
+              "id": "browse",
+              "label": "一起看看書架",
+              "next": "shelves"
+            }
+          ],
+          "visual": "evening",
+          "objects": [
+            "bookmark"
+          ],
+          "presentation": {
+            "cameraId": "table-medium",
+            "expression": "smile",
+            "hotspotIds": [
+              "bookmark"
+            ]
+          }
+        },
+        {
+          "id": "shelves",
+          "title": "藏在第三排的線索",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "雨勢暫時沒有變小。窗邊第三排，一本薄薄的筆記露出藍色書脊。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "主線可以繼續；如果好奇，也能追尋書籤留下的提示。"
+            }
+          ],
+          "choices": [
+            {
+              "id": "follow",
+              "label": "追尋書籤的提示",
+              "next": "side-note"
+            },
+            {
+              "id": "stay",
+              "label": "留在桌邊，繼續聊天",
+              "next": "rejoin"
+            }
+          ],
+          "visual": "evening",
+          "objects": [
+            "bookmark"
+          ],
+          "presentation": {
+            "cameraId": "shelf-medium",
+            "expression": "thoughtful",
+            "hotspotIds": []
+          }
+        },
+        {
+          "id": "side-note",
+          "title": "未寄出的推薦",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "筆記裡夾著一張沒有署名的便條。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "「以前我總以為，要選到同一本書，才能一起走。後來才知道，願意交換一頁，也很好。」"
+            },
+            {
+              "speaker": "店員・NPC",
+              "text": "那是老客人留下的。你們願意的話，也可以為下一個人留一句。"
+            }
+          ],
+          "choices": [
+            {
+              "id": "return",
+              "label": "把便條放回，帶著心意回桌邊",
+              "next": "rejoin"
+            }
+          ],
+          "visual": "note",
+          "objects": [
+            "bookmark"
+          ],
+          "presentation": {
+            "cameraId": "note-close",
+            "expression": "concerned",
+            "hotspotIds": [
+              "bookmark"
+            ]
+          }
+        },
+        {
+          "id": "rejoin",
+          "title": "把一點好奇留給彼此",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "你們回到亮著暖燈的桌邊。無論有沒有找到便條，眼前都有一張空白的新推薦卡。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "如果把今晚寫成一本小書，你會希望它從哪裡開始？"
+            }
+          ],
+          "choices": [
+            {
+              "id": "choose",
+              "label": "為今晚選一個閱讀方向",
+              "next": "cooperate"
+            }
+          ],
+          "visual": "evening",
+          "objects": [
+            "bookmark"
+          ],
+          "presentation": {
+            "cameraId": "table-medium",
+            "expression": "smile",
+            "hotspotIds": [
+              "bookmark"
+            ]
+          }
+        },
+        {
+          "id": "cooperate",
+          "title": "兩個人，兩個書籤",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "不用猜出對方的答案。先誠實地選擇自己想讀的，再看看兩頁會如何相遇。"
+            }
+          ],
+          "choices": [],
+          "visual": "evening",
+          "objects": [
+            "bookmark"
+          ],
+          "interactionId": "reading-path",
+          "presentation": {
+            "cameraId": "table-medium",
+            "expression": "thoughtful",
+            "hotspotIds": [
+              "bookmark"
+            ]
+          }
+        },
+        {
+          "id": "ending-together",
+          "title": "同一頁的微光",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "兩枚書籤，落在同一頁。原來你們今晚想讀的，是相同方向的故事。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "雨仍在下，桌燈卻亮得剛好。你們把推薦卡留在書裡，寫下：「願你也遇見願意慢慢讀的人。」"
+            },
+            {
+              "speaker": "店員・NPC",
+              "text": "故事到這裡告一段落。座位還在，想聊多久都可以。"
+            }
+          ],
+          "choices": [],
+          "visual": "together",
+          "objects": [
+            "bookmark"
+          ],
+          "ending": true,
+          "presentation": {
+            "cameraId": "together-warm",
+            "expression": "smile",
+            "hotspotIds": [
+              "bookmark"
+            ]
+          }
+        },
+        {
+          "id": "ending-two-pages",
+          "title": "並肩的兩頁",
+          "lines": [
+            {
+              "speaker": "旁白",
+              "text": "兩枚書籤，落在不同的頁間。你們交換了書，各自為對方讀了一小段未知。"
+            },
+            {
+              "speaker": "旁白",
+              "text": "推薦卡上多了一句：「不用是同一本書，也能坐在同一盞燈下。」窗外的雨，開始變輕。"
+            },
+            {
+              "speaker": "店員・NPC",
+              "text": "故事到這裡告一段落。座位還在，想聊多久都可以。"
+            }
+          ],
+          "choices": [],
+          "visual": "two-pages",
+          "objects": [
+            "bookmark"
+          ],
+          "ending": true,
+          "presentation": {
+            "cameraId": "two-pages-blue",
+            "expression": "smile",
+            "hotspotIds": []
+          }
+        }
+      ],
+      "scenePresentation": {
+        "version": "2.5d.v1",
+        "backgroundAsset": "rain-bookshop",
+        "cameras": [
+          {
+            "id": "entry-wide",
+            "scale": 1,
+            "focus": {
+              "x": 0.57,
+              "y": 0.5
+            },
+            "portrait": {
+              "x": 0.5,
+              "headY": 0.08,
+              "height": 0.9
+            },
+            "foreground": false,
+            "tint": "#7488b0",
+            "tintOpacity": 0.12
+          },
+          {
+            "id": "table-medium",
+            "scale": 1.15,
+            "focus": {
+              "x": 0.65,
+              "y": 0.6
+            },
+            "portrait": {
+              "x": 0.52,
+              "headY": 0.07,
+              "height": 1.3
+            },
+            "foreground": true,
+            "tint": "#e2aa75",
+            "tintOpacity": 0.08
+          },
+          {
+            "id": "shelf-medium",
+            "scale": 1.25,
+            "focus": {
+              "x": 0.36,
+              "y": 0.5
+            },
+            "portrait": {
+              "x": 0.62,
+              "headY": 0.08,
+              "height": 1.2
+            },
+            "foreground": false,
+            "tint": "#8899b4",
+            "tintOpacity": 0.08
+          },
+          {
+            "id": "note-close",
+            "scale": 1.5,
+            "focus": {
+              "x": 0.72,
+              "y": 0.73
+            },
+            "portrait": {
+              "x": 0.58,
+              "headY": 0.06,
+              "height": 2.1
+            },
+            "foreground": true,
+            "tint": "#c8a0bd",
+            "tintOpacity": 0.14
+          },
+          {
+            "id": "together-warm",
+            "scale": 1.12,
+            "focus": {
+              "x": 0.65,
+              "y": 0.61
+            },
+            "portrait": {
+              "x": 0.52,
+              "headY": 0.08,
+              "height": 1.28
+            },
+            "foreground": true,
+            "tint": "#f6c270",
+            "tintOpacity": 0.19
+          },
+          {
+            "id": "two-pages-blue",
+            "scale": 1,
+            "focus": {
+              "x": 0.6,
+              "y": 0.5
+            },
+            "portrait": {
+              "x": 0.52,
+              "headY": 0.08,
+              "height": 0.9
+            },
+            "foreground": false,
+            "tint": "#8badce",
+            "tintOpacity": 0.18
+          }
+        ],
+        "hotspots": [
+          {
+            "id": "bookmark",
+            "definitionId": "bookmark",
+            "label": "翻看手寫書籤",
+            "x": 0.76,
+            "y": 0.86
+          }
+        ],
+        "foreground": [],
+        "foregroundAsset": "reading-table"
+      },
+      "audioCues": {
+        "pageTurn": "page-turn",
+        "transition": "transition"
+      }
+    }
+  ]
+}

@@ -34,12 +34,13 @@ beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'matching-test'},r2Buckets:{FILES:'matching-test-files'}}));
  db=await mf.getD1Database('DB') as unknown as D1Database;
  files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql'])
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql'])
   await db.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
 });
 beforeEach(async()=>{
  const objects=await files.list();if(objects.objects.length)await files.delete(objects.objects.map(o=>o.key));
- await db.batch(['game_round_participants','game_rounds','match_invitations','match_conditions','user_media_assets','user_profiles','auth_sessions','auth_accounts'].map(t=>db.prepare(`DELETE FROM ${t}`)));
+ await db.batch(['game_interaction_instances','game_round_events','game_story_sessions','game_active_round_claims','game_rounds','match_invitations','match_conditions','user_media_assets','user_profiles','auth_sessions','auth_accounts'].map(t=>db.prepare(`DELETE FROM ${t}`)));
+ await db.prepare("INSERT OR IGNORE INTO content_story_catalog VALUES(?, 'fixture-story','v1','[\"reading\"]',1,'story-content/stories/fixture/v1/manifest.json',?,'published',?)").bind(id(9990),'a'.repeat(64),now).run();
  for(const n of [1,2,3])await person(n);
 });
 
@@ -48,7 +49,7 @@ it('MS-IT-046: generated avatar reads only the authorized formal asset and reche
  await db.prepare("INSERT INTO user_media_assets(asset_id,account_id,kind,object_key,mime_type,status,created_at) VALUES(?,?,'generated_avatar',?,'image/jpeg','ready',?)").bind(asset,id(2),key,now).run();
  await files.put(key,new Uint8Array([1,2,3]));
  await run('profile.avatar.generated',{...owner(2),expectedRevision:3,assetId:asset});
- const env={DB:db,FILES:files,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0004_matching_sessions.sql'};
+ const env={DB:db,FILES:files,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0005_story_dialogue_exit.sql'};
  const request=()=>new Request('http://platform.internal/v1/commands/match.candidate.persona.read',{method:'POST',body:JSON.stringify({...owner(1),candidateId:id(202)})});
  const first=await dispatch(request(),env,now);expect(first.status).toBe(200);
  const body=await first.json() as any;expect(body.rows[0].avatar_data_url).toBe('data:image/jpeg;base64,AQID');expect(JSON.stringify(body)).not.toContain(key);
@@ -70,19 +71,19 @@ afterAll(async()=>{await mf?.dispose();});
 
 it.each(['success','zero-update','zero-release','one-participant'])('local wrapper game end: %s preserves history and atomically releases exactly the selected pair',async(mode)=>{
  const ab=(await invite(1,2)).rows[0] as any;await resolve(2,ab.invitation_id);
- if(mode==='one-participant')await db.prepare('DELETE FROM game_round_participants WHERE account_id=?').bind(id(1)).run();
- const before=await rows('SELECT * FROM game_round_participants ORDER BY participant_id');
+ if(mode==='one-participant')await db.prepare('DELETE FROM game_active_round_claims WHERE account_id=?').bind(id(1)).run();
+ const before=await rows('SELECT * FROM game_active_round_claims ORDER BY participant_id');
  const plan=localGameEndStatements(id(5000),now+1) as string[];
  if(mode==='zero-update'||mode==='zero-release'){
-  const index=plan.findIndex(s=>s.startsWith(mode==='zero-update'?'UPDATE game_rounds':'DELETE FROM game_round_participants'));
+  const index=plan.findIndex(s=>s.startsWith(mode==='zero-update'?'UPDATE game_rounds':'DELETE FROM game_active_round_claims'));
   expect(index).toBeGreaterThanOrEqual(0);plan[index]=plan[index].replace('WHERE ','WHERE 0 AND ');
  }
  if(mode!=='success'){
   await expect(db.batch(plan.map(s=>db.prepare(s)))).rejects.toThrow();
-  expect((await rows('SELECT status FROM game_rounds'))[0].status).toBe('active');expect(await rows('SELECT * FROM game_round_participants ORDER BY participant_id')).toEqual(before);return;
+  expect((await rows('SELECT status FROM game_rounds'))[0].status).toBe('active');expect(await rows('SELECT * FROM game_active_round_claims ORDER BY participant_id')).toEqual(before);return;
  }
  await db.batch(plan.map(s=>db.prepare(s)));
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(0);expect(await rows('SELECT status,ended_at FROM game_rounds')).toEqual([{status:'ended',ended_at:now+1}]);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);expect(await rows('SELECT status,ended_at FROM game_rounds')).toEqual([{status:'ended',ended_at:now+1}]);
  expect((await invite(2,1,90)).rows).toHaveLength(0);expect((await invite(3,1,91)).rows.at(-1)).toMatchObject({status:'pending'});
  await db.batch(localGameEndStatements(id(5000),now+2).map((s:string)=>db.prepare(s)));expect((await rows('SELECT ended_at FROM game_rounds'))[0].ended_at).toBe(now+1);
 });
@@ -123,7 +124,7 @@ it('MS-IT-006/007/039/052: explicit accept creates one round, two participants, 
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(0);
  const result=await resolve(2,ab.invitation_id);
  expect(result.rows.at(-1)).toMatchObject({status:'accepted',round_id:id(5000)});
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(2);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
  expect(await rows("SELECT * FROM match_invitations WHERE status='invalidated' AND invalidated_reason='other_round_started'")).toHaveLength(2);
  expect((await run('match.candidate.search',owner(3))).rows.filter((r:any)=>!r.own_profile_id)).toHaveLength(0);
  expect((await run('game.round.list',owner(1))).rows).toHaveLength(1);
@@ -144,7 +145,7 @@ it('MS-IT-049/050/051/060: cross-pair concurrent accept and forced zero-change r
  const attempts=await Promise.allSettled([resolve(2,ab.invitation_id,'accept',5100),resolve(3,ac.invitation_id,'accept',5200)]);
  expect(attempts.filter(r=>r.status==='fulfilled'&&r.value.rows.some((x:any)=>x.status==='accepted'))).toHaveLength(1);
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(1);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(2);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
 });
 
 it('MS-IT-051: a zero-row guarded accept fails inside SQL and rolls back the entire batch',async()=>{
@@ -155,7 +156,7 @@ it('MS-IT-051: a zero-row guarded accept fails inside SQL and rolls back the ent
  plan[index]={sql:plan[index].sql.replace('WHERE ', 'WHERE 0 AND '),values:plan[index].values};
  await expect(db.batch(plan.map(p=>db.prepare(p.sql).bind(...p.values)))).rejects.toThrow();
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(0);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(0);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);
  expect((await rows('SELECT status FROM match_invitations'))[0].status).toBe('pending');
 });
 
@@ -210,16 +211,16 @@ it('MS-IT-008/041: reverse explicit intent returns existing pending, receiver ac
  expect((await resolve(2,ab.invitation_id,'accept',7100)).rows.at(-1)).toMatchObject({round_id:id(5000)});
  expect((await invite(1,2)).rows[0]).toMatchObject({round_id:id(5000)});
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(1);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(2);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
 });
 
 it('MS-IT-012/053/058/061: loss of readiness preserves active game, end atomically frees both and does not recreate conditions',async()=>{
  const ab=(await invite(1,2)).rows[0] as any;await resolve(2,ab.invitation_id);
  await run('profile.update',profile(1,{expectedRevision:3,gender:null,romanticOrientation:[]}));
  expect(await rows('SELECT * FROM match_conditions WHERE account_id=?',id(1))).toHaveLength(0);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(2);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
  await run('game.round.end',{...owner(2),roundId:id(5000)});
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(0);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);
  expect((await rows('SELECT status FROM game_rounds'))[0].status).toBe('ended');
  expect(await rows('SELECT * FROM match_conditions WHERE account_id=?',id(1))).toHaveLength(0);
  expect((await invite(2,1,88)).rows).toHaveLength(0);
@@ -236,7 +237,7 @@ it.each(['session','account','avatar','birthday'])('MS-IT-043/044/056: %s loss i
  if(kind==='session')expect(result.rows).toHaveLength(0);
  else expect(result.rows.at(-1)).toMatchObject({status:'invalidated',invalidated_reason:'eligibility_changed'});
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(0);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(0);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);
 });
 
 it('MS-IT-050: failure of second participant rolls back accepted invitation, first participant and round',async()=>{
@@ -245,17 +246,17 @@ it('MS-IT-050: failure of second participant rolls back accepted invitation, fir
  const plan=planCommand('match.invite.resolve',{...owner(2),invitationId:ab.invitation_id,action:'accept',roundId:id(7200),participantLowId:id(7201),participantHighId:id(7201)},now);
  await expect(db.batch(plan.map(p=>db.prepare(p.sql).bind(...p.values)))).rejects.toThrow();
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(0);
- expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(0);
+ expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);
  expect(await rows('SELECT * FROM match_invitations ORDER BY invitation_id')).toEqual(original);
 });
 
 it.each(['update','release'])('MS-IT-053: zero-row end %s rolls back status and both participant claims',async(stage)=>{
  const ab=(await invite(1,2)).rows[0] as any;await resolve(2,ab.invitation_id);
  const plan=planCommand('game.round.end',{...owner(1),roundId:id(5000)},now+1);
- const index=plan.findIndex(p=>p.sql.startsWith(stage==='update'?'UPDATE game_rounds':'DELETE FROM game_round_participants'));
+ const index=plan.findIndex(p=>p.sql.startsWith(stage==='update'?'UPDATE game_rounds':'DELETE FROM game_active_round_claims'));
  plan[index]={sql:plan[index].sql.replace('WHERE ','WHERE 0 AND '),values:plan[index].values};
  await expect(db.batch(plan.map(p=>db.prepare(p.sql).bind(...p.values)))).rejects.toThrow();
- expect((await rows('SELECT status FROM game_rounds'))[0].status).toBe('active');expect(await rows('SELECT * FROM game_round_participants')).toHaveLength(2);
+ expect((await rows('SELECT status FROM game_rounds'))[0].status).toBe('active');expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
 });
 
 it('MS-IT-034: current nonempty but one-sided orientation filters new candidates while prior pending remains valid',async()=>{
@@ -282,15 +283,15 @@ it('MS-IT-022: stale projections still recheck the Taiwan midnight birthday befo
 });
 
 it('MS-IT-049/060/062: exact schema preserves Foundation54 + Avatar27 and enforces real FK and UNIQUE',async()=>{
- for(const [table,count] of [['match_conditions',10],['match_invitations',11],['game_rounds',7],['game_round_participants',4]] as const){
+ for(const [table,count] of [['match_conditions',10],['match_invitations',11],['game_rounds',9],['game_active_round_claims',4]] as const){
   const columns=await rows(`PRAGMA table_info(${table})`);expect(columns).toHaveLength(count);expect(columns[0]).toMatchObject({pk:1,notnull:1,type:'TEXT'});
  }
  let columns=0;for(const table of ['auth_accounts','auth_external_identities','auth_sessions','auth_refresh_tokens','auth_email_challenges','common_rate_limit_buckets'])columns+=(await rows(`PRAGMA table_info(${table})`)).length;expect(columns).toBe(54);
  expect((await rows('PRAGMA table_info(user_profiles)')).length+(await rows('PRAGMA table_info(user_media_assets)')).length).toBe(27);
  await expect(db.prepare('INSERT INTO match_conditions SELECT ?,account_id,gender,romantic_orientation_json,birth_date,region_code,interests_json,preferences_json,created_at,updated_at FROM match_conditions WHERE account_id=?').bind(id(9200),id(1)).run()).rejects.toThrow();
- await expect(db.prepare('INSERT INTO game_round_participants VALUES(?,?,?,?)').bind(id(9201),id(9999),id(9998),now).run()).rejects.toThrow();
+ await expect(db.prepare('INSERT INTO game_active_round_claims VALUES(?,?,?,?)').bind(id(9201),id(9999),id(9998),now).run()).rejects.toThrow();
  const ab=(await invite(1,2)).rows[0] as any;await resolve(2,ab.invitation_id);
- await expect(db.prepare('INSERT INTO game_round_participants VALUES(?,?,?,?)').bind(id(9202),id(1),id(5000),now).run()).rejects.toThrow();
+ await expect(db.prepare('INSERT INTO game_active_round_claims VALUES(?,?,?,?)').bind(id(9202),id(1),id(5000),now).run()).rejects.toThrow();
  expect(await rows('PRAGMA foreign_key_check')).toHaveLength(0);
  expect(await rows("SELECT * FROM sqlite_master WHERE type='trigger'")).toHaveLength(0);
 });

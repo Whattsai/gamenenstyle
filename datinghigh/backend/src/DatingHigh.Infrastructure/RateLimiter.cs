@@ -3,7 +3,7 @@ using DatingHigh.Application;
 using DatingHigh.Domain;
 using DatingHigh.Application.RateLimiting;
 namespace DatingHigh.Infrastructure;
-/// <summary>九筆認證政策及一筆 AI 生成額度，跨容器共享固定視窗。</summary>
+/// <summary>認證、候選、表情與遊戲的固定政策，跨容器共享限流視窗。</summary>
 public static class RateLimitPolicies
 {
     public static readonly IReadOnlyDictionary<(string Policy,string Type),(long Window,int Limit)> Entries=new Dictionary<(string,string),(long,int)>
@@ -13,7 +13,9 @@ public static class RateLimitPolicies
         [("external_credential.v1","ip")]=(900000,30),[("credential_change.v1","account")]=(900000,10),
         [("session_refresh.v1","session")]=(60000,10),[("session_refresh.v1","ip")]=(60000,120),
         [("avatar_generate.v1","account")]=(3600000,8),
-        [("matching_search.v1","account")]=(60000,30),[("matching_invite.v1","account")]=(3600000,10)
+        [("avatar_expression.v1","account")]=(3600000,20),
+        [("matching_search.v1","account")]=(60000,30),[("matching_invite.v1","account")]=(3600000,10),
+        [("story_mutation.v1","account")]=(60000,120),[("story_ticket.v1","account")]=(60000,30)
     };
 }
 /// <summary>請求範圍的去重額度保留；超限與故障皆停止副作用。</summary>

@@ -1,6 +1,12 @@
 import {execFileSync} from 'node:child_process';import path from 'node:path';import assert from 'node:assert/strict';
 const adb=path.join(process.env.ANDROID_HOME??path.join(process.env.LOCALAPPDATA,'Android/Sdk'),'platform-tools/adb.exe');export const device=process.env.DATINGHIGH_ANDROID_DEVICE??'emulator-5554';
 export const invoke=(...args)=>{try{return execFileSync(adb,[...(process.env.DATINGHIGH_ADB_PORT?['-P',process.env.DATINGHIGH_ADB_PORT]:[]),'-s',device,...args],{encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe'],timeout:45000});}catch(e){throw new Error(`Android command failed (${args[0]}/${args[1]??''}): ${e.status??e.code??'nonzero exit'}`);}};
+// 僅保留本App總PSS數字，不保存dumpsys原文；離散樣本不能冒稱連續實測峰值。
+export function memorySample(phase){
+ const raw=invoke('shell','dumpsys','meminfo','com.datinghigh.app'),match=raw.match(/TOTAL PSS:\s*(\d+)/);
+ const device=invoke('shell','cat','/proc/meminfo'),field=name=>{const value=device.match(new RegExp(`^${name}:\\s+(\\d+)\\s+kB$`,'m'));return value?Number(value[1]):null;};
+ return {phase,capturedAtUtc:new Date().toISOString(),pssKiB:match?Number(match[1]):null,totalMemKiB:field('MemTotal'),availableMemKiB:field('MemAvailable')};
+}
 // XML 只從 PTY 讀入記憶體，驗證碼／密碼不寫 UI dump、影片、log 或 screenshot。
 let screenBounds;
 export function decodeXmlAttribute(value){
@@ -29,4 +35,4 @@ export async function fill(label,value,verifyExactEmail=true){
  }
  assert.fail('Native Email input matches test value after bounded input attempts');
 }
-export async function reopen(port=8082){invoke('reverse',`tcp:${port}`,`tcp:${port}`);invoke('shell','am','force-stop','com.datinghigh.app');invoke('shell','am','start','-a','android.intent.action.VIEW','-d',`datinghigh://expo-development-client/?url=${encodeURIComponent('http://localhost:'+port)}`);}
+export async function reopen(port=8082,{hideDevTools=false}={}){invoke('reverse',`tcp:${port}`,`tcp:${port}`);invoke('shell','am','force-stop','com.datinghigh.app');invoke('shell','am','start','-a','android.intent.action.VIEW','-d',`'datinghigh://expo-development-client/?url=${encodeURIComponent('http://localhost:'+port)}${hideDevTools?'&__expo_disable_fab=1&__expo_disable_auto_launch=1&__expo_disable_onboarding=1':''}'`);}

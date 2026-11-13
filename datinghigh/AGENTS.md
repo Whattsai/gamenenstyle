@@ -1,8 +1,8 @@
 # DatingHigh 開發入口
 
-本目錄是「心動迴路」正式應用，包含 PlatformFoundation 與已完成本地Web／Android範圍驗收的 AvatarAndPreferences。使用繁體中文維護說明；不要替其餘 SPEC 建假成功頁、業務表或固定帳號。化身最新證據見 `docs/verification/SPEC-001-AvatarAndPreferences-Verification.md`。
+本目錄是「心動迴路」正式應用。本文定義 AI 開發時的讀取順序、遵守原則、工作方式與交付檢查；使用繁體中文維護說明。
 
-MatchingSessions（2026-11-06）已加入正式四表、候選／邀請／輪次API與共用畫面；逐項與平台現況見 `docs/verification/SPEC-001-MatchingSessions-Verification.md`。原子投影只隨配對輸入／資格改變，不使用source_profile_revision；舊pending不回溯性向。產品退出與劇情仍交由後續SPEC，內部end命令不代表退出UX已完成。
+`AGENTS.md`、`README.md`、`overview/` 等非需求文件絕不可記錄需求流水帳，也不得以日期、需求批次、續接或增量段落追加工作摘要。`AGENTS.md` 維護開發原則；`README.md` 維護專案簡介與啟動入口；`overview/` 依主題整合現行架構、契約、相依與操作方式。修改時直接更新對應說明，不保留互相矛盾的新舊基線。需求進度、測試結果、人工確認、故障經過與未完事項只更新目標需求既有的 `docs/verification/` 文件；非需求文件只連結權威紀錄。
 
 ## 讀取順序
 
@@ -20,15 +20,19 @@ MatchingSessions（2026-11-06）已加入正式四表、候選／邀請／輪次
 
 ## 必守規則
 
-- 依使用者2026-11-04決策D-051／D-052：無障礙專項不納入目前整個遊戲MVP的設計、實作或驗收，不列待補；iOS暫緩。Web／Android一般功能與資料安全仍須驗證，歷史未驗不改記通過。
+- 依使用者決策D-051／D-052：無障礙專項不納入目前整個遊戲MVP的設計、實作或驗收，不列待補；iOS暫緩。Web／Android一般功能與資料安全仍須驗證，歷史未驗不改記通過。
 
+- 只實作已確認的 SPEC 範圍，不建立假成功頁、業務表或固定帳號冒充完成。
 - 認證以 SPEC 為準：每帳號一個未撤銷 family；新登入同 D1 batch 撤舊建新；`cv` 只隨憑證變更增加；Refresh 30 秒寬限，逾時重放撤原 family。
-- Foundation 六表54欄保持；AvatarAndPreferences 維持兩表27欄（2026-11-05已確認D-053由24欄向前升級），零 SQL Trigger。首欄 UUIDv7、固定 prepared SQL；不引入 Identity／EF、額外 marker/version 欄位、job 表或公開 command 入口。
+- Foundation 六表54欄保持；AvatarAndPreferences 依D-053維持兩表27欄，零 SQL Trigger。首欄 UUIDv7、固定 prepared SQL；不引入 Identity／EF、額外 marker/version 欄位、job 表或公開 command 入口。
+- 配對原子投影只隨配對輸入／資格改變，不使用 `source_profile_revision`；接受舊 pending 不回溯檢查性向，其他資格依 SPEC 驗證。內部 end 命令不代表產品退出 UX 已完成。
+- 劇情 Gate B 必須由使用者人工試玩確認，才能製作其餘九場；自動測試與技術回放不能代替人工確認。
 - 認證與資料變更先加有意義的失敗測試，再實作。D1 的條件更新、UNIQUE、FK 與 rollback 必須用真 Miniflare D1；HTTP fixture 只驗 HTTP，不可取代 SQL 證據。
 - 不要輸出、提交或持久記錄 raw code、密碼、平台／Google token、Cookie 或環境秘密。本地唯一碼日誌例外為明確 local／Log 的 `LocalEmailVerification`。產品內既有 Cookie／SecureStore／流程 metadata 儲存僅依資料契約處理，不另建秘密日誌或檔案。
 - UI 測試關閉影片／trace；原生 UI XML 只在記憶體處理。
+- 角色素材只保留正式程式使用的成品與必要目錄 metadata，Web／原生共用單一圖片來源；不保留未使用原畫、製作中間檔、製作 JSON 或圖片副本。測試共用正式虛構素材，修改引用時同步工具與測試。
 - 不修改其他專案的程序或資料。本地命令只能經 wrappers 指向已知 local instance；備份先暫停寫入，還原只建新目錄。不得把 local 操作換成 remote 旗標。
-- 驗收逐平台與環境記錄。測試名稱有 ID 不等於整個規劃案例全通過；缺 iOS、真 Google、實際收信或雲端容器證據時保留未驗收，回寫精確缺項。既有真 Google 本地證據見驗證紀錄，不能擴推其他平台。production 只在具體版本已獲授權時發布。
+- 驗收逐平台與環境記錄。測試名稱有 ID 不等於整個規劃案例全通過；納入範圍的平台、真 Google、實際收信或雲端容器缺乏證據時保留未驗收，回寫精確缺項。本地證據不能擴推其他平台。production 只在具體版本已獲授權時發布。
 
 ## 工作流與命令
 

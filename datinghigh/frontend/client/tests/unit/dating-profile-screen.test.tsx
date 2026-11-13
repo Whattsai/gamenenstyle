@@ -2,8 +2,8 @@
 import React from 'react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {render,screen,fireEvent,cleanup,waitFor,act} from '@testing-library/react';
-const state=vi.hoisted(()=>({now:1800000000000,focused:true,request:vi.fn(),uploadPhoto:vi.fn(),pick:vi.fn(),router:{push:vi.fn(),replace:vi.fn(),back:vi.fn(),canGoBack:()=>false},navigation:{addListener:()=>()=>{},dispatch:vi.fn()}}));
-vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web')}));
+const state=vi.hoisted(()=>({now:1800000000000,focused:true,appState:'active',appHandlers:new Set<(value:string)=>void>(),request:vi.fn(),uploadPhoto:vi.fn(),pick:vi.fn(),router:{push:vi.fn(),replace:vi.fn(),back:vi.fn(),canGoBack:()=>false},navigation:{addListener:()=>()=>{},dispatch:vi.fn()}}));
+vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web'),AppState:{get currentState(){return state.appState;},addEventListener:(_event:string,handler:(value:string)=>void)=>{state.appHandlers.add(handler);return {remove:()=>state.appHandlers.delete(handler)};}}}));
 vi.mock('react-native-safe-area-context',async()=>({SafeAreaView:(await vi.importActual<typeof import('react-native')>('react-native-web')).View}));
 vi.mock('expo-router',()=>({useRouter:()=>state.router,useNavigation:()=>state.navigation,useFocusEffect:(effect:()=>void)=>React.useEffect(()=>state.focused?effect():undefined,[effect,state.focused])}));
 vi.mock('expo-image-picker',()=>({launchImageLibraryAsync:state.pick,UIImagePickerPreferredAssetRepresentationMode:{Compatible:'compatible'}}));
@@ -17,9 +17,87 @@ import {CardDisplay,CardPreviewScreen} from '../../src/CardPreviewScreen';
 import type {ProfileField} from '../../src/profile-fields';
 import {ApiFailure} from '../../src/api';
 vi.setConfig({testTimeout:20000});
-afterEach(()=>{cleanup();state.focused=true;vi.useRealTimers();state.now=1800000000000;vi.clearAllMocks();});
+afterEach(()=>{cleanup();state.focused=true;state.appState='active';state.appHandlers.clear();vi.useRealTimers();state.now=1800000000000;vi.clearAllMocks();});
 const openAvatars=async()=>{fireEvent.click(await screen.findByLabelText('選擇化身'));};
 const openAi=async()=>{await openAvatars();fireEvent.click(await screen.findByLabelText('AI 客製化'));};
+
+it('B1 uncertainty discovered on resume explains cost and stops before another expression request',async()=>{
+ setup();const base=state.request.getMockImplementation()!;let reads=0;
+ const adoption={assetId:'formal',attemptId:'round',index:1,clientRequestId:'workflow',status:'building',completed:['neutral','smile'],currentExpression:null,uncertain:false,expiresAt:1800003600000};
+ state.request.mockImplementation(async(path:string,...args:unknown[])=>path==='/me/avatar/expressions'?{adoption:{...adoption,uncertain:++reads>1}}:base(path,...args));
+ render(<DatingProfileScreen/>);await openAvatars();fireEvent.click(await screen.findByLabelText('繼續製作尚未完成的表情'));
+ await screen.findByText('這張表情的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試');
+ expect(screen.getByLabelText('確認可能增加供應商用量並繼續')).toBeTruthy();
+ expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/expressions/next'||p==='/me/avatar/selection')).toBe(false);
+});
+it('foreground B1 names the expression in product language and removes other selection controls until ready',async()=>{
+ setup([{assetId:'photo-1'},{assetId:'photo-2'}]);const base=state.request.getMockImplementation()!;let release:(()=>void)|undefined;
+ state.request.mockImplementation(async(path:string,...args:unknown[])=>{
+  const value=await base(path,...args);
+  if(path==='/me/avatar/expressions/begin')return structuredClone(value);
+  if(path==='/me/dating-profile')return {...value,avatarAttempt:{attemptId:'round',producedCount:1,status:'open',expiresAt:1800003600000}};
+  if(path==='/me/avatar/expressions/next'&&(args[1] as any).expression==='neutral')return await new Promise(resolve=>release=()=>resolve(value));
+  return value;
+ });
+ render(<DatingProfileScreen/>);await openAi();fireEvent.click(await screen.findByLabelText('採用這張'));fireEvent.click(await screen.findByLabelText('確認採用'));
+ await screen.findByText('0 / 5 種已保存 · 正在製作 自然');
+ expect(screen.queryByLabelText('免費化身')).toBeNull();expect(screen.queryByLabelText('AI 客製化')).toBeNull();expect(screen.getByLabelText('關閉').getAttribute('aria-disabled')).toBe('true');
+ release!();await screen.findByText('已採用完整五表情全身化身');
+});
+it.each([false,true])('backgrounding stops the next paid expression even while navigation focus remains and returning requires explicit resume, quick return=%s',async quickReturn=>{
+ setup([{assetId:'photo-1'},{assetId:'photo-2'}]);const base=state.request.getMockImplementation()!;let release:(()=>void)|undefined;
+ state.request.mockImplementation(async(path:string,...args:unknown[])=>{
+  const value=await base(path,...args);
+  if(path==='/me/dating-profile')return {...value,avatarAttempt:{attemptId:'round',producedCount:1,status:'open',expiresAt:1800003600000}};
+  if(path==='/me/avatar/expressions/begin')return structuredClone(value);
+  if(path==='/me/avatar/expressions/next'&&(args[1] as any).expression==='neutral')return await new Promise(resolve=>release=()=>resolve(value));
+  return value;
+ });
+ render(<DatingProfileScreen/>);await openAi();fireEvent.click(await screen.findByLabelText('採用這張'));fireEvent.click(await screen.findByLabelText('確認採用'));await screen.findByText('0 / 5 種已保存 · 正在製作 自然');
+ await act(async()=>{state.appState='background';for(const handler of state.appHandlers)handler('background');if(quickReturn){state.appState='active';for(const handler of state.appHandlers)handler('active');}release!();});
+ await screen.findByLabelText('繼續製作尚未完成的表情');
+ expect(state.request.mock.calls.filter(([p])=>p==='/me/avatar/expressions/next')).toHaveLength(1);expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/selection')).toBe(false);
+ await act(async()=>{state.appState='active';for(const handler of state.appHandlers)handler('active');});
+ expect(state.request.mock.calls.filter(([p])=>p==='/me/avatar/expressions/next')).toHaveLength(1);
+ fireEvent.click(screen.getByLabelText('繼續製作尚未完成的表情'));await screen.findByText('已採用完整五表情全身化身');
+ expect(state.request.mock.calls.filter(([p])=>p==='/me/avatar/expressions/next')).toHaveLength(5);
+});
+it('a provider failure keeps the old role and explicit retry finishes only the missing expressions',async()=>{
+ setup([{assetId:'photo-1'},{assetId:'photo-2'}]);const base=state.request.getMockImplementation()!;let calls=0;let adoption:any={assetId:'formal',attemptId:'workflow',index:1,clientRequestId:'workflow-id',status:'building',completed:['neutral','smile'],currentExpression:null,uncertain:false,expiresAt:1800003600000};
+ state.request.mockImplementation(async(path:string,method?:string,payload?:Record<string,any>)=>{
+  if(path==='/me/avatar/expressions'&&(!method||method==='GET'))return {adoption:adoption?{...adoption,completed:[...adoption.completed]}:null};
+  if(path==='/me/avatar/expressions/next'){
+   calls++;if(calls===1)throw new ApiFailure('IMAGE_PROVIDER_UNAVAILABLE',503);
+   adoption={...adoption,completed:[...adoption.completed,payload!.expression],currentExpression:null,status:adoption.completed.length===4?'ready':'building'};return adoption;
+  }
+  if(path==='/me/avatar/selection'){adoption=null;return {selected:true};}
+  return base(path,method,payload);
+ });
+ render(<DatingProfileScreen/>);await openAvatars();fireEvent.click(await screen.findByLabelText('繼續製作尚未完成的表情'));
+ await screen.findByText('AI 服務目前無法使用，已產生的候選仍保留');expect(screen.getByLabelText('繼續製作尚未完成的表情').getAttribute('aria-disabled')).not.toBe('true');
+ fireEvent.click(screen.getByLabelText('繼續製作尚未完成的表情'));await screen.findByText('已採用完整五表情全身化身');
+ expect(calls).toBe(4);expect(state.request.mock.calls.filter(([path])=>path==='/me/avatar/selection')).toHaveLength(1);
+});
+it('another foreground adoption lock gives a recovery instruction instead of an unexplained generic error',async()=>{
+ setup();const base=state.request.getMockImplementation()!;
+ state.request.mockImplementation(async(path:string,...args:unknown[])=>{
+  if(path==='/avatar-catalog')return {avatars:[{id:'male-01',group:'male'}]};
+  if(path==='/me/avatar/selection')throw new ApiFailure('AVATAR_ADOPTION_IN_PROGRESS',409);
+  const value=await base(path,...args);return path==='/me/dating-profile'?{...value,gender:'male'}:value;
+ });
+ render(<DatingProfileScreen/>);await openAvatars();fireEvent.click(await screen.findByLabelText('選用 male-01'));
+ await screen.findByText('另一個畫面正在製作角色，請重新整理後繼續或取消五表情製作');
+ expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/generations'||p==='/me/avatar/expressions/next')).toBe(false);
+});
+it('returning after backgrounding during begin reads the server workflow without starting any paid expression',async()=>{
+ setup([{assetId:'photo-1'},{assetId:'photo-2'}]);const base=state.request.getMockImplementation()!;let release:(()=>void)|undefined;
+ state.request.mockImplementation(async(path:string,...args:unknown[])=>{const value=await base(path,...args);if(path==='/me/dating-profile')return {...value,avatarAttempt:{attemptId:'round',producedCount:1,status:'open',expiresAt:1800003600000}};if(path==='/me/avatar/expressions/begin')return await new Promise(resolve=>release=()=>resolve(structuredClone(value)));return value;});
+ render(<DatingProfileScreen/>);await openAi();fireEvent.click(await screen.findByLabelText('採用這張'));fireEvent.click(await screen.findByLabelText('確認採用'));await waitFor(()=>expect(release).toBeTypeOf('function'));
+ await act(async()=>{state.appState='background';for(const handler of state.appHandlers)handler('background');release!();});
+ expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/expressions/next')).toBe(false);
+ await act(async()=>{state.appState='active';for(const handler of state.appHandlers)handler('active');});
+ await screen.findByLabelText('繼續製作尚未完成的表情');expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/expressions/next'||p==='/me/avatar/selection')).toBe(false);
+});
 
 it.each([true,false])('an open adoption expires without a selection request even when the deadline timer ran=%s',async(timerRan)=>{
  vi.useFakeTimers();setup([{assetId:'photo-1'},{assetId:'photo-2'}]);const base=state.request.getMockImplementation()!;
@@ -90,7 +168,12 @@ it('the initial incomplete profile has a direct account entry that still protect
 });
 function setup(photos:unknown[]=[]){
  let saved:Record<string,any>={};
+ let adoption:any=null;
  state.request.mockImplementation(async(path:string,method?:string,payload?:Record<string,any>)=>{
+  if(path==='/me/avatar/expressions')return {adoption};
+  if(path==='/me/avatar/expressions/begin')return adoption={assetId:'formal',attemptId:payload!.attemptId,index:payload!.index,clientRequestId:payload!.clientRequestId,status:'building',completed:[],currentExpression:null,uncertain:false,expiresAt:1800003600000};
+  if(path==='/me/avatar/expressions/next'){adoption.completed.push(payload!.expression);return adoption={...adoption,status:adoption.completed.length===5?'ready':'building'};}
+  if(path==='/me/avatar/selection')adoption=null;
   if(path==='/me/dating-profile'&&method==='PUT'){saved={...payload,revision:(saved.revision??1)+1};return {revision:saved.revision};}
   if(path==='/profile-catalog')return {version:'v1',fields:definitions,groups:{}};
   if(path==='/avatar-catalog')return {avatars:[]};

@@ -18,7 +18,8 @@ export class ApiClient {
  get serverNow(){return this.serverAnchor+performance.now()-this.monotonicAnchor;}
  private async raw(path:string,method='GET',body?:Record<string,unknown>|Blob){
   const requestedSession=this.sessionId,requestedPendingRevoke=this.pendingRevoke;
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/me/avatar/generations'?110000:this.cold?45000:30000);this.cold=false;
+  const imageRequest=method==='POST'&&(path==='/me/avatar/generations'||path==='/me/avatar/expressions/next');
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),imageRequest?110000:this.cold?45000:30000);this.cold=false;
   try{
    const headers:Record<string,string>={'X-DatingHigh-Client':this.platform};
    const photo=path==='/me/photos'&&method==='POST'&&body instanceof Blob;

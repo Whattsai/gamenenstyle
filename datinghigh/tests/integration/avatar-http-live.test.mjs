@@ -1,3 +1,4 @@
+import {builtinAvatarPath} from '../fixtures/builtin-avatar.mjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -9,15 +10,15 @@ test('Avatar photo transport: true local Bearer/Cookie, binary limit, CSRF and p
  const base='http://localhost:8787/api/v1';
  const request=(url,method='GET',body,extra={})=>fetch(url,{method,headers:cookie?{'X-DatingHigh-Client':'web',Origin:'http://localhost:8081',Cookie:cookie,...extra}:{'X-DatingHigh-Client':'android',Authorization:`Bearer ${native.accessToken}`,...extra},body,signal:AbortSignal.timeout(45000)});
  async function json(response,status,code){assert.equal(response.status,status);assert.match(response.headers.get('Cache-Control')??'',/no-store/);const dto=await response.json();if(code){assert.equal(dto.code,code);assert.equal(dto.status,status);assert.equal(response.headers.get('Content-Type')?.split(';')[0],'application/problem+json');}return dto;}
- const image=fs.readFileSync('frontend/client/assets/avatars/male-01.jpg');assert.ok(image.length>16384&&image.length<=8*1024*1024);
+ const image=fs.readFileSync(builtinAvatarPath('male-01'));assert.ok(image.length>16384&&image.length<=8*1024*1024);
  try{
-  await json(await request(base+'/me/photos','POST',new Uint8Array(8*1024*1024+1),{'Content-Type':'image/jpeg'}),413,'IMAGE_TOO_LARGE');
+  await json(await request(base+'/me/photos','POST',new Uint8Array(8*1024*1024+1),{'Content-Type':'image/webp'}),413,'IMAGE_TOO_LARGE');
   await json(await request(base+'/me/dating-profile','PUT',JSON.stringify({oversize:'x'.repeat(16385)}),{'Content-Type':'application/json'}),413,'REQUEST_TOO_LARGE');
   assert.equal((await json(await request(base+'/me/photos'),200)).photos.length,0);
   const signed=await fetch(base+'/sessions',{method:'POST',headers:{'X-DatingHigh-Client':'web',Origin:'http://localhost:8081','Content-Type':'application/json'},body:JSON.stringify({email:owner.email,password,clientPlatform:'web'}),signal:AbortSignal.timeout(45000)});assert.equal(signed.status,201);await signed.arrayBuffer();cookie=signed.headers.getSetCookie().map(value=>value.split(';')[0]).join('; ');assert.ok(cookie);native=undefined;
-  await json(await request(base+'/me/photos','POST',image,{'Content-Type':'image/jpeg',Origin:'https://attacker.invalid'}),403,'ORIGIN_FORBIDDEN');
+  await json(await request(base+'/me/photos','POST',image,{'Content-Type':'image/webp',Origin:'https://attacker.invalid'}),403,'ORIGIN_FORBIDDEN');
   assert.equal((await json(await request(base+'/me/photos'),200)).photos.length,0);
-  const saved=await json(await request(base+'/me/photos','POST',image,{'Content-Type':'image/jpeg'}),201);assert.deepEqual(Object.keys(saved).sort(),['assetId','createdAt','displayOrder','mimeType']);assert.equal(saved.mimeType,'image/jpeg');
+  const saved=await json(await request(base+'/me/photos','POST',image,{'Content-Type':'image/webp'}),201);assert.deepEqual(Object.keys(saved).sort(),['assetId','createdAt','displayOrder','mimeType']);assert.equal(saved.mimeType,'image/jpeg');
   const media=await request(base+'/me/media/'+saved.assetId);assert.equal(media.status,200);assert.match(media.headers.get('Cache-Control')??'',/no-store/);assert.equal(media.headers.get('X-Content-Type-Options'),'nosniff');const bytes=new Uint8Array(await media.arrayBuffer());assert.ok(bytes.length>0&&bytes.length<=200000);
   const catalog=await json(await request(base+'/profile-catalog'),200);assert.equal(catalog.version,'2026-11-05.v2');
   const readProfile=()=>request(base+'/me/dating-profile').then(r=>json(r,200));

@@ -1,0 +1,48 @@
+{
+  "layersV2": [
+    {
+      "file": "contracts/story-assets/rain-bookshop-clean-v2.png",
+      "tool": "OpenAI built-in image_gen",
+      "prompt": "Use case: precise-object-edit. Asset: DatingHigh scene-01 rain bookshop clean background plate for a 2.5D visual novel. EDIT TARGET is supplied original bookshop illustration. Preserve the same wide 16:9 composition, architecture, rain-streaked tall windows, bookshelves, ladder, counter on the right, pendant lamps, twilight violet palette and warm amber lighting, crisp painterly anime background style. Remove ONLY the entire large foreground reading table, its open book, teacup, bookmark, vase, table lamp and all foreground chairs/flowers from the bottom third. Seamlessly reveal and continue the beautiful wooden aisle floor all the way to the lower canvas edge, with coherent perspective lines and subtle warm reflected light. Keep the central and lower-center floor entirely empty so a full standing character can be composited with both shoes visibly touching floor. Do not change the room's main layout, counter, window or wall books. No people, silhouettes, text, logos, UI or new furniture. This plate will be combined with a separately rendered foreground table for close shots.",
+      "source": "contracts/story-assets/rain-bookshop-v1.png",
+      "createdAt": "2026-11-12",
+      "status": "wired into unpublished scene-01/v2; Gate B pending"
+    },
+    {
+      "file": "contracts/story-assets/rain-bookshop-foreground-v2.png",
+      "tool": "OpenAI built-in image_gen",
+      "prompt": "Use case: background-extraction / identity-preserve. Asset: DatingHigh scene-01 2.5D foreground reading-table layer. EDIT TARGET is supplied original 16:9 bookshop illustration. Keep ONLY the complete original foreground reading table and its original open illustrated book, tassel bookmark, floral teacup and saucer, warm candle holder, curving table lamp, hydrangea vase and foreground chairs and flowers. Preserve their original exact composition, relative positions, scale, perspective, linework, warm light and colors. EVERYTHING behind the table or above the tops of these foreground objects must become genuine transparent alpha: remove the room, windows, shelves, counter, ceiling, walls and floor. Keep the original full 16:9 canvas and object coordinates, with no zoom or reframing. It is a registration-aligned cutout layer for overlaying the same scene; keep table back edge at its existing roughly 73% vertical position, full-width lower foreground. No people, new objects, writing, background fill or painted checkerboard. Natural clean antialiased edges, actual transparent background.",
+      "source": "contracts/story-assets/rain-bookshop-v1.png",
+      "createdAt": "2026-11-12",
+      "status": "wired into unpublished scene-01/v2; Gate B pending"
+    }
+  ],
+  "background": {
+    "tool": "OpenAI built-in image_gen",
+    "date": "2026-11-08",
+    "prompt": "Use case: illustration-story. Asset type: production 16:9 background for a Taiwanese two-player romantic ADV game called 雨聲書店. An original softly painted anime-style independent bookshop interior at a rainy violet dusk, tall wooden bookshelves, a large rain-streaked window, warm rose and amber reading lamps, central reading table with an open book and a small handwritten bookmark (no legible text), subtle lavender atmospheric perspective. Rich polished background art, inviting and quiet, strong depth. No people, no UI, no lettering, no logos, no watermark. Characters will be overlaid at left and right; keep the middle open, details mostly on back wall. Colors must harmonize with dusty rose, deep purple and translucent game panels. Landscape composition."
+  },
+  "audio": {
+    "source": "Original deterministic synthesized rain noise",
+    "seed": 11,
+    "sampleRate": 16000
+  },
+  "cues": {
+    "source": "Original deterministic synthesis; no external recording or voice",
+    "generator": "tools/story-audio-assets.mjs",
+    "seed": 821,
+    "sampleRate": 16000,
+    "assets": [
+      {
+        "id": "page-turn",
+        "sha256": "43c59ddd06cc5af28470328e439cf02ac1e0a156c440868b6ee709fd43c8ec7b",
+        "byteLength": 9004
+      },
+      {
+        "id": "transition",
+        "sha256": "0f63cc5771f59d072f8dea23474ba0218ac5d68f479f5be804e6fd76a8387f97",
+        "byteLength": 20844
+      }
+    ]
+  }
+}

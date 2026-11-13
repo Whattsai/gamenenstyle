@@ -14,8 +14,8 @@ public static class HostMain
         foreach(var pair in new Dictionary<string,string>{["APP_ENV"]="local",["WEB_ORIGIN"]=platform.Options.WebOrigin,["ACCESS_TOKEN_ISSUER"]=platform.Options.Issuer,["ACCESS_TOKEN_AUDIENCE"]=platform.Options.Audience,["ACCESS_TOKEN_SECRET"]=Convert.ToBase64String(platform.Options.AccessKey),["EMAIL_CODE_HMAC_KEY"]=Convert.ToBase64String(platform.Options.EmailKey),["RATE_LIMIT_HMAC_KEY"]=Convert.ToBase64String(platform.Options.RateKey),["EmailDeliveryMode"]="Log"})Environment.SetEnvironmentVariable(pair.Key,pair.Value);
         using var avatar=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_AVATAR_PROFILE")=="1"?new AvatarFixtureState(platform):null;
         var racing=new CredentialRacePlatform(platform);await using var factory=new Factory(platform,crypto,racing,realGoogle,avatar);using var api=factory.CreateClient(new WebApplicationFactoryClientOptions{HandleCookies=false,AllowAutoRedirect=false});
-        var builder=WebApplication.CreateBuilder();builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");var host=builder.Build();var key=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));var mailBase=0;
-        var denyNativeWrites=false;var matchingRoundsUnavailable=false;var delayNativeWritesMs=0;long clockAdvance=0,clockObserved=0;var nativeMetrics=new ConcurrentQueue<JsonElement>();var requests=new ConcurrentQueue<object>();var starts=new ConcurrentQueue<object>();var faults=new List<(string Path,string Mode,int Delay)>();var faultLock=new object();
+        var builder=WebApplication.CreateBuilder();builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");var host=builder.Build();var key=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));var mailBase=0;string? storySocketOrigin=null;
+        var denyNativeWrites=false;var matchingRoundsUnavailable=false;var delayNativeWritesMs=0;long clockAdvance=0,clockObserved=0;var nativeMetrics=new ConcurrentQueue<JsonElement>();var requests=new ConcurrentQueue<object>();var starts=new ConcurrentQueue<object>();var faults=new List<(string Path,string Mode,int Delay,int Skip)>();var faultLock=new object();
         var terminations=new ConcurrentQueue<object>();
         host.MapGet("/_test/native-mode",(HttpContext context)=>{context.Response.Headers.CacheControl="no-store";return Results.Json(new{denyWrites=denyNativeWrites,delayWritesMs=delayNativeWritesMs,clockAdvance=Interlocked.Read(ref clockAdvance)});});
         host.MapPost("/_test/native-clock",async(HttpContext context)=>{var item=await context.Request.ReadFromJsonAsync<JsonElement>();var observed=item.GetProperty("milliseconds").GetInt64();if(observed<0||observed>Interlocked.Read(ref clockAdvance))return Results.BadRequest();Interlocked.Exchange(ref clockObserved,observed);return Results.Json(new{recorded=true});});
@@ -27,12 +27,15 @@ public static class HostMain
             var body=await context.Request.ReadFromJsonAsync<JsonElement>();var op=body.GetProperty("op").GetString();
             if(op=="reset"){
                 terminations.Clear();
-                foreach(var sql in new[]{"DELETE FROM game_round_participants","DELETE FROM game_rounds","DELETE FROM match_invitations","DELETE FROM match_conditions","DELETE FROM user_media_assets","DELETE FROM user_profiles","UPDATE auth_refresh_tokens SET replaced_by_token_id=NULL","DELETE FROM auth_refresh_tokens","DELETE FROM auth_email_challenges","DELETE FROM auth_sessions","DELETE FROM auth_external_identities","DELETE FROM auth_accounts","DELETE FROM common_rate_limit_buckets"})await platform.Sql(sql);
+                foreach(var sql in new[]{"DELETE FROM game_interaction_instances","DELETE FROM game_round_events","DELETE FROM game_story_sessions","DELETE FROM game_active_round_claims","DELETE FROM game_rounds","DELETE FROM match_invitations","DELETE FROM match_conditions","DELETE FROM user_media_assets","DELETE FROM user_profiles","UPDATE auth_refresh_tokens SET replaced_by_token_id=NULL","DELETE FROM auth_refresh_tokens","DELETE FROM auth_email_challenges","DELETE FROM auth_sessions","DELETE FROM auth_external_identities","DELETE FROM auth_accounts","DELETE FROM common_rate_limit_buckets"})await platform.Sql(sql);
                 avatar?.Reset();
                 crypto.Reset();racing.Reset();await platform.Provider("success");mailBase=platform.MailCalls;requests.Clear();starts.Clear();nativeMetrics.Clear();lock(faultLock)faults.Clear();denyNativeWrites=false;matchingRoundsUnavailable=false;delayNativeWritesMs=0;
                 if(body.TryGetProperty("accountKind",out var kind)){if(kind.GetString() is not("local" or "google-only" or "none"))return Results.BadRequest();string? email=null;if(body.TryGetProperty("email",out var supplied)){if(!realGoogle)return Results.BadRequest();try{email=EmailAddress.Normalize(supplied.GetString()??"");}catch(DomainException){return Results.BadRequest();}}if(kind.GetString()!="none")await platform.Seed(kind.GetString()=="local",email);}
                 else if(body.TryGetProperty("seed",out var seed)&&seed.GetBoolean())await platform.Seed(true);return Results.Json(new{ready=true});
             }
+            if(op=="story-info")return storySocketOrigin is null?Results.NotFound():Results.Json(new{socketOrigin=storySocketOrigin});
+            if(op=="story-avatar-pack")return avatar is null||Environment.GetEnvironmentVariable("DATINGHIGH_E2E_STORY_PROFILE")!="1"?Results.NotFound():Results.Json(await avatar.StoryPack(body.GetProperty("player").GetInt32(),context.RequestAborted));
+            if(op=="avatar-current-pack")return avatar is null?Results.NotFound():Results.Json(await avatar.CurrentPack(context.RequestAborted));
             if(op=="provider"){await platform.Provider(body.GetProperty("mode").GetString()!,false);return Results.Json(new{configured=true});}
             if(op=="matching-seed"){
                 if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_MATCHING_PROFILE")!="1")return Results.NotFound();
@@ -50,7 +53,7 @@ public static class HostMain
             }
             if(op=="matching-state"){
                 if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_MATCHING_PROFILE")!="1")return Results.NotFound();
-                return Results.Json(new{invitations=await platform.Sql("SELECT invitation_id,status,invalidated_reason FROM match_invitations"),rounds=await platform.Sql("SELECT round_id,status FROM game_rounds"),participants=await platform.Sql("SELECT round_id FROM game_round_participants")});
+                return Results.Json(new{invitations=await platform.Sql("SELECT invitation_id,status,invalidated_reason FROM match_invitations"),rounds=await platform.Sql("SELECT round_id,status FROM game_rounds"),participants=await platform.Sql("SELECT round_id FROM game_active_round_claims")});
             }
             if(op=="matching-end"){
                 if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_MATCHING_PROFILE")!="1")return Results.NotFound();
@@ -111,8 +114,8 @@ public static class HostMain
             if(op=="race-credential-version"){racing.Arm();return Results.Json(new{configured=true});}
             if(op=="clear-refreshes"){await platform.Sql("UPDATE auth_refresh_tokens SET replaced_by_token_id=NULL");await platform.Sql("DELETE FROM auth_refresh_tokens");return Results.Json(new{cleared=true});}
             if(op=="fault-response"){
-                var path=body.GetProperty("path").GetString();var mode=body.GetProperty("mode").GetString();var delay=body.TryGetProperty("milliseconds",out var ms)?ms.GetInt32():0;
-                if(!AllowedPath(path)||mode is null||(!FaultResponses.ContainsKey(mode)&&mode is not("drop" or "delay" or "hang-before" or "hang-after"))||delay is <0 or >46000)return Results.BadRequest();lock(faultLock)faults.Add((path!,mode,delay));return Results.Json(new{configured=true});
+                var path=body.GetProperty("path").GetString();var mode=body.GetProperty("mode").GetString();var delay=body.TryGetProperty("milliseconds",out var ms)?ms.GetInt32():0;var skip=body.TryGetProperty("skip",out var skipped)?skipped.GetInt32():0;
+                if(!(AllowedPath(path)||path=="/api/v1/me/avatar/expressions/next")||mode is null||(!FaultResponses.ContainsKey(mode)&&mode is not("drop" or "delay" or "hang-before" or "hang-after"))||delay is <0 or >46000||skip is <0 or >12)return Results.BadRequest();lock(faultLock)faults.Add((path!,mode,delay,skip));return Results.Json(new{configured=true});
             }
             if(op=="request-stats")return Results.Json(requests);
             if(op=="request-starts")return Results.Json(starts);
@@ -120,13 +123,22 @@ public static class HostMain
             if(op=="shutdown"){context.Response.OnCompleted(()=>{host.Lifetime.StopApplication();return Task.CompletedTask;});return Results.Json(new{stopping=true});}
             return Results.NotFound();
         });
+        host.MapPost("/_test/round-command",async(HttpContext context)=>{
+            if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_STORY_PROFILE")!="1"||context.Request.Headers["X-DatingHigh-Test-Control"]!=key){context.Response.StatusCode=403;return;}
+            platform.Clock.SetUtcNow(DateTimeOffset.UtcNow.AddMilliseconds(Interlocked.Read(ref clockAdvance)));
+            using var command=new HttpRequestMessage(HttpMethod.Post,"/internal/round-command"){Content=new StreamContent(context.Request.Body)};
+            command.Content.Headers.ContentType=new("application/json");command.Headers.Add("X-DatingHigh-Internal-Environment","local");command.Headers.Add("X-DatingHigh-Internal-Round-Transport","websocket");
+            using var result=await api.SendAsync(command,context.RequestAborted);requests.Enqueue(new{path="/internal/round-command",method="POST",status=(int)result.StatusCode,stage="api"});context.Response.StatusCode=(int)result.StatusCode;context.Response.ContentType="application/json";await result.Content.CopyToAsync(context.Response.Body,context.RequestAborted);
+        });
         host.Map("/{**path}",async context=>{
             var path=context.Request.Path.ToString();
+            if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_STORY_PROFILE")=="1")platform.Clock.SetUtcNow(DateTimeOffset.UtcNow.AddMilliseconds(Interlocked.Read(ref clockAdvance)));
+            if(path.StartsWith("/story-content/",StringComparison.Ordinal)&&storySocketOrigin is not null){using var client=new HttpClient();using var content=await client.GetAsync(storySocketOrigin+path,context.RequestAborted);context.Response.StatusCode=(int)content.StatusCode;foreach(var h in content.Content.Headers)context.Response.Headers[h.Key]=h.Value.ToArray();await content.Content.CopyToAsync(context.Response.Body,context.RequestAborted);return;}
             var started=System.Diagnostics.Stopwatch.GetTimestamp();starts.Enqueue(new{path,method=context.Request.Method,receivedAt=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()});string? mode;int delay;
             if(matchingRoundsUnavailable&&path=="/api/v1/game-rounds"){
                 context.Response.Headers.CacheControl="no-store";context.Response.StatusCode=503;await context.Response.WriteAsJsonAsync(new{code="DEPENDENCY_UNAVAILABLE"});return;
             }
-            lock(faultLock){var fault=faults.FindIndex(f=>f.Path==path);mode=fault>=0?faults[fault].Mode:null;delay=fault>=0?faults[fault].Delay:0;if(fault>=0)faults.RemoveAt(fault);}
+            lock(faultLock){var fault=faults.FindIndex(f=>f.Path==path);mode=null;delay=0;if(fault>=0){var configured=faults[fault];if(configured.Skip>0)faults[fault]=(configured.Path,configured.Mode,configured.Delay,configured.Skip-1);else{mode=configured.Mode;delay=configured.Delay;faults.RemoveAt(fault);}}}
             if(mode is not null&&FaultResponses.TryGetValue(mode,out var rejection)){requests.Enqueue(new{path,method=context.Request.Method,status=rejection.Status,stage="proxy"});context.Response.StatusCode=rejection.Status;await context.Response.WriteAsJsonAsync(new{code=rejection.Code,traceId="controlled-proxy-trace"});return;}
             if(mode=="hang-before"){requests.Enqueue(new{path,method=context.Request.Method,status=0,stage="before-handler"});try{await Task.Delay(Timeout.Infinite,context.RequestAborted);}catch(OperationCanceledException){}terminations.Enqueue(new{path,method=context.Request.Method,elapsedMilliseconds=System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds});return;}
             if(mode=="delay"){try{await Task.Delay(delay,context.RequestAborted);}catch(OperationCanceledException){requests.Enqueue(new{path,method=context.Request.Method,status=0,stage="before-handler"});return;}}
@@ -140,10 +152,10 @@ public static class HostMain
             foreach(var header in response.Headers.Concat(response.Content.Headers)){if(!header.Key.Equals("Transfer-Encoding",StringComparison.OrdinalIgnoreCase))context.Response.Headers[header.Key]=header.Value.ToArray();}
             context.Response.Headers.Date=platform.Clock.GetUtcNow().ToString("R",CultureInfo.InvariantCulture);await response.Content.CopyToAsync(context.Response.Body,context.RequestAborted);
         });
-        await host.StartAsync();var url=host.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();Console.WriteLine(JsonSerializer.Serialize(new{url,key}));await host.WaitForShutdownAsync();await host.DisposeAsync();
+        await host.StartAsync();var url=host.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_STORY_PROFILE")=="1")storySocketOrigin=(await platform.ExecuteAsync("$test-realtime-origin",new{origin=url,key})).Text("origin");Console.WriteLine(JsonSerializer.Serialize(new{url,key}));await host.WaitForShutdownAsync();await host.DisposeAsync();
     }
     private static bool AllowedPath(string? path)=>path is "/api/v1/session" or "/api/v1/session/refresh" or "/api/v1/sessions" or "/api/v1/accounts" or "/api/v1/email-registrations" or "/api/v1/password-reset-requests" or "/api/v1/password-resets" or "/api/v1/me" or "/api/v1/me/password" or "/api/v1/me/identities" or "/api/v1/me/identities/google" or "/api/v1/game-rounds" or "/api/v1/me/dating-profile" or "/api/v1/match-candidates/search" or "/api/v1/match-invitations"||(path?.StartsWith("/api/v1/email-challenges/",StringComparison.Ordinal)==true&&path.EndsWith("/resend",StringComparison.Ordinal)&&EntityId.IsValid(path[25..^7]));
-    private static readonly IReadOnlyDictionary<string,(int Status,string Code)> FaultResponses=new Dictionary<string,(int,string)>{["refresh-conflict"]=(409,"REFRESH_RETRY"),["access-expired"]=(401,"ACCESS_TOKEN_EXPIRED"),["access-missing"]=(401,"ACCESS_TOKEN_MISSING"),["access-invalid"]=(401,"ACCESS_TOKEN_INVALID"),["session-revoked"]=(401,"SESSION_REVOKED"),["refresh-reuse"]=(401,"REFRESH_TOKEN_REUSE"),["refresh-revoked"]=(401,"REFRESH_REVOKED"),["refresh-expired"]=(401,"REFRESH_EXPIRED"),["server-error"]=(500,"INTERNAL_ERROR"),["unavailable"]=(503,"DEPENDENCY_UNAVAILABLE"),["gateway-timeout"]=(504,"DEPENDENCY_UNAVAILABLE")};
+    private static readonly IReadOnlyDictionary<string,(int Status,string Code)> FaultResponses=new Dictionary<string,(int,string)>{["refresh-conflict"]=(409,"REFRESH_RETRY"),["access-expired"]=(401,"ACCESS_TOKEN_EXPIRED"),["access-missing"]=(401,"ACCESS_TOKEN_MISSING"),["access-invalid"]=(401,"ACCESS_TOKEN_INVALID"),["session-revoked"]=(401,"SESSION_REVOKED"),["refresh-reuse"]=(401,"REFRESH_TOKEN_REUSE"),["refresh-revoked"]=(401,"REFRESH_REVOKED"),["refresh-expired"]=(401,"REFRESH_EXPIRED"),["server-error"]=(500,"INTERNAL_ERROR"),["unavailable"]=(503,"DEPENDENCY_UNAVAILABLE"),["image-provider-unavailable"]=(503,"IMAGE_PROVIDER_UNAVAILABLE"),["gateway-timeout"]=(504,"DEPENDENCY_UNAVAILABLE")};
     private sealed class CredentialRacePlatform(RealPlatform platform):IPlatformClient
     {
         private int armed;public void Arm()=>Interlocked.Exchange(ref armed,1);public void Reset()=>Interlocked.Exchange(ref armed,0);
@@ -158,9 +170,69 @@ public static class HostMain
         protected override void ConfigureWebHost(IWebHostBuilder builder){builder.UseContentRoot(Path.GetFullPath("backend/src/DatingHigh.Api"));builder.ConfigureLogging(log=>log.ClearProviders());builder.ConfigureServices(services=>{
             services.RemoveAll<IPlatformClient>();services.AddSingleton<IPlatformClient>(racing);services.RemoveAll<TimeProvider>();services.AddSingleton<TimeProvider>(platform.Clock);services.RemoveAll<IAuthCryptography>();services.AddSingleton<IAuthCryptography>(crypto);
             services.RemoveAll<IEmailCodeSender>();services.AddSingleton<IEmailCodeSender>(new EmailCodeSender(platform.Options with{Environment="staging",EmailDeliveryMode="Cloudflare"},platform,NullLoggerFactory.Instance));
-            if(avatar is not null){services.RemoveAll<DatingHigh.Application.Media.IPrivateMediaStore>();services.AddSingleton<DatingHigh.Application.Media.IPrivateMediaStore>(avatar.Media);services.RemoveAll<IAvatarCandidateStore>();services.AddSingleton<IAvatarCandidateStore>(avatar.Candidates);services.RemoveAll<DatingHigh.Application.Media.IAvatarImageGenerator>();services.AddSingleton<DatingHigh.Application.Media.IAvatarImageGenerator>(avatar);}
+            if(avatar is not null){services.RemoveAll<DatingHigh.Application.Media.IPrivateMediaStore>();services.AddSingleton<DatingHigh.Application.Media.IPrivateMediaStore>(avatar.Media);services.RemoveAll<IAvatarCandidateStore>();services.AddSingleton<IAvatarCandidateStore>(avatar.Candidates);
+                if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_REAL_GEMINI")=="1"){
+                    if(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("GEMINI_API_KEY")))throw new InvalidOperationException("Real Gemini requires configured credentials");
+                    // 明選真模型時保留正式DI；只有隔離D1/R2 bridge被替換。
+                    var output=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_GEMINI_EVIDENCE");
+                    if(output is not null){var directory=Path.GetFullPath(output);var allowed=Path.GetFullPath(".local/evidence/avatar-full-body-gemini")+Path.DirectorySeparatorChar;if(!directory.StartsWith(allowed,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Invalid generated evidence directory");Directory.CreateDirectory(directory);
+                        services.AddHttpClient<DatingHigh.Application.Media.IAvatarImageGenerator,DatingHigh.Infrastructure.Media.GeminiAvatarImageGenerator>(h=>h.Timeout=TimeSpan.FromSeconds(100)).ConfigurePrimaryHttpMessageHandler(()=>new GeminiImageEvidence(directory){InnerHandler=new SocketsHttpHandler{AllowAutoRedirect=false}});
+                        services.AddHttpClient<DatingHigh.Application.Media.IAvatarExpressionGenerator,DatingHigh.Infrastructure.Media.GeminiAvatarImageGenerator>(h=>h.Timeout=TimeSpan.FromSeconds(100)).ConfigurePrimaryHttpMessageHandler(()=>new GeminiImageEvidence(directory){InnerHandler=new SocketsHttpHandler{AllowAutoRedirect=false}});
+                    }
+                    // 分段人工確認後沿用同一張真生成master，不重新產人臉；測試報告須明示此候選為重播。
+                    if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_APPROVED_MASTER") is string approved){services.RemoveAll<DatingHigh.Application.Media.IAvatarImageGenerator>();services.AddSingleton(ReadApprovedMaster(approved));}
+                }else{services.RemoveAll<DatingHigh.Application.Media.IAvatarImageGenerator>();services.AddSingleton<DatingHigh.Application.Media.IAvatarImageGenerator>(avatar);services.RemoveAll<DatingHigh.Application.Media.IAvatarExpressionGenerator>();services.AddSingleton<DatingHigh.Application.Media.IAvatarExpressionGenerator>(avatar);}
+                services.RemoveAll<DatingHigh.Application.Media.IAvatarExpressionStore>();services.AddSingleton<DatingHigh.Application.Media.IAvatarExpressionStore>(avatar.Expressions);services.RemoveAll<IAvatarReadStore>();services.AddSingleton<IAvatarReadStore>(avatar.Reads);}
             services.RemoveAll<IExternalCredentialValidator>();if(realGoogle){var clients=(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_GOOGLE_CLIENTS")??"").Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);if(clients.Length==0||clients.Any(id=>!id.EndsWith(".apps.googleusercontent.com",StringComparison.Ordinal)))throw new InvalidOperationException("Missing real Google test client IDs");services.AddSingleton<IExternalCredentialValidator>(new GoogleExternalCredentialValidator(new Dictionary<string,string[]>{["android"]=clients}));}else services.AddSingleton<IExternalCredentialValidator>(new ControlledGoogle());
         });}
+    }
+    private static DatingHigh.Application.Media.IAvatarImageGenerator ReadApprovedMaster(string file)
+    {
+        var absolute=Path.GetFullPath(file);var allowed=Path.GetFullPath(".local/evidence/avatar-full-body-gemini")+Path.DirectorySeparatorChar;
+        if(!absolute.StartsWith(allowed,StringComparison.OrdinalIgnoreCase)||Path.GetFileName(absolute)!="candidate.jpg")throw new InvalidOperationException("Invalid approved generated master");
+        using var result=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(absolute)!,"result.json")));
+        var bytes=File.ReadAllBytes(absolute);var sha=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes));
+        if(result.RootElement.GetProperty("visualApproval").GetString()!="approved-by-user"||result.RootElement.GetProperty("candidateSha256").GetString()!=sha)throw new InvalidOperationException("Generated master needs matching user approval");
+        using var bitmap=SkiaSharp.SKBitmap.Decode(bytes);if(bitmap is null||bytes.Length>2000000)throw new InvalidOperationException("Invalid generated master bytes");
+        return new ApprovedMaster(bytes,bitmap.Width,bitmap.Height);
+    }
+    private sealed class ApprovedMaster(byte[] bytes,int width,int height):DatingHigh.Application.Media.IAvatarImageGenerator
+    {
+        public Task<DatingHigh.Application.Media.CompressedImage> GenerateAsync(IReadOnlyList<DatingHigh.Application.Media.PrivateMediaContent> photos,string styleId,CancellationToken ct=default)=>Task.FromResult(new DatingHigh.Application.Media.CompressedImage(bytes,"image/jpeg",width,height));
+    }
+    // 只限明選真供應商的測試host：只保存供應商生成圖，不保存request、原始照片、header或token。
+    private sealed class GeminiImageEvidence(string directory):DelegatingHandler
+    {
+        private static int sequence=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_APPROVED_MASTER") is null?0:1;
+        private int providerCalls;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
+        {
+            HttpResponseMessage response;
+            if(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_GEMINI_REPLAY") is string replay){
+                if(int.TryParse(Environment.GetEnvironmentVariable("DATINGHIGH_E2E_GEMINI_FAIL_EXPRESSION_AT"),out var failAt)&&failAt>0&&Interlocked.Increment(ref providerCalls)==failAt)
+                    return new(HttpStatusCode.ServiceUnavailable){Content=new StringContent("{\"error\":{\"code\":503,\"status\":\"UNAVAILABLE\"}}")};
+                var source=Path.GetFullPath(replay);var allowed=Path.GetFullPath(".local/evidence/avatar-full-body-gemini")+Path.DirectorySeparatorChar;
+                if(!source.StartsWith(allowed,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Invalid recorded generated image directory");
+                using var approval=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(source,"result.json")));
+                if(approval.RootElement.GetProperty("visualApproval").GetString()!="expressions-and-identity-approved-by-user")throw new InvalidOperationException("Recorded expression identity approval required");
+                var index=Volatile.Read(ref sequence)+1;var file=Path.Combine(source,$"provider-{index:00}.jpg");var recorded=await File.ReadAllBytesAsync(file,ct);
+                if(recorded.Length is <1 or >2000000)throw new InvalidOperationException("Invalid recorded generated image size");
+                // 明示重播已取得的真供應商圖片，只驗新去背／無損編碼與D1/R2接線；不發新供應商請求。
+                response=new(HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(new{modelVersion="recorded-response-no-provider-call",candidates=new[]{new{content=new{parts=new[]{new{inlineData=new{mimeType="image/jpeg",data=Convert.ToBase64String(recorded)}}}}}}}))};
+            }else response=await base.SendAsync(request,ct);
+            if(!response.IsSuccessStatusCode)return response;
+            var bytes=await response.Content.ReadAsByteArrayAsync(ct);if(bytes.Length>12*1024*1024)throw new InvalidOperationException("Provider evidence too large");
+            using var json=JsonDocument.Parse(bytes,new JsonDocumentOptions{MaxDepth=16});
+            if(json.RootElement.TryGetProperty("candidates",out var candidates))foreach(var candidate in candidates.EnumerateArray())
+                if(candidate.TryGetProperty("content",out var content)&&content.TryGetProperty("parts",out var parts))foreach(var part in parts.EnumerateArray())
+                    if(part.TryGetProperty("inlineData",out var image)&&image.TryGetProperty("mimeType",out var mime)&&image.TryGetProperty("data",out var data)){
+                        var extension=mime.GetString() switch{"image/png"=>"png","image/jpeg"=>"jpg","image/webp"=>"webp",_=>null};if(extension is not null){
+                            var index=Interlocked.Increment(ref sequence);await File.WriteAllBytesAsync(Path.Combine(directory,$"provider-{index:00}.{extension}"),Convert.FromBase64String(data.GetString()!),ct);
+                            if(json.RootElement.TryGetProperty("modelVersion",out var model)&&model.ValueKind==JsonValueKind.String&&model.GetString() is string value&&System.Text.RegularExpressions.Regex.IsMatch(value,"^[a-zA-Z0-9._-]{1,128}$"))await File.WriteAllTextAsync(Path.Combine(directory,$"provider-{index:00}-metadata.json"),JsonSerializer.Serialize(new{reportedModelVersion=value}),ct);
+                        }
+                    }
+            return response;
+        }
     }
     private sealed class SequenceCodes(AuthOptions options):IAuthCryptography
     {

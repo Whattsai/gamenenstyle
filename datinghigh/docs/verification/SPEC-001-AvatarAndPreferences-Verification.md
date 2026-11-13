@@ -1,5 +1,13 @@
 # AvatarAndPreferences 驗證紀錄
 
+## 角色素材保留政策
+
+依使用者指示，原畫與製作中間檔不再保留於版本庫；正式免費角色唯一來源為frontend/client/public/avatars/full-body.v1的80張WebP，目錄與SHA以contracts/builtin-avatar-packs.json為準。avatar-assets.ts直接匯入其中16張neutral；上傳測試共用正式虛構WebP，不依賴舊JPG。歷史製作路徑僅保留為當時紀錄，不代表目前檔案仍存在，亦不增加任何平台驗收完成數。
+
+2026-11-13續驗：全身prompt恢復完整portrait.v3文字、僅改取景後的候選與五表情均獲使用者確認。default local三個閒置角色已清理，6筆生成資產／47個R2物件清除，帳號與個人照片保護hash一致且有備份；新profile Web與Android各完成一套五表情採用回放，供應商呼叫0。Android真provider 503後明確重試按鈕仍未送出下一API；沒有實體低階手機或逐幀FPS證據。範圍與限制見[Story最新紀錄](SPEC-001-StoryDialogueAndExit-Verification.md#2026-11-13-素材定稿與舞台修整續行未結案)，素材確認與整體Gate B分開。
+
+2026-11-12 全身／五表情增量由 Story well-done 共同實作；4款免費全身／五表情已由使用者逐步確認並匯出，B1／透明壓縮及授權讀圖有新測試。新增範圍仍未整體驗收；最新命令、確認原文、候選來源及精確缺項見 [Story 續接紀錄](SPEC-001-StoryDialogueAndExit-Verification.md#2026-11-12-開發續接紀錄未結案)，下方2026-11-05為歷史基線。
+
 ## 2026-11-05 D-053 個人資料／化身／獨立名片修訂
 
 本節為本次計畫的最新證據；下方2026-11-04的236/236與兩表24欄屬歷史版本，不擴推本次修訂。範圍限本地Web／Android；iOS暫緩、無障礙專項不納入；production／staging皆未發布。沒有新增Gemini真產圖、Google或收信證據；本次沒有呼叫真AI供應商。

@@ -1,5 +1,5 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,TextInput,useWindowDimensions,View} from 'react-native';
+import {AppState,BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,TextInput,useWindowDimensions,View} from 'react-native';
 import {useFocusEffect,useRouter,useNavigation} from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Crypto from 'expo-crypto';
@@ -11,6 +11,7 @@ import {colors,SceneBackground,GlassPanel,PrimaryButton,FormField,SubtleBadge,In
 import type {ProfileField,Gender,CardVisibility} from './profile-fields';
 import {formSnapshot,profilePayload,visibleOnCard} from './profile-fields';
 import {usePendingBackGuard} from './pending-back-guard';
+import {produceAvatarExpressions,parseAvatarAdoption,type AvatarAdoptionProgress} from './avatar-adoption';
 
 type Photo={assetId:string;mimeType:string;displayOrder:number};
 type Option={id:string;label:string;category?:string;active:boolean};
@@ -22,6 +23,7 @@ type ModalTab='free'|'ai';
 const styles:[string,string,string][]=[['warm','暖陽系','#ff9a62'],['moon','月光文青系','#8cc9ff'],['sakura','櫻語甜心系','#ff7aa2'],['forest','森語帥氣系','#7be0b8']];
 const purpose='請提供自己最滿意的個人照，未來同意的情況下提供對方交換名片時查閱';
 const disclosure='產圖時會將你已上傳的個人照片提供給第三方 AI 服務處理；不會自動公開給其他玩家';
+const expressionLabels:Record<string,string>={neutral:'自然',smile:'微笑',surprised:'驚訝',thoughtful:'思考',concerned:'擔心'};
 const touchY=(event:any)=>event.nativeEvent.touches?.[0]?.pageY??event.nativeEvent.changedTouches?.[0]?.pageY??event.nativeEvent.pageY;
 const pressedState=(selected:boolean)=>Platform.OS==='web'?{'aria-pressed':selected}:{};
 
@@ -40,8 +42,22 @@ function birthdayIssue(value:string|null|undefined,now:number){
 const adoptNotice='確定採用後本輪將結束，未採用圖片不會永久保存；未來正式付費上線後，重新生成將依當時方案付費；本 MVP 目前免費';
 function uuid7(){const bytes=Crypto.getRandomValues(new Uint8Array(16));let time=Date.now();for(let i=5;i>=0;i--){bytes[i]=time%256;time=Math.floor(time/256);}bytes[6]=(bytes[6]&15)|112;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,n=>n.toString(16).padStart(2,'0')).join('');return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;}
 function message(error:unknown){
- const code=error instanceof ApiFailure?error.code:'';
+ // 本地協調器也會傳固定復原代碼；不把任意Error.message反射到產品畫面。
+ const localCodes=['AVATAR_EXPRESSION_UNCERTAIN','AVATAR_ADOPTION_NOT_FOUND','AVATAR_PACK_NOT_READY'];
+ const code=error instanceof ApiFailure?error.code:error instanceof Error&&localCodes.includes(error.message)?error.message:'';
  const texts:Record<string,string>={AVATAR_DUPLICATE_IMAGE:'這次插畫與已有候選相同，未新增張數；可主動再試，可能增加供應商成本',INVALID_AVATAR_SELECTION:'這個化身目前無法選用，請重新整理後再選擇',INVALID_PROFILE:'請確認生日、文字長度、標籤與配對條件',IMAGE_TOO_LARGE:'照片超過 8 MiB，請選擇較小的圖片',INVALID_IMAGE:'圖片格式不支援或已損壞，請重新選圖',COMPRESSED_IMAGE_TOO_LARGE:'無法在保留畫質的情況下壓縮這張照片，請換一張',PHOTO_LIMIT_REACHED:'最多可保存 5 張個人照片',PROFILE_VERSION_CONFLICT:'資料已在其他地方更新，請重新整理後再修改',AVATAR_GENERATION_IN_PROGRESS:'本輪仍有操作進行中，請保留目前候選並稍後查看',AVATAR_CANDIDATE_EXPIRED:'本輪候選已過期，請重新開始',AVATAR_LIMIT_REACHED:'本輪最多 4 張，請從已有候選中選擇',IMAGE_PROVIDER_UNCERTAIN:'生成結果與供應商用量尚未確認；不會自動重送，已產生的候選仍保留',IMAGE_PROVIDER_UNAVAILABLE:'AI 服務目前無法使用，已產生的候選仍保留',IMAGE_PROVIDER_NO_IMAGE:'這次未取得有效插畫，既有候選不受影響',RATE_LIMITED:'操作過於頻繁，請稍後再試',SESSION_REVOKED:'登入已失效，請重新登入',PHOTO_NOT_FOUND:'照片已不存在，請重新整理',AVATAR_SOURCE_CHANGED:'來源照片已變更，本輪已結束；請重新開始',AVATAR_ATTEMPT_CLOSED:'本輪已結束，請重新整理',AVATAR_PHOTOS_REQUIRED:'至少需要 2 張已保存的個人照片'};
+ Object.assign(texts,{
+  AVATAR_ADOPTION_IN_PROGRESS:'另一個畫面正在製作角色，請重新整理後繼續或取消五表情製作',
+  AVATAR_EXPRESSION_UNCERTAIN:'這張表情的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試',
+  AVATAR_PACK_NOT_READY:'五表情還未完整保存，請先繼續製作；原角色保持不變',
+  AVATAR_TRANSPARENCY_REQUIRED:'這張角色圖的透明背景不符合規格，原角色保持不變；可明確重試尚未完成的表情',
+  AVATAR_FULL_BODY_INVALID:'這張角色圖未完整呈現頭部、雙腿與雙腳，原角色保持不變；可明確重試尚未完成的表情',
+  AVATAR_ADOPTION_NOT_FOUND:'找不到目前的五表情製作紀錄，請重新整理後再選擇',
+  AVATAR_EXPRESSION_MISMATCH:'表情尺寸或來源不一致，原角色保持不變；請重新整理查看製作進度',
+  AVATAR_REQUEST_FAILED:'這次製作未成功，已完成的表情仍保留；請明確重試尚未完成項目',
+  AVATAR_ADOPTION_CANCELLED:'這次五表情製作已取消，原角色保持不變',
+  AVATAR_PACK_UNAVAILABLE:'保存的五表情暫時無法讀取，請重新整理；不會自動重新產圖'
+ });
  if(error instanceof ApiFailure&&error.uncertain)return '操作結果尚未確認，請先重新整理查看；不會自動重送';
  return texts[code]??'服務暫時無法使用，請稍後重新整理';
 }
@@ -50,6 +66,7 @@ export function DatingProfileScreen(){
  const router=useRouter(),navigation=useNavigation(),session=useSession(),{width}=useWindowDimensions(),isWide=width>=820;
  const [profile,setProfile]=useState<Profile|null>(null),[groups,setGroups]=useState<Record<string,Option[]>>({}),[avatars,setAvatars]=useState<Avatar[]>([]),[definitions,setDefinitions]=useState<ProfileField[]>([]);
  const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[style,setStyle]=useState('warm');
+ const [adoption,setAdoption]=useState<AvatarAdoptionProgress|null>(null);
  const [loadedAccount,setLoadedAccount]=useState<string|undefined>(undefined),[avatarModal,setAvatarModal]=useState(false),[modalTab,setModalTab]=useState<ModalTab>('free');
  const [attempt,setAttempt]=useState<Attempt|null>(null),[selected,setSelected]=useState(1),[confirm,setConfirm]=useState<{kind:'delete'|'adopt'|'discard';id?:string}|null>(null);
  const [,setExpiryTick]=useState(0);
@@ -66,14 +83,18 @@ export function DatingProfileScreen(){
   return()=>clearTimeout(timer);
  },[attempt?.attemptId,attempt?.expiresAt]);
  const pending=useRef(false),generationRequest=useRef<string|undefined>(undefined),alive=useRef(true);
+ const foregroundGeneration=useRef(0);
+ const appActive=useRef(AppState.currentState==null||AppState.currentState==='active');
+ const isForeground=()=>{const state=AppState.currentState,active=Platform.OS==='web'||state==='active'||state==null&&appActive.current;if(active)appActive.current=true;return active;};
  const owner=useRef<string|undefined>(undefined);
  const scroll=useRef<React.ComponentRef<typeof ScrollView>>(null);
  usePendingBackGuard(pending,busy);
  const refresh=useCallback(async(preserveDraft=false)=>{
   const accountId=api.account?.accountId;
-  const [current,catalog,avatarCatalog]=await Promise.all([api.request('/me/dating-profile'),api.request('/profile-catalog'),api.request('/avatar-catalog')]);
+  const [current,catalog,avatarCatalog,adoptionStatus]=await Promise.all([api.request('/me/dating-profile'),api.request('/profile-catalog'),api.request('/avatar-catalog'),api.request('/me/avatar/expressions').catch(()=>({unavailable:true}))]);
   if(!alive.current||accountId!==api.account?.accountId)throw new ApiFailure('SESSION_REVOKED',401);
   {
+   if(!adoptionStatus.unavailable)setAdoption(adoptionStatus.adoption?parseAvatarAdoption(adoptionStatus.adoption):null);
 
    const snapshot=formSnapshot(current,catalog.fields),fresh={...current,_savedForm:snapshot,draftConflict:false};
    setProfile(previous=>{
@@ -86,12 +107,21 @@ export function DatingProfileScreen(){
    setDefinitions(catalog.fields);setGroups(catalog.groups);setAvatars(avatarCatalog.avatars);setLoadedAccount(accountId);if(!current.avatarAttemptUnavailable)setAttempt(current.avatarAttempt??null);if(current.avatarAttempt?.styleId)setStyle(current.avatarAttempt.styleId);
   }
  },[]);
+ useEffect(()=>{
+  const subscription=AppState.addEventListener('change',state=>{
+   appActive.current=state==='active';
+   // 返回只讀查回begin／單張進度，不恢復舊迴圈或送出新的付費請求。
+   if(!appActive.current)foregroundGeneration.current++;
+   else if(alive.current&&api.account)void refresh(true).catch(error=>{if(alive.current)setNotice(message(error));});
+  });
+  return()=>subscription.remove();
+ },[refresh]);
  useFocusEffect(useCallback(()=>{
-  alive.current=true;if(!session.ready)return;
-  if(owner.current!==api.account?.accountId){owner.current=api.account?.accountId;setAttempt(null);setProfile(null);setLoadedAccount(undefined);setAvatarModal(false);setModalTab('free');}
+  alive.current=true;foregroundGeneration.current++;if(!session.ready)return;
+  if(owner.current!==api.account?.accountId){owner.current=api.account?.accountId;setAttempt(null);setAdoption(null);setProfile(null);setLoadedAccount(undefined);setAvatarModal(false);setModalTab('free');}
   if(!api.account){setProfile(null);setAttempt(null);router.replace('/login');return;}
   refresh(true).catch(error=>{if(alive.current)setNotice(message(error));});
-  return()=>{alive.current=false;};
+  return()=>{alive.current=false;foregroundGeneration.current++;};
  },[session.ready,api.account,refresh,router]));
  const run=async(action:()=>Promise<void>)=>{
   if(pending.current)return;pending.current=true;setBusy(true);setNotice('');
@@ -139,6 +169,7 @@ export function DatingProfileScreen(){
   await run(async()=>{await api.request('/me/photos/order','PUT',{expectedRevision:profile.revision,assetIds:ids});await refresh(true);setNotice('照片順序已更新');});
  }
  async function generate(){
+  if(adoption){setNotice('請先繼續或取消目前的五表情製作');return;}
   await run(async()=>{
    generationRequest.current=uuid7();
    try{
@@ -147,17 +178,26 @@ export function DatingProfileScreen(){
    }catch(error){try{await refresh(true);}catch{/* 只讀查詢失敗仍保留前一張，不重送生成。 */}throw error;}
   });
  }
- async function selectBuiltin(id:string){if(!profile)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'builtin',builtinAvatarId:id,expectedRevision:profile.revision});await refresh(true);setNotice('遊戲化身已更新');});}
- async function selectSaved(assetId:string){if(!profile)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'generated',assetId,expectedRevision:profile.revision});await refresh(true);setNotice('已重新選用保存的化身');});}
+ async function selectBuiltin(id:string){if(!profile||adoption)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'builtin',builtinAvatarId:id,expectedRevision:profile.revision});await refresh(true);setNotice('遊戲化身已更新');});}
+ async function selectSaved(assetId:string){if(!profile||adoption)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'generated',assetId,expectedRevision:profile.revision});await refresh(true);setNotice('已重新選用保存的化身');});}
+ async function continueAdoption(retryUncertain=false){
+  if(!profile||!adoption)return;if(!isForeground()){setNotice('回到前景後再繼續五表情製作');return;}
+  const foreground=foregroundGeneration.current;
+  await run(async()=>{const result=await produceAvatarExpressions(api,{attemptId:adoption.attemptId,index:adoption.index,expectedRevision:profile.revision},()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground,setAdoption,uuid7,adoption,retryUncertain);if(result&&alive.current&&isForeground()&&foregroundGeneration.current===foreground){await refresh(true);setNotice('已採用完整五表情全身化身');}});
+ }
+ async function cancelAdoption(){
+  if(!adoption)return;
+  await run(async()=>{const result=await api.request('/me/avatar/expressions/cancel','POST',{workflowId:adoption.clientRequestId});await refresh(true);setNotice(result.committed?'已查回完成的正式採用結果':'已取消製作，原來的化身保持不變');});
+ }
  async function confirmAction(){
-  if(!confirm||!profile)return;const action=confirm;setConfirm(null);
+  if(!confirm||!profile||confirm.kind==='adopt'&&!isForeground())return;const action=confirm;setConfirm(null);
   if(action.kind==='discard'){const next=discardAction.current;discardAction.current=null;next?.();return;}
   if(action.kind==='adopt'&&(!attempt||attempt.expiresAt<=api.serverNow)){
    setExpiryTick(value=>value+1);setNotice('本輪候選已過期，請重新開始');return;
   }
   await run(async()=>{
    if(action.kind==='delete'){await api.request(`/me/photos/${action.id}`,'DELETE',{});setNotice('照片已刪除');}
-   else if(attempt){await api.request('/me/avatar/selection','PUT',{type:'generated',attemptId:attempt.attemptId,index:selected,expectedRevision:profile.revision});setAttempt(null);setNotice('已採用選中的遊戲化身');}
+   else if(attempt){const foreground=foregroundGeneration.current;const result=await produceAvatarExpressions(api,{attemptId:attempt.attemptId,index:selected,expectedRevision:profile.revision},()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground,setAdoption,uuid7);if(!result||!alive.current||!isForeground()||foregroundGeneration.current!==foreground)return;setAttempt(null);setAdoption(null);setNotice('已採用完整五表情全身化身');}
    await refresh(true);
   });
  }
@@ -299,9 +339,18 @@ export function DatingProfileScreen(){
     </GlassPanel>:profile&&<GlassPanel style={{maxWidth:isWide?780:480,width:'100%',maxHeight:'94%',padding:isWide?22:14,gap:12}}>
      <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}>
       <Text accessibilityRole="header" style={[s.heading,{fontSize:20,textAlign:'left'}]}>選擇遊戲化身</Text>
-      <PrimaryButton label="關閉" compact secondary onPress={()=>setAvatarModal(false)}/>
+      <PrimaryButton label="關閉" compact secondary disabled={busy} onPress={()=>setAvatarModal(false)}/>
      </View>
      <InlineNotice text={notice}/>
+     {adoption?<View style={{gap:14}}>
+      <Text style={s.label}>正在準備完整五表情化身</Text>
+      <Text style={s.body}>{adoption.completed.length} / 5 種已保存{busy&&adoption.currentExpression?` · 正在製作 ${expressionLabels[adoption.currentExpression]??'表情'}`:''}</Text>
+      <Text style={s.body}>全部完成並確認採用前，維持原來的角色。離開畫面後不會繼續製作。</Text>
+      <Text style={s.footer}>明確重試可能增加第三方供應商用量；本 MVP 目前免費。</Text>
+      {!busy&&<><PrimaryButton label={adoption.uncertain?'確認可能增加供應商用量並繼續':'繼續製作尚未完成的表情'} onPress={()=>void continueAdoption(adoption.uncertain)}/>
+       <PrimaryButton label="查回製作與採用結果" secondary onPress={()=>void run(()=>refresh(true))}/>
+       <PrimaryButton label="取消五表情製作" secondary onPress={()=>void cancelAdoption()}/></>}
+     </View>:<>
      <View style={{flexDirection:'row',gap:6,padding:4,borderRadius:999,backgroundColor:'rgba(0,0,0,.38)',borderWidth:1,borderColor:colors.line}}>
       <View style={{flex:1}}><PrimaryButton label="免費化身" compact secondary={modalTab!=='free'} active={modalTab==='free'} onPress={()=>setModalTab('free')}/></View>
       <View style={{flex:1}}><PrimaryButton label="AI 客製化" compact secondary={modalTab!=='ai'} active={modalTab==='ai'} onPress={()=>setModalTab('ai')}/></View>
@@ -342,7 +391,7 @@ export function DatingProfileScreen(){
         </View>
        </View>
       </View>}
-     </ScrollView>
+     </ScrollView></>}
     </GlassPanel>}
    </View>
   </Modal>

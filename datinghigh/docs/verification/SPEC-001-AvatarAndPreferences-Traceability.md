@@ -145,7 +145,7 @@
 | AP-IT-002 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/ProfileProjections.cs#L8) | [測試](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L103) | 完整斷言證據如左；範圍限本ID |
 | AP-IT-003 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/ProfileProjections.cs#L8) | [測試](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L104) | 完整斷言證據如左；範圍限本ID |
 | AP-IT-004 | 後續SPEC整合 | [實作](../../backend/src/DatingHigh.Application/ProfileProjections.cs#L8) | [測試](../../backend/tests/DatingHigh.Unit.Tests/Application/ProfileProjectionTests.cs#L1) | 原SPEC責任切分：需後續配對／有效雙方同意／終止流程的整合前置；不列本份結案條件、不假造授權。本份白名單／本人媒體及未同意拒絕另有在範圍案例。 |
-| AP-IT-005 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/AvatarService.cs#L52) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[補充](../../tests/e2e/android/avatar-preferences.mjs#L86)、[補充](../../frontend/client/assets/avatars/provenance.json#L3) | 完整斷言證據如左；範圍限本ID |
+| AP-IT-005 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/AvatarService.cs#L52) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[補充](../../tests/e2e/android/avatar-preferences.mjs#L86)、[補充](../../docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) | 完整斷言證據如左；範圍限本ID |
 | AP-IT-006 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/AvatarService.cs#L52) | [測試](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16) | 完整斷言證據如左；範圍限本ID |
 | AP-IT-007 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/DatingProfileService.cs#L162) | [測試](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16) | 完整斷言證據如左；範圍限本ID |
 | AP-IT-008 | 已覆核 | [實作](../../backend/src/DatingHigh.Application/DatingProfileService.cs#L162) | [測試](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16) | 完整斷言證據如左；範圍限本ID |
@@ -291,7 +291,7 @@
 | AP-E2E-035 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/android/avatar-managed.mjs#L82)、[補充](../../tests/e2e/android/avatar-preferences.mjs#L86) | 完整斷言證據如左；範圍限本ID |
 | AP-E2E-036 | 本輪暫緩 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L1) | iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。 |
 | AP-E2E-037 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/android/avatar-gemini-live.mjs#L55)、[補充](../../tests/e2e/web/avatar-preferences.spec.ts#L122)、[補充](../../tests/e2e/web/avatar-gemini-live.spec.ts#L19)、[補充](../../frontend/client/tests/unit/dating-profile-screen.test.tsx#L145) | 完整斷言證據如左；範圍限本ID；依D-052僅驗Web／Android；iOS子斷言暫緩，未宣稱通過 |
-| AP-E2E-038 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[補充](../../tests/e2e/android/avatar-preferences.mjs#L86)、[補充](../../frontend/client/assets/avatars/provenance.json#L3) | 完整斷言證據如左；範圍限本ID；依D-052僅驗Web／Android；iOS子斷言暫緩，未宣稱通過 |
+| AP-E2E-038 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[補充](../../tests/e2e/android/avatar-preferences.mjs#L86)、[補充](../../docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) | 完整斷言證據如左；範圍限本ID；依D-052僅驗Web／Android；iOS子斷言暫緩，未宣稱通過 |
 | AP-E2E-039 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/web/avatar-gemini-live.spec.ts#L25) | 完整斷言證據如左；範圍限本ID |
 | AP-E2E-040 | 已覆核 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/android/avatar-gemini-live.mjs#L66) | 完整斷言證據如左；範圍限本ID |
 | AP-E2E-041 | 本輪暫緩 | [實作](../../frontend/client/src/DatingProfileScreen.tsx#L49) | [測試](../../tests/e2e/web/avatar-preferences.spec.ts#L1) | iOS依D-052暫緩，不阻擋目前Web／Android範圍，也不記為通過；無障礙專項依D-051不在目前MVP。 |
@@ -306,7 +306,7 @@
 | AP-BDD-002 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L104)、[證據](../../backend/tests/DatingHigh.Unit.Tests/Application/PersonalPhotosApplicationTests.cs#L37) |
 | AP-BDD-003 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../cloudflare/tests/avatar-preferences-d1.integration.test.ts#L391) |
 | AP-BDD-004 | 後續SPEC整合 | 本SPEC業務斷言；平台UI另依E2E驗收 | 有效輪次／同意／終止及Matching服務的正向整合由後續SPEC完成；本份資料契約／白名單及拒絕界線另驗，不要求先實作其他SPEC。 |
-| AP-BDD-005 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[證據](../../tests/e2e/android/avatar-preferences.mjs#L86)、[證據](../../frontend/client/assets/avatars/provenance.json#L3) |
+| AP-BDD-005 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[證據](../../tests/e2e/android/avatar-preferences.mjs#L86)、[證據](../../docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) |
 | AP-BDD-006 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16) |
 | AP-BDD-007 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16) |
 | AP-BDD-008 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs#L16)、[證據](../../backend/tests/DatingHigh.Unit.Tests/Application/DatingProfileApplicationTests.cs#L322) |
@@ -359,7 +359,7 @@
 | AP-BDD-055 | 後續SPEC整合 | 本SPEC業務斷言；平台UI另依E2E驗收 | 有效輪次／同意／終止及Matching服務的正向整合由後續SPEC完成；本份資料契約／白名單及拒絕界線另驗，不要求先實作其他SPEC。 |
 | AP-BDD-056 | 已覆核 | 本SPEC業務斷言；平台UI另依E2E驗收 | [證據](../../docs/verification/SPEC-001-AvatarAndPreferences-Verification.md#L147) |
 | AP-BDD-057 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L83)、[證據](../../tests/e2e/android/avatar-preferences.mjs#L78)、[證據](../../frontend/client/tests/unit/dating-profile-screen.test.tsx#L137) |
-| AP-BDD-058 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L28)、[證據](../../tests/e2e/android/avatar-preferences.mjs#L86)、[證據](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[證據](../../frontend/client/assets/avatars/provenance.json#L3) |
+| AP-BDD-058 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L28)、[證據](../../tests/e2e/android/avatar-preferences.mjs#L86)、[證據](../../tests/e2e/web/avatar-preferences.spec.ts#L21)、[證據](../../docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) |
 | AP-BDD-059 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L37)、[證據](../../tests/e2e/android/avatar-managed.mjs#L59) |
 | AP-BDD-060 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-preferences.spec.ts#L96)、[證據](../../tests/e2e/android/avatar-managed.mjs#L59) |
 | AP-BDD-061 | 已覆核 | Web／Android介面功能；iOS暫緩、無障礙不在範圍 | [證據](../../tests/e2e/web/avatar-gemini-live.spec.ts#L20)、[證據](../../tests/e2e/android/avatar-gemini-live.mjs#L55)、[證據](../../tests/e2e/web/avatar-preferences.spec.ts#L122)、[證據](../../tests/e2e/web/avatar-gemini-live.spec.ts#L19)、[證據](../../frontend/client/tests/unit/dating-profile-screen.test.tsx#L145) |

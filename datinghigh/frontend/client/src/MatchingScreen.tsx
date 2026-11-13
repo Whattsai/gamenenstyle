@@ -1,3 +1,4 @@
+import {StoryExperienceScreen} from './StoryExperienceScreen';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {AppState,Image,Platform,Text,View} from 'react-native';
 import {useFocusEffect,useLocalSearchParams,useRouter} from 'expo-router';
@@ -118,27 +119,5 @@ export function MatchingScreen({invitations=false}:{invitations?:boolean}){
  </View></SceneBackground>;
 }
 
-export function GameRoundScreen(){
- const router=useRouter(),session=useSession(),{roundId}=useLocalSearchParams<{roundId:string}>();
- const [round,setRound]=useState<GameRound|null>(null),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
- const generation=useRef(0),pending=useRef(false);
- const load=useCallback(async()=>{
-  if(pending.current)return;if(!api.account){router.replace('/login');return;}
-  pending.current=true;const run=++generation.current;setBusy(true);setRound(null);setNotice('');
-  try{const result=await api.request('/game-rounds/'+roundId);if(run===generation.current)setRound(result);}
-  catch(error){if(run===generation.current){
-   // ended或非目前可進入的房間先回共用分流，重新核對Profile／實際active輪次。
-   if(error instanceof ApiFailure&&error.status===403)router.replace('/start');
-   else setNotice(matchingError(error));
-  }}
-  finally{if(run===generation.current){pending.current=false;setBusy(false);}}
- },[roundId,router,api.sessionId]);
- useFocusEffect(useCallback(()=>{
-  if(session.ready)void load();const foreground=()=>{void load();};
-  const sub=AppState.addEventListener('change',state=>{if(state==='active')foreground();});
-  if(Platform.OS==='web')window.addEventListener('focus',foreground);
-  return()=>{generation.current++;pending.current=false;sub.remove();if(Platform.OS==='web')window.removeEventListener('focus',foreground);};
- },[session.ready,load]));
- if(!api.account)return <SceneBackground><GlassPanel><InlineNotice text="登入已失效，請重新登入"/><PrimaryButton label="返回登入" onPress={()=>router.replace('/login')}/></GlassPanel></SceneBackground>;
- return <SceneBackground><GlassPanel><Text style={s.heading}>專屬雙人房間</Text>{busy&&<LoadingOverlay/>}<InlineNotice text={notice}/>{round&&<><PersonaCard persona={round.persona}/><Text style={s.label}>雙方已確認，遊戲進行中</Text><Text style={s.body}>遊戲進行中，結束後才能重新配對</Text><Text style={s.subtleText}>房間編號：{round.roundId}</Text></>}<PrimaryButton label="重新整理房間" secondary disabled={busy} onPress={()=>void load()}/><PrimaryButton label="你的帳號" secondary onPress={()=>router.push('/account')}/><PrimaryButton label="配對入口" secondary onPress={()=>router.push('/start')}/></GlassPanel></SceneBackground>;
-}
+/** 相容既有配對模組呼叫；正式房間內容由 Story 模組持有。 */
+export function GameRoundScreen(){return <StoryExperienceScreen/>;}

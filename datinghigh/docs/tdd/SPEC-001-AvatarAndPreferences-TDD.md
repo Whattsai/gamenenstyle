@@ -1,6 +1,22 @@
 # SPEC-001-AvatarAndPreferences — TDD 測試清單
 
-## 需求總進度（2026-11-05）
+> **2026-11-12 實作續記**：Story well-done 已接入 B1／R2 ready／透明壓縮的局部增量；完整新素材、雙平台與清測資未驗收，新項仍不批量勾選。跨 SPEC 證據及未完項見 [Story 同日紀錄](../verification/SPEC-001-StoryDialogueAndExit-Verification.md#2026-11-12-開發續接紀錄未結案)。
+
+## 2026-11-12 新增全身化身／B1／CLEAN-RESET TDD 最新狀態
+
+| 驗證範圍 | 歷史已覆核 | 2026-11-12新增未驗收 | 合計 | 進度說明 |
+|---|---:|---:|---:|---|
+| Unit（AP-UT） | 原 `121` ID 依舊版 Verification | 72（122～193） | **193** | 完成與否依舊版逐ID紀錄，新72一律未驗 |
+| Integration（AP-IT） | 原 `69` ID 依舊版 Verification | 24（070～093） | **93** | 真D1/R2及Manifest版本／競態 |
+| API／Worker（AP-API） | 原 `44` ID 依舊版 Verification | 12（045～056） | **56** | 授權、冪等／CAS／未知提交／安全清理 |
+| E2E／UX（AP-E2E） | 原 `41` ID 依舊版 Verification | 12（042～053） | **53** | Web與Android、16款原畫保真、真Gemini與Gate B |
+| **TDD ID合計** | **原275項，其中236項為已覆核的本期Web/Android責任範圍** | **120（全部[ ]）** | **395** | **全規劃236/395（59.7%）；本SPEC目前責任範圍236/356（66.3%）** |
+
+**BDD**：原73個unique場景（歷史覆核）＋新增 `AP-BDD-074～097` 共24項＝**97**；本SPEC目前責任 73/97（75.3%）。原後續跨SPEC正向授權整合8項仍另列，若全計畫含它們則73/105（69.5%）。`AP-PC-001～008` 八組D-053測試有獨立驗證粒度，**不能額外灌入275或395個TDD ID**。
+
+**規則**：2026-11-12 `UX-RQ-04=FULL-BODY` 取代 D-049 歷史半身構圖；免費16款原圖不可重畫、AI首次候選即全身、B1前景完成固定五表情且Manifest ready才正式選角、相同asset/version切回Gemini 0次；**`UX-AUDIT-RQ-01=CLEAN-RESET` 在新功能完成後、全新Gate驗證前才受控清除非正式舊角色資料**，真人照片／帳號／非角色Profile欄位與免費原始角色圖全部保留。**當前最新Perfect-plan Phase5可交接為 Ready for well-done（僅規劃）**，新120項測試、角色圖片、生成器、R2清理及新Gate B目前未執行；不可用舊版已覆核236項代簽。iOS／無障礙 D-051／052排除依原決策，不降低現有Web／Android Gate。
+
+## 需求總進度（2026-11-05；歷史原範圍）
 
 | 計算範圍 | 完整覆核／總數 | 完成率 | 尚未驗收／邊界 |
 |---|---:|---:|---|
@@ -1710,6 +1726,673 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
   - **來源**：`AP-BDD-073`（AP-AC-003、AP-AC-018／024；D-050）
   - **前置／動作／預期**：iOS產圖成功1～4張後按採用，先取消再確認；預期 顯示採用結束本輪／未來正式付費重生依方案收費、目前免費；取消保留本輪，確認才正式採用，不扣款；未實測不得借用他平台證據。
 
+## 2026-11-12 新全身化身／五表情／CLEAN-RESET 增量 TDD（新增120項，**0項已驗收**）
+
+**來源**：`AP-AC-017／018／022／025／026` 和 `AP-BDD-074～097`（24場）。每一新 Gherkin 場景對應 **3 Unit + 1 Integration + 1 API/E2E = 5個新測試 ID**。舊 TDD `AP-UT-001～121`／`AP-IT-001～069`／`AP-API-001～044`／`AP-E2E-001～041` 共275項及 D-053 `AP-PC-001～008` 八組完成證據保持歷史原貌；**新版120項全部 [ ]**，不能以現有236項舊責任範圍的通過證據代簽。
+
+### A. 新增 Unit／Application／UI policy（AP-UT-122～193；72項）
+
+- [ ] `AP-UT-122` **`AvatarFullBody74_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-074`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：原有16款male-01～08及female-01～08已封存原圖與穩定ID。**操作**：依後續使用者決策直接AI延伸全身，逐款與原畫視覺比對並逐批人工確認，不增加像素鎖回流程。**應驗**：16款每一張均保留原圖hash與穩定ID，AI全身延伸後逐款比對角色身份、髮型／原衣裝／氣質與自然腿腳，並取得使用者確認。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-123` **`AvatarFullBody74_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-074`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得任意重設角色身份、原衣裝／髮型／氣質；任一未獲確認的失真不通過；不另加逐像素相等門檻。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-124` **`AvatarFullBody74_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-074`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-074` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-125` **`AvatarFullBody75_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-075`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：免費16款已取得通過保真審查的3:4全身站姿master。**操作**：將每款角色顯示在全身遠景與中近景並套用原有相機安全框。**應驗**：頭、身、雙手、腿、鞋完整，角色下緣與背景落點正確，近景五官清晰。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-126` **`AvatarFullBody75_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-075`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不能扭曲拉伸或把站姿當成坐姿／步行動畫。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-127` **`AvatarFullBody75_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-075`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-075` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-128` **`AvatarFullBody76_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-076`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：16款原始上半身已通過鎖定比對且有全身master。**操作**：在同一角色上驗neutral、smile、surprised、thoughtful、concerned五標準表情。**應驗**：全部16×5組合存在、命名與表情定義固定、臉以外的全身服裝腿鞋一致。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-129` **`AvatarFullBody76_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-076`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：缺一表情或其他部位被意外重繪不可將本角色標成完整。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-130` **`AvatarFullBody76_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-076`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-076` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-131` **`AvatarFullBody77_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-077`；**SDD**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：已登入測試玩家有依已存性別可選的全身免費角色與其固定五表情。**操作**：本人選免費角色A、改選B、重新選回A及重登。**應驗**：所有選角都沿用穩定builtinAvatarId與靜態資產，Gemini呼叫計數保持0。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-132` **`AvatarFullBody77_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-077`；**SDD**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不會在切角時新增個人AI角色資料、重生成表情或讀私人真人來源照片。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-133` **`AvatarFullBody77_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-077`；**SDD**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-077` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-134` **`AvatarFullBody78_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-078`；**SDD**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：使用者已授權至少2張ready真人照且正式full-body生成規格已設定。**操作**：使用者逐張按開始生成並查看第一張和之後候選。**應驗**：每次成功僅一張3:4全身站姿插畫，頭、手、腿、鞋完整且臉型與原授權照片可比。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-135` **`AvatarFullBody78_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-078`；**SDD**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得先產半身後採用時補全身；不得超過4張成功候選。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-136` **`AvatarFullBody78_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-078`；**SDD**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-078` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-137` **`AvatarFullBody79_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-079`；**SDD**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：本人照片有可用與撤銷或缺少來源兩種狀態。**操作**：玩家進入AI頁、選風格、請求全身候選以及稍後固定表情。**應驗**：首次候選只能在本人主動授權後使用已保存的2～5張合法照片；五表情僅參考已選全身候選。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-138` **`AvatarFullBody79_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-079`；**SDD**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得在產表情時再次傳真人原照，不得依任意猜測assetId讀他人照片。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-139` **`AvatarFullBody79_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-079`；**SDD**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-079` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-140` **`AvatarFullBody80_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-080`；**SDD**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：同一3:4全身候選以現有1K與候選更高解析度兩種設定輸出。**操作**：將full-body圖等比例裁切到書店臉部近景並進行人工作品比對。**應驗**：角色五官可辨、比例與人物原有氣質一致，尺寸與成本記錄可驗。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-141` **`AvatarFullBody80_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-080`；**SDD**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：若1K使臉糊或200KB壓縮失真必阻擋ready並回報改參數所需成本，不得以降低門檻結案。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-142` **`AvatarFullBody80_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-080`；**SDD**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-080` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-143` **`AvatarFullBody81_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-081`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：使用者在有效候選中選中一張全身角色並按確認採用。**操作**：B1在前景逐一生成固定五表情，同時本人嘗試切換免費或另一AI角色。**應驗**：畫面顯示當前產製項目與進度；任何裝置尚未完成時都不可正式切換。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-144` **`AvatarFullBody81_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-081`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：直到整包ready前D1舊selectedAvatarRef保持不變，無背景產圖排程。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-145` **`AvatarFullBody81_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-081`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-081` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-146` **`AvatarFullBody82_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-082`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：AI候選與其固定五表情已由同一全身master衍生。**操作**：server驗證五個固定ID、身份、hash、尺寸、格式、alpha與全身完整性。**應驗**：私人R2包完成CAS ready後，D1同一revision條件式提交一次正式已選角色。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-147` **`AvatarFullBody82_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-082`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：ready僅代表素材完整，不能把未在D1正式採用的角色投影給對方。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-148` **`AvatarFullBody82_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-082`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-082` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-149` **`AvatarFullBody83_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-083`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：五表情中的neutral與smile已驗證但surprised產圖失敗或provider回覆不明。**操作**：使用者在前景選擇重試、取消或離開。**應驗**：成功的表情資產沿相同assetId與version保留；只允許明確重試尚未成功的表情。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-150` **`AvatarFullBody83_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-083`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：取消或逾時不改舊角色，provider狀態不明不得自動再次付費呼叫。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-151` **`AvatarFullBody83_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-083`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-083` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-152` **`AvatarFullBody84_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-084`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：同帳號裝置A持有有效R2 lease正在執行B1。**操作**：裝置B嘗試改選角色，且裝置A晚到的舊revision回覆到達。**應驗**：前後端均拒絕B1期間切角，多分頁不得重產同一表情，後到過時結果不得覆寫新角色。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-153` **`AvatarFullBody84_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-084`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：使用CAS與穩定requestId確保同一全身套組同時只有一個有效製作流程。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-154` **`AvatarFullBody84_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-084`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-084` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-155` **`AvatarFullBody85_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-085`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：同一owner/asset下可能有半身歷史格式與新full-body版本標示。**操作**：server檢驗avatarAssetId、sourceHash、expressionSpecVersion、avatarAssetSpecVersion及五張各自的sha/mime/size。**應驗**：只有同一full-body master與固定版本五張都驗證通過才標ready，此版Manifest不可偷偷覆寫。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-156` **`AvatarFullBody85_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-085`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：單純存在五張檔名、user_media_assets.status=ready或錯誤版本不能算表情套組完成。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-157` **`AvatarFullBody85_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-085`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-085` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-158` **`AvatarFullBody86_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-086`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：已保存Manifest為ready但其中一個R2物件損毀或hash不匹配。**操作**：本人重新選回同角色並請求載入表情。**應驗**：以版本化權威驗證並安全顯示素材不可用或修復提示。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-159` **`AvatarFullBody86_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-086`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得因圖片遺失而在切角、登入或劇情畫面自動呼叫Gemini重產。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-160` **`AvatarFullBody86_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-086`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-086` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-161` **`AvatarFullBody87_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-087`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：五表情Manifest已ready但D1條件交易可能因revision衝突或網路回覆不明而未正式選用。**操作**：同一requestId重試確認採用或另一玩家讀取其角色。**應驗**：依D1查回真實selectedAvatarRef與revision，未採用則另一人仍見舊角色。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-162` **`AvatarFullBody87_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-087`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得宣稱R2與D1是單一交易，也不得因回覆不明重做五表情。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-163` **`AvatarFullBody87_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-087`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-087` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-164` **`AvatarFullBody88_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-088`；**SDD**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：玩家有A、B兩個合法已ready全身AI角色套組。**操作**：本人從A切B再切A、重登並在有效遊戲重新入場。**應驗**：只按owner/asset與雙規格版本讀既有完整Manifest及可快取素材，Gemini呼叫恆為0。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-165` **`AvatarFullBody88_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-088`；**SDD**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：相同全身角色不重新壓縮，不因後續Prompt或模型變更自動重產。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-166` **`AvatarFullBody88_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-088`；**SDD**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-088` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-167` **`AvatarFullBody89_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-089`；**SDD**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：本人角色已正式採用且存在有效及無效Round、被封存候選與原始真人照片。**操作**：不同帳號、已結束玩家與合法當輪對方請求角色投影或媒體串流。**應驗**：只有本人與有效當輪授權可取得正式已採用角色的適用圖片，來源真人照片及私有objectKey不對外回傳。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-168` **`AvatarFullBody89_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-089`；**SDD**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：跨owner猜鍵、讀未採用候選、已結束Round或不明版本必安全拒絕。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-169` **`AvatarFullBody89_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-089`；**SDD**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-089` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-170` **`AvatarFullBody90_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-090`；**SDD**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：正式全身角色需要透明WebP或遮罩，而本人真人來源照仍限制200000 bytes。**操作**：同一共用IImageCompressionService依明確參數處理表情與一般照片。**應驗**：全身角色透明／遮罩可保且臉部不失真，真人照仍去EXIF及維持其既定大小／權限。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-171` **`AvatarFullBody90_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-090`；**SDD**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不新增重複壓縮服務，不將透明背景鋪白JPEG卻宣稱2.5D合格。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-172` **`AvatarFullBody90_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-090`；**SDD**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-090` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-173` **`AvatarFullBody91_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-091`；**SDD**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：免費全身角色與AI全身表情均具合法ready版本及stageAnchors。**操作**：Web桌面與Android直向分別切換站立遠景、半身中景、近臉特寫。**應驗**：使用同一master安全裁切，人物完整且焦點、身形、腳部落點與表情一致。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-174` **`AvatarFullBody91_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-091`；**SDD**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：鍵盤、聊天抽屜、不同裝置安全區不能擋住臉或重要互動。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-175` **`AvatarFullBody91_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-091`；**SDD**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-091` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-176` **`AvatarFullBody92_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-092`；**SDD**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：有效Room中對方正在播放一段故事台詞。**操作**：本人成功採用新已ready全身角色且後端交易提交。**應驗**：使用WebSocket向對方發版本提示，必要時按需讀一次正式授權角色，等當前台詞結束安全切換。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-177` **`AvatarFullBody92_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-092`；**SDD**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：採用前不能通知，正常演出與每秒渲染不查D1，舊事件／斷線重連安全校正。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-178` **`AvatarFullBody92_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-092`；**SDD**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-092` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-179` **`AvatarFullBody93_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-093`；**SDD**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：產品未上線且舊半身AI角色僅是開發期測試資料。**操作**：實作全身版本並準備重新驗證角色選用與劇情。**應驗**：不提供半身轉全身、舊ID兼容或遊戲畫面自動產圖入口。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-180` **`AvatarFullBody93_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-093`；**SDD**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：僅在全身實作完成後依非正式環境CLEAN-RESET流程清理，再建立新全身角色。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-181` **`AvatarFullBody93_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-093`；**SDD**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-093` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-182` **`AvatarFullBody94_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-094`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：目標D1與R2可能是已核實非正式測試環境或正式／未知／其他專案環境。**操作**：請求列出並清除舊selectedAvatar、generatedAvatar與avatar/temp候選。**應驗**：僅已核准非正式環境可根據帳號、DB與R2鍵清單執行一次性清理。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-183` **`AvatarFullBody94_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-094`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：任何正式或未知環境、尚在B1產製或遊戲中必拒絕，沒有背景自動清理。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-184` **`AvatarFullBody94_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-094`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-094` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-185` **`AvatarFullBody95_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-095`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：非正式環境有generated_avatar各狀態、Profile舊選角、R2 avatar正式／候選／舊Manifest。**操作**：確認精確owner/asset/objectKey清單後，執行清理並模擬R2刪除中途故障。**應驗**：D1清空角色選用並更新revision，相關舊generated_avatar與R2物件歸零、無孤兒且相同清單重試安全。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-186` **`AvatarFullBody95_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-095`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不以跨服務原子交易假稱一次成功或不檢查刪除失敗。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-187` **`AvatarFullBody95_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-095`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-095` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-188` **`AvatarFullBody96_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-096`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：同帳號兼有個人照片、名片、非角色Profile欄位以及16款免費原畫。**操作**：在非正式環境執行舊角色測試資料清理。**應驗**：只有AI角色與候選／相關選角被清，personal_photo與private/photos及帳號Profile其他欄位原16張原畫hash不變。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-189` **`AvatarFullBody96_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-096`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：不得DELETE整個user_media_assets或用過寬R2前綴誤刪與角色無關的檔案。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-190` **`AvatarFullBody96_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-096`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-096` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-191` **`AvatarFullBody97_AcceptsValidFlow`**（critical）
+  - **BDD**：`AP-BDD-097`；**SDD**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **前置**：新全身與B1功能已開發完成且非正式環境舊角色清理有D1/R2核對紀錄。**操作**：兩個獨立測試帳號由零選全身免費角色、以授權照產全身AI候選、B1五表情完成與切角，再於Web/Android遊玩書店雙結局。**應驗**：全部新角色由本版資產與ready Manifest建成，雙端遠中近鏡及UX-P1～P5皆有真證據。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-192` **`AvatarFullBody97_RejectsInvalidOrForbiddenMutation`**（critical）
+  - **BDD**：`AP-BDD-097`；**SDD**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **反例／不可退讓**：免費16款上半身人工保真及使用者Gate B未確認前不能勾本次新體驗完成。此測試須以不合法尺寸／owner／revision／失敗狀態等與該場景匹配的輸入，證明拒絕或沒有副作用。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+- [ ] `AP-UT-193` **`AvatarFullBody97_PreservesVersionAndRetryState`**（critical）
+  - **BDD**：`AP-BDD-097`；**SDD**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Unit.Tests/Application/AvatarFullBodyPolicyTests.cs／frontend/client/tests/unit/avatar-fullbody.test.tsx（視被測規則擇一）`，尚未建立／執行。
+  - **狀態一致性**：完成、失敗、重送與不同版本／跨裝置操作不得改壞本人已選角色、固定表情版本或保護資料；以本場 `AP-BDD-097` 的 Then／And 逐項查實，而非只測回傳非空。
+  - **執行層級**：純Domain／Application／前端狀態，不用 Mock 證明真圖片、真 Gemini 或真 DB 成功。
+
+### B. 新增 Integration：真 D1／R2／表情 Manifest／Renderer（AP-IT-070～093；24項）
+
+- [ ] `AP-IT-070` **`AvatarFullBody74_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-074`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：原有16款male-01～08及female-01～08已封存原圖與穩定ID；依後續使用者決策直接AI延伸全身，逐款與原畫視覺比對並逐批人工確認，不增加像素鎖回流程。
+  - **預期**：16款每一張均保留原圖hash與穩定ID，AI全身延伸後逐款比對角色身份、髮型／原衣裝／氣質與自然腿腳，並取得使用者確認；不得任意重設角色身份、原衣裝／髮型／氣質；任一未獲確認的失真不通過；不另加逐像素相等門檻。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-071` **`AvatarFullBody75_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-075`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：免費16款已取得通過保真審查的3:4全身站姿master；將每款角色顯示在全身遠景與中近景並套用原有相機安全框。
+  - **預期**：頭、身、雙手、腿、鞋完整，角色下緣與背景落點正確，近景五官清晰；不能扭曲拉伸或把站姿當成坐姿／步行動畫。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-072` **`AvatarFullBody76_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-076`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：16款原始上半身已通過鎖定比對且有全身master；在同一角色上驗neutral、smile、surprised、thoughtful、concerned五標準表情。
+  - **預期**：全部16×5組合存在、命名與表情定義固定、臉以外的全身服裝腿鞋一致；缺一表情或其他部位被意外重繪不可將本角色標成完整。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-073` **`AvatarFullBody77_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-077`；**SDD**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：已登入測試玩家有依已存性別可選的全身免費角色與其固定五表情；本人選免費角色A、改選B、重新選回A及重登。
+  - **預期**：所有選角都沿用穩定builtinAvatarId與靜態資產，Gemini呼叫計數保持0；不會在切角時新增個人AI角色資料、重生成表情或讀私人真人來源照片。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-074` **`AvatarFullBody78_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-078`；**SDD**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：使用者已授權至少2張ready真人照且正式full-body生成規格已設定；使用者逐張按開始生成並查看第一張和之後候選。
+  - **預期**：每次成功僅一張3:4全身站姿插畫，頭、手、腿、鞋完整且臉型與原授權照片可比；不得先產半身後採用時補全身；不得超過4張成功候選。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-075` **`AvatarFullBody79_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-079`；**SDD**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：本人照片有可用與撤銷或缺少來源兩種狀態；玩家進入AI頁、選風格、請求全身候選以及稍後固定表情。
+  - **預期**：首次候選只能在本人主動授權後使用已保存的2～5張合法照片；五表情僅參考已選全身候選；不得在產表情時再次傳真人原照，不得依任意猜測assetId讀他人照片。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-076` **`AvatarFullBody80_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-080`；**SDD**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：同一3:4全身候選以現有1K與候選更高解析度兩種設定輸出；將full-body圖等比例裁切到書店臉部近景並進行人工作品比對。
+  - **預期**：角色五官可辨、比例與人物原有氣質一致，尺寸與成本記錄可驗；若1K使臉糊或200KB壓縮失真必阻擋ready並回報改參數所需成本，不得以降低門檻結案。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-077` **`AvatarFullBody81_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-081`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：使用者在有效候選中選中一張全身角色並按確認採用；B1在前景逐一生成固定五表情，同時本人嘗試切換免費或另一AI角色。
+  - **預期**：畫面顯示當前產製項目與進度；任何裝置尚未完成時都不可正式切換；直到整包ready前D1舊selectedAvatarRef保持不變，無背景產圖排程。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-078` **`AvatarFullBody82_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-082`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：AI候選與其固定五表情已由同一全身master衍生；server驗證五個固定ID、身份、hash、尺寸、格式、alpha與全身完整性。
+  - **預期**：私人R2包完成CAS ready後，D1同一revision條件式提交一次正式已選角色；ready僅代表素材完整，不能把未在D1正式採用的角色投影給對方。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-079` **`AvatarFullBody83_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-083`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：五表情中的neutral與smile已驗證但surprised產圖失敗或provider回覆不明；使用者在前景選擇重試、取消或離開。
+  - **預期**：成功的表情資產沿相同assetId與version保留；只允許明確重試尚未成功的表情；取消或逾時不改舊角色，provider狀態不明不得自動再次付費呼叫。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-080` **`AvatarFullBody84_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-084`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：同帳號裝置A持有有效R2 lease正在執行B1；裝置B嘗試改選角色，且裝置A晚到的舊revision回覆到達。
+  - **預期**：前後端均拒絕B1期間切角，多分頁不得重產同一表情，後到過時結果不得覆寫新角色；使用CAS與穩定requestId確保同一全身套組同時只有一個有效製作流程。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-081` **`AvatarFullBody85_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-085`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：同一owner/asset下可能有半身歷史格式與新full-body版本標示；server檢驗avatarAssetId、sourceHash、expressionSpecVersion、avatarAssetSpecVersion及五張各自的sha/mime/size。
+  - **預期**：只有同一full-body master與固定版本五張都驗證通過才標ready，此版Manifest不可偷偷覆寫；單純存在五張檔名、user_media_assets.status=ready或錯誤版本不能算表情套組完成。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-082` **`AvatarFullBody86_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-086`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：已保存Manifest為ready但其中一個R2物件損毀或hash不匹配；本人重新選回同角色並請求載入表情。
+  - **預期**：以版本化權威驗證並安全顯示素材不可用或修復提示；不得因圖片遺失而在切角、登入或劇情畫面自動呼叫Gemini重產。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-083` **`AvatarFullBody87_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-087`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：五表情Manifest已ready但D1條件交易可能因revision衝突或網路回覆不明而未正式選用；同一requestId重試確認採用或另一玩家讀取其角色。
+  - **預期**：依D1查回真實selectedAvatarRef與revision，未採用則另一人仍見舊角色；不得宣稱R2與D1是單一交易，也不得因回覆不明重做五表情。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-084` **`AvatarFullBody88_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-088`；**SDD**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：玩家有A、B兩個合法已ready全身AI角色套組；本人從A切B再切A、重登並在有效遊戲重新入場。
+  - **預期**：只按owner/asset與雙規格版本讀既有完整Manifest及可快取素材，Gemini呼叫恆為0；相同全身角色不重新壓縮，不因後續Prompt或模型變更自動重產。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-085` **`AvatarFullBody89_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-089`；**SDD**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：本人角色已正式採用且存在有效及無效Round、被封存候選與原始真人照片；不同帳號、已結束玩家與合法當輪對方請求角色投影或媒體串流。
+  - **預期**：只有本人與有效當輪授權可取得正式已採用角色的適用圖片，來源真人照片及私有objectKey不對外回傳；跨owner猜鍵、讀未採用候選、已結束Round或不明版本必安全拒絕。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-086` **`AvatarFullBody90_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-090`；**SDD**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：正式全身角色需要透明WebP或遮罩，而本人真人來源照仍限制200000 bytes；同一共用IImageCompressionService依明確參數處理表情與一般照片。
+  - **預期**：全身角色透明／遮罩可保且臉部不失真，真人照仍去EXIF及維持其既定大小／權限；不新增重複壓縮服務，不將透明背景鋪白JPEG卻宣稱2.5D合格。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-087` **`AvatarFullBody91_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-091`；**SDD**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：免費全身角色與AI全身表情均具合法ready版本及stageAnchors；Web桌面與Android直向分別切換站立遠景、半身中景、近臉特寫。
+  - **預期**：使用同一master安全裁切，人物完整且焦點、身形、腳部落點與表情一致；鍵盤、聊天抽屜、不同裝置安全區不能擋住臉或重要互動。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-088` **`AvatarFullBody92_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-092`；**SDD**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：有效Room中對方正在播放一段故事台詞；本人成功採用新已ready全身角色且後端交易提交。
+  - **預期**：使用WebSocket向對方發版本提示，必要時按需讀一次正式授權角色，等當前台詞結束安全切換；採用前不能通知，正常演出與每秒渲染不查D1，舊事件／斷線重連安全校正。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-089` **`AvatarFullBody93_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-093`；**SDD**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：產品未上線且舊半身AI角色僅是開發期測試資料；實作全身版本並準備重新驗證角色選用與劇情。
+  - **預期**：不提供半身轉全身、舊ID兼容或遊戲畫面自動產圖入口；僅在全身實作完成後依非正式環境CLEAN-RESET流程清理，再建立新全身角色。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-090` **`AvatarFullBody94_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-094`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：目標D1與R2可能是已核實非正式測試環境或正式／未知／其他專案環境；請求列出並清除舊selectedAvatar、generatedAvatar與avatar/temp候選。
+  - **預期**：僅已核准非正式環境可根據帳號、DB與R2鍵清單執行一次性清理；任何正式或未知環境、尚在B1產製或遊戲中必拒絕，沒有背景自動清理。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-091` **`AvatarFullBody95_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-095`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：非正式環境有generated_avatar各狀態、Profile舊選角、R2 avatar正式／候選／舊Manifest；確認精確owner/asset/objectKey清單後，執行清理並模擬R2刪除中途故障。
+  - **預期**：D1清空角色選用並更新revision，相關舊generated_avatar與R2物件歸零、無孤兒且相同清單重試安全；不以跨服務原子交易假稱一次成功或不檢查刪除失敗。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-092` **`AvatarFullBody96_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-096`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：同帳號兼有個人照片、名片、非角色Profile欄位以及16款免費原畫；在非正式環境執行舊角色測試資料清理。
+  - **預期**：只有AI角色與候選／相關選角被清，personal_photo與private/photos及帳號Profile其他欄位原16張原畫hash不變；不得DELETE整個user_media_assets或用過寬R2前綴誤刪與角色無關的檔案。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+- [ ] `AP-IT-093` **`AvatarFullBody97_WithRealD1R2Renderer_ShouldKeepAuthorityAndIntegrity`**（critical）
+  - **BDD**：`AP-BDD-097`；**SDD**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`cloudflare/tests/avatar-expression-r2.integration.test.ts／backend/tests/DatingHigh.Api.Tests/AvatarFullBodyIntegrationTests.cs（新增；真D1/R2）`，尚未建立／執行。
+  - **前置／動作**：新全身與B1功能已開發完成且非正式環境舊角色清理有D1/R2核對紀錄；兩個獨立測試帳號由零選全身免費角色、以授權照產全身AI候選、B1五表情完成與切角，再於Web/Android遊玩書店雙結局。
+  - **預期**：全部新角色由本版資產與ready Manifest建成，雙端遠中近鏡及UX-P1～P5皆有真證據；免費16款上半身人工保真及使用者Gate B未確認前不能勾本次新體驗完成。依此場景使用合法的 Miniflare D1／隔離 R2、檔案 hash／原畫視覺比對或 Renderer 作整合，外部 Gemini 需另記真實成本與時限。
+  - **安全 Gate**：同一 owner／asset／version 的 CAS、權限、重送、錯誤復原必有可重現紀錄；清理只能作用於隔離的非正式 fixture。
+
+### C. 新增 API／Worker 契約（AP-API-045～056；12項）
+
+- [ ] `AP-API-045` **`AvatarFullBody79_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-079`；**SDD**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：本人照片有可用與撤銷或缺少來源兩種狀態；玩家進入AI頁、選風格、請求全身候選以及稍後固定表情。
+  - **驗收**：首次候選只能在本人主動授權後使用已保存的2～5張合法照片；五表情僅參考已選全身候選；不得在產表情時再次傳真人原照，不得依任意猜測assetId讀他人照片。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-046` **`AvatarFullBody81_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-081`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：使用者在有效候選中選中一張全身角色並按確認採用；B1在前景逐一生成固定五表情，同時本人嘗試切換免費或另一AI角色。
+  - **驗收**：畫面顯示當前產製項目與進度；任何裝置尚未完成時都不可正式切換；直到整包ready前D1舊selectedAvatarRef保持不變，無背景產圖排程。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-047` **`AvatarFullBody82_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-082`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：AI候選與其固定五表情已由同一全身master衍生；server驗證五個固定ID、身份、hash、尺寸、格式、alpha與全身完整性。
+  - **驗收**：私人R2包完成CAS ready後，D1同一revision條件式提交一次正式已選角色；ready僅代表素材完整，不能把未在D1正式採用的角色投影給對方。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-048` **`AvatarFullBody83_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-083`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：五表情中的neutral與smile已驗證但surprised產圖失敗或provider回覆不明；使用者在前景選擇重試、取消或離開。
+  - **驗收**：成功的表情資產沿相同assetId與version保留；只允許明確重試尚未成功的表情；取消或逾時不改舊角色，provider狀態不明不得自動再次付費呼叫。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-049` **`AvatarFullBody84_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-084`；**SDD**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：同帳號裝置A持有有效R2 lease正在執行B1；裝置B嘗試改選角色，且裝置A晚到的舊revision回覆到達。
+  - **驗收**：前後端均拒絕B1期間切角，多分頁不得重產同一表情，後到過時結果不得覆寫新角色；使用CAS與穩定requestId確保同一全身套組同時只有一個有效製作流程。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-050` **`AvatarFullBody85_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-085`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：同一owner/asset下可能有半身歷史格式與新full-body版本標示；server檢驗avatarAssetId、sourceHash、expressionSpecVersion、avatarAssetSpecVersion及五張各自的sha/mime/size。
+  - **驗收**：只有同一full-body master與固定版本五張都驗證通過才標ready，此版Manifest不可偷偷覆寫；單純存在五張檔名、user_media_assets.status=ready或錯誤版本不能算表情套組完成。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-051` **`AvatarFullBody86_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-086`；**SDD**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：已保存Manifest為ready但其中一個R2物件損毀或hash不匹配；本人重新選回同角色並請求載入表情。
+  - **驗收**：以版本化權威驗證並安全顯示素材不可用或修復提示；不得因圖片遺失而在切角、登入或劇情畫面自動呼叫Gemini重產。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-052` **`AvatarFullBody87_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-087`；**SDD**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：五表情Manifest已ready但D1條件交易可能因revision衝突或網路回覆不明而未正式選用；同一requestId重試確認採用或另一玩家讀取其角色。
+  - **驗收**：依D1查回真實selectedAvatarRef與revision，未採用則另一人仍見舊角色；不得宣稱R2與D1是單一交易，也不得因回覆不明重做五表情。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-053` **`AvatarFullBody88_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-088`；**SDD**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：玩家有A、B兩個合法已ready全身AI角色套組；本人從A切B再切A、重登並在有效遊戲重新入場。
+  - **驗收**：只按owner/asset與雙規格版本讀既有完整Manifest及可快取素材，Gemini呼叫恆為0；相同全身角色不重新壓縮，不因後續Prompt或模型變更自動重產。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-054` **`AvatarFullBody93_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-093`；**SDD**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：產品未上線且舊半身AI角色僅是開發期測試資料；實作全身版本並準備重新驗證角色選用與劇情。
+  - **驗收**：不提供半身轉全身、舊ID兼容或遊戲畫面自動產圖入口；僅在全身實作完成後依非正式環境CLEAN-RESET流程清理，再建立新全身角色。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-055` **`AvatarFullBody94_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-094`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：目標D1與R2可能是已核實非正式測試環境或正式／未知／其他專案環境；請求列出並清除舊selectedAvatar、generatedAvatar與avatar/temp候選。
+  - **驗收**：僅已核准非正式環境可根據帳號、DB與R2鍵清單執行一次性清理；任何正式或未知環境、尚在B1產製或遊戲中必拒絕，沒有背景自動清理。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+- [ ] `AP-API-056` **`AvatarFullBody95_ApiOrWorkerContract_ShouldBeAuthorizedIdempotent`**（critical）
+  - **BDD**：`AP-BDD-095`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`backend/tests/DatingHigh.Api.Tests/AvatarFullBodyEndpointTests.cs／cloudflare/tests/avatar-fullbody-policy.test.ts（新契約需同步）`，尚未建立／執行。
+  - **HTTP／Worker 契約**：非正式環境有generated_avatar各狀態、Profile舊選角、R2 avatar正式／候選／舊Manifest；確認精確owner/asset/objectKey清單後，執行清理並模擬R2刪除中途故障。
+  - **驗收**：D1清空角色選用並更新revision，相關舊generated_avatar與R2物件歸零、無孤兒且相同清單重試安全；不以跨服務原子交易假稱一次成功或不檢查刪除失敗。以實際相應既有端點或新增 B1 契約測 400／401／403／409／503、CSRF／native session、server-owned R2 key、unknown commit 安全回查；不要建立給一般玩家用的清庫公開API。
+
+### D. 新增 Web／Android E2E 與人工作品驗收（AP-E2E-042～053；12項）
+
+- [ ] `AP-E2E-042` **`AvatarFullBody74_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-074`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：原有16款male-01～08及female-01～08已封存原圖與穩定ID；依後續使用者決策直接AI延伸全身，逐款與原畫視覺比對並逐批人工確認，不增加像素鎖回流程。
+  - **驗收**：16款每一張均保留原圖hash與穩定ID，AI全身延伸後逐款比對角色身份、髮型／原衣裝／氣質與自然腿腳，並取得使用者確認；不得任意重設角色身份、原衣裝／髮型／氣質；任一未獲確認的失真不通過；不另加逐像素相等門檻。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-043` **`AvatarFullBody75_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-075`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：免費16款已取得通過保真審查的3:4全身站姿master；將每款角色顯示在全身遠景與中近景並套用原有相機安全框。
+  - **驗收**：頭、身、雙手、腿、鞋完整，角色下緣與背景落點正確，近景五官清晰；不能扭曲拉伸或把站姿當成坐姿／步行動畫。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-044` **`AvatarFullBody76_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-076`；**SDD**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：16款原始上半身已通過鎖定比對且有全身master；在同一角色上驗neutral、smile、surprised、thoughtful、concerned五標準表情。
+  - **驗收**：全部16×5組合存在、命名與表情定義固定、臉以外的全身服裝腿鞋一致；缺一表情或其他部位被意外重繪不可將本角色標成完整。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-045` **`AvatarFullBody77_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-077`；**SDD**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：已登入測試玩家有依已存性別可選的全身免費角色與其固定五表情；本人選免費角色A、改選B、重新選回A及重登。
+  - **驗收**：所有選角都沿用穩定builtinAvatarId與靜態資產，Gemini呼叫計數保持0；不會在切角時新增個人AI角色資料、重生成表情或讀私人真人來源照片。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-046` **`AvatarFullBody78_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-078`；**SDD**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：使用者已授權至少2張ready真人照且正式full-body生成規格已設定；使用者逐張按開始生成並查看第一張和之後候選。
+  - **驗收**：每次成功僅一張3:4全身站姿插畫，頭、手、腿、鞋完整且臉型與原授權照片可比；不得先產半身後採用時補全身；不得超過4張成功候選。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-047` **`AvatarFullBody80_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-080`；**SDD**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：同一3:4全身候選以現有1K與候選更高解析度兩種設定輸出；將full-body圖等比例裁切到書店臉部近景並進行人工作品比對。
+  - **驗收**：角色五官可辨、比例與人物原有氣質一致，尺寸與成本記錄可驗；若1K使臉糊或200KB壓縮失真必阻擋ready並回報改參數所需成本，不得以降低門檻結案。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-048` **`AvatarFullBody89_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-089`；**SDD**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：本人角色已正式採用且存在有效及無效Round、被封存候選與原始真人照片；不同帳號、已結束玩家與合法當輪對方請求角色投影或媒體串流。
+  - **驗收**：只有本人與有效當輪授權可取得正式已採用角色的適用圖片，來源真人照片及私有objectKey不對外回傳；跨owner猜鍵、讀未採用候選、已結束Round或不明版本必安全拒絕。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-049` **`AvatarFullBody90_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-090`；**SDD**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：正式全身角色需要透明WebP或遮罩，而本人真人來源照仍限制200000 bytes；同一共用IImageCompressionService依明確參數處理表情與一般照片。
+  - **驗收**：全身角色透明／遮罩可保且臉部不失真，真人照仍去EXIF及維持其既定大小／權限；不新增重複壓縮服務，不將透明背景鋪白JPEG卻宣稱2.5D合格。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-050` **`AvatarFullBody91_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-091`；**SDD**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：免費全身角色與AI全身表情均具合法ready版本及stageAnchors；Web桌面與Android直向分別切換站立遠景、半身中景、近臉特寫。
+  - **驗收**：使用同一master安全裁切，人物完整且焦點、身形、腳部落點與表情一致；鍵盤、聊天抽屜、不同裝置安全區不能擋住臉或重要互動。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-051` **`AvatarFullBody92_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-092`；**SDD**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：有效Room中對方正在播放一段故事台詞；本人成功採用新已ready全身角色且後端交易提交。
+  - **驗收**：使用WebSocket向對方發版本提示，必要時按需讀一次正式授權角色，等當前台詞結束安全切換；採用前不能通知，正常演出與每秒渲染不查D1，舊事件／斷線重連安全校正。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-052` **`AvatarFullBody96_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-096`；**SDD**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：同帳號兼有個人照片、名片、非角色Profile欄位以及16款免費原畫；在非正式環境執行舊角色測試資料清理。
+  - **驗收**：只有AI角色與候選／相關選角被清，personal_photo與private/photos及帳號Profile其他欄位原16張原畫hash不變；不得DELETE整個user_media_assets或用過寬R2前綴誤刪與角色無關的檔案。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+- [ ] `AP-E2E-053` **`AvatarFullBody97_WebAndAndroid_ShouldMatchNewPlayerExperience`**（critical）
+  - **BDD**：`AP-BDD-097`；**SDD**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**；**預定測試位置**：`datinghigh/tests/e2e/web/avatar-fullbody.spec.ts 與 datinghigh/tests/e2e/android/avatar-fullbody.mjs（新檔，雙端分別驗證）`，尚未建立／執行。
+  - **實測情境**：新全身與B1功能已開發完成且非正式環境舊角色清理有D1/R2核對紀錄；兩個獨立測試帳號由零選全身免費角色、以授權照產全身AI候選、B1五表情完成與切角，再於Web/Android遊玩書店雙結局。
+  - **驗收**：全部新角色由本版資產與ready Manifest建成，雙端遠中近鏡及UX-P1～P5皆有真證據；免費16款上半身人工保真及使用者Gate B未確認前不能勾本次新體驗完成。真 16 款原始免費圖／真 AI 全身成果／Web+Android 分開留證，人工比對原角色保真與臉部辨識；不得用測試 fixture 或前版截圖代簽。
+
+### E. 新版 BDD → TDD 逐場追溯矩陣（24/24）
+
+| 新版 BDD | SDD 驗收 | TDD 五層驗證 ID |
+|---|---|---|
+| `AP-BDD-074` | `AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-122`、`AP-UT-123`、`AP-UT-124`、`AP-IT-070`、`AP-E2E-042` |
+| `AP-BDD-075` | `AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-125`、`AP-UT-126`、`AP-UT-127`、`AP-IT-071`、`AP-E2E-043` |
+| `AP-BDD-076` | `AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-128`、`AP-UT-129`、`AP-UT-130`、`AP-IT-072`、`AP-E2E-044` |
+| `AP-BDD-077` | `AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-131`、`AP-UT-132`、`AP-UT-133`、`AP-IT-073`、`AP-E2E-045` |
+| `AP-BDD-078` | `AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-134`、`AP-UT-135`、`AP-UT-136`、`AP-IT-074`、`AP-E2E-046` |
+| `AP-BDD-079` | `AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-137`、`AP-UT-138`、`AP-UT-139`、`AP-IT-075`、`AP-API-045` |
+| `AP-BDD-080` | `AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-140`、`AP-UT-141`、`AP-UT-142`、`AP-IT-076`、`AP-E2E-047` |
+| `AP-BDD-081` | `AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-143`、`AP-UT-144`、`AP-UT-145`、`AP-IT-077`、`AP-API-046` |
+| `AP-BDD-082` | `AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-146`、`AP-UT-147`、`AP-UT-148`、`AP-IT-078`、`AP-API-047` |
+| `AP-BDD-083` | `AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-149`、`AP-UT-150`、`AP-UT-151`、`AP-IT-079`、`AP-API-048` |
+| `AP-BDD-084` | `AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-152`、`AP-UT-153`、`AP-UT-154`、`AP-IT-080`、`AP-API-049` |
+| `AP-BDD-085` | `AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-155`、`AP-UT-156`、`AP-UT-157`、`AP-IT-081`、`AP-API-050` |
+| `AP-BDD-086` | `AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-158`、`AP-UT-159`、`AP-UT-160`、`AP-IT-082`、`AP-API-051` |
+| `AP-BDD-087` | `AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-161`、`AP-UT-162`、`AP-UT-163`、`AP-IT-083`、`AP-API-052` |
+| `AP-BDD-088` | `AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-164`、`AP-UT-165`、`AP-UT-166`、`AP-IT-084`、`AP-API-053` |
+| `AP-BDD-089` | `AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-167`、`AP-UT-168`、`AP-UT-169`、`AP-IT-085`、`AP-E2E-048` |
+| `AP-BDD-090` | `AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-170`、`AP-UT-171`、`AP-UT-172`、`AP-IT-086`、`AP-E2E-049` |
+| `AP-BDD-091` | `AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-173`、`AP-UT-174`、`AP-UT-175`、`AP-IT-087`、`AP-E2E-050` |
+| `AP-BDD-092` | `AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-176`、`AP-UT-177`、`AP-UT-178`、`AP-IT-088`、`AP-E2E-051` |
+| `AP-BDD-093` | `AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-179`、`AP-UT-180`、`AP-UT-181`、`AP-IT-089`、`AP-API-054` |
+| `AP-BDD-094` | `AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-182`、`AP-UT-183`、`AP-UT-184`、`AP-IT-090`、`AP-API-055` |
+| `AP-BDD-095` | `AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-185`、`AP-UT-186`、`AP-UT-187`、`AP-IT-091`、`AP-API-056` |
+| `AP-BDD-096` | `AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-188`、`AP-UT-189`、`AP-UT-190`、`AP-IT-092`、`AP-E2E-052` |
+| `AP-BDD-097` | `AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收** | `AP-UT-191`、`AP-UT-192`、`AP-UT-193`、`AP-IT-093`、`AP-E2E-053` |
+
+**驗收界線**：`AP-BDD-074～097` 24/24 場景各有5項測試，`AP-AC-025` 和 `AP-AC-026` 均被直接引用；新增120項均未實作／未驗收。完整 Gate 要真16款免費原畫視覺比對及逐款人工確認、真 Gemini 新全身候選與固定表情、R2雙版本不可變 ready／不重產、透明度／畫質、B1跨裝置競態、正式採用後WS安全更新，以及**新功能完成後**精確清除非正式舊角色測資並從零驗證。真人照片、帳號、其他Profile欄位、16款原始免費角色原畫不能刪。iOS延後／無障礙仍按已確認 D-051／052 排除，不納入新增新項通過率。沒有實際程式、圖片與真雙平台證據就不能勾這些測試。
+
 ## 🧪 關鍵測試資料與交付限制
 
 | 類別 | 必須提供的真實驗證 |
@@ -1744,7 +2427,40 @@ WebApplicationFactory 與可用的真平台橋接，驗證每條 §7 路由與 C
 
 **結論**：2026-11-02 D-050 已使風險盤點更新為6高／7中／1低共14項；RQ-01=A、RQ-02=A與逐張上限4／可回選／確認採用皆由使用者同意並回寫。原243項TDD＋14項先前稽核補強＋D-050新增18項＝**275項，0已實測**；73個BDD Scenario、13個@frontend與24條AP-AC追溯完整，原有ID均保留。
 
-## 規劃交接紀錄
+## 2026-11-12 全身化身／B1／Manifest／CLEAN-RESET Perfect-plan Phase5交接（最新）
+
+**交接狀態：Ready for well-done（規劃完成，非開發或驗收已完成）**；已確認所有目前本SPEC產品決策，**沒有剩餘人工回答項目**。下方原2026-11-02交接紀錄是舊半身設計的歷史完成狀態，不可用作目前新體驗品質完成證據。
+
+### 文件包與需求鏈
+
+| 文件 | 最新狀態 |
+|---|---|
+| `MVP-001-LoveGameDatingApp.md` | 2026-11-12 full-body＋CLEAN-RESET使用者決策已確認、同步原免費16款保真 |
+| `SPEC-001-AvatarAndPreferences.md` | `AP-AC-001～026` 已確認；`AP-AC-025`新全身B1／Manifest、`AP-AC-026`開發完成後非正式清舊；D1新增／修改均0 |
+| `SPEC-001-AvatarAndPreferences-BDD.md` | 原AP-BDD001～073保持；新增AP-BDD074～097共24條未驗；原AP-PC001～008八組獨立 |
+| `SPEC-001-AvatarAndPreferences-TDD.md` | 原275個ID＋新120＝**395**；新增AP-UT122～193／AP-IT070～093／AP-API045～056／AP-E2E042～053，新增全部0/120 |
+| `SPEC-001-AvatarAndPreferences-RiskAudit.md` | 原14項風險及 D-053 歷史處置保留；新增RA-15～26共8高4中，VG19～24缺漏已有BDD/TDD驗收追溯 |
+| `StoryDialogueAndExit`跨SPEC | Story `SD-AC-021～030`、115個BDD、295個TDD的原有全身場景、WS與非正式清舊決策互相對齊；兩份SPEC各有不同測試責任，不重複加總 |
+
+### 已確認且不可退讓的風險／設計門檻
+
+- 免費16款保留穩定builtin ID及現有原始藝術圖，直接AI延伸全身；原圖hash／逐款視覺比對與人工保真驗收（依後續使用者決策不鎖回像素）。
+- AI從第一次生成候選即為3:4完整全身；仍一張一張主動生成，單輪最多四張，授權真人照在後續五表情時不重送；Gemini Lite僅候選成本方案未決定換模。
+- B1前景逐張補齊固定五表情、禁止跨裝置切角、成功表情重用、產圖狀態不明不可自動重試；同版私人R2 Manifest完整hash／來源／alpha／`full-body.v1`與五表情CAS ready後，D1按revision條件式正式採用；R2和D1不是跨服務原子交易。
+- 已完成套組切回、重登、劇情入場 Gemini呼叫0次；圖片毀損fail-closed，不靜默再生成；真owner／activeRound授權拒絕他人讀真人原照／私人R2 key。
+- 共用Skia壓縮新增保透明WebP或遮罩能力，維持真人來源照200,000 bytes政策；單張全身表情以200KB作初始試驗，不達畫質Gate必停並提出實測，不能為壓縮犧牲臉部清晰。
+- 新全身功能完成後、**正式驗證開始前**，在具名**非正式DatingHigh D1/R2**使用審核過清單清空舊角色選用、`generated_avatar`、`avatar/temp`及舊表情物件；真人照片／`private/photos/`、帳號與其他Profile欄位、16免費原圖不得刪；D1/R2故障可安全重試，留前後計數與孤兒檢查。未上線**不建半身資料相容／升級流程**。
+- 2.5D支持全身站立與遠中近安全裁切；坐姿／步行等動作需不同pose set，不以裁切宣稱完成；Story接管avatar.updated WS版本事件與合法兩人場景，禁止定時DB輪詢；首場UX-P1～P5及Web／Android真雙人Gate B仍是硬性必要驗收。
+
+### 已補回缺漏與不得開始開發的阻斷項
+
+`AP-VG-19～24` **6/6均已補入最新BDD與TDD**；原本跨SPEC的 `SD-VG-05` 因本份文件包補齊而可標示「已解決規劃相依」。**產品人工待決：無**；**資料表修改：0／0**；**新120項驗收結果：0／120**。不追加與原需求無關的資料清理或背景排程。
+
+**交接下一步**：`well-done datinghigh/docs/tdd/SPEC-001-AvatarAndPreferences-TDD.md`；在已授權且有write lease的執行流程中按BDD→Red→Green→Refactor逐項完成，新角色資產需真實比對，涉及真Gemini費用、非正式DB/R2清理、實機Gate B必保留獨立明確的安全及權限門檻。本輪僅改Markdown，**沒有實際產圖、清庫或程式實作**。
+
+---
+
+## 規劃交接紀錄（2026-11-02歷史交接）
 
 **交接狀態**: **Ready for well-done**
 

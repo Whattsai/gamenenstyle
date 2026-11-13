@@ -1,8 +1,87 @@
 # SPEC-001-StoryDialogueAndExit — 實作前風險與缺漏稽核（RiskAudit）
 
-**稽核日期**：2026-11-08；**目前狀態**：**Ready for well-done（規劃決策與缺漏已回寫；尚未執行任何 TDD）**。`SD-RQ-01=B`、`SD-RQ-02=A` 均已由使用者確認。
+## Well-Done 實作覆核（2026-11-08）
+
+目前實作、Red→Green、各平台執行數與逐項保留缺項見 [驗證紀錄](../verification/SPEC-001-StoryDialogueAndExit-Verification.md) 及 [追溯JSON](../verification/story-dialogue-exit-traceability.json)。下列原規劃風險與歷史0%只描述進入Well-Done前的基線，不代表現行沒有程式。
+
+| 風險 | 現行處置／證據 |
+|---|---|
+| RA-01 | 0005複合episode唯一與單playing部分唯一；真D1保留fixture驗分場票、offers.frozen、CAS與不覆寫首場JSON；公開固定episode1 |
+| RA-02 | known-local wrapper先停寫備份、清三張舊game／邀請，同batch套0005；真D1注入失敗回滾，帳號Profile保留 |
+| RA-03～05 | 接受batch內直接算當下排名；N1各步零列rollback、N0拒絕、N2最新有效票／邀請方結算及完整Session／selected guard |
+| RA-06 | D1當前family／cv／expiry／原pair與恰好兩claim guard；第三人、撤銷、非法第三claim、舊socket拒絕 |
+| RA-07～08 | 標準WS、一次性ticket、事件投影、原IDreceipt／cursor；真commit丟ACK後查回只一筆，DO限frame／連線／速率 |
+| RA-09 | Matching、ready、CLI、fixture與runtime改名；真Matching33項與舊Web12項、真CLI回歸 |
+| RA-10 | 每次mutate同批授權／revision，並行end／chat／vote及零列事件回滾；結束拒私人歷史且不物理清資料 |
+| RA-11～12 | 首場Catalog凍結、published unique、immutable SHA、獨立R2、上傳讀回驗證後發布；retired仍供舊Round |
+| RA-13 | 真個人探索與雙人pending，未回覆不代答，等待可返回探索／聊天；兩種完整結尾 |
+| RA-14 | 只製作scene-01；Gate B未簽、MVP十場AC不勾，N2/3隔離fixture不算新正式故事 |
+| RA-15 | Cloudflare中立通知port與標準client WS；本地兩Room隔離有數據，雲端喚醒／冷啟動／成本保留未驗 |
+| RA-16 | ended後安全狀態與無私人內容；沒有先做History／保留天數／後續功能假頁 |
+
+
+
+**2026-11-08 歷史稽核日期／舊範圍狀態**：**Ready for well-done（只適用原79 BDD／187 TDD；2026-11-12 新視覺範圍最新規劃Ready狀態見上方）**。`SD-RQ-01=B`、`SD-RQ-02=A` 均已由使用者確認。
 **來源**：[已確認 MVP](../requirements/MVP-001-LoveGameDatingApp.md) → [已確認 SDD](SPEC-001-StoryDialogueAndExit.md) → [BDD 79 場景](../bdd/SPEC-001-StoryDialogueAndExit-BDD.md) → [TDD 187 測試](../tdd/SPEC-001-StoryDialogueAndExit-TDD.md)。
 **驗證依據**：重新讀取最新 SDD、0004 真 Schema、Matching 的 `matching-commands.ts`、架構與開發規則。並非程式碼執行通過證據；只進行規劃稽核。
+
+## 2026-11-12 增量風險稽核：全身化身／五表情／2.5D 沉浸體驗（最新狀態）
+
+**最新規劃狀態：Ready for well-done（規劃交接，非已實作／已驗收）。Story 與 AvatarAndPreferences 兩份SPEC的新增 BDD／TDD／RiskAudit 已補齊，原跨SPEC文件依賴不再 Blocked**。下方 2026-11-08「Ready for well-done」與原 10 高＋6 中是**歷史記錄**，不涵蓋新 `SD-AC-021～030`。使用者已確認 `Q-UX1=A`、`Q-UX2=A`、`Q-UX3=B`、`UX-RQ-01=B1`、`UX-RQ-02=WS`、`UX-RQ-03=R2-MANIFEST`、`UX-RQ-04=FULL-BODY`，並再次確認 **`UX-AUDIT-RQ-01=CLEAN-RESET`：尚未上線，不做舊半身相容或升級，新功能完成後僅針對非正式角色資料受控清理再從零驗證**。已無需要使用者補答的本次產品問題，**目前沒有執行任何刪除**。
+
+### A. 最新需求追溯與實際驗收分界
+
+| 指標 | 2026-11-12 最新狀態 | 不可誤認 |
+|---|---|---|
+| MVP → SPEC | MVP 2026-11-12 最新全身／非正式清舊決策；Story `SD-AC-021～030` 10/10、Avatar `AP-AC-025／026` 已回寫 | 舊 D-049 半身要求僅是歷史，不能拿它作最新驗收 |
+| SPEC → BDD | 原 `SD-AC-001～020` ↔ 原79 BDD；新10條 ↔ `SD-BDD-080～115` 36場景；**30/30 AC 已有對應行為規劃** | 「已追溯」不是已實作 |
+| BDD → TDD | 新36/36 BDD 各對應3個新 TDD ID，Unit36＋Integration36＋API18＋E2E18＝**新增108**，總數 **115 BDD／295 TDD** | 新108項全未驗；舊175/187的覆核不代表新視覺或清測資已完成 |
+| 實際證據 | 原2026-11-08 Verification：舊79 BDD 已覆核71、舊187 TDD 已覆核175；新 BDD 0/36、TDD 0/108 | 合計 BDD 71/115、TDD 175/295；舊版逐項證據仍須照 Verification 核對 |
+| 跨 SPEC 依賴 | `AvatarAndPreferences` SDD／BDD／TDD／RiskAudit 已補 `AP-AC-025／026`；Avatar 新24 BDD／120 TDD均未驗收 | **跨SPEC規劃依賴已解除**；Ready僅指規劃交接，不能宣稱真圖片／雙端 Gate B 已通過 |
+
+### B. 新增技術與產品風險（高 9 項、中 4 項）
+
+| ID | 等級 | 若忽略，玩家／專案會發生什麼問題 | 已確認方案或仍需決策 | 新行為／TDD 對照 |
+|---|---|---|---|---|
+| `SD-RA-17` | **高** | 免費16款全身圖可能變成一張「有點像」但原本滿意的臉、上衣與人物氣質都不同 | **已確認不能重畫**；原16張保持不變、上半身 ROI／輪廓遮罩鎖定與同尺度比對，人工逐一批准；若失敗只修補外延下半身 | BDD-081/082，UT-052/053、IT-063/064、ET-041/042 |
+| `SD-RA-18` | **高** | 新 3:4 全身 1K 的臉太小，近景會糊；為了每表情壓到200KB可能更差 | **已確認畫質 Gate 優先**；真 Gemini 全身圖、Web／Android 遠中近景及可參數壓縮實測；畫質不足要報告解析度／成本差異，不能暗降驗收 | BDD-083/096/110，UT-054/067/081、IT-065/078/092、API-053、ET-043/044 |
+| `SD-RA-19` | **高** | B1 前景製作四張表情可能耗時；原短效候選60分鐘、單次AI 90秒，網路中斷時玩家會卡住或重花費用 | **B1 已確認**；逐張循序 await、只重試缺漏、過期 fail-closed；需真供應商耗時／候選過期／取消／恢復試驗，不新增背景 Job | BDD-084/086，UT-055/057、API-040 |
+| `SD-RA-20` | **高** | 同帳號多分頁或兩部手機一邊產表情一邊切角色，晚到的採用回覆可能覆寫新角色 | **已確認前後端禁止切角**；R2 CAS／穩定 requestId／D1 revision 防重複與衝突，只有合法明確前景產製可繼續 | BDD-084/087/091，IT-066/069/073、API-041/045 |
+| `SD-RA-21` | **高** | R2 五張檔名雖存在卻破損，或 R2 ready 成功但 D1 Profile 未更新，角色可能只採用半套／用到他人圖 | **已確認 R2 Manifest 作素材權威**；`avatarAssetId+expressionSpecVersion+avatarAssetSpecVersion`、五張 hash/格式/全身完整、R2 ready 後 D1 條件採用，跨服務不假稱原子 | BDD-085/088/089/091，IT-067/070/071/073、API-039/042/043/045 |
+| `SD-RA-22` | **高** | 私人AI素材與來源真人照片可能被其他配對者、已結束玩家或未採用候選讀到 | **已確認只給有效 Round 的真兩人讀取已採用投影**；禁止公開 R2 key、短效候選、原始真人照片、Ended後訪問 | BDD-092，IT-074、API-046 |
+| `SD-RA-23` | **高** | A換角色 B畫面仍停留舊角色；或為了更新而每秒查DB造成高流量 | **已確認採用成功才 WS 推播 avatar revision**，通知時按需查一次、同一句結束安全切換、重連校正，不定時輪詢 | BDD-093～095，IT-075～077、API-047～049 |
+| `SD-RA-24` | **高** | 新舞台只是兩張卡疊在背景、P1～P5有入口卻不能操作，NPC表情和假「對方已讀」誤導真玩家 | **已確認首場五項全做並分 Gate A／B**；分角色分 POV、場景熱區／真雙人狀態、Web／Android兩端各驗、不得用原舊測試代簽 | BDD-080/096～109/111，ET-040/044～055 |
+| `SD-RA-25` | **高／已解決設計** | 舊半身角色留存會污染全身遠景、造成新舊兩種不一致體驗；不受控清理又可能誤刪私人真人照、免費角色原畫或其他環境資料 | **使用者已決定 CLEAN-RESET**：未上線，不建半身相容／轉檔／升級 UI；新功能完成後只對核實的非正式環境，按 D1 `user_profiles` 選角、`user_media_assets.kind='generated_avatar'`、R2 avatar／temp／舊套組精確清理，保留照片／帳號／16張原畫；D1／R2 非原子須可重試，先清理才全新驗收 | BDD-090/112～115；UT-061/083～086、IT-072/094～097、API-044/054/055、ET-056/057 |
+| `SD-RA-26` | 中 | 共用 Skia 壓縮目前鋪白輸出JPEG，若直接用於角色 alpha 會出現白色外框 | 已確認沿用共用抽象擴充透明 WebP／遮罩；保留個人照200KB政策，品質失敗不能 ready | BDD-110、UT-081、IT-092、API-053 |
+| `SD-RA-27` | 中 | 16×5免費圖＋私人AI全身五表情和多層鏡頭會增加手機記憶體、首屏載入與成本 | 已確認預載 neutral／當前節點、其他按需載入，版本快取與低資源模式；不可無證捏造 FPS／秒數 | BDD-097/109，UT-068/080、IT-079/091、ET-045 |
+| `SD-RA-28` | 中 | 全身站姿被誤當成可坐下、走路或持物，首場桌邊出現違和姿勢，後續擴場不可靠 | **已確認此期只支援站立與遠中近鏡位**；其他骨架 pose 另規劃，場景不能透過裁切冒充已完成坐姿 | BDD-096/102/111，ET-044/049/055 |
+| `SD-RA-29` | 中／**規劃已緩解** | 若 Story／Avatar 文件鏈仍採半身歷史成功案例，可能誤將舊圖片視為全身 Gate B 通過 | **已回寫** Avatar `AP-AC-025／026` → `AP-BDD-074～097` 24場 → 120個TDD與 Avatar RiskAudit RA-15～26；歷史通過記錄保留但不代簽新Gate | Story BDD-081～090/110/112～115；Avatar BDD-074～097／TDD新增120項 |
+
+### C. 缺漏識別與回寫狀態
+
+| 缺漏 ID | 來源／具體影響 | 狀態與下一步 |
+|---|---|---|
+| `SD-VG-01` | `SD-RA-25`：舊半身角色入場／資料轉換衝突；新方案不需要相容路徑，但要確保清舊測資可安全執行並從零驗收 | **已補回文件** `UX-AUDIT-RQ-01=CLEAN-RESET`：MVP、Story SDD §3.9、Avatar SDD、BDD-090/112～115、TDD UT-061/083～086＋IT-072/094～097＋API-044/054/055＋ET-056/057；**實際清理未執行** |
+| `SD-VG-02` | `SD-RA-17/18/26`：原16上半身逐像素保真、AI全身近臉畫質、alpha共用壓縮的品質 Gate 缺漏 | **已補回** `SD-BDD-081/082/096/110`、`SD-UT-052/053/067/081`、`SD-IT-063/064/078/092` 及對應 E2E；仍待真素材驗 |
+| `SD-VG-03` | `SD-RA-19～23`：前景失敗／並發、R2與D1結果不明、受控私有素材、WS不輪詢的業務安全缺漏 | **已補回** `SD-BDD-084～095` 與各對應三層 TDD；仍待實作證據 |
+| `SD-VG-04` | `SD-RA-24/27/28`：P1～P5、站立遠中近、Web／Android與人工 Gate B 缺漏 | **已補回** `SD-BDD-080/096～109/111` 及對應 TDD；仍待真雙人實玩 |
+| `SD-VG-05` | `SD-RA-29`：上游 Avatar `AP-AC-025／026` 新全身＋CLEAN-RESET 要求須具備自身 BDD／TDD／RiskAudit，不得借用 Story 透支通過紀錄 | **已補回／規劃相依解除**：Avatar BDD 新24場、TDD 新120項、RiskAudit 新12風險及6缺漏；兩SPEC分開記各自進度與 Gate，不重複合併ID |
+
+### D. 風險決策已確認（UX-AUDIT-RQ-01=CLEAN-RESET，2026-11-12）
+
+**使用者決策**：DatingHigh 還在開發、未上線，現有半身化身不需要舊資料相容、升級或原 ID 延伸。**完成新全身功能後、正式進行全新 Web／Android 體驗驗收前**，在已明確核准的**非正式測試環境**清除舊角色相關 D1／R2 測試資料，再重新由角色選擇、AI 全身候選、B1 五表情到書店雙人遊戲完整測試。
+
+**執行界線**：先核對環境 DB ID／R2 bucket／測試帳號、精確 owner／object-key 清單與數量，不碰正式或未知環境。清除 `user_profiles.selected_avatar_type/ref` 並更新 revision、所有相關 `user_media_assets.kind='generated_avatar'`、私人 `private/{accountId}/avatar/{assetId}` 舊生成圖、`private/{accountId}/avatar/temp/` 候選與舊五表情 Manifest／物件；保留 `personal_photo`／私有 `photos/`，保留帳號、其他 Profile 欄位及原16款免費圖片檔。D1／R2 刪除必須可重試、留計數及異常證據，不能因跨服務而假稱全部原子，不能現在執行。
+
+**不再保留的 A／B 問題**：之前「先升級舊半身角色」與「允許舊半身暫時入場」兩個選項均已被 **CLEAN-RESET** 取代；不需要再詢問本人。選角前後端只驗證新的 full-body ready，沒有自動背景產圖或舊圖兼容畫面。
+
+### E. 最新規劃交接狀態
+
+- **已完成規劃**：MVP、Story SDD（SD-AC-001～030）、Story BDD 115 場、Story TDD 295項（原187＋新108）及本份風險稽核已對齊；`SD-VG-01～04` 四項已補回；**全部 Story 範圍的產品決策均已確認**。新增108項測試未實作／未驗收，舊版175/187覆核證據不能代簽。
+- **跨 SPEC 追溯已完成**：`SD-VG-05` 已透過 Avatar `AP-AC-025／026` 的24 BDD、120 TDD、12項新增RiskAudit風險及逐場追溯補齊；原 **Blocked（文件相依）解除**。本 Story 仍須有自己115 BDD／295 TDD與真實 Web／Android Gate 證據，**規劃 Ready 不是驗收 Passed**。
+- **最新 Phase 4／5**：Story增量9高＋4中與 Avatar增量8高＋4中風險均有規劃緩解及新 TDD ID，兩份SPEC的產品決策全部已確認、跨文件規劃依賴已解除，**可交接 Well-Done**。本次只改文件，未改程式／角色圖片／R2／D1或執行清理；新視覺／全身功能仍0實測，原2026-11-08 Ready與通過資料僅保留歷史來源。
+
+---
 
 ## 一、需求追溯完整性
 

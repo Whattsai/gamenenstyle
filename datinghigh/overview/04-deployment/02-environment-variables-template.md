@@ -1,7 +1,5 @@
 # 環境變數與 bindings
 
-MatchingSessions（2026-11-06）沒有新增產品設定 key／秘密／binding。local與staging的 EXPECTED_MIGRATION 改為 `0004_matching_sessions.sql`，ready核對12張自有表；DB增加四張配對／遊戲表。`DATINGHIGH_E2E_MATCHING_PROFILE=1` 僅供測試 host 開啟受保護的合成測資控制，不屬正式 Api／Worker 或 Expo production 設定。
-
 來源為 `AuthOptions.Load`、`Program.cs`、`ApiContainer.envVars`、`PlatformEnv`、client／Expo 設定與本地工具。以下只列名稱及用途，不含可用秘密。現行 .NET 直接讀頂層名稱，沒有 appsettings 階層；不要自行改成 `Auth__...`。未來若引入階層設定，才依 ASP.NET Core 的 `__` 映射規則同步修改 loader 與文件。
 
 ## Worker vars 與 .NET runtime
@@ -32,15 +30,20 @@ Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Go
 
 | 名稱 | 種類 | 用途 |
 |---|---|---|
-| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0004_matching_sessions.sql；ready查migration及12表欄位／占用索引；不轉入.NET。staging 變更未代表已部署 |
+| EXPECTED_MIGRATION | var，必要 | local／staging 設定為0005_story_dialogue_exit.sql；ready查migration及16表欄位／占用與劇情索引；不轉入.NET |
 | EMAIL_FROM | 一般設定，cloud必要 | 已完成sender domain驗證的寄件地址；不以任意地址替代 |
-| EMAIL | Email sender binding，cloud必要 | 平台寄信用；目前staging設定尚缺 |
-| DB | D1 binding | Foundation六表54欄＋AvatarAndPreferences兩表27欄＋MatchingSessions四表32欄及migration metadata；不能換其他專案DB |
+| EMAIL | Email sender binding，cloud必要 | 平台寄信用；部署前必須實際配置 |
+| DB | D1 binding | 現行0005共16張自有表及migration metadata；欄位／索引見資料契約，不能換其他專案DB |
+| ROUND_TICKET_HMAC_KEY | Secret，至少32字元 | 僅Worker用於30秒一次性房間ticket；local產生32-byte Base64，已有值不覆寫，不傳Container／client |
+| STORY_CONTENT | 獨立R2 binding | local為datinghigh-local-story-content；named instance隔離，與FILES分離 |
+| GAME_ROOMS | SQLite Hibernation DO binding | GameRoomSocket，migration tag v2-game-rooms；不取代API Container DO |
 | FILES | 私人R2 binding | owner物件與固定probe；非公開bucket |
 | API | Durable Object／Container binding | ApiContainer生命週期及api-v1路由 |
 | ASSETS | Wrangler assets binding | local為frontend/client/dist；staging為.local/staging-web |
 
 binding 是 Wrangler 資源設定，不是可在 `.env` 中填字串替代的環境變數。部署目標記於 `cloudflare/deployment-targets.json`；production目前為null。目前沒有需要填寫的DB connection string、Google client secret、SignalR、queue或第三方observability API key。
+
+WebSocket 沿用 API origin，不需 EXPO_PUBLIC 秘密；Android emulator 使用10.0.2.2，測試 socketOrigin 僅由隔離 runner 注入。
 
 ## Client build-time
 
@@ -72,6 +75,9 @@ GOOGLE_IOS_URL_SCHEME=<reversed-ios-client-id>
 | DATINGHIGH_ADB_PORT | Android驗收wrapper選定ADB server port；不改其他專案程序 |
 | DATINGHIGH_ANDROID_DEVICE | Android測試指定裝置，預設emulator-5554；每次先確認對象 |
 | DATINGHIGH_LINUX_TOOLCHAIN | local.mjs的內部WSL選擇，Windows wrapper設定為1；不手動切remote |
+| DATINGHIGH_E2E_STORY_PROFILE | 僅隔離E2eHost，真Room DO／D1／R2與共用Application；私有gateway使用test control key |
+| DATINGHIGH_STORY_NATIVE_BRANCH | 原生Story suite選together／different，省略跑兩者；不改產品內容 |
+| DATINGHIGH_E2E_MATCHING_PROFILE | 僅隔離測試host開啟受保護的合成測資控制，不進正式runtime |
 | DATINGHIGH_E2E_AVATAR_PROFILE | 僅隔離E2eHost明選受控圖片供應商及真D1／R2 bridge；不由正式API讀取，不含真Gemini呼叫 |
 | DATINGHIGH_NATIVE_FAULT_PROFILE | Metro development-only SecureStore故障adapter；正式build／export不得帶1 |
 | DATINGHIGH_NATIVE_GOOGLE_PROFILE | 專用測試Google adapter，須搭配fault profile且僅development；不是真SDK證據 |
@@ -84,7 +90,7 @@ GOOGLE_IOS_URL_SCHEME=<reversed-ios-client-id>
 
 ## 秘密生命週期
 
-local wrapper只在 `cloudflare/.dev.vars` 不存在時生成三個32-byte Base64秘密；已存在就沿用，不補印、不覆寫。其他instance有獨立設定與state；既有權杖的還原驗證需要對應秘密，不能假設新instance隨機key相同。
+local wrapper產生四個32-byte Base64秘密；既有檔只補缺少的key，已有值沿用、不補印、不覆寫。其他instance有獨立設定與state；既有權杖的還原驗證需要對應秘密，不能假設新instance隨機key相同。
 
 staging／production的秘密獨立由安全管道配置，不進Wrangler vars、Git、前端EXPO_PUBLIC或報告。不得輸出／提交token、Cookie、密碼、raw code、Google proof、service account JSON。唯一碼日誌例外僅明確local／Log的LocalEmailVerification；雲端不能用Log取代sender。
 

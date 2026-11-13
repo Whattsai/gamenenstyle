@@ -12,8 +12,9 @@ public sealed class ImageCompressionService:IImageCompressionService
     public async Task<CompressedImage> CompressAsync(Stream input,int targetBytes=200_000,ImageCompressionOptions? options=null,CancellationToken ct=default)
     {
         options??=new();
-        if(targetBytes<1||options.MaxPixels<1||options.MaxDimension<1||options.MaxInputBytes<1)
+        if(targetBytes<1||options.MaxPixels<1||options.MaxDimension<1||options.MaxInputBytes<1||options.MinimumWidth<1||options.MinimumHeight<1)
             throw new ArgumentOutOfRangeException(nameof(targetBytes));
+        if(options.LosslessWebp&&!options.PreserveTransparency)throw new ArgumentException("Lossless WebP requires transparent output",nameof(options));
         await Decoders.WaitAsync(ct);
         try
         {
@@ -41,10 +42,13 @@ public sealed class ImageCompressionService:IImageCompressionService
                 throw new DomainException("INVALID_IMAGE");
             var rotated=(int)codec.EncodedOrigin>=5;
             var width=rotated?info.Height:info.Width;var height=rotated?info.Width:info.Height;
-            using var normalized=new SKBitmap(new SKImageInfo(width,height,SKColorType.Rgba8888,SKAlphaType.Opaque,colorSpace));
+            if(width<options.MinimumWidth||height<options.MinimumHeight)throw new DomainException("IMAGE_RESOLUTION_TOO_LOW");
+            var alpha=options.PreserveTransparency?SKAlphaType.Premul:SKAlphaType.Opaque;
+            var background=options.PreserveTransparency?SKColors.Transparent:SKColors.White;
+            using var normalized=new SKBitmap(new SKImageInfo(width,height,SKColorType.Rgba8888,alpha,colorSpace));
             using(var canvas=new SKCanvas(normalized))
             {
-                canvas.Clear(SKColors.White);
+                canvas.Clear(background);
                 var w=info.Width;var h=info.Height;
                 var values=(int)codec.EncodedOrigin switch{
                     2=>(-1f,0f,(float)w,0f,1f,0f),3=>(-1f,0f,(float)w,0f,-1f,(float)h),
@@ -61,23 +65,29 @@ public sealed class ImageCompressionService:IImageCompressionService
             while(true)
             {
                 ct.ThrowIfCancellationRequested();
-                using var resized=new SKBitmap(width,height);
+                using var resized=new SKBitmap(new SKImageInfo(width,height,SKColorType.Rgba8888,alpha,colorSpace));
                 using(var canvas=new SKCanvas(resized))
                 {
-                    canvas.Clear(SKColors.White);
+                    canvas.Clear(background);
                     canvas.DrawImage(original,new SKRect(0,0,width,height),new SKSamplingOptions(SKFilterMode.Linear,SKMipmapMode.Linear));
                 }
                 using var image=SKImage.FromBitmap(resized);
-                for(var quality=96;quality>=60;quality-=4)
+                if(options.LosslessWebp){
+                    using var pixmap=resized.PeekPixels();using var output=pixmap.Encode(new SKWebpEncoderOptions(SKWebpEncoderCompression.Lossless,100));
+                    if(output is not null&&output.Size<=targetBytes)return new(output.ToArray(),"image/webp",width,height);
+                }
+                else for(var quality=96;quality>=60;quality-=4)
                 {
                     ct.ThrowIfCancellationRequested();
-                    using var output=image.Encode(SKEncodedImageFormat.Jpeg,quality);
+                    using var output=image.Encode(options.PreserveTransparency?SKEncodedImageFormat.Webp:SKEncodedImageFormat.Jpeg,quality);
                     if(output is not null&&output.Size<=targetBytes)
-                        return new(output.ToArray(),"image/jpeg",width,height);
+                        return new(output.ToArray(),options.PreserveTransparency?"image/webp":"image/jpeg",width,height);
                 }
                 if(Math.Min(width,height)<=128)throw new DomainException("COMPRESSED_IMAGE_TOO_LARGE",413);
                 var scale=Math.Max(0.8,128d/Math.Min(width,height));
-                width=Math.Max(1,(int)(width*scale));height=Math.Max(1,(int)(height*scale));
+                var nextWidth=Math.Max(1,(int)(width*scale));var nextHeight=Math.Max(1,(int)(height*scale));
+                if(nextWidth<options.MinimumWidth||nextHeight<options.MinimumHeight)throw new DomainException("COMPRESSED_IMAGE_TOO_LARGE",413);
+                width=nextWidth;height=nextHeight;
             }
         }
         finally{Decoders.Release();}

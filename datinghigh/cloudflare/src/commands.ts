@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { storySchemas, planStoryCommand } from './story-commands';
 import profileFields from '../../contracts/profile-fields.json';
 import { matchingSchemas, planMatchingCommand, projectionPlan, profileAffectsMatching } from './matching-commands';
 const gender=z.enum(['male','female','diverse']);
@@ -49,6 +50,7 @@ const defaultPreferences=JSON.stringify({
  preferredAgeMin:null,preferredAgeMax:null,preferredRegionCodes:[],sharedInterestWeight:50
 });
 const schemas={
+ ...storySchemas,
  ...matchingSchemas,
  'account.lookup-credentials':z.strictObject({email:text}),
  'identity.lookup':z.strictObject({provider:z.literal('google'),subject:text}),
@@ -80,6 +82,7 @@ const schemas={
  'profile.avatar.reserve':z.strictObject({...auth,expectedRevision:z.number().int().positive(),assetId:id,
   sourceAssetIds:z.array(id).min(2).max(5).refine(items=>new Set(items).size===items.length)}),
  'profile.avatar.cancel-adoption':z.strictObject({...auth,assetId:id}),
+ 'profile.avatar.cancel-build':z.strictObject({...auth,expectedRevision:z.number().int().positive()}),
  'profile.avatar.adopt':z.strictObject({...auth,expectedRevision:z.number().int().positive(),assetId:id,
   sourceAssetIds:z.array(id).min(2).max(5).refine(items=>new Set(items).size===items.length)}),
  'profile.photo.reserve':z.strictObject({...auth,assetId:id,objectKey:z.string().min(1).max(160),mimeType:z.enum(['image/jpeg','image/png','image/webp'])}),
@@ -105,8 +108,11 @@ export const RateLimitPolicies:Record<string,Record<string,[number,number]>>={
  'credential_change.v1':{account:[900000,10]},
  'session_refresh.v1':{session:[60000,10],ip:[60000,120]},
  'avatar_generate.v1':{account:[3600000,8]},
+ 'avatar_expression.v1':{account:[3600000,20]},
  'matching_search.v1':{account:[60000,30]},
  'matching_invite.v1':{account:[3600000,10]},
+ 'story_mutation.v1':{account:[60000,120]},
+ 'story_ticket.v1':{account:[60000,30]},
 };
 export type Statement={sql:string,values:unknown[]};
 const stmt=(sql:string,...values:unknown[]):Statement=>({sql,values});
@@ -120,6 +126,7 @@ function refreshInsert(p:any,now:number){return stmt(`INSERT INTO auth_refresh_t
 
 function planCoreCommand(command:string,payload:unknown,now:number):Statement[]{
  const p=parseCommand(command,payload);
+ if(Object.hasOwn(storySchemas,command))return planStoryCommand(command,p,now);
  if(Object.hasOwn(matchingSchemas,command))return planMatchingCommand(command,p,now);
  switch(command){
  case 'account.lookup-credentials':return [stmt(`SELECT * FROM auth_accounts WHERE email_normalized=?`,p.email)];
@@ -185,6 +192,8 @@ function planCoreCommand(command:string,payload:unknown,now:number):Statement[]{
  case 'profile.avatar.list':return [stmt(`SELECT asset_id,mime_type,created_at FROM user_media_assets
    WHERE account_id=? AND kind='generated_avatar' AND status='ready' AND deleted_at IS NULL
     AND EXISTS(${activeSession}) ORDER BY created_at DESC,asset_id`,p.accountId,...authorized(p,now))];
+ case 'profile.avatar.cancel-build':return [stmt(`UPDATE user_profiles SET revision=revision+1,updated_at=?
+   WHERE account_id=? AND revision=? AND EXISTS(${activeSession}) RETURNING revision`,now,p.accountId,p.expectedRevision,...authorized(p,now))];
  case 'profile.avatar.builtin':return [stmt(`UPDATE user_profiles
    SET selected_avatar_type='builtin',selected_avatar_ref=?,revision=revision+1,updated_at=?
    WHERE account_id=? AND revision=? AND EXISTS(${activeSession})
@@ -339,5 +348,5 @@ export async function executeCommand(db:D1Database,command:string,payload:unknow
  const plans=sync?[...core,...projectionPlan(p,now)]:core;
  const results=await db.batch(plans.map(p=>db.prepare(p.sql).bind(...p.values)));
  const visible=sync?results.slice(0,core.length):results;
- return {rows:visible.flatMap(r=>r.results??[]).filter(r=>r!==null&&typeof r==='object'&&!Object.hasOwn(r,'__matching_guard')),changes:visible.map(r=>r.meta.changes)};
+ return {rows:visible.flatMap(r=>r.results??[]).filter(r=>r!==null&&typeof r==='object'&&!Object.hasOwn(r,'__matching_guard')&&!Object.hasOwn(r,'__story_guard')),changes:visible.map(r=>r.meta.changes)};
 }

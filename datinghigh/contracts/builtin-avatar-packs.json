@@ -1,0 +1,965 @@
+{
+  "version": 1,
+  "packs": {
+    "female-01": {
+      "avatarAssetId": "female-01",
+      "avatarVersion": "1a435c1b1da5865d20344accd211bf2783df2e268c033d2c61f45d53bd64e045",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-01/f52593bffc3572da396a7434d8839e7bdfcfcae6940216aa5508c2d309c886e1.webp",
+          "sha256": "f52593bffc3572da396a7434d8839e7bdfcfcae6940216aa5508c2d309c886e1",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 199028
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-01/8dbf2db09e90e20d197c1910b9116ad60a26b760781325edcc14ad38a7e30e0c.webp",
+          "sha256": "8dbf2db09e90e20d197c1910b9116ad60a26b760781325edcc14ad38a7e30e0c",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 168304
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-01/7793a2bcc23aaec6ec8c855912102f21e923c911793a60ee78b625986393008b.webp",
+          "sha256": "7793a2bcc23aaec6ec8c855912102f21e923c911793a60ee78b625986393008b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159952
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-01/b5b67ba0252227884a0f91dbd7d45b4efc377e3524da28e1c4ba2d855dd5fe18.webp",
+          "sha256": "b5b67ba0252227884a0f91dbd7d45b4efc377e3524da28e1c4ba2d855dd5fe18",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159504
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-01/db473ddf4289617c830b3cef09c9723b75c9a127e83d89e371fd76d3c72babb0.webp",
+          "sha256": "db473ddf4289617c830b3cef09c9723b75c9a127e83d89e371fd76d3c72babb0",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 198010
+        }
+      }
+    },
+    "male-01": {
+      "avatarAssetId": "male-01",
+      "avatarVersion": "b8e0f3ec5c482e736622006f6a323fd43aa32ac1e9b56fe60c13a79ecaa88596",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-01/bc867fc36c24f45387f276ef97eea5bde6f011e551a4e8abe226184051222b95.webp",
+          "sha256": "bc867fc36c24f45387f276ef97eea5bde6f011e551a4e8abe226184051222b95",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 157536
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-01/c9debf841b3c1e00438c5242cec05b04a2f65fb9a4ea6b585861704a2c996aad.webp",
+          "sha256": "c9debf841b3c1e00438c5242cec05b04a2f65fb9a4ea6b585861704a2c996aad",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159204
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-01/8ec0c794ad359e849b8d9749ed9182e8f25e2b41366bc4c0ed255490bbbbedec.webp",
+          "sha256": "8ec0c794ad359e849b8d9749ed9182e8f25e2b41366bc4c0ed255490bbbbedec",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159496
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-01/89ca17f0103ed2706e2cd858d7382799f685b4b41576c0d1cf81801f37bf646a.webp",
+          "sha256": "89ca17f0103ed2706e2cd858d7382799f685b4b41576c0d1cf81801f37bf646a",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 158180
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-01/14a98b53704ba9633c46285d61ba4fbdb9f3dc3127f60de51ae71372ecf927ff.webp",
+          "sha256": "14a98b53704ba9633c46285d61ba4fbdb9f3dc3127f60de51ae71372ecf927ff",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159976
+        }
+      }
+    },
+    "male-02": {
+      "avatarAssetId": "male-02",
+      "avatarVersion": "8460c4e405edb153d035fd20850e3b20874eca168ad5d7843a468c8bb5fb96b3",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-02/c25ab2fa03dfba0d72c346ebd682eeed3296d708c746ca39051494d7294e7782.webp",
+          "sha256": "c25ab2fa03dfba0d72c346ebd682eeed3296d708c746ca39051494d7294e7782",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 147210
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-02/c51742f029f76935e9ea80705eca20c4675aafc21e0e347daf91f3d8ea15f6a7.webp",
+          "sha256": "c51742f029f76935e9ea80705eca20c4675aafc21e0e347daf91f3d8ea15f6a7",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 146588
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-02/cd0727d05d22f06addd02d6f6f9b7f5f6e7706ea055922c079f42e5bede721e4.webp",
+          "sha256": "cd0727d05d22f06addd02d6f6f9b7f5f6e7706ea055922c079f42e5bede721e4",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 145630
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-02/515848be01e3776e206929bb36ae0464888d444924766768e53112c8beb75136.webp",
+          "sha256": "515848be01e3776e206929bb36ae0464888d444924766768e53112c8beb75136",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 146300
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-02/572ccc1751df1dd956195009cc12a6c23eadd0d6941de80657adfe667b583c4d.webp",
+          "sha256": "572ccc1751df1dd956195009cc12a6c23eadd0d6941de80657adfe667b583c4d",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 144496
+        }
+      }
+    },
+    "female-02": {
+      "avatarAssetId": "female-02",
+      "avatarVersion": "737e4e67bf6a3238ad790d9bf660055729b40ca5c1f9ee869442c3f380b97065",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-02/b4ec06e8f058ed209ae622157768a9227a5b1a233c0a37dd2d30ec6fee2d4889.webp",
+          "sha256": "b4ec06e8f058ed209ae622157768a9227a5b1a233c0a37dd2d30ec6fee2d4889",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 148196
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-02/6f5fba50127b846fdda091c7768603c77495fabc3fccee4f69fdbf94f04a5d60.webp",
+          "sha256": "6f5fba50127b846fdda091c7768603c77495fabc3fccee4f69fdbf94f04a5d60",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 156794
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-02/541adbba7a19ffb6725576e211011d65070f978b9c05d89e462346c7590f287b.webp",
+          "sha256": "541adbba7a19ffb6725576e211011d65070f978b9c05d89e462346c7590f287b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 147590
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-02/a586da127bba28022ee32534d9f84034110e7c6ea50da0b5ead9d523fff3ad4f.webp",
+          "sha256": "a586da127bba28022ee32534d9f84034110e7c6ea50da0b5ead9d523fff3ad4f",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 151092
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-02/1156dde8358d8cb53023bf3bda115fa443bd9113319b3543508f81e87c6ed27c.webp",
+          "sha256": "1156dde8358d8cb53023bf3bda115fa443bd9113319b3543508f81e87c6ed27c",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 154522
+        }
+      }
+    },
+    "male-03": {
+      "avatarAssetId": "male-03",
+      "avatarVersion": "fbecaacba17e1bf988abd17cfa1a28406e276315df5116123af62698d3313804",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-03/28e0c73869abb4591c36de8d3b27741c0cf54dc6d117785739b3929fae372f2a.webp",
+          "sha256": "28e0c73869abb4591c36de8d3b27741c0cf54dc6d117785739b3929fae372f2a",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 173966
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-03/554b431104a5998e54ec665a2442774c730da0f40e5d03b12c0df60bb5f0a211.webp",
+          "sha256": "554b431104a5998e54ec665a2442774c730da0f40e5d03b12c0df60bb5f0a211",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 170452
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-03/af0d1bbb53436f8c0fad8c8e810185e0e4dfbbcd3319d5fae459717af93fef3a.webp",
+          "sha256": "af0d1bbb53436f8c0fad8c8e810185e0e4dfbbcd3319d5fae459717af93fef3a",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 174332
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-03/8d41450ef4ff0d6b1a28b9b3d089f7b91f4b4796241084ee10e1e08ea0df846b.webp",
+          "sha256": "8d41450ef4ff0d6b1a28b9b3d089f7b91f4b4796241084ee10e1e08ea0df846b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 176034
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-03/34dd9f8b407de690460f2a0d8906b07793b31a57b8f0da24d05679b2de73472a.webp",
+          "sha256": "34dd9f8b407de690460f2a0d8906b07793b31a57b8f0da24d05679b2de73472a",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 175416
+        }
+      }
+    },
+    "male-04": {
+      "avatarAssetId": "male-04",
+      "avatarVersion": "728eb2ed895326392bdac333a0a2e8f8a3049142a95c2da34b408b0091e96e1b",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-04/c42114eb0de921752d0a0e143580fd29415760ff0bf15b36e0e1ebeeebcdc5c4.webp",
+          "sha256": "c42114eb0de921752d0a0e143580fd29415760ff0bf15b36e0e1ebeeebcdc5c4",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 190208
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-04/c0bd251c8536a679326a0b65854f5b785a30c7bcd0c49508dea6addeec9af2a8.webp",
+          "sha256": "c0bd251c8536a679326a0b65854f5b785a30c7bcd0c49508dea6addeec9af2a8",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 165446
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-04/ccde0f6ccef1f57209d7480b3ae7faba3bf033fc1505dbff145bbb66d3f367d0.webp",
+          "sha256": "ccde0f6ccef1f57209d7480b3ae7faba3bf033fc1505dbff145bbb66d3f367d0",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 162376
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-04/ac1567c1ce1dcfddc5ed8f00b95463afb21a673f7551b9e3d8ea5217b789ccb6.webp",
+          "sha256": "ac1567c1ce1dcfddc5ed8f00b95463afb21a673f7551b9e3d8ea5217b789ccb6",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 195860
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-04/7554f12e443f202bde58f31c8c9823be216b300572b5636b51550ffa84b33a50.webp",
+          "sha256": "7554f12e443f202bde58f31c8c9823be216b300572b5636b51550ffa84b33a50",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 193754
+        }
+      }
+    },
+    "female-03": {
+      "avatarAssetId": "female-03",
+      "avatarVersion": "a5e102a8e53c95d5a43e6546e6b0e3149adf9505d11d8fae8df39502cf01742d",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-03/829212b52a2ec1f3df0486c151a31bc9b737b5be77cdf61a370e824741451f40.webp",
+          "sha256": "829212b52a2ec1f3df0486c151a31bc9b737b5be77cdf61a370e824741451f40",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 173834
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-03/48bc9a6171231e2e0217d06b80876473eef7a53190e51c6f3a2911db7fd72ae5.webp",
+          "sha256": "48bc9a6171231e2e0217d06b80876473eef7a53190e51c6f3a2911db7fd72ae5",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 176110
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-03/3df305691a690df0cb1e31891c152958bf941a9b3dcd74b1ac06b6291d2c8da9.webp",
+          "sha256": "3df305691a690df0cb1e31891c152958bf941a9b3dcd74b1ac06b6291d2c8da9",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 173468
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-03/140e08f0570a4d6be5be35ee0c26d86aca8b54bb60bbf8c1cee3c83d39d1dc6a.webp",
+          "sha256": "140e08f0570a4d6be5be35ee0c26d86aca8b54bb60bbf8c1cee3c83d39d1dc6a",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 177808
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-03/635d42b7917c760bab46a19af3da5fa4f0e2db83fc4698254b45ad5456e9da9d.webp",
+          "sha256": "635d42b7917c760bab46a19af3da5fa4f0e2db83fc4698254b45ad5456e9da9d",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 173324
+        }
+      }
+    },
+    "female-04": {
+      "avatarAssetId": "female-04",
+      "avatarVersion": "4072f8750f0aecab158e62bf1f739dd684e88eaf346593dc8715412e71ed6979",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-04/4051fec959caeb0c1d3186f1ae645a61599a7417fd7329399f46eee7d6f0c1c3.webp",
+          "sha256": "4051fec959caeb0c1d3186f1ae645a61599a7417fd7329399f46eee7d6f0c1c3",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 183964
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-04/ab71b5912e1c26c6185182fe49a020d212477c98a15215256c9565e314229d02.webp",
+          "sha256": "ab71b5912e1c26c6185182fe49a020d212477c98a15215256c9565e314229d02",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 190252
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-04/4151fcd23b7af252f178e4cfb3f85c7172d1ca37a5f8fc85c4b71a3bb7728731.webp",
+          "sha256": "4151fcd23b7af252f178e4cfb3f85c7172d1ca37a5f8fc85c4b71a3bb7728731",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 184218
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-04/23bc87f2e3e94398c5559bc0be3fb268a7c49d6c0b2dc777412f792a71b1fc71.webp",
+          "sha256": "23bc87f2e3e94398c5559bc0be3fb268a7c49d6c0b2dc777412f792a71b1fc71",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 190286
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-04/db1c15c0411cd0a8cb87d095e06599e15620c9cee900cb072372e18f3fb28d01.webp",
+          "sha256": "db1c15c0411cd0a8cb87d095e06599e15620c9cee900cb072372e18f3fb28d01",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 184178
+        }
+      }
+    },
+    "male-05": {
+      "avatarAssetId": "male-05",
+      "avatarVersion": "858dad34bb9f42aa0e88dddf1a73b5724d6ed9dce9805a89ee0411483a1f2568",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-05/50d688554a1b446a4f47fd2185f26f153b8c1cc7d9d60489cd511ca473face69.webp",
+          "sha256": "50d688554a1b446a4f47fd2185f26f153b8c1cc7d9d60489cd511ca473face69",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 149860
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-05/ae4375aa89c6be8946c2d027c857de1e78afd54a4f3bd1e0103080cdd07b6946.webp",
+          "sha256": "ae4375aa89c6be8946c2d027c857de1e78afd54a4f3bd1e0103080cdd07b6946",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 149594
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-05/9fe12f1f0061b413ca4a7378c82cdf258dbae55cfc75d25d94a54fddef0ace19.webp",
+          "sha256": "9fe12f1f0061b413ca4a7378c82cdf258dbae55cfc75d25d94a54fddef0ace19",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 146594
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-05/6a12024d2e99c1d413c8854c8dc019d40413c71498d15d7ace916f3196c5002b.webp",
+          "sha256": "6a12024d2e99c1d413c8854c8dc019d40413c71498d15d7ace916f3196c5002b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 152548
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-05/b2079d5d80f6ff7482904b0074ddbefbacb2e49794805175a1e241b75432802f.webp",
+          "sha256": "b2079d5d80f6ff7482904b0074ddbefbacb2e49794805175a1e241b75432802f",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 142854
+        }
+      }
+    },
+    "male-06": {
+      "avatarAssetId": "male-06",
+      "avatarVersion": "cd2a7208c549833b5b3e62f330bae3253c564d9475ef019debbb67e91d0265f2",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-06/bed8ab6477eac61e8e34d0b862cf227e1913ad18d89b8c5a7214ac032b20faaa.webp",
+          "sha256": "bed8ab6477eac61e8e34d0b862cf227e1913ad18d89b8c5a7214ac032b20faaa",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 162026
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-06/f98bf26f539e0a2022577472864a59b515487c550805f27f67a2634a96cbbe5b.webp",
+          "sha256": "f98bf26f539e0a2022577472864a59b515487c550805f27f67a2634a96cbbe5b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 160322
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-06/f2b064743826a6e5820a790e70c66443b6e459d68344f88a27c5ef3cdaa663c1.webp",
+          "sha256": "f2b064743826a6e5820a790e70c66443b6e459d68344f88a27c5ef3cdaa663c1",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 161480
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-06/96d90b59272db2a4b2802c92a9ceb25e06aaa719bf210f09e7498482fce3f369.webp",
+          "sha256": "96d90b59272db2a4b2802c92a9ceb25e06aaa719bf210f09e7498482fce3f369",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 163490
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-06/5d5e90b36723ecc353fe787da173b581b05a18e12a019779fc2527571d472d1b.webp",
+          "sha256": "5d5e90b36723ecc353fe787da173b581b05a18e12a019779fc2527571d472d1b",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 199362
+        }
+      }
+    },
+    "female-05": {
+      "avatarAssetId": "female-05",
+      "avatarVersion": "a253551f4220332a1748df99fbbd6ea21e4b31951a69dec7afef987fd8ef2f8c",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-05/75ecb132bf254250c98a3a16fd92375a5bd2720eb0ed74f296d1ca2d44649a08.webp",
+          "sha256": "75ecb132bf254250c98a3a16fd92375a5bd2720eb0ed74f296d1ca2d44649a08",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 156750
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-05/b865afc58580af89e7cc9d5e9e6ba33c91842870490b93275235ef3f13153466.webp",
+          "sha256": "b865afc58580af89e7cc9d5e9e6ba33c91842870490b93275235ef3f13153466",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 160736
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-05/54a4680045fb92c46fb8dcdaa69ec818fba8168e768794bbd775b979586ba513.webp",
+          "sha256": "54a4680045fb92c46fb8dcdaa69ec818fba8168e768794bbd775b979586ba513",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 154310
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-05/cdba5c7a0844c4bb537f4f270d589fca741af72574410afaa053dc0409a36321.webp",
+          "sha256": "cdba5c7a0844c4bb537f4f270d589fca741af72574410afaa053dc0409a36321",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 156938
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-05/a6746d7338a7ffd33893454ec51f23281072a10a776207a2a8c3b1f358d86512.webp",
+          "sha256": "a6746d7338a7ffd33893454ec51f23281072a10a776207a2a8c3b1f358d86512",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 157368
+        }
+      }
+    },
+    "female-06": {
+      "avatarAssetId": "female-06",
+      "avatarVersion": "e98a9f5f7d6c525c0f1d496f4725050a192b513f3cd98b9124d3ed5a58154c3b",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-06/c4800f2a8c95db7ee30a8b1c6d42665dd6f6285d66815cd40156a0962f57dc76.webp",
+          "sha256": "c4800f2a8c95db7ee30a8b1c6d42665dd6f6285d66815cd40156a0962f57dc76",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 193974
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-06/b44a4a177649b95751c5ece3b40fea4ab6dad30a5ae745e1ceecd315ed8b79e7.webp",
+          "sha256": "b44a4a177649b95751c5ece3b40fea4ab6dad30a5ae745e1ceecd315ed8b79e7",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 193118
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-06/d01cc073e8f5be28089d977810a0752200e5dec87b0e1ac60c254d53344f5d1c.webp",
+          "sha256": "d01cc073e8f5be28089d977810a0752200e5dec87b0e1ac60c254d53344f5d1c",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 199374
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-06/df8e4cd60092c7ad4de1dc51772a6afaacdd9e9f956aec291d4cb99f416963c6.webp",
+          "sha256": "df8e4cd60092c7ad4de1dc51772a6afaacdd9e9f956aec291d4cb99f416963c6",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 192636
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-06/98bfdb0eaad269c614b9608e221473eb81d53120dcaa129d03e2827c1499a0a5.webp",
+          "sha256": "98bfdb0eaad269c614b9608e221473eb81d53120dcaa129d03e2827c1499a0a5",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 195294
+        }
+      }
+    },
+    "male-07": {
+      "avatarAssetId": "male-07",
+      "avatarVersion": "878bbdb8e399f0804464078c557d852f9292eb6609c6be39c1637de0adff5eec",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-07/ae57f5f6527fe8c4fc539f597ad5be4ad0afbdf5e935a68e2427da00aac4c8a8.webp",
+          "sha256": "ae57f5f6527fe8c4fc539f597ad5be4ad0afbdf5e935a68e2427da00aac4c8a8",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 152972
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-07/a2113a2a24660b10ac3f70dc05a1662b2b1eca00c030726785e5d4c8c515f5d6.webp",
+          "sha256": "a2113a2a24660b10ac3f70dc05a1662b2b1eca00c030726785e5d4c8c515f5d6",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 150360
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-07/c1e4cfeee702ed5b8e896a22945e9ec1c6b6faaf57bd015db1324061611af3f7.webp",
+          "sha256": "c1e4cfeee702ed5b8e896a22945e9ec1c6b6faaf57bd015db1324061611af3f7",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 156872
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-07/2671984c1595c9d087e5ce4455afe3b480aea95a487acaa6b6a5a1b44a247906.webp",
+          "sha256": "2671984c1595c9d087e5ce4455afe3b480aea95a487acaa6b6a5a1b44a247906",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 156640
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-07/ce9194cef1fafe14989acc5d06bfaf7cd622776402d9176c4297a1026c37a997.webp",
+          "sha256": "ce9194cef1fafe14989acc5d06bfaf7cd622776402d9176c4297a1026c37a997",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 155168
+        }
+      }
+    },
+    "male-08": {
+      "avatarAssetId": "male-08",
+      "avatarVersion": "78db372b47c6a92a43158d5a83701d394b5310520f955b25b785cdde1f18af98",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/male-08/b3d0496d11f95369d9d8d8c547661a448daad44817e2d3c6f71a888416208b68.webp",
+          "sha256": "b3d0496d11f95369d9d8d8c547661a448daad44817e2d3c6f71a888416208b68",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 175268
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/male-08/3a792e6096b1a2048d942e261bb75f5fca21ba35ce15cd7fe59dc8ae539bbc59.webp",
+          "sha256": "3a792e6096b1a2048d942e261bb75f5fca21ba35ce15cd7fe59dc8ae539bbc59",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 179436
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/male-08/201d895fd7b3d219170287474528dd2facd11ec5058f9063ca1931b7807b21e0.webp",
+          "sha256": "201d895fd7b3d219170287474528dd2facd11ec5058f9063ca1931b7807b21e0",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 168784
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/male-08/e52a6246215063ac2438e38af3f08f83badea6cc6035bd9903324dd3e3a22f20.webp",
+          "sha256": "e52a6246215063ac2438e38af3f08f83badea6cc6035bd9903324dd3e3a22f20",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 170260
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/male-08/d98354164afb0343c52f7001f67dc03911ba6c754be06df63785162e5c785cff.webp",
+          "sha256": "d98354164afb0343c52f7001f67dc03911ba6c754be06df63785162e5c785cff",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 173666
+        }
+      }
+    },
+    "female-07": {
+      "avatarAssetId": "female-07",
+      "avatarVersion": "8be61309637163e9345a0a6ac2f184b4c9e84e3ef224a013ca4d6e594667a9be",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-07/88af59ddca6ab9b882a45fecac069a1e572595b047cc2c8905ad8bff54fdf03d.webp",
+          "sha256": "88af59ddca6ab9b882a45fecac069a1e572595b047cc2c8905ad8bff54fdf03d",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 157870
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-07/7a5546b349508872ef13057d097ac242567a6d8e2c27fdda13eacee8eb593db9.webp",
+          "sha256": "7a5546b349508872ef13057d097ac242567a6d8e2c27fdda13eacee8eb593db9",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159684
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-07/fdc1842027e00da5a0125f89fbf3a41ffc635d1132a88dfaa2b4bcfd11d9a033.webp",
+          "sha256": "fdc1842027e00da5a0125f89fbf3a41ffc635d1132a88dfaa2b4bcfd11d9a033",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 159560
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-07/131a818cadabdbf3188a7c81245d9db13e0d2999e925f16c2d730dbbedbb8094.webp",
+          "sha256": "131a818cadabdbf3188a7c81245d9db13e0d2999e925f16c2d730dbbedbb8094",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 158000
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-07/b4fae8f2c2606df5285dc8fe9c0fe3ceafd739e46a3ddb6d343f581c01f4608c.webp",
+          "sha256": "b4fae8f2c2606df5285dc8fe9c0fe3ceafd739e46a3ddb6d343f581c01f4608c",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 158942
+        }
+      }
+    },
+    "female-08": {
+      "avatarAssetId": "female-08",
+      "avatarVersion": "5cf8c4985c492a97d1628d5e59afc6a203ea0faed106adf2eec569a61ad5b239",
+      "expressionSpecVersion": "v1",
+      "avatarAssetSpecVersion": "full-body.v1",
+      "framing": "full_body",
+      "pose": "standing",
+      "stageAnchors": {
+        "head": {
+          "x": 0.5,
+          "y": 0.08
+        },
+        "feet": {
+          "x": 0.5,
+          "y": 0.965
+        }
+      },
+      "expressions": {
+        "neutral": {
+          "url": "/avatars/full-body.v1/female-08/73d69a717a8f1e35f032e627be8020fdc657e4f90a4853df57f00d16d5f3fe95.webp",
+          "sha256": "73d69a717a8f1e35f032e627be8020fdc657e4f90a4853df57f00d16d5f3fe95",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 171516
+        },
+        "smile": {
+          "url": "/avatars/full-body.v1/female-08/38c6a2f6a6d76573414dee7401b8fe6ffd8cbfaaddfb5766240484dcba033080.webp",
+          "sha256": "38c6a2f6a6d76573414dee7401b8fe6ffd8cbfaaddfb5766240484dcba033080",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 172982
+        },
+        "surprised": {
+          "url": "/avatars/full-body.v1/female-08/17f12572364ee0fb28506cdbcabeac15659c1968b45db336f1da83ecd27c0891.webp",
+          "sha256": "17f12572364ee0fb28506cdbcabeac15659c1968b45db336f1da83ecd27c0891",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 168744
+        },
+        "thoughtful": {
+          "url": "/avatars/full-body.v1/female-08/6a57f910324ab2fa86f9dfc587fb7cd7f2fc1a9aabc170d20ff01a3cc483f3fc.webp",
+          "sha256": "6a57f910324ab2fa86f9dfc587fb7cd7f2fc1a9aabc170d20ff01a3cc483f3fc",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 172768
+        },
+        "concerned": {
+          "url": "/avatars/full-body.v1/female-08/8d2315396db33e7145ad213ac94423745ded7f19fc153f23153f060128d3210d.webp",
+          "sha256": "8d2315396db33e7145ad213ac94423745ded7f19fc153f23153f060128d3210d",
+          "mimeType": "image/webp",
+          "width": 1086,
+          "height": 1448,
+          "byteSize": 175932
+        }
+      }
+    }
+  }
+}

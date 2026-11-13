@@ -1,3 +1,4 @@
+import {builtinAvatarPath} from '../../fixtures/builtin-avatar.mjs';
 import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';
 import {randomFillSync} from 'node:crypto';import {deflateSync} from 'node:zlib';
 import {createFixture,openScreen,login,waitText} from './fixture.mjs';
@@ -14,8 +15,8 @@ async function reveal(label,direction='down'){
   invoke('shell','input','swipe',x,direction==='down'?low:high,x,direction==='down'?high:low,'550');await sleep(450);
  }throw Object.assign(new Error('Native control not reachable'),{control:label});
 }
-const directory='/sdcard/Pictures/DatingHighQA',bigName='qa-avatar-managed-oversize.png',smallName='qa-avatar-managed-valid.jpg';
-const ownedNames=[bigName,smallName,'qa-photo-01.jpg','qa-photo-02.jpg','qa-photo-03.jpg'];
+const directory='/sdcard/Pictures/DatingHighQA',bigName='qa-avatar-managed-oversize.png',smallName='qa-avatar-managed-valid.webp';
+const ownedNames=[bigName,smallName,'qa-photo-01.webp','qa-photo-02.webp','qa-photo-03.webp','qa-photo-01.jpg','qa-photo-02.jpg','qa-photo-03.jpg'];
 function cleanGallery(){
  const listed=invoke('shell','content','query','--uri','content://media/external/images/media','--projection','_id:_display_name:_data');
  for(const match of listed.matchAll(/\b_id=(\d+), _display_name=([^,]+), _data=([^\r\n]+)/g))if(ownedNames.includes(match[2])&&match[3].includes('/Pictures/DatingHighQA/')&&match[3].endsWith('/'+match[2]))invoke('shell','content','delete','--uri',`content://media/external/images/media/${match[1]}`);
@@ -31,7 +32,7 @@ function largeSyntheticPicture(){
 }
 async function pick(kind){
  cleanGallery();invoke('shell','mkdir','-p',directory);const name=kind==='large'?bigName:smallName;
- invoke('push',kind==='large'?bigPath:path.resolve('frontend/client/assets/avatars/male-04.jpg'),`${directory}/${name}`);
+ invoke('push',kind==='large'?bigPath:builtinAvatarPath('male-04'),`${directory}/${name}`);
  invoke('shell','am','broadcast','-a','android.intent.action.MEDIA_SCANNER_SCAN_FILE','-d',`file://${directory}/${name}`);
  await reveal('新增個人照片');await tap('新增個人照片');const end=Date.now()+35000;
  while(Date.now()<end){const all=nodes();const target=all.find(node=>visible(node)&&((node.text??'').includes(name)||(node['content-desc']??'').includes(name)))??all.find(node=>visible(node)&&/Photo taken|照片拍攝|照片，|Image,/.test(node['content-desc']??'')&&/providers.media|photopicker|documentsui/.test(node.package??''));if(target){const [l,t,r,b]=target.bounds.match(/-?\d+/g).map(Number);invoke('shell','input','tap',String(Math.round((l+r)/2)),String(Math.round((t+b)/2)));return;}await sleep(500);}

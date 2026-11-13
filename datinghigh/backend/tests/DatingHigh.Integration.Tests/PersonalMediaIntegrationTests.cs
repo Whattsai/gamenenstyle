@@ -157,15 +157,16 @@ public sealed class PersonalMediaIntegrationTests
         stored=await platform.ExecuteAsync("$test-r2-list",new{});Assert.False(stored["truncated"]!.GetValue<bool>());Assert.Equal(5,stored["keys"]!.AsArray().Count);
     }
 
-    [Fact,Trait("Case","AP-IT-038")]
-    public async Task ForeignCandidateAndFormalSelection_RealApplicationD1R2_LeavesBothOwnersUnchanged()
+    [Theory,Trait("Case","AP-IT-038")]
+    [InlineData(false)][InlineData(true)]
+    public async Task ForeignCandidateAndFormalSelection_RealApplicationD1R2_LeavesBothOwnersUnchanged(bool lossless)
     {
         await using var platform=new RealPlatform();var owner=await User(platform);
         const string otherEmail="second-owner@example.test";await platform.Seed(true,otherEmail);
         var login=RealPlatform.Json((await platform.App.Login(otherEmail,RealPlatform.Password,"android","127.0.0.1",default)).Body);
         var other=new CurrentUser(login["account"]!.Text("accountId"),login["session"]!.Text("sessionId"),1,owner.AccessExpiresAt);
         using var http=new HttpClient(new Bridge(platform)){BaseAddress=new("http://platform.internal/")};
-        var media=new PrivateMediaStore(http);var provider=new OneImageProvider();
+        var media=new PrivateMediaStore(http);var provider=new OneImageProvider(lossless);
         AvatarService Avatars()=>new(platform,media,new AvatarCandidateStore(http),provider,new RateLimiter(platform,platform.Options,platform.Clock));
         var avatars=Avatars();await new DatingProfileService(platform,platform.Clock).ReadAsync(other);
         await platform.Sql("UPDATE user_profiles SET gender='male' WHERE account_id=?",other.AccountId);
@@ -179,7 +180,16 @@ public sealed class PersonalMediaIntegrationTests
         Assert.Equal(404,(await Assert.ThrowsAsync<DomainException>(()=>Avatars().SelectAsync(other,temporary))).Status);
         Assert.Equal(404,(await Assert.ThrowsAsync<DomainException>(()=>Avatars().ReadCandidateAsync(other,attempt,1))).Status);
         Assert.Equal(before,await Snapshot());Assert.NotEmpty((await avatars.ReadCandidateAsync(owner,attempt,1)).Bytes.ToArray());
+        var expressions=new AvatarExpressionService(platform,new AvatarCandidateStore(http),new AvatarExpressionStore(http),provider,new RateLimiter(platform,platform.Options,platform.Clock));
+        var workflow=EntityId.New();await expressions.ExecuteAsync(owner,"begin",new JsonObject{["attemptId"]=attempt,["index"]=1L,["expectedRevision"]=1L,["clientRequestId"]=workflow});
+        foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})await expressions.ExecuteAsync(owner,"next",new JsonObject{["workflowId"]=workflow,["expression"]=expression,["clientRequestId"]=EntityId.New()});
         temporary["expectedRevision"]=1L;var adopted=await avatars.SelectAsync(owner,temporary);var asset=adopted.Text("assetId");before=await Snapshot();
+        var reader=new AvatarReadService(platform,new AvatarReadStore(http));
+        var projection=await reader.ProjectionAsync(owner,AvatarReadScope.Own,asset);
+        Assert.Equal(5,projection["expressions"]!.AsObject().Count);Assert.DoesNotContain("private/",projection.ToJsonString());Assert.Null(projection["ownerAccountId"]);
+        var expressionImage=await reader.ReadAsync(owner,AvatarReadScope.Own,asset,projection.Text("avatarVersion"),"smile");
+        using(var decoded=SKBitmap.Decode(expressionImage.Bytes.ToArray())){Assert.Equal(600,decoded.Width);Assert.Equal(0,decoded.GetPixel(0,0).Alpha);}
+        Assert.Equal(404,(await Assert.ThrowsAsync<DomainException>(()=>reader.ReadAsync(other,AvatarReadScope.Own,asset,projection.Text("avatarVersion"),"smile"))).Status);
         var foreign=await Assert.ThrowsAsync<DomainException>(()=>Avatars().SelectAsync(other,new JsonObject{["type"]="generated",["assetId"]=asset,["expectedRevision"]=2L}));
         Assert.Equal(400,foreign.Status);Assert.Equal("INVALID_AVATAR_SELECTION",foreign.Code);
         Assert.Equal(404,(await Assert.ThrowsAsync<DomainException>(()=>media.ReadPhotoAsync(other,asset))).Status);
@@ -188,9 +198,18 @@ public sealed class PersonalMediaIntegrationTests
         Assert.Equal("male-02",(await platform.Sql("SELECT selected_avatar_ref FROM user_profiles WHERE account_id=?",other.AccountId))[0]!.Text("selected_avatar_ref"));
     }
 
-    private sealed class OneImageProvider:IAvatarImageGenerator
+    private sealed class OneImageProvider(bool lossless=false):IAvatarImageGenerator,IAvatarExpressionGenerator
     {
         public int Calls;
+        public string Model=>"controlled-expression-fixture";
+        public string ExpressionPromptVersion=>"controlled.v1";
+        public async Task<CompressedImage> GenerateExpressionAsync(PrivateMediaContent master,string expression,CancellationToken ct=default)
+        {
+            using var bitmap=new SKBitmap(600,800);using(var canvas=new SKCanvas(bitmap)){canvas.Clear(SKColors.Transparent);using var paint=new SKPaint{Color=SKColors.Coral};canvas.DrawRect(180,40,240,720,paint);}
+            using var image=SKImage.FromBitmap(bitmap);using var png=image.Encode(SKEncodedImageFormat.Png,100);using var input=new MemoryStream(png.ToArray());
+            var result=await new ImageCompressionService().CompressAsync(input,2000000,new("image/png",PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800,LosslessWebp:lossless),ct);
+            return result;
+        }
         public async Task<CompressedImage> GenerateAsync(IReadOnlyList<PrivateMediaContent> photos,string styleId,CancellationToken ct=default)
         {
             Calls++;Assert.Equal(2,photos.Count);using var source=new MemoryStream(Picture());return await new ImageCompressionService().CompressAsync(source,ct:ct);

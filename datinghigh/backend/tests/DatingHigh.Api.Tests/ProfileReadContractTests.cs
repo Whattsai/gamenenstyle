@@ -42,10 +42,10 @@ public sealed class ProfileReadContractTests
         foreach(var group in groups){var options=group.Value!.AsArray();Assert.NotEmpty(options);var ids=options.Select(v=>v!["id"]!.GetValue<string>()).ToArray();Assert.Equal(ids.Length,ids.Distinct().Count());foreach(var option in options){Assert.False(string.IsNullOrWhiteSpace(option!["label"]!.GetValue<string>()));Assert.True(option["active"]!.GetValue<bool>());}}
         Assert.Equal(new[]{"culture","food","outdoor","psychology","screen"},groups["interestTagIds"]!.AsArray().Select(v=>v!["category"]!.GetValue<string>()).Distinct().Order().ToArray());
         using var avatars=await client.GetAsync("/api/v1/avatar-catalog");Assert.Equal(HttpStatusCode.OK,avatars.StatusCode);Assert.Contains("no-store",avatars.Headers.CacheControl?.ToString());
-        var catalog=(await avatars.Content.ReadFromJsonAsync<JsonNode>())!;Assert.Equal("2026-11-03.v2",catalog["version"]!.GetValue<string>());var list=catalog["avatars"]!.AsArray();Assert.Equal(16,list.Count);
+        var catalog=(await avatars.Content.ReadFromJsonAsync<JsonNode>())!;Assert.Equal("full-body.v1",catalog["version"]!.GetValue<string>());var list=catalog["avatars"]!.AsArray();Assert.Equal(16,list.Count);
         Assert.Equal(16,list.Select(v=>v!["id"]!.GetValue<string>()).Distinct().Count());
         foreach(var group in new[]{"male","female"})Assert.Equal(8,list.Count(v=>v!["group"]!.GetValue<string>()==group));
-        foreach(var item in list){var id=item!["id"]!.GetValue<string>();Assert.True(BuiltinAvatarCatalog.Contains(id));Assert.Equal($"/avatars/{id}.jpg",item["assetPath"]!.GetValue<string>());Assert.Equal("3:4",item["aspectRatio"]!.GetValue<string>());}
+        foreach(var item in list){var id=item!["id"]!.GetValue<string>();Assert.True(BuiltinAvatarCatalog.Contains(id));Assert.Matches("^/avatars/full-body\\.v1/"+id+"/[0-9a-f]{64}\\.webp$",item["assetPath"]!.GetValue<string>());Assert.Equal("3:4",item["aspectRatio"]!.GetValue<string>());}
         foreach(var result in new[]{dto.ToJsonString(),catalog.ToJsonString()}){Assert.DoesNotContain(f.Store.Email,result);Assert.DoesNotContain("private/",result);Assert.DoesNotContain("objectKey",result);}
         Assert.DoesNotContain(f.Store.Commands,c=>c.StartsWith("profile.",StringComparison.Ordinal)||c.StartsWith("avatar.attempt.",StringComparison.Ordinal));
     }

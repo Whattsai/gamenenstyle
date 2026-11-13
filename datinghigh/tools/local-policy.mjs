@@ -1,5 +1,6 @@
 import {fileURLToPath} from 'node:url';import path from 'node:path';import {existsSync} from 'node:fs';
 import {localGameEndStatements} from './local-game-policy.mjs';
+import {validateAvatarResetAccounts} from './avatar-reset-policy.mjs';
 export const root=fileURLToPath(new URL('../',import.meta.url)).replace(/[\\/]$/,'');
 export const safeName=name=>typeof name==='string'&&/^[a-z0-9][a-z0-9-]{0,31}$/.test(name)&&!['production','staging','remote'].includes(name);
 export function resolveInstance(name='default',allowNew=false){
@@ -9,18 +10,19 @@ export function resolveInstance(name='default',allowNew=false){
  return {name,cwd,config:path.join(cwd,'wrangler.jsonc'),state:`${cwd}/.wrangler/state`};
 }
 export function parseLocalArgs(command,args){
- const supported={dev:[],migrate:[],seed:[],query:['view'],execute:['file'],backup:['name'],restore:['file','target'],probe:[],'game-end':['round-id']};
+ const supported={dev:[],'dev-stop':[],migrate:[],seed:[],query:['view'],execute:['file'],backup:['name'],restore:['file','target'],probe:[],'game-end':['round-id'],'story-upgrade':[],'story-publish':[],'avatar-reset-preview':['accounts','name'],'avatar-reset-apply':['name']};
  if(!Object.hasOwn(supported,command))throw new Error('Unknown local command');const result={instance:'default'},seen=new Set();
  for(let i=0;i<args.length;i+=2){const flag=args[i];if(!flag?.startsWith('--'))throw new Error('Expected option');const key=flag.slice(2),value=args[i+1];
   if(!['instance',...supported[command]].includes(key)||!value||value.startsWith('--')||seen.has(key))throw new Error('Unsupported/duplicate local option');seen.add(key);result[key]=value;
  }
  if(!safeName(result.instance))throw new Error('Invalid instance');
- if(command==='query'&&!['accounts','sessions','games'].includes(result.view))throw new Error('Only fixed non-secret views are allowed');
+ if(command==='query'&&!['accounts','sessions','games','avatar-reset-targets'].includes(result.view))throw new Error('Only fixed non-secret views are allowed');
  if(command==='game-end')localGameEndStatements(result['round-id'],0);
+ if(command.startsWith('avatar-reset-')){if(!safeName(result.name))throw new Error('Safe cleanup plan name required');if(command==='avatar-reset-preview')validateAvatarResetAccounts(result.accounts?.split(','));}
  if(command==='restore'&&(!safeName(result.target)||result.target==='default'))throw new Error('Restore requires a new named local instance');
  return result;
 }
-const views={accounts:'SELECT account_id,email_normalized,email_verified_at,status,credential_version FROM auth_accounts ORDER BY created_at,account_id',sessions:'SELECT session_id,account_id,current_generation,absolute_expires_at,idle_expires_at,revoked_at FROM auth_sessions ORDER BY created_at,session_id',games:"SELECT r.round_id,r.status,r.started_at,lo.nickname AS player_low,hi.nickname AS player_high,(SELECT COUNT(*) FROM game_round_participants gp WHERE gp.round_id=r.round_id) AS participants FROM game_rounds r JOIN user_profiles lo ON lo.account_id=r.account_low_id JOIN user_profiles hi ON hi.account_id=r.account_high_id WHERE r.status='active' ORDER BY r.started_at,r.round_id"};
+const views={accounts:'SELECT account_id,email_normalized,email_verified_at,status,credential_version FROM auth_accounts ORDER BY created_at,account_id',sessions:'SELECT session_id,account_id,current_generation,absolute_expires_at,idle_expires_at,revoked_at FROM auth_sessions ORDER BY created_at,session_id',games:"SELECT r.round_id,r.status,r.started_at,lo.nickname AS player_low,hi.nickname AS player_high,(SELECT COUNT(*) FROM game_active_round_claims gp WHERE gp.round_id=r.round_id) AS participants FROM game_rounds r JOIN user_profiles lo ON lo.account_id=r.account_low_id JOIN user_profiles hi ON hi.account_id=r.account_high_id WHERE r.status='active' ORDER BY r.started_at,r.round_id",'avatar-reset-targets':"SELECT p.account_id,p.selected_avatar_type,p.selected_avatar_ref,(SELECT COUNT(*) FROM user_media_assets a WHERE a.account_id=p.account_id AND a.kind='generated_avatar') AS generated_avatar_count,(SELECT COUNT(*) FROM user_media_assets m WHERE m.account_id=p.account_id AND m.kind='personal_photo') AS personal_photo_count,(SELECT COUNT(*) FROM game_rounds r WHERE r.status='active' AND (r.account_low_id=p.account_id OR r.account_high_id=p.account_id)) AS active_round_count FROM user_profiles p WHERE EXISTS(SELECT 1 FROM user_media_assets a WHERE a.account_id=p.account_id AND a.kind='generated_avatar') OR EXISTS(SELECT 1 FROM user_media_assets m WHERE m.account_id=p.account_id AND m.kind='personal_photo') ORDER BY p.account_id"};
 export function invocation(command,instance,options={}){
  const common=['--config',instance.config,'--local'];let args;
  if(command==='migrate')args=['d1','migrations','apply','DB',...common];
@@ -36,6 +38,7 @@ export function restoreTarget(name,exists=existsSync){
  if(name==='default')throw new Error('Restore requires a new named local instance');const instance=resolveInstance(name,true);
  if(exists(instance.cwd))throw new Error('Restore target already exists');return instance;
 }
-export async function withPausedControl(control,action,signal){
- if(control)await signal('pause');try{return await action();}finally{if(control)await signal('resume');}
+export async function withPausedControl(control,action,signal,verifyNoWriter){
+ if(control)try{await signal('pause');}catch(error){if(!verifyNoWriter||!await verifyNoWriter(error))throw error;control=false;}
+ try{return await action();}finally{if(control)await signal('resume');}
 }

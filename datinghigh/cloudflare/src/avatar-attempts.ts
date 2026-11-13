@@ -1,6 +1,9 @@
 import {z} from 'zod';
 import {executeCommand} from './commands';
 import type {PlatformEnv} from './platform';
+import {beginAvatarAdoption,avatarAdoptionStatus,avatarAdoptionContext,assertAvatarSelectionUnlocked,acquireAvatarExpression,failAvatarExpression,cancelAvatarAdoption,readyAvatarAdoption,completeAvatarAdoption,publishAvatarExpression} from './avatar-adoption';
+import {expressionIds} from './avatar-expression-manifest';
+import {transparentWebpDimensions} from './transparent-webp';
 
 export class AvatarError extends Error{constructor(public code:string,public status=409){super(code);}}
 const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
@@ -11,7 +14,7 @@ const resultSchema=z.strictObject({clientRequestId:id,index:z.number().int().min
 const manifestSchema=z.strictObject({
  attemptId:id,styleId:z.string(),expiresAt:z.number().int(),sourceAssetIds:z.array(id).min(2).max(5),
  status:z.enum(['open','generating','uncertain','adopting','closed']),producedCount:z.number().int().min(0).max(4),
- operationId:id.nullable(),results:z.array(resultSchema).max(4),failedRequestIds:z.array(id).max(64),selectedIndex:z.number().int().min(1).max(4).nullable(),selectedAssetId:id.nullable().optional()
+ operationId:id.nullable(),results:z.array(resultSchema).max(4),failedRequestIds:z.array(id).max(64),selectedIndex:z.number().int().min(1).max(4).nullable(),selectedAssetId:id.nullable().optional(),avatarAssetSpecVersion:z.literal('full-body.v1').optional()
 });
 type Manifest=z.infer<typeof manifestSchema>;
 const prefix=(auth:Auth)=>`private/${auth.accountId}/avatar/temp/`;
@@ -56,10 +59,13 @@ const dto=(state:Manifest,index:number)=>({attemptId:state.attemptId,index,produ
 
 /** 只修復已提交的採用receipt；不新增正式圖、不變更profile、不呼叫provider。 */
 async function closeCommittedAdoption(env:PlatformEnv,auth:Auth,current:{state:Manifest;etag:string},now:number){
- if(current.state.status!=='adopting')return;
+ if(!['adopting','closed'].includes(current.state.status))return;
  const asset=current.state.selectedAssetId??current.state.attemptId;
  const saved=await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar' AND status='ready'").bind(asset,auth.accountId).first();
  if(!saved)return;
+ const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,now);
+ if(progress?.assetId===asset)await completeAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId);
+ if(current.state.status==='closed')return;
  current.state.status='closed';
  try{current.etag=await cas(env,auth,current.state,current.etag);}catch(error){
   const actual=await load(env,auth,current.state.attemptId,now);
@@ -70,6 +76,51 @@ async function closeCommittedAdoption(env:PlatformEnv,auth:Auth,current:{state:M
 /** 只有 Container 的固定內部命令能取得 lease；公開 API 永不回傳 ETag 或 source key。 */
 export async function avatarCommand(command:string,payload:unknown,env:PlatformEnv,now:number):Promise<unknown>{
  const started=Date.now(),currentTime=()=>now+Math.max(0,Date.now()-started);
+ if(command.startsWith('avatar.attempt.expression.')){
+  const action=command.slice('avatar.attempt.expression.'.length);
+  if(action==='begin'){
+   const input=authSchema.extend({attemptId:id,index:z.number().int().min(1).max(4),proposedAssetId:id,clientRequestId:id,expectedRevision:z.number().int().positive(),generatorModel:z.string().min(1).max(128),promptVersion:z.string().min(1).max(128)}).parse(payload);
+   const auth=authSchema.parse(Object.fromEntries(Object.keys(authSchema.shape).map(k=>[k,(input as Record<string,unknown>)[k]])));
+   await authorize(env,auth,currentTime());const current=await load(env,auth,input.attemptId,currentTime());await ensureRoundSources(env,auth,current);
+   if(current.state.avatarAssetSpecVersion!=='full-body.v1')throw new AvatarError('AVATAR_FULL_BODY_REQUIRED');
+   if(!['open','uncertain'].includes(current.state.status))throw new AvatarError('AVATAR_ATTEMPT_CLOSED');
+   const result=current.state.results.find(r=>r.index===input.index);if(!result)throw new AvatarError('AVATAR_CANDIDATE_NOT_FOUND',404);
+   const row=(await executeCommand(env.DB,'profile.read',auth,currentTime())).rows[0] as {revision:number}|undefined;
+   if(row?.revision!==input.expectedRevision)throw new AvatarError('PROFILE_VERSION_CONFLICT');
+   const progress=await beginAvatarAdoption(env.FILES,{ownerAccountId:auth.accountId,assetId:input.proposedAssetId,attemptId:input.attemptId,index:input.index,requestId:input.clientRequestId,expectedRevision:input.expectedRevision,sourceImageSha256:result.digest,expiresAt:current.state.expiresAt,generatorModel:input.generatorModel,promptVersion:input.promptVersion},currentTime());
+   await authorize(env,auth,currentTime());return progress;
+  }
+  const input=authSchema.extend({clientRequestId:id.optional(),workflowId:id.optional(),expression:z.enum(expressionIds).optional(),lease:z.string().max(128).optional(),uncertain:z.boolean().optional(),retryUncertain:z.boolean().optional()}).parse(payload);
+  const auth=authSchema.parse(Object.fromEntries(Object.keys(authSchema.shape).map(k=>[k,(input as Record<string,unknown>)[k]])));
+  await authorize(env,auth,currentTime());
+  if(action==='status'){if(Object.keys(input).length!==4)throw new AvatarError('INVALID_REQUEST',400);return {adoption:await avatarAdoptionStatus(env.FILES,auth.accountId,currentTime())};}
+  if(!input.workflowId)throw new AvatarError('INVALID_REQUEST',400);
+  if(action==='cancel'){
+   const build=await avatarAdoptionContext(env.FILES,auth.accountId,input.workflowId);
+   if(build.inFlight&&build.inFlight.until>currentTime())throw new AvatarError('AVATAR_ADOPTION_IN_PROGRESS');
+   const selected=async()=>((await executeCommand(env.DB,'profile.read',auth,currentTime())).rows[0] as {selected_avatar_ref:string}|undefined)?.selected_avatar_ref===build.assetId;
+   if(await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
+   // 真 D1 revision fence 排在 R2 取消之前；晚到的舊採用不能穿過已確認取消。
+   await executeCommand(env.DB,'profile.avatar.cancel-build',{...auth,expectedRevision:build.expectedRevision},currentTime());
+   if(await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
+   const result=await cancelAvatarAdoption(env.FILES,auth.accountId,input.workflowId,currentTime());
+   const attempt=await load(env,auth,build.attemptId,currentTime()).catch(()=>null);
+   if(attempt?.state.status==='adopting'){attempt.state.status='open';attempt.state.selectedIndex=null;attempt.state.selectedAssetId=null;await cas(env,auth,attempt.state,attempt.etag);}
+   await authorize(env,auth,currentTime());return result;
+  }
+  if(action==='next'){
+   if(!input.expression||!input.clientRequestId)throw new AvatarError('INVALID_REQUEST',400);
+   const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,currentTime());if(!progress||progress.clientRequestId!==input.workflowId)throw new AvatarError('AVATAR_ADOPTION_NOT_FOUND',404);
+   const source=await load(env,auth,progress.attemptId,currentTime());await ensureRoundSources(env,auth,source);
+   const result=await acquireAvatarExpression(env.FILES,auth.accountId,input.workflowId,input.expression,input.clientRequestId,currentTime(),input.retryUncertain??false);
+   await authorize(env,auth,currentTime());return result;
+  }
+  if(action==='fail'){
+   if(!input.clientRequestId||!input.lease||input.uncertain===undefined)throw new AvatarError('INVALID_REQUEST',400);
+   return await failAvatarExpression(env.FILES,auth.accountId,input.workflowId,input.clientRequestId,input.lease,input.uncertain);
+  }
+  throw new AvatarError('INVALID_REQUEST',400);
+ }
  if(command==='avatar.attempt.status'){
   const auth=authSchema.parse(payload);await authorize(env,auth,now);
   const pointer=await env.FILES.get(prefix(auth)+'active');if(!pointer)return {attempt:null};
@@ -82,6 +133,7 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
  if(command==='avatar.attempt.begin'){
   const input=beginSchema.parse(payload);const auth=authSchema.parse(Object.fromEntries(Object.keys(authSchema.shape).map(k=>[k,(input as Record<string,unknown>)[k]])));
   await authorize(env,auth,now);
+  await assertAvatarSelectionUnlocked(env.FILES,auth.accountId,now);
   let attempt=input.attemptId;
   if(!attempt){
    const activeKey=prefix(auth)+'active';let active=await env.FILES.get(activeKey);
@@ -112,7 +164,7 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
     });
     if(!pointer)throw new AvatarError('AVATAR_GENERATION_IN_PROGRESS');
     const state:Manifest={attemptId:attempt,styleId:input.styleId,expiresAt:now+3600000,
-    sourceAssetIds:photos.map(p=>id.parse((p as {asset_id:string}).asset_id)),status:'open',producedCount:0,operationId:null,results:[],failedRequestIds:[],selectedIndex:null,selectedAssetId:null};
+    sourceAssetIds:photos.map(p=>id.parse((p as {asset_id:string}).asset_id)),status:'open',producedCount:0,operationId:null,results:[],failedRequestIds:[],selectedIndex:null,selectedAssetId:null,avatarAssetSpecVersion:'full-body.v1'};
     const created=await env.FILES.put(manifestKey(auth,attempt),JSON.stringify(state),{onlyIf:{etagDoesNotMatch:'*'},httpMetadata:{contentType:'application/json'},customMetadata:{expiresAt:String(state.expiresAt)}});
     if(!created)throw new AvatarError('AVATAR_GENERATION_IN_PROGRESS');
    }
@@ -164,6 +216,11 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
   if(state.status==='generating'||state.status==='adopting'&&state.selectedIndex!==input.index)
    throw new AvatarError('AVATAR_GENERATION_IN_PROGRESS');
   if(input.index>state.producedCount)throw new AvatarError('AVATAR_CANDIDATE_NOT_FOUND',404);
+  const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,currentTime());
+  if(!progress||progress.attemptId!==input.attemptId||progress.index!==input.index)throw new AvatarError('AVATAR_PACK_NOT_READY');
+  const ready=await readyAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId,currentTime());
+  if(ready.state.expectedRevision!==input.expectedRevision||ready.state.sourceImageSha256!==state.results.find(r=>r.index===input.index)?.digest)throw new AvatarError('PROFILE_VERSION_CONFLICT');
+  input.proposedAssetId=ready.state.assetId;
   await ensureRoundSources(env,auth,current);
   if(state.status!=='adopting'){
    state.status='adopting';state.selectedIndex=input.index;state.selectedAssetId=input.proposedAssetId;
@@ -204,22 +261,19 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
     const actual=await load(env,auth,input.attemptId,now);
     if(actual.state.status!=='closed'||actual.state.selectedIndex!==input.index)throw error;
    }
+   await completeAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId);
    return {revision:selected.revision,assetId};
   }catch(error){
-   // D1 提交回覆不明時先讀正式資產；不可刪掉已提交、仍被使用的化身。
-   // 先以D1原子pending→deleted封住尚未提交的並行者；ready不受補償影響。
-   await executeCommand(env.DB,'profile.avatar.cancel-adoption',{...auth,assetId},currentTime());
+   // B1 asset ID／ready 套組不可變。失敗時保留不可公開的 pending 與同一來源，
+   // 避免失敗者刪掉並行提交者的 bytes；只有 D1 原子採用能使它對外可讀。
    const saved=await env.DB.prepare("SELECT status FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar'").bind(assetId,auth.accountId).first<{status:string}>();
-   if(saved?.status==='deleted'){
-    await env.FILES.delete(key);state.status='open';state.selectedIndex=null;state.selectedAssetId=null;
-    await cas(env,auth,state,current.etag).catch(()=>{});
-   }else if(saved?.status==='ready'){
+   if(saved?.status==='ready'){
     // 提交回覆／manifest關閉回覆遺失：只讀已提交圖，不能刪除或重複寫入。
     const latest=await load(env,auth,input.attemptId,currentTime());
     if((latest.state.selectedAssetId??input.attemptId)===assetId&&latest.state.selectedIndex===input.index){
      latest.state.status='closed';
      await cas(env,auth,latest.state,latest.etag).catch(()=>{});
-     const row=await profile();if(row?.selected_avatar_ref===assetId)return {revision:row.revision,assetId};
+     const row=await profile();if(row?.selected_avatar_ref===assetId){await completeAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId);return {revision:row.revision,assetId};}
     }
    }
    throw error;
@@ -285,4 +339,23 @@ export async function avatarMedia(request:Request,env:PlatformEnv,now:number):Pr
   throw error;
  }
  return Response.json(dto(state,index),{headers:{'Cache-Control':'no-store'}});
+}
+
+/** 只有 Container 內部可存表情；有效 Session／候選來源在讀 binary 前後重驗。 */
+export async function avatarExpressionMedia(request:Request,env:PlatformEnv,now:number):Promise<Response>{
+ const started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),url=new URL(request.url),parts=url.pathname.split('/');
+ if(request.method!=='PUT'||url.search||parts.length!==6||request.headers.get('Content-Type')!=='image/webp')throw new AvatarError('INVALID_REQUEST',400);
+ const workflow=id.parse(parts[4]),expression=z.enum(expressionIds).parse(parts[5]);
+ const auth=authSchema.parse({accountId:request.headers.get('X-DatingHigh-Media-Account-Id'),sessionId:request.headers.get('X-DatingHigh-Media-Session-Id'),cv:Number(request.headers.get('X-DatingHigh-Media-Cv')),accessExpiresAt:Number(request.headers.get('X-DatingHigh-Media-Expires-At'))});
+ const requestId=id.parse(request.headers.get('X-DatingHigh-Avatar-Request-Id')),lease=request.headers.get('If-Match');if(!lease)throw new AvatarError('INVALID_REQUEST',400);
+ await authorize(env,auth,time());const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,time());
+ if(!progress||progress.clientRequestId!==workflow)throw new AvatarError('AVATAR_ADOPTION_NOT_FOUND',404);
+ const source=await load(env,auth,progress.attemptId,time());await ensureRoundSources(env,auth,source);
+ const reader=request.body?.getReader();if(!reader)throw new AvatarError('INVALID_IMAGE',400);const chunks:Uint8Array[]=[];let length=0;
+ try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>2000000){await reader.cancel();throw new AvatarError('IMAGE_TOO_LARGE',413);}chunks.push(value);}}finally{reader.releaseLock();}
+ const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
+ let dimensions;try{dimensions=transparentWebpDimensions(bytes);}catch{throw new AvatarError('INVALID_IMAGE',400);}
+ await authorize(env,auth,time());await ensureRoundSources(env,auth,source);
+ const result=await publishAvatarExpression(env.FILES,auth.accountId,workflow,expression,requestId,lease,bytes,dimensions,time());
+ await authorize(env,auth,time());return Response.json(result,{headers:{'Cache-Control':'no-store'}});
 }

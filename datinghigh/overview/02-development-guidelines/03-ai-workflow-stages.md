@@ -1,23 +1,8 @@
 # AI 工作階段與交付
 
-## MatchingSessions 驗證入口（2026-11-06）
-
-手動測試可用`npm run game:list:local`及`npm run game:end:local -- --round-id UUID`結束指定本地房間。CLI測試使用`node --test tests/integration/local-game-maintenance.test.mjs`；參與者數不符或零列更新／釋放必須真D1整批回滾。它保留永久pair歷史，不代替Story的MS-ET-017。探索卡婉拒追加驗證可設Android `DATINGHIGH_MATCHING_NATIVE_GROUP=card`，其XML仍只留RAM。
-
-`npm --prefix cloudflare test -- matching-sessions-d1.integration.test.ts` 驗真 SQL／R2／故障注入；`dotnet test backend/tests/DatingHigh.Api.Tests/DatingHigh.Api.Tests.csproj --filter FullyQualifiedName~Matching` 驗 HTTP 及真 D1 串接；`npm --prefix frontend/client test -- matching-sessions.test.tsx` 驗共用 UI。完整模組回歸仍使用下方既有命令。
-
-Web 先 export 與 build:e2e-host，再 `npx playwright test --config tests/playwright.config.ts matching-sessions.spec.ts`；本套使用獨立真 Application／Miniflare D1，與 `node --test tests/integration/matching-sessions-live.test.mjs` 的實際 Worker／Container 證據分開。Android 先建 E2E host，明確指定本專案 QA device／ADB port，再執行 `node tests/e2e/android/matching-sessions.mjs`；會建立自有8084 Metro與獨立測試 host，結束時自行收掉。可設 `DATINGHIGH_MATCHING_NATIVE_GROUP=basic`、`extended`、`routing` 分組依序跑，每組完整建立／清理自有host；default為all。一般8082 Metro不受影響。受控到期／斷線不可當成72小時真人等待或雲端證據；產品退出的完整 E2E 仍由後續 Story SPEC 承接。
-
-逐項追溯以 `node tools/audit-matching-traceability.mjs` 檢查，不代替測試執行；`--write`依已明列覆核結果重建JSON／勾選，需三組Android證據。最新命令結果與MS-ET-017後續Story界線見MatchingSessions Verification。
-
-## 2026-11-05 修訂驗證原則
-
-兩表27欄及0003、性別／性向／分享白名單用真Miniflare D1證明升級與原子性；HTTP fixture仍僅證HTTP。獨立名片頁每次重讀已過濾資料，UI測關閉照片無請求、預覽前儲存失敗不導頁、下拉與返回捨棄確認。2026-11-04原Android／Web結案不擴推本次追加修訂；依同日Verification逐平台記錄。記憶體壓力下依序跑模組，逾時／ECONNRESET不可記通過。
-
-
 ## 任務入口
 
-先依 [AGENTS.md](../../AGENTS.md) 讀現況與目標規格，檢查工作樹，保留既有使用者改動。判斷任務為文件同步、既有功能修正，或新需求的規劃／開發。現有 PlatformFoundation 不能作其他七份 SPEC 已確認或已完成的證據。
+先依 [AGENTS.md](../../AGENTS.md) 讀現況與目標規格，檢查工作樹，保留既有使用者改動。判斷任務為文件同步、既有功能修正，或新需求的規劃／開發。不同需求的確認與完成證據不可相互代簽。
 
 工作區提供 [perfect-plan](../../../.agents/skills/perfect-plan/SKILL.md) 與 [well-done](../../../.agents/skills/well-done/SKILL.md)。完整需求鏈採 `perfect-plan -> well-done`：前者整理已確認 MVP／SPEC／BDD／TDD 與風險稽核交接，後者承接測試先行、UX、深度稽核與缺漏修復。依使用者任務及 skill 規則執行；只做 initial-overview 時不啟動這兩個流程。
 
@@ -26,7 +11,7 @@ Web 先 export 與 build:e2e-host，再 `npx playwright test --config tests/play
 1. 明確列出觸發條件、預期行為、規格來源與必要平台／環境；先讀現行 implementation／test，避免以歷史規劃段落代替現況。
 2. 認證／資料變更先以有意義的失敗測試重現，再跨必要層實作與重構；SQL 依真 Miniflare D1 證據判定。
 3. 執行相應回歸；跨層認證改動使用基礎整體檢查及必要 live／UI 測試。原生 plugin 變更需重建／安裝 APK。
-4. 同步受影響的契約、overview 與驗收追溯。平台／真服務缺項繼續列出，不以可執行程式或局部測試替代。
+4. 同步受影響的契約與 overview，直接整合成現行說明；AGENTS.md、README.md、overview 等非需求文件禁止按日期／需求追加流水帳。進度、測試結果、人工確認、故障經過與未完事項只更新既有需求驗證文件。
 5. 檢查 diff、敏感資料與下列影響矩陣後交付。若 overview 無影響，必須說明原因。
 
 ## 驗證命令與前提
@@ -54,17 +39,17 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 
 ## 目前重跑限制
 
-2026-11-01 文件盤點以靜態讀檔確認：`tests/e2e/android/fixture.mjs`、`faults.test.mjs` 與多個矩陣／真 Google 腳本仍引用搬移前的 `../../../scripts/local-policy.mjs`、`scripts/local.mjs` 或 `apps/client/`；這些應用／工具已移至 `frontend/client/`、`tools/`。受影響命令雖列在 package.json，不能當作目前可直接重跑；需先在後續程式修正任務處理路徑並驗證。
+部分 Android 矩陣與真 Google 腳本仍引用 `scripts/local-policy.mjs`、`scripts/local.mjs` 或 `apps/client/`；實際位置為 `tools/`、`frontend/client/`。執行前逐份檢查 import、Metro cwd 與 APK 路徑，不以 package.json 有命令視為可重跑。
 
-`smoke.mjs` 的 UI 流程後也仍從舊 `apps/client/android/...` 讀 APK hash，因此 `test:android` 即使完成前段操作，最後仍有失敗風險。本次 initial-overview 只記錄現況，不修改程式或重跑裝置測試。[命名重構紀錄](../../docs/verification/DirectoryNamingRefactor.md) 本來也明載該輪未重跑 Android；較早通過證據繼續保留，不能推論搬移後已通過。
+`faults.test.mjs` 與多個 account／forms／identity／pending／recovery／retry 矩陣含舊路徑；`real-google-support.mjs`／`real-identity.test.mjs` 的設定檔與 wrapper 路徑亦須檢查。`smoke.mjs` 從舊 APK 路徑讀 hash；測試入口可啟動不代表整輪能完成。路徑調整須在對應程式修正任務驗證，不能沿用舊平台證據。
 
 ## 驗收與證據
 
 `docs/verification/foundation-evidence.json` 記平台／環境證據；`foundation-case-review.json` 為人工案例覆核，`foundation-traceability.json` 與 DeepAudit 提供完整追溯。不要只因函式名稱含 PF ID 就改成 passed。
 
-既有 D-033／D-035 暫緩 iOS／staging，無障礙專項已依2026-11-04 D-051排除整個目前MVP，iOS依D-052暫緩；歷史未驗不記為通過。評估器的 `accepted`／`missing` 是完整原規劃，`scopedAccepted`／`scopedMissing` 是明確決策下的本地範圍。真 Google 本地 Web／Android 已有證據，仍不能代替 iOS／staging；真收信與雲端內部行為各自保留缺項。
+依 D-051，無障礙專項不納入目前 MVP；依 D-052，iOS 暫緩。評估器的 `accepted`／`missing` 代表完整原規劃，`scopedAccepted`／`scopedMissing` 代表明確決策下的驗收範圍。本地或受控證據不替代其他平台、真服務或雲端證據。
 
-目前狀態以 [驗證紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)、[本地矩陣](../../docs/verification/PlatformFoundation-LocalMatrix.md) 與 [深度稽核](../../docs/verification/SPEC-001-PlatformFoundation-DeepAudit.md) 為準，overview 不另維護易過期的測試數字。
+目前狀態以 [驗證紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)、[本地矩陣](../../docs/verification/PlatformFoundation-LocalMatrix.md) 與 [深度稽核](../../docs/verification/SPEC-001-PlatformFoundation-DeepAudit.md) 為準，overview 只維護現行原則、結構、契約與操作，不記需求進度或工作流水帳。
 
 ## Overview 同步矩陣
 
@@ -86,25 +71,29 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 
 說明最終行為、修改位置及原因，列出實際執行命令／結果／平台／環境與必要前提；沒執行或不具證據的項目明確保留。補充 overview 更新處或無影響原因、剩餘風險與下一個真正需要外部條件的缺項。只改文件時明確說明只修改 Markdown。
 
-## AvatarAndPreferences增補驗證
 
-真媒體整合為 `backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs` 及Worker四個AP測試檔；Web基本流程與明確opt-in真Gemini流程在 `tests/e2e/web/avatar-*.spec.ts`。default local二進位／Cookie／Bearer界線可用 `node --test tests/integration/avatar-http-live.test.mjs`，只傳虛構圖片、不呼叫Gemini。原生新腳本 `tests/e2e/android/avatar-preferences.mjs` 使用support與真local平台，不依賴上述舊fixture路徑；需目前含picker的新APK、8082 Metro與明確指定本專案QA device／ADB port。基本腳本以外的照片上傳／排序／刪除由 `avatar-photos.mjs` 使用專用QA相簿內虛構插畫驗證；`avatar-gemini-live.mjs` 需DATINGHIGH_GEMINI_LIVE=1及兩張已授權來源環境路徑，來源只經本人binary API讀入RAM，不複製至模擬器／證據。候選數預設1；明確設定DATINGHIGH_NATIVE_CANDIDATES=4才走四張真生成／完整frame／回選第2張。僅整輪及最後清理通過才產生匿名摘要；單張／四張證據分開，TalkBack等無障礙專項不在目前範圍。
+## 模組驗證方式
 
-真Gemini／原生操作期間也不能修改觸發hot reload的Worker／backend／frontend程式。原始碼、export及wrapper restart先完成並等ready，再依序測；測試中的503不能憑推測歸咎供應商，需凍結環境重現。匿名完整ID追溯由 `node tools/audit-avatar-traceability.mjs` 依人工覆核map重建，不能把275個規劃名稱當275個已通過測試。
+### 化身與個資
 
-追溯同時保留73個BDD完整斷言及每項證據；業務SQL／Application場景與13項完整三平台UX分開核對。GC多頁壓力驗證使用隔離Miniflare與可控IO耗時，核對多次有限預算的持續前進及有效物件保留；不將它擴推成雲端長期排程負載證據。
+- 真媒體整合入口為 `backend/tests/DatingHigh.Integration.Tests/PersonalMediaIntegrationTests.cs` 與 Worker 媒體測試。`node --test tests/integration/avatar-http-live.test.mjs` 驗 default local binary／Cookie／Bearer，使用虛構圖，不呼叫 Gemini。
+- Web 使用 `tests/e2e/web/avatar-*.spec.ts`。原生資料、照片與選角使用 `avatar-preferences.mjs`、`avatar-photos.mjs`、`avatar-managed.mjs`、`avatar-privacy.mjs`、`profile-card-settings.mjs`；須安裝含 picker 的 development APK、啟動8082 Metro與指定專用QA裝置／ADB port。
+- 真 Gemini 使用明確 opt-in 的 `avatar-gemini-live.mjs`／Web spec，以及已授權來源路徑；來源只讀入 RAM，不保存到裝置或證據。候選預設一張，四張測試須明確設定。測試期間凍結來源碼、匯出與平台重啟，先等 ready 再操作。
+- `avatar-controlled.mjs` 使用隔離 E2eHost 與8084 Metro；`avatar-full-body.mjs` 使用明確QA31／ADB5038與已確認圖像回放目錄。受控回應與回放不能作為真 provider 品質證據。
+- 表情迴圈核對 focus／AppState、背景停止續送與採用、前景只讀復原、本人明確繼續及未知成本不自動重送。候選與 next POST 的 client deadline 為110秒，provider90秒、HTTP100秒；到期時關閉確認窗，提交仍重驗 serverNow。
+- 套組檢查使用 `node --test tools/tests/builtin-avatar-assets.test.mjs`；正式目錄更新後執行 `node tools/generate-builtin-avatar-assets.mjs`，核對80張成品SHA、avatarVersion與16個neutral匯入。素材只存一份public來源，未使用的原畫、製作紀錄與副本不留存；人工核准結果記在需求驗證文件。
+- 名片測試涵蓋關閉照片無讀取、預覽先儲存、載入失敗不導覽、返回保護草稿及變更後清除舊投影；schema／SQL 原子性使用真 D1。
 
-Web可選狀態須確認實際DOM的aria-pressed／aria-checked，不能只檢查React Native的accessibilityState prop；原生核對一般操作與選用結果；TalkBack／VoiceOver依D-051不列實作或驗收工作。Android UI XML只在記憶體處理；Escape收合API36 predictive-back未收合的測試鍵盤，啟動前確認專用DatingHighQA／DatingHighQA31及明確device。API36的System UI ANR／UiAutomation.connect timeout不能當成App功能通過，API31結果也不能擴推API36。
+### 配對與劇情
 
-原生靜態圖片須用實際frame驗3:4：React Native Image先套用bundled source的intrinsic height，只寫width及aspectRatio仍會留下過長卡片；本畫面明確清除height後，原生基本腳本實測比例。UiAutomator的十進位／十六進位emoji entity需單次解碼，不能把鎖頭按鈕定位失敗當provider故障。本人名片預覽在成功資料變更／重新讀取後清除舊投影，避免已刪照片或舊職業仍留在畫面。
+- 配對 SQL／R2 使用 `npm --prefix cloudflare test -- matching-sessions-d1.integration.test.ts`；API 使用 dotnet 的 Matching filter；共用 UI 使用 `matching-sessions.test.tsx`。
+- Web 先 export、build:e2e-host，再跑 `matching-sessions.spec.ts`；原生 `matching-sessions.mjs` 使用專用裝置／ADB port、自有8084 Metro，可依 basic／extended／routing／card 分組。它們不與同裝置或同 port 的測試並行。
+- `npm run game:list:local`／`npm run game:end:local -- --round-id UUID` 只供本地維運；`tests/integration/local-game-maintenance.test.mjs` 驗 CLI 與 D1 rollback，不替代產品退出 UX。
+- `npm run test:story:web` 前先 export Web／build E2eHost；`npm run test:story:android` 指定QA裝置與ADB port，單程序獨占UiAutomator，透過SDK launch參數關閉開發浮動按鈕。`npm run test:story:live` 需真local平台ready。
+- 劇情 fixture 可驗多個完整內容的選場引擎，不當作額外正式故事。技術回放不替代本人 Gate B，Gate B 確認前不得擴充其餘九場。
 
-候選到期同時關閉已開啟的採用確認窗；實際按確認仍重驗api.serverNow，不能只依賴背景可能延遲的timer。Web `avatar-expiry-ui.spec.ts` 是明確的HTTP故障／候選讀取注入，不能作真Gemini或SQL證據；真帳號及虛構來源照清理須完整通過，Android對應行為已由`avatar-controlled.mjs`獨立實測：已開採用窗到期後不可提交；iOS依D-052暫緩。
+### UI 與追溯原則
 
-`tests/integration/avatar-controlled-host.test.mjs`驗真HTTP／Application／Miniflare D1／R2的供應商失敗與重播；`tests/e2e/android/avatar-controlled.mjs`使用隔離E2eHost及8084 Metro，僅供應商回應受控，不作真Gemini品質證據。已修正其共用fixture搬移前的tools／frontend路徑。不得與其他操作同一QA裝置／8084的測試並跑；新增相依後須先restore E2eHost再build，不能沿用過期assets。
+圖片需量實際3:4 frame，不能只驗 aspectRatio 宣告；Web height:auto、native height:undefined。UiAutomator XML 的 emoji entity 單次解碼，輸入須定位實際 EditText，捲動使其可見；裝置 ANR／連線 timeout 不得記產品通過。
 
-靜態圖片的Web分支以height:auto覆寫原始高度，Android保留height:undefined；兩平台均須量實際3:4框，不能只檢查aspectRatio宣告或載入成功。
-
-`avatar-managed.mjs`補原生超8MiB／可重選、照片配額回收、revision衝突與表單／重登；`avatar-privacy.mjs`以兩個真隔離帳號驗Native Bearer猜私人asset回404及原生畫面無他人照片入口。這些腳本只用專用QA裝置，不與其他UiAutomator讀取同時執行。替換表單既有文字時先定位實際EditText、移到末尾逐字刪除再輸入，不能點到同名標籤，也不能假設數字鍵盤支援Ctrl+A；捲動必須讓輸入框本身可見。
-
-
-2026-11-05 D-053：BDD／TDD開頭必列含追加需求的總進度；目前BDD範圍73/73、全部規劃73/81，原TDD 236/275與新8/8驗證組分開計算。追溯重建保留人工覆核的profileCardRevision與追加Markdown章節，不自動核准新組，也不得覆寫掉追加進度。原生新流程`tests/e2e/android/profile-card-settings.mjs`已用搬移後fixture在專用QA API31完整exit0；這不代表其餘舊路徑腳本均已重跑。平台重驗邊界以Verification為準。
+追溯工具 `audit-avatar-traceability.mjs`、`audit-matching-traceability.mjs`、`audit-story-traceability.mjs` 僅依人工覆核重建索引，不因測試名稱有 ID 就核准。追加需求的斷言與覆核紀錄須保留；規劃數、測試函式數、平台證據與完整驗收分開計算。GC 壓力測試的可控 I/O／Miniflare 結果不擴推成雲端長期負載證據。

@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';
-import {origin,password,container,api,register} from './local-fixture.mjs';
+import {origin,password,container,api,register,localDocker} from './local-fixture.mjs';
 // 真本機 Worker → Docker .NET → outbound binding → D1/R2；憑證只存記憶體。
 test('PF-IT-025 actual Worker rejects internal commands and spoofed identities while serving legal SPA routes',async()=>{
  for(const path of ['/internal/commands','/v1/commands/account.lookup-credentials','/api/v1/unknown']){const r=await fetch(`${origin}${path}`);assert.equal(r.status,404);assert.match(r.headers.get('Content-Type'),/json/);}
@@ -9,8 +9,8 @@ test('PF-IT-025 actual Worker rejects internal commands and spoofed identities w
 test('PF-IT-024 PF-IT-032 native contract, private ownership and .NET storage probe use actual outbound bridge',async()=>{
  assert.equal((await fetch(`${origin}/health/ready`)).status,200);const a=await register('a'),b=await register('b');
  assert.equal(a.tokens.tokenType,'Bearer');assert.ok(a.tokens.accessToken);assert.ok(a.tokens.refreshToken);assert.equal((await api('/me','GET',undefined,a.tokens.accessToken)).body.accountId,a.account.accountId);
- const probe=execFileSync('docker',['exec',container(),'dotnet','/app/tools/DatingHigh.PlatformProbe.dll','probe'],{encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']});assert.equal(JSON.parse(probe).status,'passed');
- const owned=execFileSync('docker',['exec','-i',container(),'dotnet','/app/tools/DatingHigh.PlatformProbe.dll','private-test'],{input:JSON.stringify({accessTokenA:a.tokens.accessToken,accessTokenB:b.tokens.accessToken}),encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']});assert.equal(JSON.parse(owned).status,'passed');
+ const probe=localDocker(['exec',container(),'dotnet','/app/tools/DatingHigh.PlatformProbe.dll','probe'],{encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']});assert.equal(JSON.parse(probe).status,'passed');
+ const owned=localDocker(['exec','-i',container(),'dotnet','/app/tools/DatingHigh.PlatformProbe.dll','private-test'],{input:JSON.stringify({accessTokenA:a.tokens.accessToken,accessTokenB:b.tokens.accessToken}),encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']});assert.equal(JSON.parse(owned).status,'passed');
  for(const x of [a,b])assert.equal((await api('/session','DELETE',{refreshToken:x.tokens.refreshToken},x.tokens.accessToken)).status,204);
 });
 test('PF-IT-011 PF-IT-012 PF-API-016 PF-API-017 refresh grace, older conflict, replay and replaced-device logout preserve latest family',async()=>{

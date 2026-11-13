@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 
 namespace DatingHigh.Domain;
 
@@ -115,11 +116,21 @@ public static class DatingProfileRules
 /// <summary>固定內建角色 ID 目錄；資產檔案是否具備仍需另行實體驗證。</summary>
 public static class BuiltinAvatarCatalog
 {
+    public const string Version = "full-body.v1";
     private static readonly IReadOnlyList<string> Catalog = Array.AsReadOnly(
         new[] { "male", "female" }
             .SelectMany(prefix => Enumerable.Range(1, 8).Select(i => $"{prefix}-{i:00}"))
             .ToArray());
 
+    private static readonly IReadOnlyDictionary<string,string> NeutralPaths = LoadNeutralPaths();
+    private static IReadOnlyDictionary<string,string> LoadNeutralPaths()
+    {
+        using var stream=typeof(BuiltinAvatarCatalog).Assembly.GetManifestResourceStream("DatingHigh.builtin-avatar-packs.json")!;
+        using var document=JsonDocument.Parse(stream);
+        var packs=document.RootElement.GetProperty("packs");
+        return Catalog.ToDictionary(id=>id,id=>packs.GetProperty(id).GetProperty("expressions").GetProperty("neutral").GetProperty("url").GetString()!,StringComparer.Ordinal);
+    }
+    public static string AssetPath(string id) => NeutralPaths[id];
     public static IReadOnlyList<string> Ids => Catalog;
 
     /// <summary>以精確、大小寫敏感的目錄代碼檢查引用。</summary>

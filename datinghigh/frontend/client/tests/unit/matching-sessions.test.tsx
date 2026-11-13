@@ -11,6 +11,8 @@ vi.mock('expo-crypto',()=>({getRandomValues:(bytes:Uint8Array<ArrayBuffer>)=>cry
 vi.mock('../../src/session',()=>({useSession:()=>({ready:true}),api:{get account(){return state.account;},sessionId:'session',request:state.request,serverNow:Date.now()}}));
 vi.mock('../../src/pending-back-guard',()=>({usePendingBackGuard:()=>{}}));
 vi.mock('../../src/avatar-assets',()=>({avatarAssets:{}}));
+vi.mock('../../src/StoryAudio',()=>({StoryAudio:()=>null}));
+vi.mock('../../src/RealtimeRoomClient',()=>({RealtimeRoomClient:class{constructor(_h:unknown,_r:string,private c:any){}start(){this.c.status('connected');}stop(){}synchronize(){return this.c.sync();}presence(){}}}));
 import {MatchingScreen,MatchingStartScreen,GameRoundScreen} from '../../src/MatchingScreen';
 const persona={nickname:'星河旅人',bio:'喜歡咖啡',traitTagIds:['warm'],interestTagIds:['coffee'],selectedAvatarType:'builtin',selectedAvatarRef:'male-01'};
 let invites:any;
@@ -70,11 +72,9 @@ it('MS-UT-044 an uncertain mutation disables further writes until readback',asyn
  expect(screen.getByLabelText('想認識').getAttribute('aria-disabled')).toBe('true');
  expect(state.request.mock.calls.filter(([p,m])=>p==='/match-invitations'&&m==='POST')).toHaveLength(1);
 });
-it('MS-UT-040/047 room shows persisted round and safe persona without fake messages',async()=>{
- state.request.mockResolvedValue({roundId:'round',status:'active',persona});render(<GameRoundScreen/>);
- await screen.findByText('專屬雙人房間');await screen.findByText('星河旅人');await screen.findByText('房間編號：round');
- await screen.findByText('遊戲進行中，結束後才能重新配對');
- expect(screen.queryByText('傳送訊息')).toBeNull();
+it('MS-UT-040/047 room delegates to persisted Story experience and real persona',async()=>{
+ state.request.mockImplementation(async(path:string)=>{if(path.endsWith('/partner-avatar'))throw new ApiFailure('AVATAR_PACK_NOT_READY',409);return path.endsWith('/experience')?{roundId:'round',phase:'playing',episodeSeq:1,eventSeq:1,title:'雨聲書店',currentNode:{id:'entry',title:'雨聲落在書頁上',lines:[{speaker:'旁白',text:'真正故事'}],choices:[],objects:[]},objects:[],assets:[],suggestions:[]}:path.endsWith('/events/query')?{events:[],cursor:1,hasMore:false}:path==='/me/dating-profile'?{nickname:'本人',selectedAvatarType:'builtin',selectedAvatarRef:'male-01'}:{roundId:'round',status:'active',persona};});render(<GameRoundScreen/>);
+ await screen.findByText('雨聲書店');await screen.findByText('星河旅人');await screen.findByText('房間編號：round');expect(screen.queryByText('夏樹')).toBeNull();
 });
 it('a room that became unavailable returns through the verified matching router instead of trapping the player',async()=>{
  state.request.mockRejectedValue(new ApiFailure('RESOURCE_FORBIDDEN',403));render(<GameRoundScreen/>);
@@ -82,7 +82,7 @@ it('a room that became unavailable returns through the verified matching router 
 });
 it('an unavailable room dependency keeps retry feedback without assuming the game ended',async()=>{
  state.request.mockRejectedValue(new ApiFailure('DEPENDENCY_UNAVAILABLE',503));render(<GameRoundScreen/>);
- await screen.findByText('目前無法確認配對狀態，請重試');expect(state.router.replace).not.toHaveBeenCalled();
+ await screen.findByText('目前無法確認狀態，請重新同步。');expect(state.router.replace).not.toHaveBeenCalled();
 });
 it('returning from another screen clears the previous candidate while current eligibility is rechecked',async()=>{
  const view=render(<MatchingScreen/>);await screen.findByText('星河旅人');

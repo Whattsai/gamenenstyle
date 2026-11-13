@@ -7,6 +7,55 @@ namespace DatingHigh.Unit.Tests.Infrastructure;
 
 public sealed class ImageCompressionTests
 {
+    [Fact]
+    public async Task Compress_LosslessSprite_DoesNotIntroduceColorBlocksAtTransparentEdges()
+    {
+        using var bitmap=new SKBitmap(600,800);bitmap.Erase(SKColors.Transparent);
+        for(var y=80;y<720;y++)for(var x=180;x<420;x++)bitmap.SetPixel(x,y,new SKColor((byte)(x*31%256),(byte)(y*17%256),(byte)((x+y)*13%256),(byte)(x<184?64+(x-180)*48:255)));
+        using var source=SKImage.FromBitmap(bitmap);using var png=source.Encode(SKEncodedImageFormat.Png,100);using var input=new MemoryStream(png.ToArray());
+        var result=await new ImageCompressionService().CompressAsync(input,2_000_000,new(PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800,LosslessWebp:true));
+        using var decoded=SKBitmap.Decode(result.Bytes.ToArray());
+        for(var y=100;y<700;y+=37)for(var x=180;x<185;x++){
+            var expected=bitmap.GetPixel(x,y);var actual=decoded.GetPixel(x,y);Assert.Equal(expected.Alpha,actual.Alpha);
+            // Skia premul往返的低alpha量化允許1個合成色階；不能新增有損色度區塊。
+            Assert.InRange(Math.Abs(expected.Red-actual.Red)*expected.Alpha/255d,0,1.1);Assert.InRange(Math.Abs(expected.Green-actual.Green)*expected.Alpha/255d,0,1.1);Assert.InRange(Math.Abs(expected.Blue-actual.Blue)*expected.Alpha/255d,0,1.1);
+        }
+    }
+    [Fact]
+    public async Task Compress_TransparentSprite_PreservesAlphaInWebpAndKeepsDimensions()
+    {
+        using var bitmap=new SKBitmap(600,800);
+        using(var canvas=new SKCanvas(bitmap)){
+            canvas.Clear(SKColors.Transparent);
+            using var paint=new SKPaint{Color=SKColors.Coral};canvas.DrawRect(150,40,300,720,paint);
+        }
+        using var image=SKImage.FromBitmap(bitmap);using var png=image.Encode(SKEncodedImageFormat.Png,100);
+        using var input=new MemoryStream(png.ToArray());
+        var result=await new ImageCompressionService().CompressAsync(input,200_000,new("image/png",PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800));
+        Assert.Equal("image/webp",result.MimeType);Assert.Equal(600,result.Width);Assert.Equal(800,result.Height);
+        using var decoded=SKBitmap.Decode(result.Bytes.ToArray());
+        Assert.Equal(0,decoded.GetPixel(0,0).Alpha);Assert.Equal(255,decoded.GetPixel(300,400).Alpha);
+        Assert.InRange(result.Bytes.Length,1,200_000);
+    }
+
+    [Fact]
+    public async Task Compress_TransparentSprite_ImpossibleBudgetRejectsInsteadOfShrinkingBelowFaceQualityFloor()
+    {
+        using var input=new MemoryStream(Picture(600,800));
+        var error=await Assert.ThrowsAsync<DomainException>(()=>new ImageCompressionService().CompressAsync(input,100,
+            new("image/png",PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800)));
+        Assert.Equal("COMPRESSED_IMAGE_TOO_LARGE",error.Code);
+    }
+
+    [Fact]
+    public async Task Compress_SpriteSmallerThanQualityFloor_RejectsWithoutUpscaling()
+    {
+        using var input=new MemoryStream(Picture(300,400));
+        var error=await Assert.ThrowsAsync<DomainException>(()=>new ImageCompressionService().CompressAsync(input,200_000,
+            new("image/png",PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800)));
+        Assert.Equal("IMAGE_RESOLUTION_TOO_LOW",error.Code);
+    }
+
     public static byte[] Picture(int width=480,int height=640,SKEncodedImageFormat format=SKEncodedImageFormat.Png)
     {
         using var bitmap=new SKBitmap(width,height);

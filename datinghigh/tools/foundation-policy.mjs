@@ -6,7 +6,9 @@ export function validateBuild({sdk,expo,wrangler,compatibilityDate,images,output
 }
 export function validateDeployment(config,target){
  if(!target||config.account_id!==target.accountId||config.name!==target.worker||config.vars.APP_ENV!==target.environment||config.vars.WEB_ORIGIN!==target.origin||!target.origin.startsWith('https://'))throw new Error('Deployment target mismatch');
- if(config.d1_databases.length!==1||config.d1_databases[0].binding!=='DB'||config.d1_databases[0].database_id!==target.d1||config.r2_buckets.length!==1||config.r2_buckets[0].binding!=='FILES'||config.r2_buckets[0].bucket_name!==target.r2)throw new Error('Binding mismatch');
+ const story=config.vars.EXPECTED_MIGRATION==='0005_story_dialogue_exit.sql',files=config.r2_buckets.find(b=>b.binding==='FILES'),content=config.r2_buckets.find(b=>b.binding==='STORY_CONTENT');
+ if(config.d1_databases.length!==1||config.d1_databases[0].binding!=='DB'||config.d1_databases[0].database_id!==target.d1||config.r2_buckets.length!==(story?2:1)||files?.bucket_name!==target.r2)throw new Error('Binding mismatch');
+ if(story&&(!target.storyR2||content?.bucket_name!==target.storyR2||content.bucket_name===files.bucket_name||!config.durable_objects?.bindings.some(b=>b.name==='GAME_ROOMS'&&b.class_name==='GameRoomSocket')||!config.assets?.run_worker_first.includes('/story-content/*')))throw new Error('Story binding mismatch');
  if(config.vars.EmailDeliveryMode!=='Cloudflare'||!config.send_email?.some(b=>b.name==='EMAIL')||!config.vars.EMAIL_FROM)throw new Error('Verified Cloudflare sender binding and EMAIL_FROM required');
  if(config.compatibility_date!=='2026-10-24'||config.containers.length!==1||config.containers[0].max_instances!==1)throw new Error('Incompatible platform configuration');return true;
 }

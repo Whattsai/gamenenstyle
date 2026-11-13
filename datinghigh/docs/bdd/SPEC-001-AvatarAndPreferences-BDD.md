@@ -1,6 +1,20 @@
 # SPEC-001-AvatarAndPreferences — BDD 場景規格
 
-## 需求總進度（2026-11-05）
+> **2026-11-12 實作續記**：Story well-done 已接入 B1／R2 ready／透明壓縮的局部增量；完整新素材、雙平台與清測資未驗收，新項仍不批量勾選。跨 SPEC 證據及未完項見 [Story 同日紀錄](../verification/SPEC-001-StoryDialogueAndExit-Verification.md#2026-11-12-開發續接紀錄未結案)。
+
+## 2026-11-12 最新全身角色 BDD 規劃進度（取代下方舊基線作為目前計算）
+
+| 範圍 | 已完整覆核／總場景 | 狀態 |
+|---|---:|---|
+| 原本 `AP-BDD-001～073` | **73/73** | 原 Web／Android、AI半身等歷史驗收結果保留，不代表新版全身已通過 |
+| **本次新增 `AP-BDD-074～097`** | **0/24** | 原畫只延伸下半身、AI首次全身、B1五表情、R2 Manifest、CLEAN-RESET，全部未實作／未驗收 |
+| **AvatarAndPreferences 本身 BDD** | **73/97（75.3%）** | 原場景73＋新場景24；新要求不得借用舊證據 |
+| 後續跨 SPEC 正向授權整合 | **0/8** | 歸屬 Matching／Story／Affection，與本次新增24場景是不同範圍 |
+| **全部規劃含後續整合** | **73/105（69.5%）** | 新場景24＋原跨SPEC延後8，均不列Passed |
+
+**新增規劃**：AP-AC-017／018／022／025／026 ↔ AP-BDD-074～097（24個唯一ID）↔ [新增120項TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)；每個新 Gherkin 場景有3 Unit＋1 Integration＋1 API／E2E。原 `AP-PC-001～008` 八組 D-053 驗證仍為獨立粒度，不與這 97個 BDD 場景重複加總。已確認 `D-049` 半身構圖由 2026-11-12 全身方案取代，原列 [x] 是歷史版證據，**不適用新 Gate B**。iOS與無障礙依 D-051／052 已明確排除本期，非「漏測卻算通過」。
+
+## 需求總進度（2026-11-05；歷史範圍）
 
 | 範圍 | 完整覆核／總數 | 完成率 | 說明 |
 |---|---:|---:|---|
@@ -1145,9 +1159,348 @@ Scenario: AP-BDD-073 確認採用視窗與未來重新生成費用提示
   And 採用後不能再新增候選、不產生金流／扣款；其他候選不永久保留
 ```
 
+## 2026-11-12 全身化身／B1／R2／CLEAN-RESET 新增 BDD（AP-BDD-074～097；24項全部未驗收）
+
+本段由 2026-11-12 用戶確認的 `AP-AC-017／018／022／025／026` 及跨 SPEC `SD-AC-021～030` 衍生；原AP-BDD-001～073、AP-PC-001～008歷史覆核維持不變，但舊半身構圖不是新視覺的通過證據。新增24場不可借用歷史真Gemini／Web／Android結果標成已通過。新體驗先開發，完成後才執行非正式環境受控CLEAN-RESET，再由零開始新全身驗收。
+
+### @critical @happy-path @frontend @AP-BDD-074
+
+- [ ] **Scenario: 免費16款原畫視覺保真與人工確認**（`AP-BDD-074`）
+  - **追溯**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody74`
+
+```gherkin
+Scenario: AP-BDD-074 免費16款原畫視覺保真與人工確認
+  Given 原有16款male-01～08及female-01～08已封存原圖與穩定ID
+  When 依後續使用者決策直接AI延伸全身，逐款與原畫視覺比對並逐批人工確認，不增加像素鎖回流程
+  Then 16款每一張均保留原圖hash與穩定ID，AI全身延伸後逐款比對角色身份、髮型／原衣裝／氣質與自然腿腳，並取得使用者確認
+  And 不得任意重設角色身份、原衣裝／髮型／氣質；任一未獲確認的失真不通過；不另加逐像素相等門檻
+```
+
+### @critical @happy-path @frontend @AP-BDD-075
+
+- [ ] **Scenario: 免費角色全身站姿及裁切安全**（`AP-BDD-075`）
+  - **追溯**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody75`
+
+```gherkin
+Scenario: AP-BDD-075 免費角色全身站姿及裁切安全
+  Given 免費16款已取得通過保真審查的3:4全身站姿master
+  When 將每款角色顯示在全身遠景與中近景並套用原有相機安全框
+  Then 頭、身、雙手、腿、鞋完整，角色下緣與背景落點正確，近景五官清晰
+  And 不能扭曲拉伸或把站姿當成坐姿／步行動畫
+```
+
+### @critical @happy-path @AP-BDD-076
+
+- [ ] **Scenario: 免費16款固定五表情版本化**（`AP-BDD-076`）
+  - **追溯**：`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody76`
+
+```gherkin
+Scenario: AP-BDD-076 免費16款固定五表情版本化
+  Given 16款原始上半身已通過鎖定比對且有全身master
+  When 在同一角色上驗neutral、smile、surprised、thoughtful、concerned五標準表情
+  Then 全部16×5組合存在、命名與表情定義固定、臉以外的全身服裝腿鞋一致
+  And 缺一表情或其他部位被意外重繪不可將本角色標成完整
+```
+
+### @critical @frontend @happy-path @AP-BDD-077
+
+- [ ] **Scenario: 免費選角及切回不觸發產圖**（`AP-BDD-077`）
+  - **追溯**：`AP-AC-004`、`AP-AC-017`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody77`
+
+```gherkin
+Scenario: AP-BDD-077 免費選角及切回不觸發產圖
+  Given 已登入測試玩家有依已存性別可選的全身免費角色與其固定五表情
+  When 本人選免費角色A、改選B、重新選回A及重登
+  Then 所有選角都沿用穩定builtinAvatarId與靜態資產，Gemini呼叫計數保持0
+  And 不會在切角時新增個人AI角色資料、重生成表情或讀私人真人來源照片
+```
+
+### @critical @happy-path @AP-BDD-078
+
+- [ ] **Scenario: AI第一次逐張候選就是3:4全身**（`AP-BDD-078`）
+  - **追溯**：`AP-AC-002`、`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody78`
+
+```gherkin
+Scenario: AP-BDD-078 AI第一次逐張候選就是3:4全身
+  Given 使用者已授權至少2張ready真人照且正式full-body生成規格已設定
+  When 使用者逐張按開始生成並查看第一張和之後候選
+  Then 每次成功僅一張3:4全身站姿插畫，頭、手、腿、鞋完整且臉型與原授權照片可比
+  And 不得先產半身後採用時補全身；不得超過4張成功候選
+```
+
+### @critical @error-handling @AP-BDD-079
+
+- [ ] **Scenario: 全身AI來源照片授權與人物一致**（`AP-BDD-079`）
+  - **追溯**：`AP-AC-002`、`AP-AC-007`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody79`
+
+```gherkin
+Scenario: AP-BDD-079 全身AI來源照片授權與人物一致
+  Given 本人照片有可用與撤銷或缺少來源兩種狀態
+  When 玩家進入AI頁、選風格、請求全身候選以及稍後固定表情
+  Then 首次候選只能在本人主動授權後使用已保存的2～5張合法照片；五表情僅參考已選全身候選
+  And 不得在產表情時再次傳真人原照，不得依任意猜測assetId讀他人照片
+```
+
+### @critical @edge-case @AP-BDD-080
+
+- [ ] **Scenario: 全身圖近臉品質與解析度門檻**（`AP-BDD-080`）
+  - **追溯**：`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody80`
+
+```gherkin
+Scenario: AP-BDD-080 全身圖近臉品質與解析度門檻
+  Given 同一3:4全身候選以現有1K與候選更高解析度兩種設定輸出
+  When 將full-body圖等比例裁切到書店臉部近景並進行人工作品比對
+  Then 角色五官可辨、比例與人物原有氣質一致，尺寸與成本記錄可驗
+  And 若1K使臉糊或200KB壓縮失真必阻擋ready並回報改參數所需成本，不得以降低門檻結案
+```
+
+### @critical @frontend @happy-path @AP-BDD-081
+
+- [ ] **Scenario: B1採用前景鎖定且不先改Profile**（`AP-BDD-081`）
+  - **追溯**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody81`
+
+```gherkin
+Scenario: AP-BDD-081 B1採用前景鎖定且不先改Profile
+  Given 使用者在有效候選中選中一張全身角色並按確認採用
+  When B1在前景逐一生成固定五表情，同時本人嘗試切換免費或另一AI角色
+  Then 畫面顯示當前產製項目與進度；任何裝置尚未完成時都不可正式切換
+  And 直到整包ready前D1舊selectedAvatarRef保持不變，無背景產圖排程
+```
+
+### @critical @happy-path @AP-BDD-082
+
+- [ ] **Scenario: B1全部五表情驗證後才提交**（`AP-BDD-082`）
+  - **追溯**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody82`
+
+```gherkin
+Scenario: AP-BDD-082 B1全部五表情驗證後才提交
+  Given AI候選與其固定五表情已由同一全身master衍生
+  When server驗證五個固定ID、身份、hash、尺寸、格式、alpha與全身完整性
+  Then 私人R2包完成CAS ready後，D1同一revision條件式提交一次正式已選角色
+  And ready僅代表素材完整，不能把未在D1正式採用的角色投影給對方
+```
+
+### @critical @error-handling @AP-BDD-083
+
+- [ ] **Scenario: B1單張失敗保留成功與原選角**（`AP-BDD-083`）
+  - **追溯**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody83`
+
+```gherkin
+Scenario: AP-BDD-083 B1單張失敗保留成功與原選角
+  Given 五表情中的neutral與smile已驗證但surprised產圖失敗或provider回覆不明
+  When 使用者在前景選擇重試、取消或離開
+  Then 成功的表情資產沿相同assetId與version保留；只允許明確重試尚未成功的表情
+  And 取消或逾時不改舊角色，provider狀態不明不得自動再次付費呼叫
+```
+
+### @critical @edge-case @AP-BDD-084
+
+- [ ] **Scenario: 多裝置B1排他與延遲採用競態**（`AP-BDD-084`）
+  - **追溯**：`AP-AC-003`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody84`
+
+```gherkin
+Scenario: AP-BDD-084 多裝置B1排他與延遲採用競態
+  Given 同帳號裝置A持有有效R2 lease正在執行B1
+  When 裝置B嘗試改選角色，且裝置A晚到的舊revision回覆到達
+  Then 前後端均拒絕B1期間切角，多分頁不得重產同一表情，後到過時結果不得覆寫新角色
+  And 使用CAS與穩定requestId確保同一全身套組同時只有一個有效製作流程
+```
+
+### @critical @edge-case @AP-BDD-085
+
+- [ ] **Scenario: 五表情Manifest含雙版本及不可變內容**（`AP-BDD-085`）
+  - **追溯**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody85`
+
+```gherkin
+Scenario: AP-BDD-085 五表情Manifest含雙版本及不可變內容
+  Given 同一owner/asset下可能有半身歷史格式與新full-body版本標示
+  When server檢驗avatarAssetId、sourceHash、expressionSpecVersion、avatarAssetSpecVersion及五張各自的sha/mime/size
+  Then 只有同一full-body master與固定版本五張都驗證通過才標ready，此版Manifest不可偷偷覆寫
+  And 單純存在五張檔名、user_media_assets.status=ready或錯誤版本不能算表情套組完成
+```
+
+### @critical @error-handling @AP-BDD-086
+
+- [ ] **Scenario: R2圖片毀損或錯誤版本禁止自動補產**（`AP-BDD-086`）
+  - **追溯**：`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody86`
+
+```gherkin
+Scenario: AP-BDD-086 R2圖片毀損或錯誤版本禁止自動補產
+  Given 已保存Manifest為ready但其中一個R2物件損毀或hash不匹配
+  When 本人重新選回同角色並請求載入表情
+  Then 以版本化權威驗證並安全顯示素材不可用或修復提示
+  And 不得因圖片遺失而在切角、登入或劇情畫面自動呼叫Gemini重產
+```
+
+### @critical @error-handling @AP-BDD-087
+
+- [ ] **Scenario: R2已ready但D1採用結果不明**（`AP-BDD-087`）
+  - **追溯**：`AP-AC-018`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody87`
+
+```gherkin
+Scenario: AP-BDD-087 R2已ready但D1採用結果不明
+  Given 五表情Manifest已ready但D1條件交易可能因revision衝突或網路回覆不明而未正式選用
+  When 同一requestId重試確認採用或另一玩家讀取其角色
+  Then 依D1查回真實selectedAvatarRef與revision，未採用則另一人仍見舊角色
+  And 不得宣稱R2與D1是單一交易，也不得因回覆不明重做五表情
+```
+
+### @critical @happy-path @frontend @AP-BDD-088
+
+- [ ] **Scenario: 重新選已完成角色與重登零Gemini**（`AP-BDD-088`）
+  - **追溯**：`AP-AC-004`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody88`
+
+```gherkin
+Scenario: AP-BDD-088 重新選已完成角色與重登零Gemini
+  Given 玩家有A、B兩個合法已ready全身AI角色套組
+  When 本人從A切B再切A、重登並在有效遊戲重新入場
+  Then 只按owner/asset與雙規格版本讀既有完整Manifest及可快取素材，Gemini呼叫恆為0
+  And 相同全身角色不重新壓縮，不因後續Prompt或模型變更自動重產
+```
+
+### @critical @error-handling @AP-BDD-089
+
+- [ ] **Scenario: 五表情私人資產授權不泄漏**（`AP-BDD-089`）
+  - **追溯**：`AP-AC-006`、`AP-AC-007`、`AP-AC-008`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody89`
+
+```gherkin
+Scenario: AP-BDD-089 五表情私人資產授權不泄漏
+  Given 本人角色已正式採用且存在有效及無效Round、被封存候選與原始真人照片
+  When 不同帳號、已結束玩家與合法當輪對方請求角色投影或媒體串流
+  Then 只有本人與有效當輪授權可取得正式已採用角色的適用圖片，來源真人照片及私有objectKey不對外回傳
+  And 跨owner猜鍵、讀未採用候選、已結束Round或不明版本必安全拒絕
+```
+
+### @critical @edge-case @AP-BDD-090
+
+- [ ] **Scenario: 共用壓縮保全身透明度與真人照規則**（`AP-BDD-090`）
+  - **追溯**：`AP-AC-009`、`AP-AC-019`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody90`
+
+```gherkin
+Scenario: AP-BDD-090 共用壓縮保全身透明度與真人照規則
+  Given 正式全身角色需要透明WebP或遮罩，而本人真人來源照仍限制200000 bytes
+  When 同一共用IImageCompressionService依明確參數處理表情與一般照片
+  Then 全身角色透明／遮罩可保且臉部不失真，真人照仍去EXIF及維持其既定大小／權限
+  And 不新增重複壓縮服務，不將透明背景鋪白JPEG卻宣稱2.5D合格
+```
+
+### @critical @frontend @happy-path @AP-BDD-091
+
+- [ ] **Scenario: 跨Web與Android安全顯示與不同鏡位**（`AP-BDD-091`）
+  - **追溯**：`AP-AC-017`、`AP-AC-022`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody91`
+
+```gherkin
+Scenario: AP-BDD-091 跨Web與Android安全顯示與不同鏡位
+  Given 免費全身角色與AI全身表情均具合法ready版本及stageAnchors
+  When Web桌面與Android直向分別切換站立遠景、半身中景、近臉特寫
+  Then 使用同一master安全裁切，人物完整且焦點、身形、腳部落點與表情一致
+  And 鍵盤、聊天抽屜、不同裝置安全區不能擋住臉或重要互動
+```
+
+### @critical @edge-case @AP-BDD-092
+
+- [ ] **Scenario: 角色正式採用通知不對D1輪詢**（`AP-BDD-092`）
+  - **追溯**：`AP-AC-006`、`AP-AC-018`、`AP-AC-025`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody92`
+
+```gherkin
+Scenario: AP-BDD-092 角色正式採用通知不對D1輪詢
+  Given 有效Room中對方正在播放一段故事台詞
+  When 本人成功採用新已ready全身角色且後端交易提交
+  Then 使用WebSocket向對方發版本提示，必要時按需讀一次正式授權角色，等當前台詞結束安全切換
+  And 採用前不能通知，正常演出與每秒渲染不查D1，舊事件／斷線重連安全校正
+```
+
+### @critical @alternative-path @AP-BDD-093
+
+- [ ] **Scenario: 開發中半身角色只清理不升級**（`AP-BDD-093`）
+  - **追溯**：`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody93`
+
+```gherkin
+Scenario: AP-BDD-093 開發中半身角色只清理不升級
+  Given 產品未上線且舊半身AI角色僅是開發期測試資料
+  When 實作全身版本並準備重新驗證角色選用與劇情
+  Then 不提供半身轉全身、舊ID兼容或遊戲畫面自動產圖入口
+  And 僅在全身實作完成後依非正式環境CLEAN-RESET流程清理，再建立新全身角色
+```
+
+### @critical @error-handling @AP-BDD-094
+
+- [ ] **Scenario: 只在核准非正式環境清理角色測資**（`AP-BDD-094`）
+  - **追溯**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody94`
+
+```gherkin
+Scenario: AP-BDD-094 只在核准非正式環境清理角色測資
+  Given 目標D1與R2可能是已核實非正式測試環境或正式／未知／其他專案環境
+  When 請求列出並清除舊selectedAvatar、generatedAvatar與avatar/temp候選
+  Then 僅已核准非正式環境可根據帳號、DB與R2鍵清單執行一次性清理
+  And 任何正式或未知環境、尚在B1產製或遊戲中必拒絕，沒有背景自動清理
+```
+
+### @critical @edge-case @AP-BDD-095
+
+- [ ] **Scenario: D1與R2清理可重試且不得殘留**（`AP-BDD-095`）
+  - **追溯**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody95`
+
+```gherkin
+Scenario: AP-BDD-095 D1與R2清理可重試且不得殘留
+  Given 非正式環境有generated_avatar各狀態、Profile舊選角、R2 avatar正式／候選／舊Manifest
+  When 確認精確owner/asset/objectKey清單後，執行清理並模擬R2刪除中途故障
+  Then D1清空角色選用並更新revision，相關舊generated_avatar與R2物件歸零、無孤兒且相同清單重試安全
+  And 不以跨服務原子交易假稱一次成功或不檢查刪除失敗
+```
+
+### @critical @error-handling @AP-BDD-096
+
+- [ ] **Scenario: 清角色保留本人照片帳號與免費原圖**（`AP-BDD-096`）
+  - **追溯**：`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody96`
+
+```gherkin
+Scenario: AP-BDD-096 清角色保留本人照片帳號與免費原圖
+  Given 同帳號兼有個人照片、名片、非角色Profile欄位以及16款免費原畫
+  When 在非正式環境執行舊角色測試資料清理
+  Then 只有AI角色與候選／相關選角被清，personal_photo與private/photos及帳號Profile其他欄位原16張原畫hash不變
+  And 不得DELETE整個user_media_assets或用過寬R2前綴誤刪與角色無關的檔案
+```
+
+### @critical @smoke @frontend @happy-path @AP-BDD-097
+
+- [ ] **Scenario: 清完從零驗證整套全身使用體驗**（`AP-BDD-097`）
+  - **追溯**：`AP-AC-017`、`AP-AC-018`、`AP-AC-022`、`AP-AC-025`、`AP-AC-026`；2026-11-12已確認全身化身／CLEAN-RESET，新需求**未實作／未驗收**
+  - **測試方法基名**：`FullBody97`
+
+```gherkin
+Scenario: AP-BDD-097 清完從零驗證整套全身使用體驗
+  Given 新全身與B1功能已開發完成且非正式環境舊角色清理有D1/R2核對紀錄
+  When 兩個獨立測試帳號由零選全身免費角色、以授權照產全身AI候選、B1五表情完成與切角，再於Web/Android遊玩書店雙結局
+  Then 全部新角色由本版資產與ready Manifest建成，雙端遠中近鏡及UX-P1～P5皆有真證據
+  And 免費16款上半身人工保真及使用者Gate B未確認前不能勾本次新體驗完成
+```
 ## ⚠️ SPEC 補充／跨 SPEC 延後驗收
 
-- `AP-AC-001`～`AP-AC-024` 均有對應場景。真實的配對成立、親密度25分入口、名片邀請／同意／拒絕及互動終止是 `SPEC-001-MatchingSessions`、`SPEC-001-AffectionAndFeedback` 與 `SPEC-001-StoryDialogueAndExit` 的責任；本文件只驗證本份的受限內部介面與故障注入，不將跨 SPEC 尚未實作的 E2E 標為通過。
+- `AP-AC-001`～`AP-AC-026` 均有對應場景（25／26由AP-BDD-074～097補足）。真實的配對成立、親密度25分入口、名片邀請／同意／拒絕及互動終止是 `SPEC-001-MatchingSessions`、`SPEC-001-AffectionAndFeedback` 與 `SPEC-001-StoryDialogueAndExit` 的責任；本文件只驗證本份的受限內部介面與故障注入，不將跨 SPEC 尚未實作的 E2E 標為通過。
 - Gemini 真 API 成功4圖、200KB 真人照五官品質、16張**實際不同**插畫以及 Web／Android／iOS 互動都必須保留驗收證據，不能用原型／替身／歷史驗證取代。
 - D-047 已確定**不使用 SQL Trigger**；所有上限及 immutable rule 以受控 SQL 條件／服務邏輯實作，需真 D1 競態證據。
 
@@ -1158,4 +1511,4 @@ Scenario: AP-BDD-073 確認採用視窗與未來重新生成費用提示
 - [TDD](../tdd/SPEC-001-AvatarAndPreferences-TDD.md)
 - [風險稽核](../specs/SPEC-001-AvatarAndPreferences-RiskAudit.md)
 
-**狀態**：SDD 與 RiskAudit 已確認、風險決策 RQ-01=A／RQ-02=A 已回寫，規劃文件 Ready for well-done；73 個唯一 Scenario、13 個 @frontend；17 項業務場景完整覆核，前端完整三平台0/13。
+**歷史狀態（2026-11-01～05範圍）**：當時SDD、RiskAudit確認與73場景規劃 Ready；其中RQ-02=A/D-049 半身要求**已被2026-11-12全身方案取代**。最新新增24場全部未驗收；新版規劃 Ready／Gate結果依本文件最上方增量章節、對應TDD/RiskAudit，不得以歷史狀態代簽。

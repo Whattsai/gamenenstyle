@@ -20,9 +20,16 @@ builder.Services.AddHttpClient<IAvatarCandidateStore,AvatarCandidateStore>(http=
 builder.Services.AddSingleton(new GeminiOptions(cfg["GEMINI_API_KEY"]??"",cfg["GEMINI_IMAGE_MODEL"]??"gemini-3.1-flash-image"));
 builder.Services.AddHttpClient<IAvatarImageGenerator,GeminiAvatarImageGenerator>(http=>http.Timeout=TimeSpan.FromSeconds(100)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false});
 builder.Services.AddScoped<AvatarService>();
+builder.Services.AddHttpClient<IAvatarExpressionGenerator,GeminiAvatarImageGenerator>(http=>http.Timeout=TimeSpan.FromSeconds(100)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false});
+builder.Services.AddHttpClient<IAvatarExpressionStore,AvatarExpressionStore>(http=>{http.BaseAddress=new Uri("http://platform.internal/");http.Timeout=TimeSpan.FromSeconds(30);});
+builder.Services.AddScoped<AvatarExpressionService>();
+builder.Services.AddHttpClient<IAvatarReadStore,AvatarReadStore>(http=>{http.BaseAddress=new Uri("http://platform.internal/");http.Timeout=TimeSpan.FromSeconds(30);});
+builder.Services.AddScoped<AvatarReadService>();
 builder.Services.AddScoped<OwnCardPreviewService>();
 builder.Services.AddScoped<IMatchingCandidateProfileReader,MatchingCandidateProfileReader>();
 builder.Services.AddScoped<MatchingSessionService>();
+builder.Services.AddScoped<StoryDialogueService>();
+builder.Services.AddScoped<IRoundRealtimeNotifier,CloudflareRoundRealtimeNotifier>();
 builder.Services.AddSingleton<ICurrentCardAuthorization,DenyCurrentCardAuthorization>();
 builder.Services.AddScoped<RateLimiter>();builder.Services.AddScoped<IEmailCodeSender,EmailCodeSender>();builder.Services.AddScoped<AuthApplication>();builder.Services.AddScoped<DatingProfileService>();builder.Services.AddScoped<PersonalPhotosService>();
 builder.Services.AddScoped<DatingHigh.Application.RateLimiting.IRateLimiter>(sp=>sp.GetRequiredService<RateLimiter>());builder.Services.AddScoped<Readiness>();builder.Services.AddScoped<IPrivateObjectStore,PrivateObjectStore>();
@@ -51,6 +58,11 @@ app.Use(async(context,next)=>
             {
                 if(context.Request.ContentLength>8*1024*1024)throw new DomainException("IMAGE_TOO_LARGE",413);
                 if(context.Request.ContentType is not("image/jpeg" or "image/png" or "image/webp"))throw new DomainException("INVALID_IMAGE");
+                payload=new RequestPayload(new Dictionary<string,string>(StringComparer.Ordinal));
+            }
+            else if(context.Request.Method=="POST" && (context.Request.Path.StartsWithSegments("/api/v1/game-rounds")||context.Request.Path.StartsWithSegments("/api/v1/me/avatar/expressions")))
+            {
+                context.Items["storyPayload"]=await StoryPayload.ReadAsync(context.Request,context.RequestAborted);
                 payload=new RequestPayload(new Dictionary<string,string>(StringComparer.Ordinal));
             }
             else if(context.Request.Method=="POST" && context.Request.Path=="/api/v1/match-candidates/search")
@@ -93,6 +105,7 @@ app.Use(async(context,next)=>
         var failure=e.Code=="INVALID_REQUEST"&&(context.Request.Path.StartsWithSegments("/api/v1/match-candidates")||context.Request.Path.StartsWithSegments("/api/v1/match-invitations")||context.Request.Path.StartsWithSegments("/api/v1/game-rounds"))?new DomainException("INVALID_MATCH_REQUEST"):e;
         await HttpContract.Problem(context,failure);
     }
+    catch(InvalidOperationException) when(context.Request.Path.StartsWithSegments("/api/v1/game-rounds")||context.Request.Path=="/internal/round-command"){await HttpContract.Problem(context,new DomainException("INVALID_STORY_REQUEST"));}
     catch(OperationCanceledException) when(context.RequestAborted.IsCancellationRequested){}
     catch(Exception e)
     {
@@ -102,6 +115,41 @@ app.Use(async(context,next)=>
 });
 app.UseAuthentication();app.UseAuthorization();
 var api=app.MapGroup("/api/v1");
+api.MapGet("/game-rounds/{roundId}/status",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.StatusAsync(c.CurrentPlatformUser(),roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/experience",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.ExperienceAsync(c.CurrentPlatformUser(),roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/story/offers",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    c.Payload().Only();var result=await service.ExperienceAsync(c.CurrentPlatformUser(),roundId,ct);
+    if(result.Text("phase")!="pending_story_selection")throw new DomainException("STORY_ALREADY_SELECTED",409);return Results.Ok(result);
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/story/vote",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"clientRequestId","episodeSeq","catalogId");
+    var requestId=p["clientRequestId"]?.GetValue<string>()??throw new DomainException("INVALID_STORY_VOTE");p.Remove("clientRequestId");
+    return Results.Ok(await service.CommandAsync(c.CurrentPlatformUser(),roundId,"story.vote.submit",requestId,p,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/events/query",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"afterSeq","beforeSeq","limit");
+    return Results.Ok(await service.EventsAsync(c.CurrentPlatformUser(),roundId,p["afterSeq"]?.GetValue<long>(),p["beforeSeq"]?.GetValue<long>(),p["limit"]?.GetValue<int>()??50,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/realtime-ticket",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"deviceId");
+    return Results.Ok(await service.TicketAsync(c.CurrentPlatformUser(),roundId,p["deviceId"]?.GetValue<string>()??"",c.ClientPlatform(),ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/end",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    StoryDialogueService.Only((JsonObject)c.Items["storyPayload"]!);return Results.Ok(await service.EndAsync(c.CurrentPlatformUser(),roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+// Worker 先阻擋公開 /internal，只有受信任 Room adapter 能到達此處。每次命令仍由 D1 重驗 family。
+app.MapPost("/internal/round-command",async(HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    if(c.Request.Headers["X-DatingHigh-Internal-Round-Transport"]!="websocket")throw new DomainException("RESOURCE_FORBIDDEN",403);
+    var p=await StoryPayload.ReadAsync(c.Request,ct);StoryDialogueService.Only(p,"auth","roundId","type","clientRequestId","payload");
+    var a=p["auth"]!.AsObject();StoryDialogueService.Only(a,"accountId","sessionId","cv","accessExpiresAt");
+    var u=new CurrentUser(a.Text("accountId"),a.Text("sessionId"),a.Number("cv"),a.Number("accessExpiresAt"));
+    StoryDialogueService.Id(u.AccountId);StoryDialogueService.Id(u.SessionId);
+    return Results.Ok(await service.CommandAsync(u,p.Text("roundId"),p.Text("type"),p.Text("clientRequestId"),p["payload"]!.AsObject(),ct));
+});
 api.MapPost("/match-candidates/search",async(HttpContext c,MatchingSessionService service,CancellationToken ct)=>{
     var input=(MatchingSearchInput)c.Items["matchingSearch"]!;
     return Results.Ok(await service.SearchAsync(c.CurrentPlatformUser(),input.Offset,input.Limit,ct));
@@ -131,8 +179,8 @@ api.MapGet("/game-rounds/{roundId}",async(string roundId,HttpContext c,MatchingS
 }).RequireAuthorization("PlatformAccess");
 api.MapGet("/profile-catalog",(HttpContext c)=>{c.Payload().Only();return Results.Ok(new{version=ProfileCatalog.Version,groups=ProfileCatalog.Groups,fields=ProfileFields.All});}).RequireAuthorization("PlatformAccess");
 api.MapGet("/avatar-catalog",(HttpContext c)=>{
-    c.Payload().Only();return Results.Ok(new{version="2026-11-03.v2",avatars=new[]{"male","female"}.SelectMany(group=>Enumerable.Range(1,8).Select(n=>new{
-        id=$"{group}-{n:00}",group,assetPath=$"/avatars/{group}-{n:00}.jpg",source="OpenAI imagegen original generation",aspectRatio="3:4"
+    c.Payload().Only();return Results.Ok(new{version=BuiltinAvatarCatalog.Version,avatars=new[]{"male","female"}.SelectMany(group=>Enumerable.Range(1,8).Select(n=>new{
+        id=$"{group}-{n:00}",group,assetPath=BuiltinAvatarCatalog.AssetPath($"{group}-{n:00}"),source="OpenAI imagegen original generation",aspectRatio="3:4"
     }))});
 }).RequireAuthorization("PlatformAccess");
 api.MapPost("/email-registrations",async(HttpContext c,AuthApplication a,CancellationToken ct)=>{var p=c.Payload();p.Only("email","clientPlatform");return Results.Json(await a.RequestCode(p.Required("email"),p.Required("clientPlatform"),"register_email",c.Ip(),ct),statusCode:202);}).AllowAnonymous();
@@ -195,6 +243,23 @@ api.MapPost("/me/avatar/generations",async(HttpContext c,AvatarService service,C
     Results.Ok(await service.GenerateAsync(c.CurrentPlatformUser(),(JsonObject)c.Items["avatarPayload"]!,ct))).RequireAuthorization("PlatformAccess");
 api.MapPut("/me/avatar/selection",async(HttpContext c,AvatarService service,CancellationToken ct)=>
     Results.Ok(await service.SelectAsync(c.CurrentPlatformUser(),(JsonObject)c.Items["avatarPayload"]!,ct))).RequireAuthorization("PlatformAccess");
+api.MapPost("/me/avatar/expressions/{action}",async(string action,HttpContext c,AvatarExpressionService service,CancellationToken ct)=>
+    Results.Ok(await service.ExecuteAsync(c.CurrentPlatformUser(),action,(JsonObject)c.Items["storyPayload"]!,ct))).RequireAuthorization("PlatformAccess");
+api.MapGet("/me/avatar/expressions",async(HttpContext c,AvatarExpressionService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.ExecuteAsync(c.CurrentPlatformUser(),"status",new JsonObject(),ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/partner-avatar",async(string roundId,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.ProjectionAsync(c.CurrentPlatformUser(),AvatarReadScope.RoundPartner,roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/me/avatar/assets/{assetId}/expressions",async(string assetId,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.ProjectionAsync(c.CurrentPlatformUser(),AvatarReadScope.Own,assetId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/partner-avatar/{version}/{expression}",async(string roundId,string version,string expression,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();var image=await service.ReadAsync(c.CurrentPlatformUser(),AvatarReadScope.RoundPartner,roundId,version,expression,ct);c.Response.Headers["X-Content-Type-Options"]="nosniff";return Results.Bytes(image.Bytes.ToArray(),image.MimeType);
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/me/avatar/assets/{assetId}/expressions/{version}/{expression}",async(string assetId,string version,string expression,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();var image=await service.ReadAsync(c.CurrentPlatformUser(),AvatarReadScope.Own,assetId,version,expression,ct);c.Response.Headers["X-Content-Type-Options"]="nosniff";return Results.Bytes(image.Bytes.ToArray(),image.MimeType);
+}).RequireAuthorization("PlatformAccess");
 api.MapGet("/me/avatar/candidates/{attemptId}/{index:int}",async(string attemptId,int index,HttpContext c,AvatarService service,CancellationToken ct)=>{
     c.Payload().Only();var image=await service.ReadCandidateAsync(c.CurrentPlatformUser(),attemptId,index,ct);
     c.Response.Headers["X-Content-Type-Options"]="nosniff";
@@ -213,4 +278,3 @@ app.MapGet("/health/ready",async(Readiness readiness,CancellationToken ct)=>
 app.MapFallback(async c=>await HttpContract.Problem(c,new DomainException("NOT_FOUND",404))).AllowAnonymous();
 app.Run();
 public partial class Program;
-

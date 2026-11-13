@@ -12,7 +12,7 @@
     "ACCESS_TOKEN_ISSUER": "datinghigh-staging",
     "ACCESS_TOKEN_AUDIENCE": "datinghigh-staging-client",
     "EmailDeliveryMode": "Cloudflare",
-    "EXPECTED_MIGRATION": "0004_matching_sessions.sql"
+    "EXPECTED_MIGRATION": "0005_story_dialogue_exit.sql"
   },
   "assets": {
     "directory": "../.local/staging-web",
@@ -25,7 +25,8 @@
       "/health/*",
       "/internal",
       "/internal/*",
-      "/v1/commands/*"
+      "/v1/commands/*",
+      "/story-content/*"
     ]
   },
   "d1_databases": [
@@ -40,6 +41,10 @@
     {
       "binding": "FILES",
       "bucket_name": "datinghigh-staging-private"
+    },
+    {
+      "binding": "STORY_CONTENT",
+      "bucket_name": "datinghigh-staging-story-content"
     }
   ],
   "durable_objects": {
@@ -47,6 +52,10 @@
       {
         "name": "API",
         "class_name": "ApiContainer"
+      },
+      {
+        "name": "GAME_ROOMS",
+        "class_name": "GameRoomSocket"
       }
     ]
   },
@@ -55,6 +64,12 @@
       "tag": "v1",
       "new_sqlite_classes": [
         "ApiContainer"
+      ]
+    },
+    {
+      "tag": "v2-game-rooms",
+      "new_sqlite_classes": [
+        "GameRoomSocket"
       ]
     }
   ],

@@ -1,36 +1,12 @@
 # 資料與儲存契約
 
-## MatchingSessions（2026-11-06）
-
-0004新增四表32欄，自有表共12張113欄；Foundation六表54欄、AvatarAndPreferences兩表27欄不變，零 SQL Trigger。四表首欄皆為程式提供的 UUIDv7 TEXT NOT NULL PK，時間為Unix ms。未上線測資採指定隔離環境 fresh schema／重建，不做舊新 ETL 或來源回填相容。
-
-| 表（欄數） | 依序欄位／主要約束 |
-|---|---|
-| match_conditions（10） | condition_id、account_id UNIQUE FK、gender、romantic_orientation_json、birth_date、region_code?、interests_json、preferences_json、created_at、updated_at；只供搜尋，不是可直接編輯的 Profile |
-| match_invitations（11） | invitation_id、account_low_id、account_high_id、initiator_account_id、client_request_id、status、invalidated_reason?、created_at、expires_at、updated_at、responded_at?；排序 pair、帳號FK、initiator屬於pair、UNIQUE(initiator,request)、pending pair partial UNIQUE |
-| game_rounds（7） | round_id、invitation_id UNIQUE FK、account_low_id、account_high_id、status、started_at、ended_at?；active／ended，保留永久 pair 歷史 |
-| game_round_participants（4） | participant_id、account_id UNIQUE FK、round_id FK、created_at；每場恰好兩位，結束時原子釋放；round索引 |
-
-conditions 無 gaming status、人工開關或 source_profile_revision。個資仍是 user_profiles 唯一事實來源；只有配對欄位／資格異動才同 batch UPSERT／DELETE，無關照片排序、工作／自介、分享設定不碰投影。condition_id 使用來源 profile_id（同樣是 UUIDv7），不是新增可供 client 寫入的識別。user_profiles.revision 僅維持原本人 CAS，不作跨表相等查詢。
-
-invitation 狀態為 pending／accepted／declined／cancelled／expired／invalidated；invalidated_reason 只允許 other_round_started／eligibility_changed，其他狀態為 NULL。72小時由伺服器懶惰失效；性向／軟偏好異動不撤銷原 pending。declined 或 ended 的原 accountId pair 永久互斥，不追蹤重新註冊的真人。
-
-固定內部命令為 `match.candidate.search`、`match.candidate.persona.read`、`match.invite.create/list/resolve`、`game.round.list/get/end`。接受及結束的 SQL CASE guard 在不滿足完整後置條件時使 statement 失敗，讓同 D1 batch 真正回滾；不能以應用層提交後檢查代替。正式生成化身沿既有私人 R2，沒有配對照片副本、名片快照或 job 表。新增共用限流 matching_search.v1＝account／1分鐘30，matching_invite.v1＝account／1小時10。
-
-## 現行資料版本（2026-11-05 D-053）
-
-[0003](../../cloudflare/migrations/0003_profile_gender_card_visibility.sql)新增gender、romantic_orientation_json、card_visibility_json，user_profiles18欄＋media9欄＝兩表27欄；Foundation六表54欄及零Trigger不變。已在default local套用；staging設定更新但未部署。下方0002兩表24欄是歷史建表基線。
-
-完整PUT為22鍵；新增性別nullable單選male／female／diverse、性向唯一多選同碼（0～3）、分享白名單boolean map。{}依[共用定義](../../contracts/profile-fields.json)取有效預設；只允許shareable cardKey，ageBand不接收birthDate分享鍵。偏好JSON固定9鍵不變。新欄位defaultVisible缺值必為false。性別與不符免費化身清除同一CAS；AI保留。profileReady追加性別及非空性向。
-
-
-基礎版本來源為 [0001 migration](../../cloudflare/migrations/0001_foundation.sql)、[prepared commands](../../cloudflare/src/commands.ts)、[platform](../../cloudflare/src/platform.ts)、Domain／Infrastructure 與 client storage。業務責任以已確認 SPEC 為準。
+現行 migration 基線為 `0005_story_dialogue_exit.sql`，共16張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
 
 ## D1 schema
 
 Foundation 原六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每表首欄為 NOT NULL TEXT PRIMARY KEY，由程式建立小寫 canonical UUIDv7。D1 的 `d1_migrations` 是工具維護表，不計入自有六表。日期欄位使用 Unix epoch **milliseconds INTEGER**；DB row snake_case，公開 DTO camelCase。
 
-以下完整列出現行欄位；`?` 表示 DB 可為 NULL，其餘 NOT NULL；ID／文字為 TEXT，時間／計數為 INTEGER。
+以下列出 Foundation 欄位；`?` 表示 DB 可為 NULL，其餘 NOT NULL；ID／文字為 TEXT，時間／計數為 INTEGER。
 
 | 表 | 欄位（依 migration 順序） | 約束／用途 |
 |---|---|---|
@@ -45,16 +21,16 @@ Foundation 原六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每�
 
 challenge purpose 為 `register_email | reset_password`，state 為 `active | consumed | locked | expired`。schema provider 留通用欄位，現有 commands／validator 僅接受 google。revocation_reason 是 nullable TEXT，現行寫入 `replaced_by_login`、`logout`、`refresh_reuse`，不是 DB CHECK enum。
 
-## AvatarAndPreferences（2026-11-03）
+## 本人資料與媒體
 
-[0002_avatar_preferences.sql](../../cloudflare/migrations/0002_avatar_preferences.sql) 新增兩表24欄，Foundation六表54欄不變、無SQL Trigger。已對本專案 default local 套用，未部署SIT／production。
+Schema 由 [0002](../../cloudflare/migrations/0002_avatar_preferences.sql) 與 [0003](../../cloudflare/migrations/0003_profile_gender_card_visibility.sql) 定義：本人資料18欄、媒體9欄，零 SQL Trigger。
 
 | 表 | 欄位 |
 |---|---|
-| user_profiles（15） | profile_id、account_id、nickname、bio、occupation、birth_date、region_code、traits_json、interests_json、preferences_json、selected_avatar_type、selected_avatar_ref、revision、created_at、updated_at |
+| user_profiles（18） | profile_id、account_id、nickname、bio、occupation、birth_date、region_code、traits_json、interests_json、preferences_json、selected_avatar_type、selected_avatar_ref、revision、created_at、updated_at、gender、romantic_orientation_json、card_visibility_json |
 | user_media_assets（9） | asset_id、account_id、kind、object_key、mime_type、display_order、status、created_at、deleted_at |
 
-profile首次ensure冪等；嚴格22欄輸入（含expectedRevision）、三組JSON（preferences固定9鍵）及版本化靜態目錄見SPEC。臺灣日期18+，Unicode scalar長度；occupation可空。本人投影含精確生日及私有偏好，名片預覽只用分享白名單。generated profileReady額外要求本人ready正式資產，不單靠type/ref字串。儲存含停用目錄選項時，Application先讀本人目前revision及同欄位歷史值；只允許原值保留，其他欄位出現同碼也不能當作保留依據。撤銷401、版本落後409、新加入停用碼400，停用值保留不另新增metadata鍵；D-053新增三個具名schema欄位另見下文。
+profile首次ensure冪等；嚴格22欄輸入（含expectedRevision）、三組JSON（preferences固定9鍵）及版本化靜態目錄見SPEC。臺灣日期18+，Unicode scalar長度；occupation可空。本人投影含精確生日及私有偏好，名片預覽只用分享白名單。generated profileReady額外要求本人ready正式資產，不單靠type/ref字串。儲存含停用目錄選項時，Application先讀本人目前revision及同欄位歷史值；只允許原值保留，其他欄位出現同碼也不能當作保留依據。撤銷401、版本落後409、新加入停用碼400，停用值保留不另新增metadata鍵；gender 為 nullable male／female／diverse，romantic_orientation_json 為同碼唯一陣列0～3項，card_visibility_json 為分享白名單 boolean map；預設依共用欄位定義。ageBand 不接受 birthDate 分享鍵，profileReady 需要性別與非空性向。
 
 `profile.photo.reserve` 單條件 INSERT…SELECT COUNT(pending+ready)<5 RETURNING；pending計入配額。ready按當下ready最大序號+1配號。排序核對整個ready集合及revision，刪除同batch先CAS、soft-delete、壓緊其餘序號；零列不假成功。上傳失敗僅透過 `profile.photo.cancel-upload` 撤pending，不因遺失回覆誤刪ready；舊內部delete不供正式HTTP刪除使用。R2先成功寫入才ready，刪除先tombstone才允許R2實體清除。GC清逾30分鐘pending及tombstone物件；R2 `_system/avatar-preferences/cleanup.json`保存photoCursor、r2Cursor及最多100個尚未處理key／到期metadata，分配各段預算並以ETag提交進度，不刪ready原件、不加D1 job表。
 
@@ -78,13 +54,52 @@ AI狀態不加job表：每帳號R2 active pointer與60分鐘manifest以ETag CAS�
 | `profile.avatar.adopt` | 本人generated pending→ready，及profile選用欄位／revision／updated_at |
 | `profile.avatar.builtin`、`profile.avatar.generated` | 只改profile選用欄位／revision／updated_at，不改媒體身分或建立副本 |
 
-圖片規則：上傳最多8MiB，安全解碼JPEG／PNG／WebP、像素24M／邊長8192、拒動畫／偽造MIME／損壞圖；校正EXIF方向、白底透明、去EXIF／GPS／ICC、保留比例不放大，來源JPEG≤200000 bytes。AI結果≤2MB、3:4容許小幅供應商尺寸取整，顯示contain不裁切。正式免費圖16張JPG及provenance版本2026-11-03.v2，與真人媒體分開。
+圖片規則：上傳最多8MiB，安全解碼JPEG／PNG／WebP、像素24M／邊長8192、拒動畫／偽造MIME／損壞圖；校正EXIF方向、白底透明、去EXIF／GPS／ICC、保留比例不放大，來源JPEG≤200000 bytes。AI結果≤2MB、3:4容許小幅供應商尺寸取整，顯示contain不裁切。正式免費角色使用 full-body.v1 的16套五表情透明 WebP；正式圖與真人媒體分開，不保留原畫或製作中間檔。
 
 本人正式AI圖清單僅回assetId／mimeType／createdAt；重選使用相同資產與profile revision CAS，不建立副本。來源改變會關閉舊manifest；失敗request ID上限64，超限在新lease前拒絕以保持manifest可讀。關閉輪次仍辨識初次request replay，不誤開另一輪付費生成。
 
 前端未儲存表單以記憶體baseline及revision追蹤；metadata重讀可保留草稿，但伺服器欄位已改變時禁止將舊草稿搭配新revision覆寫，須明確重新整理。不將草稿、候選或真人照片另存localStorage／日誌。
 
-完整驗證與尚缺Gate見[本SPEC驗證紀錄](../../docs/verification/SPEC-001-AvatarAndPreferences-Verification.md)；測試通過數不是275項完整驗收數。
+## 配對與占用
+
+配對投影、邀請、房間與占用採固定 prepared SQL；現行 schema 以0005為準。ID 為程式提供 UUIDv7 TEXT NOT NULL PK，時間為 Unix ms。
+
+| 表（欄數） | 依序欄位／主要約束 |
+|---|---|
+| match_conditions（10） | condition_id、account_id UNIQUE FK、gender、romantic_orientation_json、birth_date、region_code?、interests_json、preferences_json、created_at、updated_at；只供搜尋，不是可直接編輯的 Profile |
+| match_invitations（11） | invitation_id、account_low_id、account_high_id、initiator_account_id、client_request_id、status、invalidated_reason?、created_at、expires_at、updated_at、responded_at?；排序 pair、帳號FK、initiator屬於pair、UNIQUE(initiator,request)、pending pair partial UNIQUE |
+| game_rounds（9） | round_id、invitation_id UNIQUE FK、account_low_id、account_high_id、status、started_at、ended_at?、last_event_seq、story_offer_catalog_ids_json；active／ended，保留永久 pair 歷史 |
+| game_active_round_claims（4） | participant_id、account_id UNIQUE FK、round_id FK、created_at；每場恰好兩位，結束時原子釋放；round索引 |
+
+conditions 無 gaming status、人工開關或 source_profile_revision。個資仍是 user_profiles 唯一事實來源；只有配對欄位／資格異動才同 batch UPSERT／DELETE，無關照片排序、工作／自介、分享設定不碰投影。condition_id 使用來源 profile_id（同樣是 UUIDv7），不是新增可供 client 寫入的識別。user_profiles.revision 僅維持原本人 CAS，不作跨表相等查詢。
+
+invitation 狀態為 pending／accepted／declined／cancelled／expired／invalidated；invalidated_reason 只允許 other_round_started／eligibility_changed，其他狀態為 NULL。72小時由伺服器懶惰失效；性向／軟偏好異動不撤銷原 pending。declined 或 ended 的原 accountId pair 永久互斥，不追蹤重新註冊的真人。
+
+固定內部命令為 `match.candidate.search`、`match.candidate.persona.read`、`match.invite.create/list/resolve`、`game.round.list/get/end`。接受及結束的 SQL CASE guard 在不滿足完整後置條件時使 statement 失敗，讓同 D1 batch 真正回滾；不能以應用層提交後檢查代替。正式生成化身沿既有私人 R2，沒有配對照片副本、名片快照或 job 表。搜尋與邀請限流見固定指令與限流表。
+
+## 劇情與事件
+
+0005 的占用表為 `game_active_round_claims`（4欄、account UNIQUE），Round 含 `last_event_seq` 與 `story_offer_catalog_ids_json` 共9欄。凍結 JSON 只代表第一場；初始化同批只接受當下 published 版本，排序依共同命中、較少方命中、總命中、priority、story_id。
+
+劇情使用四張表：`content_story_catalog`9欄、`game_story_sessions`9欄、`game_round_events`8欄、`game_interaction_instances`10欄，均UUIDv7首欄PK；零Trigger。Catalog每story_id最多一個published，manifest immutable key／SHA256；retired仍供已釘選Round讀取。Session UNIQUE(round_id,episode_seq)，partial UNIQUE round where playing；互動只FK story_session_id，UNIQUE(session,node,definition)。事件Round序號唯一，actor／requestId冪等，票以episode／actor最大已提交sequence重建；不另建Offers／Votes／Episode表。公開命令的 episodeSeq 固定1；其他 episode 只在隔離 schema fixture 驗證。
+
+內容入口固定`entry`，圖必須完整可達、無環、有至少兩個ending，互動只允許inspect-object／cooperative-choice；tag取現有ProfileCatalog。manifest≤512KiB；素材≤8MiB，只允許PNG／JPEG／WebP／WAV，key為`story-content/assets/<sha256>`且逐位元驗證。獨立STORY_CONTENT不得接私人FILES。Client不持久化票、聊天、ticket或presence；它們僅存在已授權畫面RAM，離開／ended即清空。
+
+## 版本化場景與免費素材
+
+`scenePresentation.version=2.5d.v1` 使用固定無腳本 camera／focus／portrait／tint／foreground 與歸一化 inspect 熱區；foregroundAsset 只引用同 manifest 圖片，前景、背景與熱區共用鏡頭矩陣，禁止任意 URL／私人媒體 key。每節點 presentation 只引用該版 camera、固定五表情與合法 object；audioCues 僅引用同 manifest WAV。
+
+免費角色契約為 `contracts/builtin-avatar-packs.json`：16個穩定ID，各有 neutral／smile／surprised／thoughtful／concerned，含內容定址 WebP、SHA／avatarVersion、尺寸、大小、full-body.v1／standing 與 stageAnchors。唯一素材目錄為 frontend/client/public/avatars/full-body.v1，靜態neutral與劇情五表情共用；人工確認結果保存在需求驗證文件，不保存製作JSON或記錄於overview。
+
+## 全身五表情與 R2
+
+全身候選 prompt 為 `datinghigh-adv-full-body.v2`，保留 portrait.v3 的身份／畫風文字並使用全身取景；表情 prompt 為 `datinghigh-expression-full-body.v2`，以選中候選作來源，使用保留洋紅底，Skia 去背後以透明 WebP 入庫。
+
+Gemini 衍生圖使用 LosslessWebp，每檔上限2MB、最低600×800且保留3:4比例；來源照片仍為 JPEG／200000 bytes，免費套組每檔上限200000 bytes。Worker 依 RFC9649 驗靜態 VP8X／VP8L alpha，拒動畫、metadata、畫布不符與偽alpha容器；站姿幾何檢查拒明顯缺腿、缺腳／鞋或鞋底裁切，不作身份／畫風核准。
+
+R2 前景狀態為 `private/{owner}/avatar/temp/adoption`；套組為 `private/{owner}/avatar/{asset}/expressions/v1/full-body.v1/{expression}.webp` 與 manifest.json。恰好五表情，驗 owner、來源hash、版本、尺寸、alpha、各圖hash與長度後才 immutable ready；ready 不等於已選。正式選用以 D1 CAS 提交，取消增加既有 Profile revision 作 fence。
+
+生成 pending GC 為兩小時，照片 pending 為三十分鐘；固定表情／Manifest 路徑附 orphanAfter，到期且 D1 非 ready 才清。每帳號可重用 adoption checkpoint 由 CAS 覆用，不無條件刪除，以免刪除新前景鎖。一次性本地清理依具名帳號、精確 key／etag、備份與無 writer 前提操作；執行結果另記驗證文件。
 
 ## 認證與序列化規則
 
@@ -111,6 +126,12 @@ AI狀態不加job表：每帳號R2 active pointer與60分鐘manifest以ETag CAS�
 | external_credential.v1 | ip／15分鐘／30 |
 | credential_change.v1 | account／15分鐘／10 |
 | session_refresh.v1 | session／1分鐘／10；ip／1分鐘／120 |
+| avatar_generate.v1 | account／1小時／8 |
+| avatar_expression.v1 | account／1小時／20 |
+| matching_search.v1 | account／1分鐘／30 |
+| matching_invite.v1 | account／1小時／10 |
+| story_ticket.v1 | account／1分鐘／30 |
+| story_mutation.v1 | account／1分鐘／120 |
 
 subject 僅存 RATE_LIMIT_HMAC_KEY 派生 hash；不預建未來業務政策。`RateLimiter.cs` 在單一request內依policy／subject／window去重；IP先commit，拒絕後不再處理其他subject，同階段額度批次提交，採最晚Retry-After。
 
@@ -128,7 +149,7 @@ storage-policy 只允許上述 key／欄位、JSON object，單值≤4096字元�
 
 私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。Foundation測試物件路徑只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；不借用作業務圖片路徑；AvatarAndPreferences使用前述獨立媒體通道，無公開私人圖片URL。
 
-ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗六表／八表／十二表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
+ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗現行16表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，故事 published／playing／vote 索引、STORY_CONTENT／GAME_ROOMS／ticket secret，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
 
 每小時清理過期 rate bucket、challenge（以 absolute expiry 的保留窗）、session／refresh（absolute expiry後7天）。refresh 自參照先分批解除再刪除，最後刪無 token 的 session；不刪帳號／identity，也不將清理當授權機制。
 

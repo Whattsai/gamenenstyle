@@ -1,8 +1,37 @@
 # HTTP API 契約
 
-## MatchingSessions（2026-11-06）
+本文件整合現行公開 HTTP／WebSocket 契約；不記需求增量或執行流水帳。認證、個資、配對及劇情各自依既有 SPEC 驗證，實際測試結果放 docs/verification。
 
-新增下列9條 PlatformAccess 端點，路徑相對 `/api/v1`。沿用 no-store、Web Origin／Cookie、native Bearer、無 query／未知鍵／重複鍵拒絕；不接受 client score、account owner、SQL 或私人圖片 key。候選 ID 是 profile_id，不是 accountId。
+## 角色授權讀圖
+
+讀圖端點：`GET /api/v1/game-rounds/{roundId}/partner-avatar` 及 `.../partner-avatar/{version}/{expression}`；本人 `GET /api/v1/me/avatar/assets/{assetId}/expressions` 及 `.../{version}/{expression}`。只回固定五表情、SHA／MIME／尺寸／大小、full-body.v1／standing／anchors 與授權 URL，不回 owner／來源照片／private key。binary no-store 且 IO 後重驗授權／目前選角；免費已確認套組也走同房通道。
+
+## 五表情製作與採用
+
+受 PlatformAccess／Origin／no-store 保護的 GET `/me/avatar/expressions`（本人 adoption 或 null）；POST `/me/avatar/expressions/begin` 接 attemptId／index1..4／clientRequestId／expectedRevision；`/next` 接 workflowId／固定 expression／clientRequestId／可選 retryUncertain；`/cancel` 接 workflowId。status 亦可 POST 空物件。公開結果只含進度／穩定 ID，不含 lease、來源圖或私人 key；內部 binary PUT `/v1/avatar/expressions/{workflow}/{expression}` 只走 Container bridge。候選 PUT selection 須五表情 ready，切回 saved 須本人 ready Manifest；無半身升級入口。
+
+## 劇情與即時通訊
+
+所有路徑相對 `/api/v1`，需既有登入／Origin保護，回應 `no-store`：
+
+| 方法／路徑 | 契約 |
+|---|---|
+| GET `/game-rounds/{id}/status` | 原始兩人成員可查active／ended；第三人403、撤銷401 |
+| GET `/game-rounds/{id}/experience` | episodeSeq固定1；pending回同序安全offers、本人票、partnerHasVoted；playing只回目前節點、真雙人角色所需資料及釘選素材；ended僅roundId／phase |
+| GET `/game-rounds/{id}/story/offers` | 同一受保護選場投影；卡片含catalogId／rank／storyId／version／title／summary／previewUrl／reason，不回對方票 |
+| POST `/game-rounds/{id}/story/vote` | clientRequestId、episodeSeq=1、catalogId；同ID同payload回原序號，改payload409；已選故事的新請求STORY_ALREADY_SELECTED409 |
+| POST `/game-rounds/{id}/events/query` | afterSeq或beforeSeq恰一個、limit1～100；未決議他人票由伺服器投影vote_status仍保留sequence；ended拒私人歷史 |
+| POST `/game-rounds/{id}/realtime-ticket` | deviceId UUIDv7；30秒一次性ticket綁account／family／cv／Round／device／platform，絕不放URL |
+| GET `/game-rounds/{id}/ws` | Upgrade；子協定datinghigh.v1、ticket.<短效值>、device.<UUID>，只echo datinghigh.v1；Web Origin精確比對，native僅無Origin或連線同來源 |
+| POST `/game-rounds/{id}/end` | 空object，二次確認由UI執行，任一原成員可永久end；冪等安全狀態 |
+
+WS envelope為 `{version:1,type,roundId,clientRequestId?,payload}`。命令白名單：`presence.ping`、`story.vote.submit`、`message.send`、`story.choice.submit`、`interaction.submit`。節點命令含storySessionId／episodeSeq=1／nodeId／expectedRevision／choiceId，互動另有definitionId。actor只取登入身份；nextNode與state不接受client聲稱。成功回command.ack原requestId／eventSeq；不明提交保持原ID並經snapshot／cursor查回，不能換ID自動重送。合作分歧依manifest的sameNext／differentNext，不套用選劇情的邀請方規則。訊息為trim後1～500 Unicode scalar，拒控制字元、孤立surrogate及HTML。
+
+`/internal/round-command`僅Worker→Container私有transport，外部`/internal/*`仍阻擋。公開故事素材只允許GET／HEAD `/story-content/assets/<64位sha256>`，不接受query或任意key。
+
+## 配對與邀請
+
+下列配對 PlatformAccess 端點，路徑相對 `/api/v1`。沿用 no-store、Web Origin／Cookie、native Bearer、無 query／未知鍵／重複鍵拒絕；不接受 client score、account owner、SQL 或私人圖片 key。候選 ID 是 profile_id，不是 accountId。
 
 | 方法／路徑 | 輸入／結果 |
 |---|---|
@@ -18,23 +47,23 @@
 
 persona 僅 nickname、bio、traitTagIds、interestTagIds、selectedAvatarType／Ref、可空 avatarDataUrl。失去硬資格後的歷史邀請可有空 selectedAvatarType／Ref，畫面不以其他圖片補造；候選仍須有有效正式化身。內建化身由原靜態資產顯示；生成化身僅嵌入目前正式資產的短暫 no-store data URL，R2等待後重新授權，不是原照或公開 R2 URL。角色引用也不授權名片。
 
-本模組 expiresAt／startedAt 使用 **Unix milliseconds number**，與 Foundation 的 ISO Timestamp 回應分開。可空 invitationState／invitationId／invalidatedReason／roundId／nextOffset 以 null 表達。失敗：400 `INVALID_MATCH_REQUEST`、401 Session、403 `RESOURCE_FORBIDDEN`、409 `PROFILE_NOT_READY`／`GAME_IN_PROGRESS`／`MATCH_STATE_CONFLICT`、410 `INVITATION_EXPIRED`、429／Retry-After、503依賴故障。沒有公開 end／command 端點；未知結果先 GET 邀請與輪次回查。
+本模組 expiresAt／startedAt 使用 **Unix milliseconds number**，與 Foundation 的 ISO Timestamp 回應分開。可空 invitationState／invitationId／invalidatedReason／roundId／nextOffset 以 null 表達。失敗：400 `INVALID_MATCH_REQUEST`、401 Session、403 `RESOURCE_FORBIDDEN`、409 `PROFILE_NOT_READY`／`GAME_IN_PROGRESS`／`MATCH_STATE_CONFLICT`、410 `INVITATION_EXPIRED`、429／Retry-After、503依賴故障。配對命令不公開；產品 end 端點見劇情契約。未知結果先 GET 邀請與輪次回查。
 
-## 2026-11-05 個人資料與名片修訂
+## 個資欄位與本人名片
 
-`GET /profile-catalog`新增`fields`，來源唯一contracts/profile-fields.json；既有groups新增gender／romanticOrientation選項。本人GET與完整PUT新增gender、romanticOrientation、cardVisibility（三者必須出現在完整PUT）。`GET /me/card-preview`只回傳有效開放欄位，關閉鍵直接省略，包含照片metadata與ageBand；精確生日、帳號資訊及私有偏好不分享。HTTP路由數不變；client獨立路由`/card-preview`每次進入重讀。MatchingInput新增性別／性向且與分享設定無關，未建立候選配對或他人名片入口。
+`GET /profile-catalog` 回傳 `fields`，來源唯一contracts/profile-fields.json；groups 包含 gender／romanticOrientation 選項。本人GET與完整PUT包含gender、romanticOrientation、cardVisibility（三者必須出現在完整PUT）。`GET /me/card-preview`只回傳有效開放欄位，關閉鍵直接省略，包含照片metadata與ageBand；精確生日、帳號資訊及私有偏好不分享。client獨立路由`/card-preview`每次進入重讀。MatchingInput 包含性別／性向且與分享設定無關；候選配對不授權他人名片讀取。
 
 
-來源為 [Program.cs](../../backend/src/DatingHigh.Api/Program.cs)、[HttpContract.cs](../../backend/src/DatingHigh.Api/HttpContract.cs)、[AuthApplication.cs](../../backend/src/DatingHigh.Application/AuthApplication.cs)、[Worker router](../../cloudflare/src/router.ts) 與 [前端 api.ts](../../frontend/client/src/api.ts)。需求權威仍為 [SPEC](../../docs/specs/SPEC-001-PlatformFoundation.md)。目前保留 PlatformFoundation **15 個認證路由**及 **2 個健康路由**，另新增 AvatarAndPreferences **13 個受保護路由**（資料、照片、目錄、化身及本人名片預覽）；沒有 SignalR event 或公開資料 command API。
+契約來源為 [Program.cs](../../backend/src/DatingHigh.Api/Program.cs)、[HttpContract.cs](../../backend/src/DatingHigh.Api/HttpContract.cs)、[前端 api.ts](../../frontend/client/src/api.ts) 及 Worker 固定路由；需求與驗證權威見對應 docs 文件。HTTP 不公開資料 commands，WebSocket 業務通道使用標準協定，不使用 SignalR。
 
-## AvatarAndPreferences（2026-11-03）
+## 照片與化身
 
-新增13條受保護路由，全部沿用 PlatformAccess、本人 Session family、Web Cookie／Origin 與 native Bearer。固定內部命令及 binary bridge 不公開。停用目錄值可保留本人同欄位既存值；新加入或移除後重新加入回400 INVALID_PROFILE，保留時仍核對revision及Session。本人資料使用19欄嚴格完整 JSON、版本化目錄及 revision CAS；`POST /me/photos` 是唯一允許8MiB JPEG／PNG／WebP binary 的入口，其他 JSON 仍16KiB。照片必須真解碼並壓至200000 bytes，AI輸出上限2MB，兩者不混用。
+照片、化身與本人名片路由沿用 PlatformAccess、本人 Session family、Web Cookie／Origin 與 native Bearer。固定內部命令及 binary bridge 不公開。停用目錄值可保留本人同欄位既存值；新加入或移除後重新加入回400 INVALID_PROFILE，保留時仍核對revision及Session。本人資料使用22鍵嚴格完整 JSON、版本化目錄及 revision CAS；`POST /me/photos` 是唯一允許8MiB JPEG／PNG／WebP binary 的入口，其他 JSON 仍16KiB。照片必須真解碼並壓至200000 bytes，AI輸出上限2MB，兩者不混用。
 
 | 方法與路徑 | 輸入／結果 |
 |---|---|
-| GET `/profile-catalog` | version、groups；穩定代碼／繁中 label／category／active |
-| GET `/avatar-catalog` | 16個 male-01～08、female-01～08，免費正式靜態圖 path，非真人照片 |
+| GET `/profile-catalog` | version、groups、fields；穩定代碼／繁中 label／category／active |
+| GET `/avatar-catalog` | version=full-body.v1，16個 male-01～08、female-01～08；assetPath 取共用builtin-avatar-packs.json的neutral內容定址WebP，非真人照片 |
 | POST `/me/photos` | binary Content-Type；201安全metadata，超限413、格式400、滿5張409 |
 | GET `/me/media/{assetId}` | 本人ready照片或正式AI化身；no-store／nosniff；未授權或已刪不可新讀 |
 | POST `/me/avatar/generations` | styleId、UUIDv7 clientRequestId、expectedProducedCount，續產加attemptId；200單張 `{attemptId,index,producedCount,maxCandidates:4,expiresAt}` |
@@ -42,9 +71,11 @@ persona 僅 nickname、bio、traitTagIds、interestTagIds、selectedAvatarType�
 | PUT `/me/avatar/selection` | builtin:{type,builtinAvatarId,expectedRevision}；新生成:{type,attemptId,index,expectedRevision}；既有正式圖:{type,assetId,expectedRevision} |
 | GET `/me/card-preview` | 本人分享欄位／化身設定／照片metadata／概略年齡／提醒；無Email、精確生日、擇偶私有資料 |
 
-其餘5條 profile／photo metadata／排序／刪除見下表。首次 generation 不會自動補齊4張；重播相同 request 不重送 provider；同帳號競爭409。未知provider用量503 `IMAGE_PROVIDER_UNCERTAIN` 並鎖住本輪，已有候選保留可採用。每輪60分鐘；採用前顯示未來付費／目前免費提醒，取消不提交。已關閉或滿額409。`GET /me/dating-profile` 附安全 `avatarAttempt` 供未知結果後只讀復原；狀態依賴故障時附 `avatarAttemptUnavailable`，前端保留原候選。
+Profile／photo metadata／排序／刪除見路由表。首次 generation 不會自動補齊4張；重播相同 request 不重送 provider；同帳號競爭409。未知provider用量503 `IMAGE_PROVIDER_UNCERTAIN` 並鎖住本輪，已有候選保留可採用。每輪60分鐘；採用前顯示未來付費／目前免費提醒，取消不提交。已關閉或滿額409。`GET /me/dating-profile` 附安全 `avatarAttempt` 供未知結果後只讀復原；狀態依賴故障時附 `avatarAttemptUnavailable`，前端保留原候選。
 
-真人照片／生成圖不提供公開R2 URL。他人名片及共享照片路由尚未開放；`ICurrentCardAuthorization` 預設拒絕，後續SPEC才定義有效同意。
+五表情生成端另檢查去背後的站姿像素幾何；明顯缺腿、缺腳／鞋或鞋底裁切時，`POST /me/avatar/expressions/next` 回503 `AVATAR_FULL_BODY_INVALID`，不儲存失敗表情、不讓套組ready或切換正式角色。這是缺肢體結構的拒絕，不代表自動判斷身份相似度或畫風；候選仍需本人預覽確認。
+
+真人照片／生成圖不提供公開R2 URL。`ICurrentCardAuthorization` 預設拒絕跨帳號名片及共享照片；同房角色讀取不授予名片或原照權限。
 
 本人資料另附 `generatedAvatars:[{assetId,mimeType,createdAt}]`，只列本人ready正式AI圖，可透過既有selection路由重選，不再呼叫provider或複製圖片。不可選資產回400 `INVALID_AVATAR_SELECTION`；本人資產遇過期revision回409 `PROFILE_VERSION_CONFLICT`。圖片與輸入均不接受owner或R2 key。
 
@@ -52,7 +83,7 @@ persona 僅 nickname、bio、traitTagIds、interestTagIds、selectedAvatarType�
 
 刪除／變更來源會關閉不再有效的生成輪次，回409 `AVATAR_SOURCE_CHANGED`。已完成provider但發布失敗視為未知用量；內部持有原lease的失敗補償可在Session到期／撤銷後解除generating狀態，只更新原manifest失敗metadata，不取得來源、不生成新圖或寫入正式資料。所有讀圖／生成／採用仍驗有效Session。
 
-跨SPEC五項內部讀取介面定義於 `IAvatarAndPreferencesReader`；`ProfileReadRequest`的帳號與輪次不是授權證明。目前未註冊adapter，待MatchingSessions／AffectionAndFeedback每次查核有效參與／同意／未終止後實作，不新增公開他人資料路由。
+跨SPEC五項內部讀取介面定義於 `IAvatarAndPreferencesReader`；`ProfileReadRequest`的帳號與輪次不是授權證明。介面本身不授權；任何 adapter 都必須另驗有效參與、同意與未終止，不提供公開他人資料捷徑。
 
 ## 共通傳輸
 
@@ -81,7 +112,7 @@ persona 僅 nickname、bio、traitTagIds、interestTagIds、selectedAvatarType�
 | GET `/session` | 本人 | 無 | 200 CurrentSessionResponse |
 | GET `/me` | 本人 | 無 | 200 Account |
 | GET `/me/dating-profile` | 本人 | 無 | 200 個人資料完整本人欄位、照片 metadata、選用化身、revision、profileReady；不回登入 Email 或 R2 key |
-| PUT `/me/dating-profile` | 本人 | expectedRevision、nickname、bio、occupation、birthDate、regionCode、traitTagIds、interestTagIds、topicTagIds、valueTagIds、5 種生活互動偏好、preferredAgeMin／Max、preferredRegionCodes、sharedInterestWeight | 200 `{revision}`；首次可先建空 profile；409 `PROFILE_VERSION_CONFLICT`、401 `SESSION_REVOKED`；驗證目錄內代碼 |
+| PUT `/me/dating-profile` | 本人 | expectedRevision、nickname、bio、occupation、birthDate、regionCode、traitTagIds、interestTagIds、topicTagIds、valueTagIds、5 種生活互動偏好、preferredAgeMin／Max、preferredRegionCodes、sharedInterestWeight、gender、romanticOrientation、cardVisibility | 200 `{revision}`；首次可先建空 profile；409 `PROFILE_VERSION_CONFLICT`、401 `SESSION_REVOKED`；驗證目錄內代碼 |
 | GET `/me/photos` | 本人 | 無 | 200 `{photos:[{assetId,mimeType,displayOrder,createdAt}]}`；只回本人 ready、no-store，無 R2 key |
 | PUT `/me/photos/order` | 本人 | 嚴格 JSON `{expectedRevision:number,assetIds:UUIDv7[1..5]}`，不可重複／缺少／多餘 ID | 200 `{revision}`；D1 批次核驗本人全部 ready 集合且按順序重排，0列→重新驗 session 後 401／409；無效 body→400 |
 | DELETE `/me/photos/{assetId}` | 本人 | 無業務欄位；Web 依既有 CSRF gate 傳送空 `{}` JSON，native 可無 body | 204；只允許本人 ready UUIDv7，以目前 profile revision 進行 D1 soft delete＋剩餘照片排序壓緊；猜 ID／重複刪除 404、失效 session 401、競態 409；成功軟刪後嘗試清除R2，故障由GC補償 |

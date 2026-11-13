@@ -1,1 +1,1 @@
-export {GameRoundScreen as default} from '../../src/MatchingScreen';
+export {StoryExperienceScreen as default} from '../../src/StoryExperienceScreen';

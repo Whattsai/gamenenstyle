@@ -68,7 +68,7 @@ public sealed class MatchingRealD1Tests
         Assert.Empty((await c.Search(2))["items"]!.AsArray());
         Assert.Equal(HttpStatusCode.Conflict,(await c.Clients[2].PostAsJsonAsync("/api/v1/match-invitations",new{candidateId=c.Profiles[0],clientRequestId=EntityId.New()})).StatusCode);
         var third=await Json(await c.Clients[2].GetAsync("/api/v1/match-invitations"));Assert.Equal("other_round_started",Assert.Single(third["outgoing"]!.AsArray())!.Text("invalidatedReason"));
-        Assert.Equal(2,(await c.Platform.Sql("SELECT * FROM game_round_participants")).Count);
+        Assert.Equal(2,(await c.Platform.Sql("SELECT * FROM game_active_round_claims")).Count);
     }
     [Fact]
     public async Task MS_API_010_028_031_ProfileChanges_UseLatestSearchButPreserveOldPendingAndUnrelatedProjection()
@@ -115,7 +115,7 @@ public sealed class MatchingRealD1Tests
     public async Task MS_API_030_FreshIsolatedDatabase_HasFourTablesNoProductionOrLegacyData()
     {
         await using var c=new Context();
-        foreach(var table in new[]{"match_conditions","match_invitations","game_rounds","game_round_participants"})Assert.Empty(await c.Platform.Sql("SELECT * FROM "+table));
+        foreach(var table in new[]{"match_conditions","match_invitations","game_rounds","game_active_round_claims"})Assert.Empty(await c.Platform.Sql("SELECT * FROM "+table));
         Assert.Empty((await c.Platform.ExecuteAsync("$test-r2-list",new{}))["keys"]!.AsArray());
         Assert.Empty(await c.Platform.Sql("SELECT name FROM sqlite_master WHERE type='trigger'"));
     }
@@ -148,7 +148,7 @@ public sealed class MatchingRealD1Tests
         Assert.Single(attempts,r=>r.StatusCode==HttpStatusCode.OK);Assert.Single(attempts,r=>r.StatusCode==HttpStatusCode.Conflict);
         var round=(await c.Platform.Sql("SELECT round_id FROM game_rounds"))[0]!.Text("round_id");
         var u=c.Users[0];await c.Platform.ExecuteAsync("game.round.end",new{accountId=u.AccountId,sessionId=u.SessionId,cv=1,accessExpiresAt=u.AccessExpiresAt,roundId=round});
-        Assert.Empty(await c.Platform.Sql("SELECT * FROM game_round_participants"));
+        Assert.Empty(await c.Platform.Sql("SELECT * FROM game_active_round_claims"));
         Assert.Equal(HttpStatusCode.Forbidden,(await c.Clients[0].GetAsync("/api/v1/game-rounds/"+round)).StatusCode);
         var winner=attempts[0].IsSuccessStatusCode?1:2;
         Assert.Equal(HttpStatusCode.Conflict,(await c.Clients[winner].PostAsJsonAsync("/api/v1/match-invitations",new{candidateId=c.Profiles[0],clientRequestId=EntityId.New()})).StatusCode);
@@ -184,7 +184,7 @@ public sealed class MatchingRealD1Tests
         Assert.Contains(attempts,r=>r.Text("status")=="accepted");
         Assert.Single(await c.Platform.Sql("SELECT * FROM game_rounds"));
         Assert.Single(await c.Platform.Sql("SELECT * FROM match_invitations"));
-        Assert.Equal(2,(await c.Platform.Sql("SELECT * FROM game_round_participants")).Count);
+        Assert.Equal(2,(await c.Platform.Sql("SELECT * FROM game_active_round_claims")).Count);
     }
     [Fact]
     public async Task MS_IT_003_004_013To018_023To032_SavedPreferencesProduceSymmetricSoftScoresWithoutFiltering()
@@ -229,7 +229,7 @@ public sealed class MatchingRealD1Tests
         await c.Platform.ExecuteAsync("$test-arm-matching-fault",new{mode=fault});
         var response=await c.Clients[1].PostAsJsonAsync($"/api/v1/match-invitations/{ab.Text("invitationId")}/accept",new{});
         Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);Assert.Equal("DEPENDENCY_UNAVAILABLE",(await Json(response)).Text("code"));
-        Assert.Equal(before,(await c.Platform.Sql("SELECT * FROM match_invitations ORDER BY invitation_id")).ToJsonString());Assert.Empty(await c.Platform.Sql("SELECT * FROM game_rounds"));Assert.Empty(await c.Platform.Sql("SELECT * FROM game_round_participants"));
+        Assert.Equal(before,(await c.Platform.Sql("SELECT * FROM match_invitations ORDER BY invitation_id")).ToJsonString());Assert.Empty(await c.Platform.Sql("SELECT * FROM game_rounds"));Assert.Empty(await c.Platform.Sql("SELECT * FROM game_active_round_claims"));
         Assert.Equal("accepted",(await c.Resolve(1,ab.Text("invitationId"),"accept")).Text("status"));
     }
     [Fact]

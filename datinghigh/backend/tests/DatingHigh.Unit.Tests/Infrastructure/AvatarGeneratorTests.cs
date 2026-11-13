@@ -31,7 +31,16 @@ public sealed class AvatarGeneratorTests
             Assert.Equal("test-only-credential",request.Headers.GetValues("x-goog-api-key").Single());
             using var json=JsonDocument.Parse(await request.Content!.ReadAsStringAsync());
             Assert.Equal(6,json.RootElement.GetProperty("contents")[0].GetProperty("parts").GetArrayLength());
-            Assert.Contains("8-head-tall anime proportions",json.RootElement.GetProperty("contents")[0].GetProperty("parts")[0].GetProperty("text").GetString());Assert.Contains("STYLE ONLY",json.RootElement.GetProperty("contents")[0].GetProperty("parts")[3].GetProperty("text").GetString());Assert.Contains("do NOT copy their close-up framing",json.RootElement.GetProperty("contents")[0].GetProperty("parts")[3].GetProperty("text").GetString());
+            var prompt=json.RootElement.GetProperty("contents")[0].GetProperty("parts")[0].GetProperty("text").GetString()!;
+            Assert.Contains("full-body standing",prompt);Assert.Contains("both feet",prompt);
+            // 使用者要求完全沿用已驗證v3，只改全身畫幅；不能再次簡寫掉身份／畫風段落。
+            Assert.Contains("Within this anime illustration style preserve the adult subject's recognizable facial features, jaw/chin contour, eye spacing and eyelid shape, nose and lip proportions, facial hair, glasses shape, hairline, fringe and bareheaded hairstyle from the REAL PHOTOS",prompt);
+            Assert.Contains("expressive but not oversized eyes, warm blush, luminous pastel bokeh and small sparkles",prompt);
+            Assert.Contains("natural upper-body hand gestures (such as touching the collar/chin, adjusting glasses, or hands resting at the waist)",prompt);
+            Assert.Contains("stylish tailored everyday clothing",prompt);
+            Assert.Contains("never for facial identity or hairstyle",prompt);
+            Assert.DoesNotContain("waist-up standing",prompt);Assert.DoesNotContain("Exclude hats, pants/legs",prompt);
+            Assert.Contains("8-head-tall anime proportions",prompt);Assert.Contains("STYLE ONLY",json.RootElement.GetProperty("contents")[0].GetProperty("parts")[3].GetProperty("text").GetString());Assert.Contains("do NOT copy their close-up framing",json.RootElement.GetProperty("contents")[0].GetProperty("parts")[3].GetProperty("text").GetString());
             Assert.Equal("3:4",json.RootElement.GetProperty("generationConfig").GetProperty("imageConfig").GetProperty("aspectRatio").GetString());
             var bytes=ImageCompressionTests.Picture(480,640);
             return new(HttpStatusCode.OK){Content=JsonContent(new{candidates=new[]{new{content=new{parts=new[]{new{inlineData=new{mimeType="image/png",data=Convert.ToBase64String(bytes)}}}}}}})};
