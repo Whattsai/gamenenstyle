@@ -9,12 +9,20 @@ const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{
 const hash=z.string().regex(/^[0-9a-f]{64}$/);
 const authSchema=z.strictObject({accountId:id,sessionId:id,cv:z.number().int().positive(),accessExpiresAt:z.number().int().positive()});
 type Auth=z.infer<typeof authSchema>;
-type Target={kind:'round';roundId:string}|{kind:'owner';assetId:string};
+type Target={kind:'round';roundId:string}|{kind:'owner';assetId:string}|{kind:'current'};
 type Context={owner:string;assetId:string;fingerprint:string;builtinId?:string};
 export class AvatarReadError extends Error{constructor(public code:string,public status=403){super(code);}}
 async function authorize(env:PlatformEnv,auth:Auth,now:number){if((await executeCommand(env.DB,'session.validate',auth,now)).rows.length!==1)throw new AvatarReadError('SESSION_REVOKED',401);}
 async function context(env:PlatformEnv,auth:Auth,target:Target,now:number):Promise<Context>{
  await authorize(env,auth,now);
+ if(target.kind==='current'){
+  const profile=await env.DB.prepare('SELECT selected_avatar_type,selected_avatar_ref FROM user_profiles WHERE account_id=?').bind(auth.accountId).first<{selected_avatar_type:string;selected_avatar_ref:string}>();
+  if(profile?.selected_avatar_type==='builtin'&&builtinAvatarPack(profile.selected_avatar_ref))return {owner:auth.accountId,assetId:profile.selected_avatar_ref,builtinId:profile.selected_avatar_ref,fingerprint:auth.accountId+'/builtin/'+profile.selected_avatar_ref};
+  if(profile?.selected_avatar_type!=='generated')throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);
+  const asset=await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar' AND status='ready' AND deleted_at IS NULL AND object_key=?").bind(profile.selected_avatar_ref,auth.accountId,`private/${auth.accountId}/avatar/${profile.selected_avatar_ref}`).first();
+  if(!asset)throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);
+  return {owner:auth.accountId,assetId:profile.selected_avatar_ref,fingerprint:auth.accountId+'/generated/'+profile.selected_avatar_ref};
+ }
  if(target.kind==='owner'){
   const asset=await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar' AND status='ready' AND deleted_at IS NULL AND object_key=?").bind(target.assetId,auth.accountId,`private/${auth.accountId}/avatar/${target.assetId}`).first();
   if(!asset)throw new AvatarReadError('AVATAR_NOT_FOUND',404);
@@ -49,9 +57,25 @@ export async function avatarProjection(command:string,input:unknown,env:Platform
  const {auth,target}=targetInput(command,input),started=Date.now(),time=()=>now+Math.max(0,Date.now()-started);
  const {source,manifest,avatarVersion}=await load(env,auth,target,time);
  const checked=await context(env,auth,target,time());if(checked.fingerprint!==source.fingerprint)throw new AvatarReadError('AVATAR_VERSION_CONFLICT',409);
- const prefix=target.kind==='round'?`/api/v1/game-rounds/${target.roundId}/partner-avatar`:`/api/v1/me/avatar/assets/${target.assetId}/expressions`;
+ const prefix=target.kind==='round'?`/api/v1/game-rounds/${target.roundId}/partner-avatar`:`/api/v1/me/avatar/assets/${source.assetId}/expressions`;
  const expressions=Object.fromEntries(expressionIds.map(e=>{const image=manifest.expressions[e];return [e,{url:`${prefix}/${avatarVersion}/${e}`,sha256:image.sha256,mimeType:image.mimeType,width:image.width,height:image.height,byteSize:image.byteSize}];}));
  return {avatarAssetId:manifest.avatarAssetId,avatarVersion,expressionSpecVersion:manifest.expressionSpecVersion,avatarAssetSpecVersion:manifest.avatarAssetSpecVersion,framing:manifest.framing,pose:manifest.pose,stageAnchors:manifest.stageAnchors,expressions};
+}
+/** 遊戲入口只驗本人當下採用者；不讀取另一組 pending 化身，也不回傳私人素材 metadata。 */
+export async function currentAvatarReadiness(input:unknown,env:PlatformEnv,now:number){
+ const auth=authSchema.parse(input),started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),target:Target={kind:'current'};
+ const source=await context(env,auth,target,time());
+ try{
+  if(!source.builtinId){
+   let manifest:AvatarExpressionManifest;
+   try{manifest=await readReadyAvatarPack(env.FILES,source.owner,source.assetId);}catch{throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);}
+   // 發佈時已驗 SHA；入口以五個不可變物件的存在、大小與 MIME 確認完整性，不下載整組圖片。
+   for(const expression of expressionIds){const image=manifest.expressions[expression],object=await env.FILES.head(image.objectKey);if(!object||object.size!==image.byteSize||object.httpMetadata?.contentType!==image.mimeType)throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);}
+  }
+ }finally{
+  const checked=await context(env,auth,target,time());if(checked.fingerprint!==source.fingerprint)throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);
+ }
+ return {ready:true};
 }
 /** 每個 binary read 都重新驗目前選用與同輪權限；SHA 不等於授權，舊 URL 不能跨 ended／撤銷／切角。 */
 export async function avatarReadMedia(request:Request,env:PlatformEnv,now:number){

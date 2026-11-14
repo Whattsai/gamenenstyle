@@ -16,7 +16,7 @@
 - `router.ts` 負責 ingress、可信標頭、preflight 與 API／assets 路由；外部 `X-DatingHigh-Internal-*` 先移除再建。
 - `ApiContainer` 管容器生命週期與路由，不保存帳號或 Session 狀態。
 - `platform.ts` 僅由容器的 `platform.internal` outbound handler 存取，處理 ready、固定命令、寄信、Google JWKS 與私人 R2。
-- `commands.ts`、`matching-commands.ts`、`story-commands.ts` 使用嚴格輸入、固定 prepared SQL 與 D1 batch；不接受呼叫者 SQL。
+- `commands.ts`、`matching-commands.ts`、`story-commands.ts`、`scene-event-commands.ts` 使用嚴格輸入、固定 prepared SQL 與 D1 batch；不接受呼叫者 SQL。場景內容 adapter 驗四層 R2 版本／SHA，Domain 編譯受控 DSL，Application 協調事件與安全投影，前端只呈現已觸發結果。
 - `GameRoomSocket` 負責 WebSocket、短效 ticket、連線、presence 與安全通知；不自行決定選場或劇情節點。
 - 公開 `/internal`、其子路徑與 `/v1/commands/*` 拒絕存取；bridge 不能改成公開管理入口。
 

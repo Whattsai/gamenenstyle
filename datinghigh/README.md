@@ -26,7 +26,7 @@ npm run dev:platform
 
 停止本地平台使用 `npm run dev:platform:stop`；重新啟動使用 `npm run dev:platform:restart`。
 
-既有0004且有舊遊戲資料時，先用 `npm run db:upgrade-story:local` 安全備份、只清非正式舊遊戲後升級，再發布內容；不要直接以空候選回填舊Round。
+既有0004／0005且有舊遊戲資料時，使用 `npm run db:upgrade-scene:local`：對已知 local instance 停寫、備份、只清舊遊戲資料後套0006並發布首條分層內容；帳號、個資、照片與化身以保護表雜湊比對。不要把舊 StoryCatalog ID 當成 Category 或以空候選回填舊 Round。還原只建新目錄，沒有 remote 模式。
 
 另一個終端執行 `node tools/serve-web.mjs`，開啟 **http://localhost:8081**；API 為 http://localhost:8787。網站來源請保持 `localhost`，以符合 Origin／Strict Cookie 設定。種子只有無登入能力的 disabled 帳號。
 
@@ -66,6 +66,7 @@ npm --prefix frontend/client start -- --dev-client --localhost --port 8082
 | `npm run build:e2e-host` | 建置受控 HTTP／寄信測試 host；後端變更或搬移目錄後重建 |
 | `npm --prefix frontend/client run export:web` | 匯出目前 Web 程式 |
 | `npm run test:web` | Web E2E；先匯出、建置 E2E host 並啟動本地平台，Playwright 會提供 8081 靜態服務 |
+| `npm run test:scene:web` | 新場景事件框架的真 D1／R2／Room DO 雙人 Web 流程；先 export／build E2eHost，與 Android 套件依序執行 |
 | `npm run test:layout` | 共用 UI 元件與 OS 邊界 adapter 的版面測試 |
 | `npm run test:android` | 已安裝 development APK 的本地 smoke；目前有下述舊路徑限制 |
 
@@ -96,5 +97,6 @@ Android smoke 的 APK 取檔、受控矩陣與真 Google 測試若引用舊目�
 | 化身與個人偏好 | [AvatarAndPreferences](docs/specs/SPEC-001-AvatarAndPreferences.md) | [驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md) |
 | 配對與邀請 | [MatchingSessions](docs/specs/SPEC-001-MatchingSessions.md) | [驗證紀錄](docs/verification/SPEC-001-MatchingSessions-Verification.md) |
 | 劇情、聊天與退出 | [StoryDialogueAndExit](docs/specs/SPEC-001-StoryDialogueAndExit.md) | [驗證紀錄](docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) |
+| 場景、事件與下一場 | [SceneEventFramework](docs/specs/SPEC-001-SceneEventFramework.md) | [驗證紀錄](docs/verification/SPEC-001-SceneEventFramework-Verification.md) |
 
 開發前先讀相關規格與分層文件；認證／資料變更先補失敗測試，完成後同步受影響的 overview。交付說明請列出行為變更、驗證結果、平台／環境及剩餘缺項。秘密、憑證、本地 state 與備份不得提交。

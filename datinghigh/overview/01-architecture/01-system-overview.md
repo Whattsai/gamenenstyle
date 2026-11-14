@@ -12,6 +12,7 @@ DatingHigh（心動迴路）是戀愛養成交友平台，以個人資料與化�
 | AvatarAndPreferences | 本人資料、性別／性向、分享設定、名片預覽、私人照片、免費角色與 Gemini 化身 |
 | MatchingSessions | 雙向計分、候選探索、72小時邀請、雙方確認與單場占用 |
 | StoryDialogueAndExit | 版本化劇情、分支與合作互動、即時聊天、房間狀態與永久退出 |
+| SceneEventFramework | 類別票決、Scene／Narrative 釘選、三來源事件、自然收尾及雙同意下一場 |
 | Expo／React Native client | Web／Android 共用畫面、API client、導覽、登入恢復與場景呈現 |
 | .NET 四層 | Domain 純規則、Application 用例、Infrastructure adapter、Api HTTP 傳輸 |
 | Cloudflare 平台 | Worker 公開入口、API Container、Room DO、D1、私人 FILES 與獨立 STORY_CONTENT |
@@ -27,9 +28,9 @@ DatingHigh（心動迴路）是戀愛養成交友平台，以個人資料與化�
 
 ## 儲存與內容
 
-D1 migration 基線為 `0005_story_dialogue_exit.sql`，共16張自有表、零 Trigger。Foundation 六表54欄、AvatarAndPreferences 兩表27欄的邊界保持；欄位與索引見 [資料契約](../03-contracts/02-data-contracts.md)。
+D1 migration 基線為 `0006_scene_event_framework.sql`，共21張自有表、零 Trigger。Foundation 六表54欄、AvatarAndPreferences 兩表27欄的邊界保持；新增五張場景事件表共35欄，欄位與索引見 [資料契約](../03-contracts/02-data-contracts.md)。環境實際採用版本依各自 EXPECTED_MIGRATION，不能由本地升級推定雲端已部署。
 
-正式故事來源在 `contracts/story-scenes.json`，素材在 `contracts/story-assets/`；免費角色 metadata 在 `contracts/builtin-avatar-packs.json`。素材匯出與發布需驗證來源、SHA、版本與核准紀錄。已發布版本不可覆寫。
+正式首條內容以 `contracts/scene-event-content.json` 組合 `contracts/story-scenes.json`，素材在 `contracts/story-assets/`；發布為 Scene、Narrative、EventDefinition、GlobalPool 四層 immutable R2。免費角色 metadata 在 `contracts/builtin-avatar-packs.json`。發布前驗證 DSL、相依、SHA、版本與核准紀錄，已發布版本不可覆寫；首條人工 Gate 通過前不得製作其餘九條。
 
 ## 啟動點
 

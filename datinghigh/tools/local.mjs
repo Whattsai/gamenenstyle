@@ -3,6 +3,9 @@ import {root,resolveInstance,parseLocalArgs,invocation,backupPath,restoreTarget,
 import {watchWslEgress} from './wsl-egress.mjs';
 import {waitLocalReady,shutdownLocal} from './restart-local.mjs';
 import {buildStoryBundle,validateStoryUpgradeTarget,oldGamePurgeStatements} from './story-content-policy.mjs';
+import {buildSceneEventBundle} from './scene-event-content-policy.mjs';
+import {publishSceneEventBundles} from './scene-event-publish-policy.mjs';
+import {applySceneEventUpgrade,validateSceneEventTarget,sceneEventMigration} from './scene-event-local-policy.mjs';
 import {createAvatarResetPlan,applyAvatarResetPlan,validateAvatarResetTarget,avatarResetDevelopmentReady} from './avatar-reset-policy.mjs';
 import {createRequire} from 'node:module';
 import net from 'node:net';
@@ -20,7 +23,7 @@ function run(args,cwd=instance.cwd,capture=false){return new Promise((resolve,re
  if(capture){child.stdout.on('data',d=>out+=d);child.stderr.on('data',d=>err+=d);}
  child.on('error',reject);child.on('exit',code=>code===0?resolve(out):reject(new Error(`Wrangler exited ${code}${capture?`: ${err}`:''}`)));
 });}
-async function invoke(cmd,target=instance,extra=opts){const i=invocation(cmd,target,extra);return run(i.args,i.cwd);}
+async function invoke(cmd,target=instance,extra=opts){if(cmd==='game-end'){const config=JSON.parse(await fs.readFile(target.config,'utf8'));extra={...extra,framework:config.vars?.EXPECTED_MIGRATION===sceneEventMigration};}const i=invocation(cmd,target,extra);return run(i.args,i.cwd);}
 async function initializeSecrets(){
  const target=path.join(instance.cwd,'.dev.vars');const previous=existsSync(target)?await fs.readFile(target,'utf8'):'';
  const missing=['ACCESS_TOKEN_SECRET','EMAIL_CODE_HMAC_KEY','RATE_LIMIT_HMAC_KEY','ROUND_TICKET_HMAC_KEY'].filter(name=>!new RegExp(`^${name}=`, 'm').test(previous));
@@ -67,6 +70,27 @@ if(command==='dev'){
   const sql=["SELECT CASE WHEN EXISTS(SELECT 1 FROM d1_migrations WHERE name='0004_matching_sessions.sql') THEN 1 ELSE json('UNKNOWN_BASELINE') END",...oldGamePurgeStatements(),await fs.readFile(path.join(root,'cloudflare/migrations/0005_story_dialogue_exit.sql'),'utf8'),"INSERT INTO d1_migrations(name) VALUES('0005_story_dialogue_exit.sql')"].join(';\n');
   const file=path.join(root,'.local',`story-upgrade-${instance.name}.sql`);await fs.writeFile(file,sql);await invoke('execute',instance,{file});console.log('Local Story schema upgraded; accounts and profiles retained');
  });
+}else if(command==='scene-upgrade'||command==='scene-publish'){
+ const config=JSON.parse(await fs.readFile(instance.config,'utf8'));validateSceneEventTarget(config);
+ const directory=path.join(root,'.local','scene-event-publish',instance.name);await fs.mkdir(directory,{recursive:true});const lease=await fs.open(path.join(directory,'publisher.lock'),'wx');
+ try{await withPausedWrites(async()=>{
+  if(command==='scene-upgrade'){
+   const output=backupPath(`scene-${Date.now()}-${randomBytes(3).toString('hex')}`);await fs.mkdir(path.dirname(output),{recursive:true});const reserve=await fs.open(output,'wx');await reserve.close();const temporary=output+'.'+randomBytes(8).toString('hex')+'.tmp';
+   try{await invoke('backup',instance,{output:temporary});await fs.rename(temporary,output);}catch(error){await fs.rm(temporary,{force:true});await fs.rm(output,{force:true});throw error;}
+  }
+  const{getPlatformProxy}=createRequire(path.join(root,'cloudflare/package.json'))('wrangler');
+  const proxy=await getPlatformProxy({configPath:instance.config,envFiles:[],persist:{path:path.join(instance.state,'v3')},remoteBindings:false});
+  try{
+   const upgrade=command==='scene-upgrade'?await applySceneEventUpgrade(proxy.env.DB,config):null;
+   if(!await proxy.env.DB.prepare('SELECT 1 FROM d1_migrations WHERE name=?').bind(sceneEventMigration).first())throw new Error('Run the local scene-upgrade wrapper first');
+   const source=JSON.parse(await fs.readFile(path.join(root,'contracts/story-scenes.json'),'utf8')),definitions=JSON.parse(await fs.readFile(path.join(root,'contracts/scene-event-content.json'),'utf8'));
+   if(definitions.schemaVersion!=='scene-event.authoring.v1'||!Array.isArray(definitions.stories)||definitions.stories.length!==1||definitions.stories[0].narrativeId!=='rain-bookshop-lost-note')throw new Error('FIRST_STORY_GATE_REQUIRED');
+   const bundles=definitions.stories.map(definition=>{const story=source.stories.find(s=>s.storyId===definition.sourceStoryId);if(!story)throw new Error('INVALID_STORY_CONTENT');return buildSceneEventBundle(story,root,definition);});
+   const published=await publishSceneEventBundles(proxy.env.DB,proxy.env.STORY_CONTENT,bundles,{validationRoot:root});
+   config.vars.EXPECTED_MIGRATION=sceneEventMigration;await fs.writeFile(instance.config,JSON.stringify(config,null,2)+'\n');
+   console.log(JSON.stringify({instance:instance.name,migration:sceneEventMigration,upgrade,published}));
+  }finally{await proxy.dispose();}
+ });}finally{await lease.close();await fs.rm(path.join(directory,'publisher.lock'));}
 }else if(command==='story-publish'){
  const config=JSON.parse(await fs.readFile(instance.config,'utf8'));validateStoryUpgradeTarget(config);
  const bucket=config.r2_buckets.find(b=>b.binding==='STORY_CONTENT')?.bucket_name;if(!bucket||!/^datinghigh-local(?:-[a-z0-9-]+)?-story-content$/.test(bucket))throw new Error('Unknown local content bucket');

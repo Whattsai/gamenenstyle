@@ -1,6 +1,6 @@
 # 資料與儲存契約
 
-現行 migration 基線為 `0005_story_dialogue_exit.sql`，共16張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
+現行 migration 基線為 `0006_scene_event_framework.sql`，共21張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄保持。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
 
 ## D1 schema
 
@@ -62,7 +62,7 @@ AI狀態不加job表：每帳號R2 active pointer與60分鐘manifest以ETag CAS�
 
 ## 配對與占用
 
-配對投影、邀請、房間與占用採固定 prepared SQL；現行 schema 以0005為準。ID 為程式提供 UUIDv7 TEXT NOT NULL PK，時間為 Unix ms。
+配對投影、邀請、房間與占用採固定 prepared SQL；現行 schema 以0006為準。實體 ID 為程式提供 UUIDv7 TEXT NOT NULL PK，關聯表使用複合 PK，時間為 Unix ms。
 
 | 表（欄數） | 依序欄位／主要約束 |
 |---|---|
@@ -79,11 +79,23 @@ invitation 狀態為 pending／accepted／declined／cancelled／expired／inval
 
 ## 劇情與事件
 
-0005 的占用表為 `game_active_round_claims`（4欄、account UNIQUE），Round 含 `last_event_seq` 與 `story_offer_catalog_ids_json` 共9欄。凍結 JSON 只代表第一場；初始化同批只接受當下 published 版本，排序依共同命中、較少方命中、總命中、priority、story_id。
+占用表為 `game_active_round_claims`（4欄、account UNIQUE），Round 含 `last_event_seq` 與 `story_offer_category_ids_json` 共9欄。凍結 JSON 只代表第一場；後續候選由 `story.episode.offers.frozen` 保存。推薦先排除沒有適用主線的類別，再依共同命中、較少方命中、總命中、priority、code 排序，取最多三個 Category。
 
-劇情使用四張表：`content_story_catalog`9欄、`game_story_sessions`9欄、`game_round_events`8欄、`game_interaction_instances`10欄，均UUIDv7首欄PK；零Trigger。Catalog每story_id最多一個published，manifest immutable key／SHA256；retired仍供已釘選Round讀取。Session UNIQUE(round_id,episode_seq)，partial UNIQUE round where playing；互動只FK story_session_id，UNIQUE(session,node,definition)。事件Round序號唯一，actor／requestId冪等，票以episode／actor最大已提交sequence重建；不另建Offers／Votes／Episode表。公開命令的 episodeSeq 固定1；其他 episode 只在隔離 schema fixture 驗證。
+劇情既有四表為 `content_story_catalog`13欄、`game_story_sessions`10欄、`game_round_events`8欄、`game_interaction_instances`10欄。Catalog 新增 scene_catalog_id、sequence_group_id、sequence_order、prerequisites_json；主線適用類別保存在有 SHA 的 Narrative Manifest。Session 新增 selected_category_id，保留 UNIQUE(round_id,episode_seq) 與 partial UNIQUE round where playing；EventBinding 的答案只存 EventInstance，不複製到舊互動表。Catalog 每穩定 ID 最多一個 published，retired 仍供已釘選場次讀取。事件 Round 序號唯一，actor／requestId 冪等，票及同意以 episode／actor 最大已提交 sequence 重建；不另建 Offers／Votes／Episode 表。
 
-內容入口固定`entry`，圖必須完整可達、無環、有至少兩個ending，互動只允許inspect-object／cooperative-choice；tag取現有ProfileCatalog。manifest≤512KiB；素材≤8MiB，只允許PNG／JPEG／WebP／WAV，key為`story-content/assets/<sha256>`且逐位元驗證。獨立STORY_CONTENT不得接私人FILES。Client不持久化票、聊天、ticket或presence；它們僅存在已授權畫面RAM，離開／ended即清空。
+場景事件新增五表共35欄：
+
+| 表 | 欄數與邊界 |
+|---|---|
+| content_story_categories | 8；category_id、穩定 code、version、title、興趣 tags、priority、status、published_at；每 code 最多一個 published |
+| content_scene_catalog | 8；scene_catalog_id、穩定 scene_id、version、title、manifest key／SHA、status、published_at |
+| content_scene_category_links | 2；Scene Catalog／Category FK 複合 PK |
+| game_scene_visits | 6；UUID、Session FK、visit_seq=1、Scene FK、entered_at、left_at；UNIQUE(session,visit_seq) |
+| game_event_instances | 11；UUID、Session FK、完整 scope:sourceId:bindingId、event_id／version、repeat_group、status、state_json、revision、created_at、completed_at；UNIQUE(session,binding) |
+
+EventInstance status 為 active／completed／cancelled，JSON object≤16384字元，revision≥1；取消或完成須有 completed_at。Session／EventInstance CAS、receipt、事件序號及 SceneVisit 關閉在同一 D1 batch。隨機未觸發保存 cancelled，安全 `story.state.updated` 僅帶 episode／session／revision，不洩漏隱藏 binding。自然收尾不終止 Round；雙方對同一 completed episode 的有效同意才建立下一場。終止 Round 同批封存事件、關閉訪問並釋放 claims。
+
+內容入口固定 `entry`，圖至少兩節點、完整可達、無環、有至少一個可達 ending；互動只允許 inspect-object／cooperative-choice，tag 取現有 ProfileCatalog。Scene、Narrative、EventDefinition、GlobalPool 各有版本／key／SHA，單物件≤512KiB、四層合計≤4MiB、受限參照數；素材≤8MiB，只允許 PNG／JPEG／WebP／WAV，key 為 `story-content/assets/<sha256>` 且逐位元驗證。DSL 限深度8／總節點64／每組32項，拒腳本、SQL、外部 URL 與私有 Profile 條件。獨立 STORY_CONTENT 不得接私人 FILES。Client 不持久化票、聊天、ticket 或 presence；僅存在授權畫面 RAM，離開／ended 即清空。
 
 ## 版本化場景與免費素材
 
@@ -97,7 +109,7 @@ invitation 狀態為 pending／accepted／declined／cancelled／expired／inval
 
 Gemini 衍生圖使用 LosslessWebp，每檔上限2MB、最低600×800且保留3:4比例；來源照片仍為 JPEG／200000 bytes，免費套組每檔上限200000 bytes。Worker 依 RFC9649 驗靜態 VP8X／VP8L alpha，拒動畫、metadata、畫布不符與偽alpha容器；站姿幾何檢查拒明顯缺腿、缺腳／鞋或鞋底裁切，不作身份／畫風核准。
 
-R2 前景狀態為 `private/{owner}/avatar/temp/adoption`；套組為 `private/{owner}/avatar/{asset}/expressions/v1/full-body.v1/{expression}.webp` 與 manifest.json。恰好五表情，驗 owner、來源hash、版本、尺寸、alpha、各圖hash與長度後才 immutable ready；ready 不等於已選。正式選用以 D1 CAS 提交，取消增加既有 Profile revision 作 fence。
+R2 前景狀態為 `private/{owner}/avatar/temp/adoption`；套組為 `private/{owner}/avatar/{asset}/expressions/v1/full-body.v1/{expression}.webp` 與 manifest.json。恰好五表情，驗 owner、來源hash、版本、尺寸、alpha、各圖hash與長度後才 immutable ready；ready 不等於已選。正式選用以 D1 CAS 提交，取消增加既有 Profile revision 作 fence。遊戲入口只驗本人目前採用的正式資產：DB 本人／未刪除／ready、有效 ready Manifest、五物件存在／MIME／長度；另一組 pending 不影響已就緒採用者，不新增 readiness 欄位或 marker。
 
 生成 pending GC 為兩小時，照片 pending 為三十分鐘；固定表情／Manifest 路徑附 orphanAfter，到期且 D1 非 ready 才清。每帳號可重用 adoption checkpoint 由 CAS 覆用，不無條件刪除，以免刪除新前景鎖。一次性本地清理依具名帳號、精確 key／etag、備份與無 writer 前提操作；執行結果另記驗證文件。
 
@@ -149,7 +161,7 @@ storage-policy 只允許上述 key／欄位、JSON object，單值≤4096字元�
 
 私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。Foundation測試物件路徑只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；不借用作業務圖片路徑；AvatarAndPreferences使用前述獨立媒體通道，無公開私人圖片URL。
 
-ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄、依EXPECTED_MIGRATION驗現行16表欄位順序／首欄PK與NOT NULL、未撤銷 session UNIQUE index，故事 published／playing／vote 索引、STORY_CONTENT／GAME_ROOMS／ticket secret，以及 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。它不是完整資料稽核；UNIQUE／FK／rollback 的行為仍由真 D1 測試證明。
+ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄；0006 驗21表欄位順序／PK／NOT NULL、零 Trigger、未撤銷 session UNIQUE、故事 published／playing／vote 及新增 Scene／序列／事件／候選唯一索引，拒舊 published Catalog 缺 Scene。另驗 STORY_CONTENT／GAME_ROOMS／ticket secret 與 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。保留0005相容檢查供明確舊環境及測試使用；它不是完整資料稽核，UNIQUE／FK／rollback 行為仍由真 D1 測試證明。
 
 每小時清理過期 rate bucket、challenge（以 absolute expiry 的保留窗）、session／refresh（absolute expiry後7天）。refresh 自參照先分批解除再刪除，最後刪無 token 的 session；不刪帳號／identity，也不將清理當授權機制。
 

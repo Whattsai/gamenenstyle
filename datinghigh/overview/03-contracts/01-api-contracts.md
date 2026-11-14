@@ -17,15 +17,21 @@
 | 方法／路徑 | 契約 |
 |---|---|
 | GET `/game-rounds/{id}/status` | 原始兩人成員可查active／ended；第三人403、撤銷401 |
-| GET `/game-rounds/{id}/experience` | episodeSeq固定1；pending回同序安全offers、本人票、partnerHasVoted；playing只回目前節點、真雙人角色所需資料及釘選素材；ended僅roundId／phase |
-| GET `/game-rounds/{id}/story/offers` | 同一受保護選場投影；卡片含catalogId／rank／storyId／version／title／summary／previewUrl／reason，不回對方票 |
-| POST `/game-rounds/{id}/story/vote` | clientRequestId、episodeSeq=1、catalogId；同ID同payload回原序號，改payload409；已選故事的新請求STORY_ALREADY_SELECTED409 |
+| GET `/game-rounds/{id}/experience` | 真正最新 episodeSeq；pending_category_selection 回同序類別、本人票、partnerHasVoted；playing／completed 只回目前節點、安全已觸發事件及釘選素材，completed 帶雙方同意狀態；ended 僅安全狀態 |
+| GET `/game-rounds/{id}/story/offers` | 受保護類別投影；卡片含 categoryId／rank／title／summary／中性 reason，不回對方票或隱藏主線；明確舊0005模式保留 Catalog 卡片 |
+| POST `/game-rounds/{id}/story/vote` | clientRequestId、episodeSeq、categoryId；同ID同payload回原序號，改payload或已決議場次409；舊0005模式才接受catalogId |
+| POST `/game-rounds/{id}/story/next` | clientRequestId、completedEpisodeSeq、agree；本人同意／撤回，只有同一最新已完成場次雙方同意才建立下一場；回最新 experience，無內容409 NO_PLAYABLE_STORY |
+| POST `/game-rounds/{id}/story/event` | clientRequestId、storySessionId、expectedRevision、bindingId、actionId；episode／node 由目前 Session 推導，完整限定 binding 必須已 active，回原 receipt 或 revision conflict；拒 client nextNode／state／演出覆寫 |
 | POST `/game-rounds/{id}/events/query` | afterSeq或beforeSeq恰一個、limit1～100；未決議他人票由伺服器投影vote_status仍保留sequence；ended拒私人歷史 |
 | POST `/game-rounds/{id}/realtime-ticket` | deviceId UUIDv7；30秒一次性ticket綁account／family／cv／Round／device／platform，絕不放URL |
 | GET `/game-rounds/{id}/ws` | Upgrade；子協定datinghigh.v1、ticket.<短效值>、device.<UUID>，只echo datinghigh.v1；Web Origin精確比對，native僅無Origin或連線同來源 |
 | POST `/game-rounds/{id}/end` | 空object，二次確認由UI執行，任一原成員可永久end；冪等安全狀態 |
 
-WS envelope為 `{version:1,type,roundId,clientRequestId?,payload}`。命令白名單：`presence.ping`、`story.vote.submit`、`message.send`、`story.choice.submit`、`interaction.submit`。節點命令含storySessionId／episodeSeq=1／nodeId／expectedRevision／choiceId，互動另有definitionId。actor只取登入身份；nextNode與state不接受client聲稱。成功回command.ack原requestId／eventSeq；不明提交保持原ID並經snapshot／cursor查回，不能換ID自動重送。合作分歧依manifest的sameNext／differentNext，不套用選劇情的邀請方規則。訊息為trim後1～500 Unicode scalar，拒控制字元、孤立surrogate及HTML。
+WS envelope 為 `{version:1,type,roundId,clientRequestId?,payload}`。命令白名單：`presence.ping`、`story.vote.submit`、`message.send`、`story.choice.submit`、`interaction.submit`、`story.next.requested`、`story.event.submit`。節點命令含 storySessionId／episodeSeq／nodeId／expectedRevision／choiceId，舊互動另有 definitionId，新事件使用完整限定 bindingId／actionId。actor 只取登入身份；nextNode 與 state 不接受 client 聲稱。成功回 command.ack 原 requestId／eventSeq；不明提交保持原 ID 並經 snapshot／cursor 查回，不換 ID 自動重送。合作分歧由已釘選 Narrative Binding 的 outcomeTransitions 決定。訊息為 trim 後1～500 Unicode scalar，拒控制字元、孤立 surrogate 及 HTML。
+
+Event 投影只含已觸發的 bindingId、eventInstanceId、eventSeq、main、revision、definition、安全演出、本人選項及 partnerHasSubmitted；不公開對方答案、觸發條件或 contentPins。讀取 R2 前後及最終投影再驗登入與成員，撤銷401／第三人403；completed 保留舞台及聊天，事件不可再提交。內部 `story.framework.*` 為固定 bridge 用例，沒有公開 command 端點。
+
+active 遊戲入口／恢復、events query、realtime-ticket 及 HTTP／WS 遊戲命令另驗本人目前採用的 ready 五表情；不完整回 `409 OWN_AVATAR_PACK_NOT_READY`。前端清空私人場景並提供個人檔案入口；另一組 pending 化身不影響已就緒的採用者。end 與 ended 安全投影保留。固定內部 `avatar.current.readiness` 只接收登入身分、回 `{ready:true}`，不接受 owner／assetId 或公開素材路徑。
 
 `/internal/round-command`僅Worker→Container私有transport，外部`/internal/*`仍阻擋。公開故事素材只允許GET／HEAD `/story-content/assets/<64位sha256>`，不接受query或任意key。
 

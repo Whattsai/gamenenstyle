@@ -2,7 +2,7 @@
 
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～15）  
 > **已確認 SDD**：[SPEC-001-SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)，SEF-RQ-01～03=A  
-> **生成日期**：2026-11-12；**規劃狀態**：Ready for well-done（僅已完成 SDD／RiskAudit／BDD/TDD 文件規劃），**66 個 BDD 均未實作或驗收**；不得和既有 StoryDialogueAndExit 的驗收結果混算。
+> **生成日期**：2026-11-12；**規劃狀態**：Ready for well-done（僅已完成 SDD／RiskAudit／BDD/TDD 文件規劃），**79 個 BDD 尚未全數結案**；不得和既有 StoryDialogueAndExit 的驗收結果混算。
 
 ## Feature 描述
 
@@ -14,11 +14,13 @@
 
 ```text
 📦 SceneEventFramework
-├─ 目前階段：Perfect Plan，尚未開始開發
-├─ BDD：0/78 通過（0%）
+├─ 目前階段：依使用者要求暫停；首條主要技術流程及本人化身入口已驗證
+├─ BDD：1/79 完整覆核通過（1.3%）
 ├─ 新增視覺需求：需延用 StoryDialogueAndExit 原 Gate B
 └─ 首條雨聲書店：必須由使用者試玩調校確認後才開發其餘九條
 ```
+
+實作子項、回歸與未完事項見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。SEF-BDD-079 已完整覆核通過；其餘 Scenario 未完成逐項結案，不以既有劇情回歸數代替。
 
 ## Background（共同前提）
 
@@ -1143,6 +1145,21 @@ Scenario: 首條完整遊戲必須保留人物與 2.5D Gate
   And 未經使用者明確核准不能開始其餘九條，既有技術回放不能冒充真人人工通過
 ```
 
+## SEF-BDD-079：本人目前採用化身尚未就緒時不可進入遊戲
+
+**已通過**：真 D1／R2、HTTP／共用 WS 用例、Web 及 Android 入口／恢復；證據見驗證紀錄。
+
+```gherkin
+Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身不影響入口
+  Given 玩家已有 active Round，伺服器可辨識本人當前採用的化身
+  When 該化身尚未 ready、缺少 ready Manifest 或任一表情物件
+  Then 直接網址、恢復、票券及遊戲操作回 409 OWN_AVATAR_PACK_NOT_READY，不提交遊戲寫入
+  And 畫面清除場景、角色、聊天室與草稿，提供「前往個人檔案」
+  When 本人改用已就緒的化身並回到遊戲
+  Then 回到原 Round 及已釘選劇情，不重抽；其他 pending 化身不阻擋
+  And 第三人與撤銷仍回 403 與 401，未就緒也可永久結束本輪
+```
+
 ## SPEC 驗收覆蓋矩陣
 
 | SPEC AC | BDD Scenario |
@@ -1163,5 +1180,6 @@ Scenario: 首條完整遊戲必須保留人物與 2.5D Gate
 | SEF-AC-014 | SEF-BDD-071、SEF-BDD-072、SEF-BDD-075 |
 | SEF-AC-015 | SEF-BDD-070、SEF-BDD-073、SEF-BDD-074、SEF-BDD-076 |
 | SEF-AC-016 | SEF-BDD-077、SEF-BDD-078 |
+| SEF-AC-017 | SEF-BDD-079 |
 
-**78/78 場景已建立規劃與追溯；0/78 實作通過**。已將 RA-Q1=A、RA-Q2=A 增補為 SEF-BDD-064～066，不覆蓋原 63 個場景。另依 2026-11-13 全身角色／2.5D 影響稽核補入 SEF-BDD-067～078（12 場），保留原 StoryDialogueAndExit Gate B。對應 [TDD 測試清單](../tdd/SPEC-001-SceneEventFramework-TDD.md) 必須以本場景的 ID 雙向追溯。已確認的 RA-Q1=A／RA-Q2=A 及 12 項風險處置見 [RiskAudit](../specs/SPEC-001-SceneEventFramework-RiskAudit.md)，交接細節見 [TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md#規劃交接紀錄)；目前 Ready 只表示可以開始開發首條主線，非已測試通過。
+**79/79 場景已建立規劃與追溯；1/79 完整實作覆核通過**。已將 RA-Q1=A、RA-Q2=A 增補為 SEF-BDD-064～066，不覆蓋原 63 個場景。另依 2026-11-13 全身角色／2.5D 影響稽核補入 SEF-BDD-067～078（12 場），保留原 StoryDialogueAndExit Gate B。對應 [TDD 測試清單](../tdd/SPEC-001-SceneEventFramework-TDD.md) 必須以本場景的 ID 雙向追溯。已確認的 RA-Q1=A／RA-Q2=A 及 12 項風險處置見 [RiskAudit](../specs/SPEC-001-SceneEventFramework-RiskAudit.md)，交接細節見 [TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md#規劃交接紀錄)；目前 Ready 只表示可以開始開發首條主線，非已測試通過。

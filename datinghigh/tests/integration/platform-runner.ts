@@ -1,6 +1,10 @@
 import {build} from 'esbuild';
 // @ts-expect-error 共用本地發布政策。
 import {buildStoryBundle} from '../../tools/story-content-policy.mjs';
+// @ts-expect-error 共用分層內容與固定 prepared Publisher。
+import {buildSceneEventBundle} from '../../tools/scene-event-content-policy.mjs';
+// @ts-expect-error 共用分層內容與固定 prepared Publisher。
+import {publishSceneEventBundles} from '../../tools/scene-event-publish-policy.mjs';
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFileSync} from 'node:fs';import {createInterface} from 'node:readline';
 import {dispatch,ready,probeKey,probeText} from '../../cloudflare/src/platform';
@@ -50,6 +54,31 @@ async function main(){
    else if(command==='$test-matching-fault-state')result={armed:matchingFault!==null};
    else if(command==='$test-provider'){providerMode=payload.mode;if(payload.reset!==false){providerCalls=0;templatesValid=true;}result={configured:true};}
    else if(command==='$test-provider-stats')result={calls:providerCalls,templatesValid};
+   else if(command==='$test-framework-enable'){
+    const sql=readFileSync(root+'/cloudflare/migrations/0006_scene_event_framework.sql','utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+    await db.prepare('DELETE FROM content_story_catalog').run();
+    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];const layered=buildSceneEventBundle(story,root,definition);
+    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});env.EXPECTED_MIGRATION='0006_scene_event_framework.sql';result={enabled:true};
+   }
+   else if(command==='$test-framework-linear'){
+    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql')throw new Error('Framework required');const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];
+    const entry=structuredClone(story.nodes[0]),ending=structuredClone(story.nodes.find(n=>n.ending));entry.objects=[];entry.choices=[{id:'finish',label:'完成這段閱讀',next:'ending-only'}];delete entry.interactionId;entry.presentation.hotspotIds=[];ending.id='ending-only';ending.objects=[];ending.choices=[];delete ending.interactionId;ending.presentation.hotspotIds=[];
+    const linear={...story,nodes:[entry,ending],interactions:[],scenePresentation:{...story.scenePresentation,hotspots:[]}};
+    const layered=buildSceneEventBundle(linear,root,{...definition,sceneCatalogId:'019a281e-0000-7000-8000-000000006301',narrativeCatalogId:'019a281e-0000-7000-8000-000000006302',sceneVersion:'v50',narrativeVersion:'v50',poolVersion:'v50',bindingSources:{},bindingOverrides:{}});await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
+   }
+   else if(command==='$test-framework-events'){
+    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql'||![0,1].includes(payload.probability))throw new Error('Invalid isolated event fixture');
+    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0],version=`v${40+payload.probability}`;
+    const layered=buildSceneEventBundle(story,root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6201+payload.probability*10).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6202+payload.probability*10).padStart(12,'0')}`,sceneVersion:version,narrativeVersion:version,poolVersion:version,bindingOverrides:{...definition.bindingOverrides,bookmark:{...definition.bindingOverrides.bookmark,visibility:'hidden',selectionMode:'weighted_random',probability:payload.probability,triggerConditions:{choice_committed:'enter'}}},globalBindings:[{bindingId:'global-note',eventId:'bookmark',narrativeRole:'side',visibility:'hidden',requiredCapabilities:['bookshop'],repeatScope:'round',repeatGroup:'global-note',triggerConditions:{event_completed:'scene:rain-bookshop:bookmark'}}]});
+    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
+   }
+   else if(command==='$test-framework-categories'){
+    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql'||![2,3].includes(payload.count))throw new Error('Invalid isolated category count');
+    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0],version=`v${payload.count}0`;
+    const categories=[definition.categories[0],...Array.from({length:payload.count-1},(_,n)=>({categoryId:`019a281e-0000-7000-8000-${String(4204+n).padStart(12,'0')}`,code:['mystery','travel'][n],version:'v1',title:['懸疑','旅程'][n],interestTagIds:['coffee'],recommendationPriority:n+2}))];
+    const layered=buildSceneEventBundle(story,root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6000+payload.count).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6100+payload.count).padStart(12,'0')}`,sceneVersion:version,narrativeVersion:version,categories,eligibleCategoryCodes:categories.map(c=>c.code)});
+    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={categories:categories.map(c=>({categoryId:c.categoryId,title:c.title}))};
+   }
    else if(command==='$test-story-catalogs'){
     if(![2,3].includes(payload.count))throw new Error('Invalid isolated catalog count');const catalogs=[story.catalogId];
     for(let n=2;n<=payload.count;n++){const fixture=structuredClone(story);fixture.storyId=`scene-${90+n}`;fixture.catalogId=`019a281e-0000-7000-8000-${String(900+n).padStart(12,'0')}`;fixture.title=`隔離完整內容 fixture ${n}`;const built=buildStoryBundle(fixture,root);await storyContent.put(built.key,built.bytes,{httpMetadata:{contentType:'application/json'}});await db.prepare("INSERT INTO content_story_catalog VALUES(?,?,?,?,?,?,?,'published',?)").bind(fixture.catalogId,fixture.storyId,fixture.version,JSON.stringify(fixture.interestTagIds),n,built.key,built.sha256,now).run();catalogs.push(fixture.catalogId);}

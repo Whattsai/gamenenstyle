@@ -5,7 +5,9 @@ export const invoke=(...args)=>{try{return execFileSync(adb,[...(process.env.DAT
 export function memorySample(phase){
  const raw=invoke('shell','dumpsys','meminfo','com.datinghigh.app'),match=raw.match(/TOTAL PSS:\s*(\d+)/);
  const device=invoke('shell','cat','/proc/meminfo'),field=name=>{const value=device.match(new RegExp(`^${name}:\\s+(\\d+)\\s+kB$`,'m'));return value?Number(value[1]):null;};
- return {phase,capturedAtUtc:new Date().toISOString(),pssKiB:match?Number(match[1]):null,totalMemKiB:field('MemTotal'),availableMemKiB:field('MemAvailable')};
+ const graphics=invoke('shell','dumpsys','gfxinfo','com.datinghigh.app'),metric=expression=>{const value=graphics.match(expression);return value?Number(value[1]):null;};
+ const rendering={totalFrames:metric(/Total frames rendered:\s*(\d+)/),jankyFrames:metric(/Janky frames:\s*(\d+)/),p50Ms:metric(/50th percentile:\s*(\d+)ms/),p90Ms:metric(/90th percentile:\s*(\d+)ms/),p95Ms:metric(/95th percentile:\s*(\d+)ms/),p99Ms:metric(/99th percentile:\s*(\d+)ms/)};
+ return {phase,capturedAtUtc:new Date().toISOString(),pssKiB:match?Number(match[1]):null,totalMemKiB:field('MemTotal'),availableMemKiB:field('MemAvailable'),rendering};
 }
 // XML 只從 PTY 讀入記憶體，驗證碼／密碼不寫 UI dump、影片、log 或 screenshot。
 let screenBounds;
@@ -35,4 +37,4 @@ export async function fill(label,value,verifyExactEmail=true){
  }
  assert.fail('Native Email input matches test value after bounded input attempts');
 }
-export async function reopen(port=8082,{hideDevTools=false}={}){invoke('reverse',`tcp:${port}`,`tcp:${port}`);invoke('shell','am','force-stop','com.datinghigh.app');invoke('shell','am','start','-a','android.intent.action.VIEW','-d',`'datinghigh://expo-development-client/?url=${encodeURIComponent('http://localhost:'+port)}${hideDevTools?'&__expo_disable_fab=1&__expo_disable_auto_launch=1&__expo_disable_onboarding=1':''}'`);}
+export async function reopen(port=8082,{hideDevTools=false}={}){invoke('shell','input','keyevent','224');invoke('shell','wm','dismiss-keyguard');invoke('reverse',`tcp:${port}`,`tcp:${port}`);invoke('shell','am','force-stop','com.datinghigh.app');invoke('shell','am','start','-a','android.intent.action.VIEW','-d',`'datinghigh://expo-development-client/?url=${encodeURIComponent('http://localhost:'+port)}${hideDevTools?'&__expo_disable_fab=1&__expo_disable_auto_launch=1&__expo_disable_onboarding=1':''}'`);}

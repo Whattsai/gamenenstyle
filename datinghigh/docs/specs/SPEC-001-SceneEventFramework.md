@@ -1,11 +1,11 @@
 # SPEC-001-SceneEventFramework：場景、主線與可重用事件框架
 
 **功能 ID**：SPEC-001-SceneEventFramework  
-**來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)（2026-11-12 最新業務決策、US-005／AC-005-04～15）  
+**來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)（US-005／AC-005-04～16）
 **順序**：第 5 份，共 9 份 SPEC；依賴 `SPEC-001-MatchingSessions`、`SPEC-001-StoryDialogueAndExit`，提供 `SPEC-001-AffectionAndFeedback`、`SPEC-001-OnlineGamesAndQuests` 可重用基礎  
 **優先級**：高  
 **日期**：2026-11-13（原 SDD 業務決策確認：2026-11-12）  
-**階段**：Ready for well-done（僅規劃交接）；原 SDD／RiskAudit 業務取捨已於 2026-11-12 確認，2026-11-13 補強人物／2.5D 既有功能整合契約及測試，無新業務決策；不代表程式／人工 Gate 已通過  
+**階段**：依使用者要求暫停；首條主要流程及本人化身入口已完成本地技術驗證，整份框架規格尚未結案；原 SDD／RiskAudit 取捨及本人化身入口條件均已由使用者確認，實作證據與暫停範圍見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)，人工 Gate 不代簽。
 **負責角色**：DatingHigh 應用開發；業務及人工驗收由使用者確認
 
 ## 1. 功能概述、範圍與非目標
@@ -25,6 +25,12 @@
 - 現有 `StoryRecommendationPolicy` 推薦具體 StoryCatalog，`StorySelectionPolicy` 按原邀請方票決；`story-commands.ts`、Application 及 API 本期限制 `episodeSeq=1`。新方案要解除此限制，但**不能**以直接放寬 Client 輸入取代交易內驗證。
 - 即時通訊沿用 `GameRoomSocket` DO、`IRoundRealtimeNotifier`、`game_round_events` 全域遞增序號／冪等 `clientRequestId`、授權 HTTPS snapshot／事件補漏；保留雙人真實投票、聊天室和「結束本輪互動」二次確認。
 - 現有全身化身、B1 五表情、R2 ready Manifest、2.5D 分鏡、Web／Android Gate B 還有未完成驗收，**不移出、重做或降低 `SPEC-001-StoryDialogueAndExit` 的既有 Gate**。
+
+### 1.2 本人目前採用化身的遊戲入口條件
+
+遊戲入口、恢復、即時連線票券及遊戲操作須由伺服器核對本人目前正式採用的化身。內建化身須屬正式完整五表情目錄；生成化身須為本人所有、未刪除且 ready 的正式資產，具有有效 ready Manifest 及五張完整表情物件。缺少選用、製作未完成、清單或任一表情缺失時回 `409 OWN_AVATAR_PACK_NOT_READY`，不提供劇情內容、不核發票券、不寫入遊戲操作。
+
+只核對目前採用者；另一組尚在製作的化身不得阻擋已就緒的選用。讀取私人儲存前後須重驗登入與目前選用。畫面清除既有場景、角色、聊天室及草稿，顯示原因及「前往個人檔案」；選用已就緒化身後可回同一輪，不重新抽劇情。第三人／撤銷授權仍優先回 403／401；結束本輪及 ended 安全狀態不受此條件阻擋。此規則不啟動或自動續產 B1。
 
 ## 2. 名詞、DDD 邊界與責任分層
 
@@ -251,6 +257,7 @@ Content-Type: application/json
 | SEF-AC-014 | 已採用五表情與 Scene 各自維持版本；新套組完整解碼＋句尾安全換角；失敗不顯示混包、失權即清除；Event 不啟動 Gemini | MVP AC-005-13；AvatarAndPreferences B1 |
 | SEF-AC-015 | 動態熱區依權威事件資格顯示、預覽不提交；新 Episode 重設舞台但保留 Round 聊天／當前 Avatar；背景／重連不重抽、重送、autoplay、續產 | MVP AC-005-09～11/13 |
 | SEF-AC-016 | 首條雨聲書店 Web／Android UX-P1～P5、免費／AI 全身人物、兩結局、微動與場景素材實證；使用者人工 Gate B 核准後才擴充其餘九條 | MVP AC-005-14；StoryDialogueAndExit Gate B |
+| SEF-AC-017 | 本人目前採用化身的五表情未就緒時禁止遊戲入口、恢復、票券及操作；清除私人畫面並提供個人檔案入口；不受另一組 pending 化身影響 | MVP AC-005-16；§1.2；BDD-079 |
 
 ## 9. 已確認的 SDD 取捨（SEF-RQ-01～03=A）及 RiskAudit 後續關卡
 

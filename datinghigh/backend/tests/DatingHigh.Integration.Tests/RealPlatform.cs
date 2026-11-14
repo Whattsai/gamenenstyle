@@ -7,7 +7,7 @@ namespace DatingHigh.Integration.Tests;
 internal sealed class RealPlatform:IPlatformClient,IAsyncDisposable
 {
     private static readonly string Root=FindRoot();private static readonly string Runner=BuildRunner();
-    private readonly Process process;private readonly Task<string> stderr;private readonly SemaphoreSlim io=new(1);
+    private readonly Process process;private readonly Task<string> stderr;private readonly SemaphoreSlim io=new(1);private readonly bool frameworkClock;private readonly object clockLock=new();
     public readonly FakeTimeProvider Clock=new(new DateTimeOffset(2026,10,29,0,0,0,TimeSpan.Zero));
     public readonly AuthOptions Options=new("local","integration-issuer","integration-audience",new byte[32],Enumerable.Repeat((byte)1,32).ToArray(),Enumerable.Repeat((byte)2,32).ToArray(),"http://localhost:8081","Log");
     public readonly ControlledSender Sender=new();public const string Password="A real D1 integration password";public const string Email="owner@example.com";
@@ -18,12 +18,15 @@ internal sealed class RealPlatform:IPlatformClient,IAsyncDisposable
     }
     public Task<JsonNode> Provider(string mode,bool reset=true)=>ExecuteAsync("$test-provider",new{mode,reset});
     public Task<JsonNode> ProviderStats()=>ExecuteAsync("$test-provider-stats",new{});
-    public RealPlatform()
+    public void ObserveUtcNow(DateTimeOffset now){lock(clockLock)if(now>Clock.GetUtcNow())Clock.SetUtcNow(now);}
+    public RealPlatform(bool framework=false,bool advanceFrameworkClock=true)
     {
+        frameworkClock=framework&&advanceFrameworkClock;
         var utf8=new System.Text.UTF8Encoding(false,true);
         var start=new ProcessStartInfo("node"){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=utf8,StandardOutputEncoding=utf8,StandardErrorEncoding=utf8,UseShellExecute=false,CreateNoWindow=true};start.ArgumentList.Add(Runner);start.ArgumentList.Add(Root);
         process=Process.Start(start)??throw new InvalidOperationException("Cannot start isolated D1 runner");stderr=process.StandardError.ReadToEndAsync();
         if(process.StandardOutput.ReadLine()!="{\"ready\":true}")throw new InvalidOperationException("Isolated D1 runner did not start");
+        if(framework)ExecuteAsync("$test-framework-enable",new{}).GetAwaiter().GetResult();
     }
     private static string FindRoot(){var directory=new DirectoryInfo(AppContext.BaseDirectory);while(directory is not null){if(File.Exists(Path.Combine(directory.FullName,"cloudflare","wrangler.jsonc")))return directory.FullName;directory=directory.Parent;}throw new InvalidOperationException("Foundation root not found");}
     private static string BuildRunner()
@@ -36,10 +39,10 @@ internal sealed class RealPlatform:IPlatformClient,IAsyncDisposable
     public async Task<JsonNode> ExecuteAsync(string command,object payload,CancellationToken cancellationToken=default)
     {
         await io.WaitAsync(cancellationToken);try{
-            await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new{command,payload,now=Clock.GetUtcNow().ToUnixTimeMilliseconds()}));await process.StandardInput.FlushAsync();
+            var started=Stopwatch.GetTimestamp();await process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(new{command,payload,now=Clock.GetUtcNow().ToUnixTimeMilliseconds()}));await process.StandardInput.FlushAsync();
             if(command=="email.code.send")Interlocked.Increment(ref mailCalls);
             // A cancelled sender may finish late; drain its private IPC response before accepting another command.
-            var line=await process.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(20));var envelope=line is null?null:JsonNode.Parse(line);
+            var line=await process.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(20));if(frameworkClock)lock(clockLock)Clock.Advance(Stopwatch.GetElapsedTime(started));var envelope=line is null?null:JsonNode.Parse(line);
             if(envelope?["error"] is JsonObject error)throw new DomainException(error.Maybe("code")??"DEPENDENCY_UNAVAILABLE",(int)error.Number("status"));
             if(envelope?["result"] is not JsonNode result)throw new DomainException("DEPENDENCY_UNAVAILABLE",503);return result.DeepClone();
         }finally{io.Release();}

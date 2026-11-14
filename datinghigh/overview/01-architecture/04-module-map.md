@@ -4,6 +4,8 @@
 
 Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控背景解碼／去背：`Media/AvatarChromaMask.cs`（Infrastructure既有Skia）。免費圖片由 contracts/builtin-avatar-packs.json 對應 public 目錄中的正式 WebP。
 
+本人目前採用化身的遊戲入口由 `StoryDialogueService` 呼叫 Worker `round-avatar.ts` 的固定 `avatar.current.readiness` 驗證；此檢查涵蓋入口、恢復、票券及共用遊戲命令，畫面拒絕狀態由 `StoryExperienceScreen` 呈現。
+
 角色讀取與演出模組：Application `AvatarReadService.cs`、Domain `StoryPresentationPolicy.cs`、Infrastructure `Media/AvatarReadStore.cs`；Worker `round-avatar.ts`／`avatar-notification.ts`／`builtin-avatar.ts`；client `StoryStage.tsx`／`StoryPortrait.tsx`／`story-stage-geometry.ts`／`story-avatar.ts`。`tools/generate-builtin-avatar-assets.mjs` 依正式目錄與SHA重建16張neutral的選角import，直接匯入同一public來源。書店分層背景／透明前景在 `contracts/story-assets/`，prompt留同目錄provenance。`tools/avatar-reset-policy.mjs` 與既有local wrapper提供具名清單預覽／重試，沒有玩家公開重置API。
 
 表情製作用例位於 Application `AvatarExpressionService.cs`／`Media/AvatarExpressionStore.cs`（介面），Infrastructure `Media/AvatarExpressionStore.cs`／既有 Gemini adapter 表情方法；Worker `avatar-adoption.ts`、`avatar-expression-manifest.ts`、`avatar-expression-store.ts`、`transparent-webp.ts`；client `avatar-adoption.ts` 接 `DatingProfileScreen`，ADVStage 接收單一 partner 參數；測試留在對應模組與跨系統測試目錄。
@@ -13,12 +15,15 @@ Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控�
 | 責任 | 位置 |
 |---|---|
 | 推薦／投票／文字／圖驗證 | `backend/src/DatingHigh.Domain/StoryPolicies.cs`、`StoryGraphPolicy.cs` |
-| 共用用例／通知port | `backend/src/DatingHigh.Application/StoryDialogueService.cs` |
+| 共用用例／通知port | `backend/src/DatingHigh.Application/StoryDialogueService.cs`、`SceneEventFrameworkService.cs` |
+| 場景／主線／事件純規則與編譯 | `backend/src/DatingHigh.Domain/SceneEventFrameworkPolicies.cs`、`EventRulePolicy.cs`、`SceneEventManifestPolicy.cs` |
 | 通知adapter／HTTP嚴格JSON／DI | `backend/src/DatingHigh.Infrastructure/CloudflareRoundRealtimeNotifier.cs`、`backend/src/DatingHigh.Api/StoryPayload.cs`、`Program.cs` |
 | 劇情四表／active claims／固定SQL | `cloudflare/migrations/0005_story_dialogue_exit.sql`、`cloudflare/src/story-commands.ts`、`matching-commands.ts` |
+| 場景事件五表／選場與事件交易／授權內容 | `cloudflare/migrations/0006_scene_event_framework.sql`、`cloudflare/src/scene-event-commands.ts`、`scene-event-authorization.ts`、`scene-event-read.ts`、`scene-event-content.ts` |
 | 標準WS／ticket／內容 | `cloudflare/src/room-socket.ts`、`realtime-ticket.ts`、`story-content.ts` |
 | 共用場景／演出／互動／音訊／transport | `frontend/client/src/StoryExperienceScreen.tsx`、`ADVStage.tsx`、`InteractionRenderer.tsx`、`StoryAudio.tsx`、`RealtimeRoomClient.ts`、`story.ts` |
-| 正式內容／發布 | `contracts/story-scenes.json`、`contracts/story-assets/`、`tools/story-content-policy.mjs`、`tools/local.mjs` |
+| 正式內容／發布／本地升級 | `contracts/scene-event-content.json`、`contracts/story-scenes.json`、`contracts/story-assets/`、`tools/scene-event-content-policy.mjs`、`scene-event-publish-policy.mjs`、`scene-event-local-policy.mjs`、`local.mjs` |
+| 事件演出安全覆寫 | `frontend/client/src/story-event-presentation.ts`、既有 `ADVStage.tsx`／`StoryAudio.tsx` |
 | 真D1／DO／HTTP／UX證據 | `cloudflare/tests/story-dialogue-*.test.ts`、`backend/tests/DatingHigh.Api.Tests/StoryDialogueEndpointTests.cs`、`frontend/client/tests/unit/story-dialogue*`、`tests/e2e/{web,android}/story-dialogue.*`、`tests/integration/story-dialogue-live.test.mjs` |
 
 ## 配對與邀請

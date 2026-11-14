@@ -28,7 +28,7 @@ Domain 放純規則，Application 放用例與介面，Infrastructure 放 provid
 | 圖片 adapter／共用介面 | `backend/src/DatingHigh.Infrastructure/Media/`、`backend/src/DatingHigh.Application/Media/` |
 | 圖片處理與真 provider probe | `backend/tools/DatingHigh.MediaProbe/`；真人來源不放版本庫 |
 | Worker／commands／strict JSON | `cloudflare/src/` |
-| D1 schema | `cloudflare/migrations/`；現行0005共16張自有表，Foundation六表54欄、本人資料／媒體兩表27欄，零 Trigger；欄位詳資料契約 |
+| D1 schema | `cloudflare/migrations/`；現行0006共21張自有表，Foundation六表54欄、本人資料／媒體兩表27欄保持，場景事件五表35欄，零 Trigger；欄位詳資料契約 |
 | Worker 單元／真 D1 測試 | `cloudflare/tests/` |
 | Expo 路由畫面 | `frontend/client/app/`；layout 只組合全域 provider／Stack |
 | 前端共用 UI／API／session／storage | `frontend/client/src/`；Web 專用元件用 `.web.tsx` |
@@ -45,6 +45,8 @@ Domain 放純規則，Application 放用例與介面，Infrastructure 放 provid
 | 原型／提案 | `prototypes/`（或 `proposals/`）；不是正式業務程式入口，與 Expo 正式 runtime 分開 |
 
 根 `tests/` 涵蓋前端、API、Worker／Container／D1 與持久性，不能因測試使用某個 client 就整包搬入前端。各模組單元測試留在模組內。
+
+分層故事的建構設定在 `contracts/scene-event-content.json`，共用素材只留 `contracts/story-assets/`；不把 R2 發布產物、素材副本或測試 fixture 當成新增正式主線。Domain 保留圖／DSL 純規則，Application 協調，Worker 固定交易及內容讀取；位置見模組地圖。
 
 生成的 Android／iOS 目錄、Web dist、bin／obj、node_modules、本地 `.wrangler/state`、`.local`、`.dev.vars`、`.env.local` 與備份不提交；三個 npm lockfile 與 NuGet lockfile 則需維護。測試摘要僅保存去敏資料，原生 UI XML 只在記憶體處理。
 

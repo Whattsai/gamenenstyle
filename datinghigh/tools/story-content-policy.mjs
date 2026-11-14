@@ -22,17 +22,17 @@ function validatePresentation(story){
  for(const f of p.foreground){only(f,['id','x','y','width','height','color']);localId(f.id);for(const k of ['x','y','width','height'])number(f[k],0,1);if(f.x+f.width>1.001||f.y+f.height>1.001||f.width===0||f.height===0||!/^#[0-9a-f]{6}$/i.test(f.color))fail();}
  for(const n of story.nodes){const v=n.presentation;only(v,['cameraId','expression','hotspotIds']);if(!p.cameras.some(c=>c.id===v.cameraId)||!['neutral','smile','surprised','thoughtful','concerned'].includes(v.expression)||!Array.isArray(v.hotspotIds)||new Set(v.hotspotIds).size!==v.hotspotIds.length||v.hotspotIds.some(id=>!p.hotspots.some(h=>h.id===id&&(n.objects??[]).includes(h.definitionId))))fail();}
 }
-/** 發布前檢查完整有向無環圖、兩結局、固定模組與公開資產白名單。 */
+/** 發布前檢查完整有向無環圖、可達收尾、固定模組與公開資產白名單。 */
 export function validateStory(story){
  if(!story||story.entry!=='entry'||!/^scene-\d{2,4}$/.test(story.storyId)||!/^v[1-9]\d*$/.test(story.version)||story.locale!=='zh-TW'||!story.title||!story.time||!story.place||!story.event||!Array.isArray(story.interestTagIds)||story.interestTagIds.some(t=>!tags.has(t)))fail();
- if(!Array.isArray(story.nodes)||story.nodes.length<4||story.nodes.length>2000||story.nodes.filter(n=>n.ending).length<2)fail();
+ if(!Array.isArray(story.nodes)||story.nodes.length<2||story.nodes.length>2000||!story.nodes.some(n=>n.ending))fail();
  const nodes=new Map(story.nodes.map(n=>[n.id,n])),definitions=new Map(story.interactions.map(d=>[d.id,d]));
  if(nodes.size!==story.nodes.length||definitions.size!==story.interactions.length||story.suggestions.length!==3)fail();
  for(const d of definitions.values())if(!['inspect-object','cooperative-choice'].includes(d.moduleType)||d.options.length<2||new Set(d.options.map(o=>o.id)).size!==d.options.length)fail();
  const visited=new Set(),stack=new Set();
  const visit=id=>{
   if(stack.has(id)||!nodes.has(id))fail();if(visited.has(id))return;stack.add(id);const n=nodes.get(id),next=n.choices.map(c=>c.next);
-  if(new Set(n.choices.map(c=>c.id)).size!==n.choices.length||!n.lines.length||n.lines.some(l=>!['旁白','店員・NPC'].includes(l.speaker)||!l.text))fail();
+  if(new Set(n.choices.map(c=>c.id)).size!==n.choices.length||!n.lines.length||n.lines.some(l=>!['旁白','店員・NPC'].includes(l.speaker)||typeof l.text!=='string'||!l.text.trim()))fail();
   for(const object of n.objects??[])if(definitions.get(object)?.moduleType!=='inspect-object')fail();
   if(n.interactionId){const d=definitions.get(n.interactionId);if(d?.moduleType!=='cooperative-choice')fail();next.push(d.sameNext,d.differentNext);}
   if(n.ending?next.length>0:next.length===0)fail();for(const target of next)visit(target);stack.delete(id);visited.add(id);

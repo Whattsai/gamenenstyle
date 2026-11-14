@@ -62,7 +62,12 @@ internal sealed class AvatarFixtureState: IAvatarImageGenerator,IAvatarExpressio
     private static byte[] Picture(int number)
     {
         var slot=number%16;var group=slot<8?"male":"female";var index=slot%8+1;
-        return File.ReadAllBytes(Path.GetFullPath($"frontend/client/assets/avatars/{group}-{index:00}.jpg"));
+        // 共用正式虛構角色的唯一來源；只在 RAM 轉成測試上傳所宣告的 JPEG。
+        var path=Path.GetFullPath("frontend/client/public"+BuiltinAvatarCatalog.AssetPath($"{group}-{index:00}"));
+        using var source=SKBitmap.Decode(File.ReadAllBytes(path))??throw new InvalidOperationException("Controlled avatar source cannot decode");
+        using var opaque=new SKBitmap(source.Width,source.Height);
+        using(var canvas=new SKCanvas(opaque)){canvas.Clear(SKColors.White);using var pixels=SKImage.FromBitmap(source);canvas.DrawImage(pixels,0,0,new SKSamplingOptions(SKFilterMode.Nearest));}
+        using var image=SKImage.FromBitmap(opaque);using var data=image.Encode(SKEncodedImageFormat.Jpeg,90);return data.ToArray();
     }
     private async Task<CurrentUser> Current()
     {

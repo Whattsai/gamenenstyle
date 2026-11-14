@@ -10,7 +10,7 @@ export function resolveInstance(name='default',allowNew=false){
  return {name,cwd,config:path.join(cwd,'wrangler.jsonc'),state:`${cwd}/.wrangler/state`};
 }
 export function parseLocalArgs(command,args){
- const supported={dev:[],'dev-stop':[],migrate:[],seed:[],query:['view'],execute:['file'],backup:['name'],restore:['file','target'],probe:[],'game-end':['round-id'],'story-upgrade':[],'story-publish':[],'avatar-reset-preview':['accounts','name'],'avatar-reset-apply':['name']};
+ const supported={dev:[],'dev-stop':[],migrate:[],seed:[],query:['view'],execute:['file'],backup:['name'],restore:['file','target'],probe:[],'game-end':['round-id'],'story-upgrade':[],'story-publish':[],'scene-upgrade':[],'scene-publish':[],'avatar-reset-preview':['accounts','name'],'avatar-reset-apply':['name']};
  if(!Object.hasOwn(supported,command))throw new Error('Unknown local command');const result={instance:'default'},seen=new Set();
  for(let i=0;i<args.length;i+=2){const flag=args[i];if(!flag?.startsWith('--'))throw new Error('Expected option');const key=flag.slice(2),value=args[i+1];
   if(!['instance',...supported[command]].includes(key)||!value||value.startsWith('--')||seen.has(key))throw new Error('Unsupported/duplicate local option');seen.add(key);result[key]=value;
@@ -27,7 +27,7 @@ export function invocation(command,instance,options={}){
  const common=['--config',instance.config,'--local'];let args;
  if(command==='migrate')args=['d1','migrations','apply','DB',...common];
  else if(command==='query')args=['d1','execute','DB',...common,'--command',views[options.view],'--json'];
- else if(command==='game-end')args=['d1','execute','DB',...common,'--command',localGameEndStatements(options['round-id'],options.now??Date.now()).join(';\n'),'--json'];
+ else if(command==='game-end')args=['d1','execute','DB',...common,'--command',localGameEndStatements(options['round-id'],options.now??Date.now(),options.framework===true).join(';\n'),'--json'];
  else if(command==='execute'||command==='restore')args=['d1','execute','DB',...common,'--file',path.resolve(options.file),'--yes'];
  else if(command==='backup')args=['d1','export','DB',...common,'--output',options.output];
  else if(command==='dev')args=['dev','--config',instance.config,'--ip','127.0.0.1','--port','8787'];

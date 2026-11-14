@@ -18,7 +18,7 @@ export class RealtimeRoomClient{
  start(){if(!this.stopped)return;this.stopped=false;void this.connect(++this.generation);}
  private retry(generation:number){if(this.stopped||generation!==this.generation)return;this.callbacks.status('offline');const delay=Math.min(30000,500*2**Math.min(this.attempt++,6))*(.75+Math.random()*.5);this.timer=setTimeout(()=>void this.connect(generation),delay);}
  private async connect(generation:number){
-  if(this.stopped||generation!==this.generation)return;this.callbacks.status('connecting');
+  if(this.stopped||generation!==this.generation)return;this.callbacks.status(this.openedBefore?'offline':'connecting');
   try{
    if(!this.deviceId)throw new ApiFailure('INVALID_STORY_REQUEST',400);
    const ticket=await this.http.request(`/game-rounds/${this.roundId}/realtime-ticket`,'POST',{deviceId:this.deviceId});

@@ -123,12 +123,20 @@ api.MapGet("/game-rounds/{roundId}/experience",async(string roundId,HttpContext 
 }).RequireAuthorization("PlatformAccess");
 api.MapGet("/game-rounds/{roundId}/story/offers",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
     c.Payload().Only();var result=await service.ExperienceAsync(c.CurrentPlatformUser(),roundId,ct);
-    if(result.Text("phase")!="pending_story_selection")throw new DomainException("STORY_ALREADY_SELECTED",409);return Results.Ok(result);
+    if(result.Text("phase") is not("pending_story_selection" or "pending_category_selection"))throw new DomainException("STORY_ALREADY_SELECTED",409);return Results.Ok(result);
 }).RequireAuthorization("PlatformAccess");
 api.MapPost("/game-rounds/{roundId}/story/vote",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
-    var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"clientRequestId","episodeSeq","catalogId");
+    var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"clientRequestId","episodeSeq","catalogId","categoryId");
     var requestId=p["clientRequestId"]?.GetValue<string>()??throw new DomainException("INVALID_STORY_VOTE");p.Remove("clientRequestId");
     return Results.Ok(await service.CommandAsync(c.CurrentPlatformUser(),roundId,"story.vote.submit",requestId,p,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/story/next",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    var p=(JsonObject)c.Items["storyPayload"]!;var requestId=p["clientRequestId"]?.GetValue<string>()??throw new DomainException("INVALID_STORY_REQUEST");p.Remove("clientRequestId");
+    await service.CommandAsync(c.CurrentPlatformUser(),roundId,"story.next.requested",requestId,p,ct);return Results.Ok(await service.ExperienceAsync(c.CurrentPlatformUser(),roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapPost("/game-rounds/{roundId}/story/event",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
+    var p=(JsonObject)c.Items["storyPayload"]!;var requestId=p["clientRequestId"]?.GetValue<string>()??throw new DomainException("INVALID_STORY_REQUEST");p.Remove("clientRequestId");
+    return Results.Ok(await service.CommandAsync(c.CurrentPlatformUser(),roundId,"story.event.submit",requestId,p,ct));
 }).RequireAuthorization("PlatformAccess");
 api.MapPost("/game-rounds/{roundId}/events/query",async(string roundId,HttpContext c,StoryDialogueService service,CancellationToken ct)=>{
     var p=(JsonObject)c.Items["storyPayload"]!;StoryDialogueService.Only(p,"afterSeq","beforeSeq","limit");

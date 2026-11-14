@@ -7,15 +7,15 @@ import {StoryStage} from './StoryStage';
 import type {ScenePresentation} from './story-stage-geometry';
 
 /** 節點／敘事 renderer 與劇本分離；選項只在伺服器確認後推進。 */
-export function ADVStage({node,partner,disabled,choose,scene,onInspect,children,stageHeight}:{node:StoryNode;partner?:StagePortrait;disabled:boolean;choose:(id:string)=>void;scene?:{presentation?:ScenePresentation;background?:string;foreground?:string};onInspect?:(id:string)=>void;children?:React.ReactNode;stageHeight?:number}){
+export function ADVStage({node,storySessionId,interactionsEnabled=true,partner,disabled,choose,scene,onInspect,children,stageHeight}:{node:StoryNode;storySessionId?:string;interactionsEnabled?:boolean;partner?:StagePortrait;disabled:boolean;choose:(id:string)=>void;scene?:{presentation?:ScenePresentation;background?:string;foreground?:string};onInspect?:(id:string)=>void;children?:React.ReactNode;stageHeight?:number}){
  const [line,setLine]=useState(0),[letters,setLetters]=useState(0);const opacity=useRef(new Animated.Value(0)).current,narrative=useRef<React.ComponentRef<typeof ScrollView>|null>(null);
- useEffect(()=>{setLine(0);setLetters(0);narrative.current?.scrollTo({y:0,animated:false});opacity.setValue(0);Animated.timing(opacity,{toValue:1,duration:350,useNativeDriver:true}).start();},[node.id,opacity]);
+ useEffect(()=>{setLine(0);setLetters(0);narrative.current?.scrollTo({y:0,animated:false});opacity.setValue(0);const animation=Animated.timing(opacity,{toValue:1,duration:350,useNativeDriver:true});animation.start();return()=>animation.stop();},[storySessionId,node.id,opacity]);
  const current=node.lines[Math.min(line,node.lines.length-1)],text=[...(current?.text??'')];
- useEffect(()=>{setLetters(0);const timer=setInterval(()=>setLetters(n=>{if(n>=text.length){clearInterval(timer);return n;}return n+1;}),18);return()=>clearInterval(timer);},[node.id,line,current?.text]);
+ useEffect(()=>{setLetters(0);const timer=setInterval(()=>setLetters(n=>{if(n>=text.length){clearInterval(timer);return n;}return n+1;}),18);return()=>clearInterval(timer);},[storySessionId,node.id,line,current?.text]);
  const complete=letters>=text.length,last=line>=node.lines.length-1;
  return <View style={{gap:8,flex:1,minHeight:0}}>
   <Text style={[s.eyebrow,{letterSpacing:1}]}>{node.title}</Text>
-  <Animated.View style={{opacity}}><StoryStage presentation={scene?.presentation} background={scene?.background} foreground={scene?.foreground} cameraId={node.presentation?.cameraId} hotspotIds={node.presentation?.hotspotIds??[]} partner={partner} safeToSwap={complete} onInspect={id=>onInspect?.(id)} height={stageHeight}/></Animated.View>
+  <Animated.View style={{opacity}}><StoryStage presentation={scene?.presentation} background={scene?.background} foreground={scene?.foreground} cameraId={node.presentation?.cameraId} hotspotIds={interactionsEnabled?(node.presentation?.hotspotIds??[]):[]} partner={partner} safeToSwap={complete} onInspect={id=>onInspect?.(id)} height={stageHeight}/></Animated.View>
   <ScrollView ref={narrative} testID="story-narrative" style={{flex:1,minHeight:0}} contentContainerStyle={{gap:10,paddingBottom:12}} keyboardShouldPersistTaps="handled">
   {partner&&<Text style={s.label}>{partner.name}</Text>}
   {node.ending&&<View style={{alignSelf:'center',flexDirection:'row',gap:node.visual==='two-pages'?20:0,alignItems:'center',padding:14,borderRadius:18,backgroundColor:'rgba(255,223,188,.16)'}}>

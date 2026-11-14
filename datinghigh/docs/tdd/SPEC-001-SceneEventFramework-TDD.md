@@ -1,15 +1,15 @@
 # SPEC-001-SceneEventFramework — TDD 測試清單
 
-> **來源 MVP**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)；**已確認 SDD**：[SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)；**BDD**：[78 場景](../bdd/SPEC-001-SceneEventFramework-BDD.md)  
-> **生成日期**：2026-11-12；**規劃狀態**：**Ready for well-done（規劃交接）**；SDD／RiskAudit 全部人工確認、TDD 已補強；**產品開發與測試仍為 0%**。
+> **來源 MVP**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)；**已確認 SDD**：[SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)；**BDD**：[79 場景](../bdd/SPEC-001-SceneEventFramework-BDD.md)
+> **生成日期**：2026-11-12；**規劃狀態**：**Ready for well-done（規劃交接）**；SDD／RiskAudit 全部人工確認、TDD 已補強；**依使用者要求暫停；首條主流程與本人化身入口已驗證，整份規格尚未結案**；實作與 runner 證據見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ## 開發進度總覽
 
 ```text
 📦 SceneEventFramework / Red-Green-Refactor
-├─ 狀態：⏸️ 未開始
-├─ BDD：0/78
-├─ TDD：0/379
+├─ 狀態：依使用者要求暫停；首條主流程及本人入口已驗證，整份規格未結案
+├─ BDD：1/79
+├─ TDD：56/383（14.6%；依完整斷言覆核，不以 runner 數量換算）
 ├─ 前置 Gate：既有雨聲書店及全身化身仍有獨立未結案驗收
 └─ 開發次序：先 1 條完整主線→使用者試玩調校確認→其餘 9 條
 ```
@@ -18,11 +18,11 @@
 
 | 層級 | 已完成 | 待實作 | 指定測試入口 |
 |---|---:|---:|---|
-| Unit | 0/235 | 235 | Domain policy 與 UI 狀態隔離測試 |
-| Integration | 0/79 | 79 | Miniflare 真 D1 + R2 immutable content + 發布／migration |
-| API | 0/26 | 26 | .NET API／Worker 驗證、HTTP 與 WS 合約 |
-| E2E | 0/39 | 39 | Web／Android 雙真人帳號與恢復 |
-| **合計** | **0/379** | **379** | **尚未有實作證據** |
+| Unit | 25/236 | 211 | Domain policy 與 UI 狀態隔離測試 |
+| Integration | 20/80 | 60 | Miniflare 真 D1 + R2 immutable content + 發布／migration |
+| API | 5/27 | 22 | .NET API／Worker 驗證、HTTP 與 WS 合約 |
+| E2E | 6/40 | 34 | Web／Android 雙真人帳號與恢復 |
+| **合計** | **56/383** | **327** | **完整 BDD 跨層結案尚待逐項覆核** |
 
 ### 里程碑
 
@@ -32,6 +32,8 @@
 - [ ] M4：首條雨聲書店完整遷入，通過 Web／Android 事件鏡位／表情、安全熱區、五圖換角、跨 Episode、背景與恢復、已發布素材與原 B1／2.5D Gate；完整追溯 SEF-UX-GAP-01～08，不得代替本人 Gate B。
 - [ ] M5：**使用者實際試玩、調校、明確通過首條 Gate**，取得後才能開發其餘九條主線。
 - [ ] M6：最終至少十條完整可遊玩主線，實際內容非 fixtures，全部驗收。
+
+當前實作、測試函式數、逐項覆核與未完事項統一見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。下方日期段落保留原規劃交接快照，不代表目前產品驗收。
 
 ### 每日進度
 
@@ -118,12 +120,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「不同主線的 entry 與內容版本互不混淆」
 
-- [ ] **SEF-UT-016** `Scene_WeightThreeToOne_GivenValidState_ProducesExpectedResult`（中）
+- [x] **SEF-UT-016** `Scene_WeightThreeToOne_GivenValidState_ProducesExpectedResult`（中）
   - **來源**：`SEF-BDD-011／SEF-AC-003`；情境：新場景抽選權重為三比一
   - **前置／操作**：Given 一個未玩場景與一個已玩場景均合格；When 伺服器在可注入 RNG 下重複抽選
   - **驗證**：Then 未玩過場景的選中權重是已玩過的三倍
 
-- [ ] **SEF-UT-017** `Scene_WeightThreeToOne_GivenScenario_RespectsSecondaryInvariant`（中）
+- [x] **SEF-UT-017** `Scene_WeightThreeToOne_GivenScenario_RespectsSecondaryInvariant`（中）
   - **來源**：`SEF-BDD-011／SEF-AC-003`；情境：新場景抽選權重為三比一
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 並非硬性排除已玩場景
@@ -148,12 +150,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「相同隨機種子可重現測試結果」
 
-- [ ] **SEF-UT-022** `Narrative_OrderedUnlock_GivenValidState_ProducesExpectedResult`（高）
+- [x] **SEF-UT-022** `Narrative_OrderedUnlock_GivenValidState_ProducesExpectedResult`（高）
   - **來源**：`SEF-BDD-015／SEF-AC-003`；情境：有序主線不可跳章
   - **前置／操作**：Given 第二章需要第一章完成且第三章未解鎖；When 抽選有序主線
   - **驗證**：Then 只能從目前符合前置條件的章節選擇
 
-- [ ] **SEF-UT-023** `Narrative_OrderedUnlock_GivenScenario_RespectsSecondaryInvariant`（高）
+- [x] **SEF-UT-023** `Narrative_OrderedUnlock_GivenScenario_RespectsSecondaryInvariant`（高）
   - **來源**：`SEF-BDD-015／SEF-AC-003`；情境：有序主線不可跳章
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 不能因權重偏好直接選第三章
@@ -163,17 +165,17 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「不能因權重偏好直接選第三章」
 
-- [ ] **SEF-UT-025** `Graph_OneEnding_GivenValidState_ProducesExpectedResult`（高）
+- [x] **SEF-UT-025** `Graph_OneEnding_GivenValidState_ProducesExpectedResult`（高）
   - **來源**：`SEF-BDD-019／SEF-AC-004`；情境：線性主線一個結局即可發布
   - **前置／操作**：Given 線性主線只有一個可達 Ending 且有完整開場推進；When 發布工具驗證並進行遊玩
   - **驗證**：Then 內容合法且能抵達唯一結尾
 
-- [ ] **SEF-UT-026** `Graph_OneEnding_GivenScenario_RespectsSecondaryInvariant`（高）
+- [x] **SEF-UT-026** `Graph_OneEnding_GivenScenario_RespectsSecondaryInvariant`（高）
   - **來源**：`SEF-BDD-019／SEF-AC-004`；情境：線性主線一個結局即可發布
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 不再要求至少兩個 Ending 或固定四節點
 
-- [ ] **SEF-UT-027** `Graph_OneEnding_WhenRepeatedOrStale_DoesNotViolateRules`（高）
+- [x] **SEF-UT-027** `Graph_OneEnding_WhenRepeatedOrStale_DoesNotViolateRules`（高）
   - **來源**：`SEF-BDD-019／SEF-AC-004`；情境：線性主線一個結局即可發布
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「不再要求至少兩個 Ending 或固定四節點」
@@ -223,12 +225,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「三個維度彼此不互斥」
 
-- [ ] **SEF-UT-037** `Event_ThreeSourcePools_GivenValidState_ProducesExpectedResult`（中）
+- [x] **SEF-UT-037** `Event_ThreeSourcePools_GivenValidState_ProducesExpectedResult`（中）
   - **來源**：`SEF-BDD-025／SEF-AC-005`；情境：主線場景全域事件池可共存
   - **前置／操作**：Given 書店存在主線綁定、場景綁定與相容全域綁定；When 伺服器彙整候選事件
   - **驗證**：Then 三來源依限定 Binding ID 合併並過濾相容性
 
-- [ ] **SEF-UT-038** `Event_ThreeSourcePools_GivenScenario_RespectsSecondaryInvariant`（中）
+- [x] **SEF-UT-038** `Event_ThreeSourcePools_GivenScenario_RespectsSecondaryInvariant`（中）
   - **來源**：`SEF-BDD-025／SEF-AC-005`；情境：主線場景全域事件池可共存
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 主線必要事件不被全域自由事件搶占
@@ -238,12 +240,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「主線必要事件不被全域自由事件搶占」
 
-- [ ] **SEF-UT-040** `Event_PlaythroughScope_GivenValidState_ProducesExpectedResult`（中）
+- [x] **SEF-UT-040** `Event_PlaythroughScope_GivenValidState_ProducesExpectedResult`（中）
   - **來源**：`SEF-BDD-028／SEF-AC-006`；情境：事件僅在本次遊玩不重複
   - **前置／操作**：Given 同一 Binding 已於 episode 1 完成且 repeatScope=playthrough；When 雙方同意開始 episode 2 並符合觸發條件
   - **驗證**：Then episode 2 可重新觸發這個事件
 
-- [ ] **SEF-UT-041** `Event_PlaythroughScope_GivenScenario_RespectsSecondaryInvariant`（中）
+- [x] **SEF-UT-041** `Event_PlaythroughScope_GivenScenario_RespectsSecondaryInvariant`（中）
   - **來源**：`SEF-BDD-028／SEF-AC-006`；情境：事件僅在本次遊玩不重複
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And episode 1 仍無法重複建立相同 Binding instance
@@ -253,12 +255,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「episode 1 仍無法重複建立相同 Binding instance」
 
-- [ ] **SEF-UT-043** `Event_RoundScope_GivenValidState_ProducesExpectedResult`（中）
+- [x] **SEF-UT-043** `Event_RoundScope_GivenValidState_ProducesExpectedResult`（中）
   - **來源**：`SEF-BDD-029／SEF-AC-006`；情境：整輪配對範圍限制事件重複
   - **前置／操作**：Given 事件在 episode 1 完成且 repeatScope=round；When 同一 Round 的 episode 2 再符合觸發
   - **驗證**：Then 該事件不會再次觸發
 
-- [ ] **SEF-UT-044** `Event_RoundScope_GivenScenario_RespectsSecondaryInvariant`（中）
+- [x] **SEF-UT-044** `Event_RoundScope_GivenScenario_RespectsSecondaryInvariant`（中）
   - **來源**：`SEF-BDD-029／SEF-AC-006`；情境：整輪配對範圍限制事件重複
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 更換配對組合可以在新的 Round 重新體驗
@@ -403,12 +405,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「不跨配對讀取另一人的私人事件」
 
-- [ ] **SEF-UT-073** `Narrative_MixedEligible_GivenValidState_ProducesExpectedResult`（高）
+- [x] **SEF-UT-073** `Narrative_MixedEligible_GivenValidState_ProducesExpectedResult`（高）
   - **來源**：`SEF-BDD-016／SEF-AC-003`；情境：有序與無序主線混合隨機
   - **前置／操作**：Given 第二章已解鎖且同場景另有獨立主線；When 系統計算合格候選後抽選
   - **驗證**：Then 第二章與獨立主線都能參與抽選
 
-- [ ] **SEF-UT-074** `Narrative_MixedEligible_GivenScenario_RespectsSecondaryInvariant`（高）
+- [x] **SEF-UT-074** `Narrative_MixedEligible_GivenScenario_RespectsSecondaryInvariant`（高）
   - **來源**：`SEF-BDD-016／SEF-AC-003`；情境：有序與無序主線混合隨機
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 沒有強制第二章必須先玩
@@ -463,12 +465,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「仍維持 completed 頁面與聊天」
 
-- [ ] **SEF-UT-085** `Next_Withdraw_GivenValidState_ProducesExpectedResult`（高）
+- [x] **SEF-UT-085** `Next_Withdraw_GivenValidState_ProducesExpectedResult`（高）
   - **來源**：`SEF-BDD-040／SEF-AC-008`；情境：同意可以在結算前撤回
   - **前置／操作**：Given A 已同意且 B 尚未提交；When A 撤回同意
   - **驗證**：Then 雙方同意條件不成立且不建立下一場
 
-- [ ] **SEF-UT-086** `Next_Withdraw_GivenScenario_RespectsSecondaryInvariant`（高）
+- [x] **SEF-UT-086** `Next_Withdraw_GivenScenario_RespectsSecondaryInvariant`（高）
   - **來源**：`SEF-BDD-040／SEF-AC-008`；情境：同意可以在結算前撤回
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 只有最後有效同意才計算
@@ -478,12 +480,12 @@
   - **前置／操作**：以舊狀態、重複操作或非法內容重新評估上述條件
   - **驗證**：狀態／事件唯一性不退化，必要時回原 receipt 或拒絕操作；不違反「只有最後有效同意才計算」
 
-- [ ] **SEF-UT-088** `Scene_AllPlayedFallback_GivenValidState_ProducesExpectedResult`（高）
+- [x] **SEF-UT-088** `Scene_AllPlayedFallback_GivenValidState_ProducesExpectedResult`（高）
   - **來源**：`SEF-BDD-012／SEF-AC-003`；情境：場景都已玩過仍可再抽
   - **前置／操作**：Given 同一對玩家已完成該類別全部場景；When 雙方開始下一場
   - **驗證**：Then 系統仍可從合格場景抽選
 
-- [ ] **SEF-UT-089** `Scene_AllPlayedFallback_GivenScenario_RespectsSecondaryInvariant`（高）
+- [x] **SEF-UT-089** `Scene_AllPlayedFallback_GivenScenario_RespectsSecondaryInvariant`（高）
   - **來源**：`SEF-BDD-012／SEF-AC-003`；情境：場景都已玩過仍可再抽
   - **前置／操作**：同上，檢查業務副作用與安全邊界
   - **驗證**：And 不因已全部體驗而無限等待
@@ -992,14 +994,14 @@
 
 ### Unit 稽核補充（2026-11-12，風險確認後新增）
 
-**預定測試檔**：`backend/tests/DatingHigh.Unit.Tests/Application/SceneEventFrameworkPolicyTests.cs`。此處所有項目均 **未實作／未執行**；與原測試清單並存，不重建舊 ID。
+**預定測試檔**：`backend/tests/DatingHigh.Unit.Tests/Application/SceneEventFrameworkPolicyTests.cs`。各項狀態依 checklist 與驗證紀錄；與原測試清單並存，不重建舊 ID。
 
-- [ ] **SEF-UT-190** `SelectNarrative_SelectedCategory_MatchesEligibleCodes`（高）
+- [x] **SEF-UT-190** `SelectNarrative_SelectedCategory_MatchesEligibleCodes`（高）
   - **來源**：`SEF-BDD-064／SEF-AC-003`；`RA-Q1=A／SEF-GAP-01`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：所選 Category.code 僅允許具有相符 eligibleCategoryCodes 的主線進入候選，拒絕純其他類別內容
 
-- [ ] **SEF-UT-191** `SelectNarrative_MultipleEligibleCodes_AllowsMultipleCategories`（高）
+- [x] **SEF-UT-191** `SelectNarrative_MultipleEligibleCodes_AllowsMultipleCategories`（高）
   - **來源**：`SEF-BDD-064／SEF-AC-003`；`RA-Q1=A`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：同一主線可聲明浪漫＋懸疑兩碼，在任一類別均合法
@@ -1024,7 +1026,7 @@
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：雙端讀取同一份伺服器快照，不允許客戶端各自重新排名
 
-- [ ] **SEF-UT-196** `RecommendCategory_NoEligibleNarrative_ExcludesCategory`（高）
+- [x] **SEF-UT-196** `RecommendCategory_NoEligibleNarrative_ExcludesCategory`（高）
   - **來源**：`SEF-BDD-066／SEF-AC-001`；`RA-Q1=A`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：類別只連到場景但沒有適用主線時，不可進入正式類別候選
@@ -1183,12 +1185,12 @@
   - **操作**：模擬安全授權、已釘選 Scene、Event、Avatar 與前端演出狀態
   - **驗證**：失權、過期事件、無效 ID 或跨 Episode 的資料不得造成演出污染、重新抽選、Gemini 請求或多次提交
 
-- [ ] **SEF-UT-227** `Chapter_Completed_StageAndChatStillVisible__ConfirmedPresentationIsStable`（高）
+- [x] **SEF-UT-227** `Chapter_Completed_StageAndChatStillVisible__ConfirmedPresentationIsStable`（高）
   - **來源**：`SEF-BDD-076／SEF-AC-015`、2026-11-13 跨 SPEC 整合
   - **操作**：模擬安全授權、已釘選 Scene、Event、Avatar 與前端演出狀態
   - **驗證**：雙方仍能看到本場收尾及聊天，支線入口變為不可操作
 
-- [ ] **SEF-UT-228** `Chapter_Completed_StageAndChatStillVisible__BoundaryDoesNotMutateStoryState`（高）
+- [x] **SEF-UT-228** `Chapter_Completed_StageAndChatStillVisible__BoundaryDoesNotMutateStoryState`（高）
   - **來源**：`SEF-BDD-076／SEF-AC-015`、2026-11-13 跨 SPEC 整合
   - **操作**：模擬安全授權、已釘選 Scene、Event、Avatar 與前端演出狀態
   - **驗證**：不因 phase 不再 playing 而卸載整個 ADV，也不出現多餘完成劇情按鈕
@@ -1232,7 +1234,7 @@
 
 ### 建議測試檔：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
 
-- [ ] **SEF-IT-001** `Recommend_OneCategory_RealD1_AtomicAndPersistent`（中）
+- [x] **SEF-IT-001** `Recommend_OneCategory_RealD1_AtomicAndPersistent`（中）
   - **來源**：`SEF-BDD-001／SEF-AC-001`；情境：唯一可玩類別直接進場
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：雙方配對成功且只有浪漫類別具有可玩主線；受邀方接受邀請
   - **驗證**：提交後 query/snapshot 確認「伺服器直接選中浪漫類別並抽場景主線」並保持「沒有偽造投票，也沒有出現選類別畫面」；錯誤必須完整 rollback
@@ -1312,17 +1314,17 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：隱藏信件事件的結果旗標已合法提交；主線到達會檢查結果的節點
   - **驗證**：提交後 query/snapshot 確認「依旗標決定後續可用的分支或回應」並保持「未完成事件不能偽造結果」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-017** `Chapter_AutoComplete_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-017** `Chapter_AutoComplete_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-034／SEF-AC-007`；情境：抵達主線收尾節點自然完成
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：主線與必要事件均已滿足 Ending 條件；真人提交到 Ending 的最後操作
   - **驗證**：提交後 query/snapshot 確認「該 StorySession 同筆交易更新為 completed」並保持「不顯示額外完成按鈕也不把 Round ended」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-018** `Next_BothAgree_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-018** `Next_BothAgree_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-038／SEF-AC-008`；情境：雙方同意才開始下一場
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：episode 1 已 completed 且 Round active；A 與 B 各自提交同意
   - **驗證**：提交後 query/snapshot 確認「系統恰好建立 episode 2 的候選或直接進場」並保持「舊 episode 1 保持 completed 且聊天不斷」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-019** `Content_ImmutablePinned_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-019** `Content_ImmutablePinned_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-046／SEF-AC-010`；情境：更新內容不影響進行中的劇情
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：玩家使用 v1 的 R2 bundle，發布者已發布 v2；玩家重連並繼續本場
   - **驗證**：提交後 query/snapshot 確認「仍取回 v1 及其全部依賴的 Scene/Event 版本」並保持「新場次才可採用 v2」；錯誤必須完整 rollback
@@ -1337,12 +1339,12 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：目前運行劇情模式且 R2 僅發布人工主線；玩家自由輸入文字與故事互動
   - **驗證**：提交後 query/snapshot 確認「文字按現有聊天處理而非觸發 AI 動態造主線」並保持「沉浸模式獨立留待 MVP-002」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-022** `Vote_InviterTieBreak_RealD1_AtomicAndPersistent`（中）
+- [x] **SEF-IT-022** `Vote_InviterTieBreak_RealD1_AtomicAndPersistent`（中）
   - **來源**：`SEF-BDD-004／SEF-AC-001`；情境：兩人選不同類別由原邀請者決定
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：A 是原邀請者且兩位選擇不同；雙方最後有效票已提交
   - **驗證**：提交後 query/snapshot 確認「勝出類別等於 A 最後一次有效選擇」並保持「不以先登入或第二位提交者的選擇決勝」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-023** `Vote_ModifyBeforeSettlement_RealD1_AtomicAndPersistent`（中）
+- [x] **SEF-IT-023** `Vote_ModifyBeforeSettlement_RealD1_AtomicAndPersistent`（中）
   - **來源**：`SEF-BDD-005／SEF-AC-001`；情境：結算前允許改票
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：A 已投第一票且 B 尚未投；A 改票後 B 才提交
   - **驗證**：提交後 query/snapshot 確認「系統採 A 最後有效票結算」並保持「原票仍在事件序列但不影響結果」；錯誤必須完整 rollback
@@ -1367,12 +1369,12 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：主線走到 Ending 但支線及隱藏事件仍未玩；最後主線節點提交成功
   - **驗證**：提交後 query/snapshot 確認「StorySession completed 並封存未完成事件」並保持「聊天仍能正常使用」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-028** `Next_OneOnly_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-028** `Next_OneOnly_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-039／SEF-AC-008`；情境：只有一人同意不能偷偷開下一場
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：episode 1 已 completed；只有 A 選擇再次遊玩
   - **驗證**：提交後 query/snapshot 確認「只記錄 A 已同意等待 B」並保持「仍維持 completed 頁面與聊天」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-029** `Next_Withdraw_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-029** `Next_Withdraw_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-040／SEF-AC-008`；情境：同意可以在結算前撤回
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：A 已同意且 B 尚未提交；A 撤回同意
   - **驗證**：提交後 query/snapshot 確認「雙方同意條件不成立且不建立下一場」並保持「只有最後有效同意才計算」；錯誤必須完整 rollback
@@ -1397,12 +1399,12 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：兩個裝置以相同版本提交單次事件；D1 交易並發執行
   - **驗證**：提交後 query/snapshot 確認「只有一筆完成狀態與一次完成效果」並保持「舊 revision 或不同 payload 重播回 409」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-034** `Chapter_EndRace_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-034** `Chapter_EndRace_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-037／SEF-AC-007`；情境：完成與結束整輪競態不殘留半場
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：最後主線提交和任一方確認退出同時發生；D1 依交易順序處理兩個操作
   - **驗證**：提交後 query/snapshot 確認「狀態符合原子序列且 Round ended 後禁止寫入」並保持「沒有幽靈事件或雙重結算」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-035** `Next_DoubleAgreeRace_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-035** `Next_DoubleAgreeRace_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-041／SEF-AC-008`；情境：雙方同時同意恰好產生一場
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：兩個登入帳號同時提交且網路可能重送；D1 競態重試及補漏
   - **驗證**：提交後 query/snapshot 確認「只存在一個 episode 2」並保持「首場候選 JSON 與其他場次票不相互覆寫」；錯誤必須完整 rollback
@@ -1422,7 +1424,7 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：同一 StorySession 已有一個 SceneVisit；Client 要求直接換第二場景
   - **驗證**：提交後 query/snapshot 確認「系統拒絕這次遊玩跨場景」並保持「資料模型仍可供未來沉浸模式多場景擴充」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-039** `Recommend_NoPlayableCategory_RealD1_AtomicAndPersistent`（高）
+- [x] **SEF-IT-039** `Recommend_NoPlayableCategory_RealD1_AtomicAndPersistent`（高）
   - **來源**：`SEF-BDD-006／SEF-AC-001`；情境：沒有完整內容不建立空遊戲
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：已發布類別無任何可玩主線；玩家接受配對邀請
   - **驗證**：提交後 query/snapshot 確認「系統返回 NO_PLAYABLE_STORY 並保持邀請與配對資料一致」並保持「沒有新增 game_rounds 或假測試故事」；錯誤必須完整 rollback
@@ -1487,17 +1489,17 @@
   - **前置／操作**：Miniflare 真 D1、固定 R2 內容與真序號：Scene、Narrative、EventPool 之間引用版本不存在；發布工具驗證
   - **驗證**：提交後 query/snapshot 確認「拒絕發佈並指出具體引用缺失」並保持「舊版已發布內容不被改寫」；錯誤必須完整 rollback
 
-- [ ] **SEF-IT-052** `Publish_OnlyFiveNewTables_EnforcesFkAndStatus`（高）
+- [x] **SEF-IT-052** `Publish_OnlyFiveNewTables_EnforcesFkAndStatus`（高）
   - **來源**：`SEF-BDD-010／SEF-AC-002`；情境：Publish_OnlyFiveNewTables_EnforcesFkAndStatus
   - **前置／操作**：檢查新 0006 schema 及五張新增表
   - **驗證**：新建目錄、關聯、visit、event instance 全部 FK、唯一索引和狀態 CHECK 生效
 
-- [ ] **SEF-IT-053** `Migration_Old0005Applied_ForwardOnly`（高）
+- [x] **SEF-IT-053** `Migration_Old0005Applied_ForwardOnly`（高）
   - **來源**：`SEF-BDD-010／SEF-AC-002`；情境：Migration_Old0005Applied_ForwardOnly
   - **前置／操作**：已套用 0005 的非正式測試 DB
   - **驗證**：新 migration 不倒改既有版本，受控測資重建前核身環境
 
-- [ ] **SEF-IT-054** `Catalog_ReferenceVersionPinned_NoCrossVersion`（高）
+- [x] **SEF-IT-054** `Catalog_ReferenceVersionPinned_NoCrossVersion`（高）
   - **來源**：`SEF-BDD-046／SEF-AC-010`；情境：Catalog_ReferenceVersionPinned_NoCrossVersion
   - **前置／操作**：兩個版本各有不同 Scene/Event 定義
   - **驗證**：同一 StorySession 始終讀同版且不錯配 EventBinding
@@ -1539,14 +1541,14 @@
 
 ### Integration 稽核補充（2026-11-12，風險確認後新增）
 
-**預定測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`。此處所有項目均 **未實作／未執行**；與原測試清單並存，不重建舊 ID。
+**預定測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`。各項狀態依 checklist 與驗證紀錄；與原測試清單並存，不重建舊 ID。
 
 - [ ] **SEF-IT-062** `Narrative_SelectedCategory_RealD1_OnlyEligiblePersists`（高）
   - **來源**：`SEF-BDD-064／SEF-AC-003`；`RA-Q1=A`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：真 D1 與 R2 清單含混合三種主線；選懸疑只建立符合白名單的 StorySession/SceneVisit，無類別錯配
 
-- [ ] **SEF-IT-063** `NextEpisode_LatestInterests_RealD1_OffersFrozenExactlyOnce`（高）
+- [x] **SEF-IT-063** `NextEpisode_LatestInterests_RealD1_OffersFrozenExactlyOnce`（高）
   - **來源**：`SEF-BDD-065／SEF-AC-008`；`RA-Q2=A`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：A 修改興趣成功後，B 第二個同意以最新兩人興趣原子凍結 episode+1；重送不重算
@@ -1561,17 +1563,17 @@
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：R2 Manifest 的類別與 D1 category/scene 關聯不符時，抽選交易拒絕不完整 StorySession
 
-- [ ] **SEF-IT-066** `SelectNextCategory_AfterInterestChange_UsesApprovedSnapshot`（高）
+- [x] **SEF-IT-066** `SelectNextCategory_AfterInterestChange_UsesApprovedSnapshot`（高）
   - **來源**：`SEF-BDD-065／SEF-AC-008`；`SEF-GAP-02`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：兩人興趣在下一場同意前後變動，確認以第 2 個有效同意提交時的已儲存值重新推薦並固定候選
 
-- [ ] **SEF-IT-067** `ApplySchema_WhenOldStoryIdsExist_DoesNotTreatAsCategoryIds`（高）
+- [x] **SEF-IT-067** `ApplySchema_WhenOldStoryIdsExist_DoesNotTreatAsCategoryIds`（高）
   - **來源**：`SEF-BDD-002／SEF-AC-001`；`SEF-GAP-03`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：0005 舊 StoryCatalog ID 不得被新欄當成 Category ID；真 D1 受控非正式測資重建與 rollback 生效
 
-- [ ] **SEF-IT-068** `ResolveScene_WhenGlobalPoolChanges_RetainsPinnedDependencySha`（高）
+- [x] **SEF-IT-068** `ResolveScene_WhenGlobalPoolChanges_RetainsPinnedDependencySha`（高）
   - **來源**：`SEF-BDD-046／SEF-AC-010`；`SEF-GAP-04`
   - **前置／操作**：依來源 BDD 建立可玩／不可玩內容、雙真人有效授權與測試 fixture（非正式內容）
   - **驗證**：R2 Scene/Narrative/GlobalPool/EventDefinition 版次與 SHA 一併釘選；R2 失敗後重試不重擲
@@ -1620,7 +1622,7 @@
   - **操作**：有權限的 actor 在進行中的 Round 採用新 ready 五表情
   - **驗證**：avatarVersion 更新而 storySessionId、currentNode、progressRevision、場景 Manifest SHA 均不改
 
-- [ ] **SEF-IT-077** `NewEpisode_SameNodeId_ResetsOnlyStageAndKeepsChat`（高）
+- [x] **SEF-IT-077** `NewEpisode_SameNodeId_ResetsOnlyStageAndKeepsChat`（高）
   - **來源**：`SEF-BDD-073／SEF-AC-015`；跨 SPEC 影響稽核
   - **操作**：Round episode2 node=entry，episode1 node=entry 且聊天存在
   - **驗證**：episode2 的 Stage/Action 作用域獨立，原 Round 聊天事件可回讀且不覆寫
@@ -1644,12 +1646,12 @@
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 GET /game-rounds/{roundId}/experience
   - **驗證**：GET 最新場次，含 Category/Scene/Narrative、完成與雙方同意狀態
 
-- [ ] **SEF-API-002** `Experience_GetEnded_ReturnsOnlySafeStatus`（高）
+- [x] **SEF-API-002** `Experience_GetEnded_ReturnsOnlySafeStatus`（高）
   - **來源**：`SEF-BDD-063／SEF-AC-009`；情境：GET /game-rounds/{roundId}/experience
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 GET /game-rounds/{roundId}/experience
   - **驗證**：Round ended 不回聊天與隱藏事件明細
 
-- [ ] **SEF-API-003** `Experience_WhenNotMember_RejectsWithoutLeak`（高）
+- [x] **SEF-API-003** `Experience_WhenNotMember_RejectsWithoutLeak`（高）
   - **來源**：`SEF-BDD-044／SEF-AC-009`；情境：GET /game-rounds/{roundId}/experience
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 GET /game-rounds/{roundId}/experience
   - **驗證**：第三人與撤銷登入只取得安全拒絕
@@ -1704,7 +1706,7 @@
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 POST /game-rounds/{roundId}/story/next
   - **驗證**：過期 completedEpisodeSeq 409、沒有新 episode
 
-- [ ] **SEF-API-014** `Event_ValidBinding_UpdatesOnce`（高）
+- [x] **SEF-API-014** `Event_ValidBinding_UpdatesOnce`（高）
   - **來源**：`SEF-BDD-031／SEF-AC-006`；情境：POST /game-rounds/{roundId}/story/event
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 POST /game-rounds/{roundId}/story/event
   - **驗證**：只接受釘選內容允許的 binding/action，寫入 EventInstance 與事件序號
@@ -1714,7 +1716,7 @@
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 POST /game-rounds/{roundId}/story/event
   - **驗證**：主線完成後舊事件 409
 
-- [ ] **SEF-API-016** `Event_InvalidRevision_RejectsWithoutMutation`（高）
+- [x] **SEF-API-016** `Event_InvalidRevision_RejectsWithoutMutation`（高）
   - **來源**：`SEF-BDD-033／SEF-AC-006`；情境：POST /game-rounds/{roundId}/story/event
   - **前置／操作**：有效登入、明確會員與指定輸入，請求 POST /game-rounds/{roundId}/story/event
   - **驗證**：舊 revision 或重播改 payload 不更新
@@ -1746,7 +1748,7 @@
 
 ### API 稽核補充（2026-11-12，風險確認後新增）
 
-**預定測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`。此處所有項目均 **未實作／未執行**；與原測試清單並存，不重建舊 ID。
+**預定測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`。各項狀態依 checklist 與驗證紀錄；與原測試清單並存，不重建舊 ID。
 
 - [ ] **SEF-API-022** `PostNext_AfterInterestChange_ReturnsFrozenNewCategorySnapshot`（高）
   - **來源**：`SEF-BDD-065／SEF-AC-008`；`SEF-GAP-02`
@@ -1851,7 +1853,7 @@
 
 ### 建議測試檔：`tests/e2e/web/scene-event-framework.spec.ts`
 
-- [ ] **SEF-ET-011** `UI_ChapterCompleted_Web_ReflectsAuthoritativeState`（高）
+- [x] **SEF-ET-011** `UI_ChapterCompleted_Web_ReflectsAuthoritativeState`（高）
   - **來源**：`SEF-BDD-057／SEF-AC-007`；情境：完成時自然收尾並保留聊天
   - **前置／操作**：雙人本地 Web 場景：主線抵達 Ending
   - **驗證**：操作「畫面接收到已提交完成事件」後畫面應符合「顯示本次劇情完成但聊天室仍可使用」及「未完成事件不可再操作也無完成劇情按鈕」
@@ -1865,7 +1867,7 @@
 
 ### 建議測試檔：`tests/e2e/web/scene-event-framework.spec.ts`
 
-- [ ] **SEF-ET-013** `UI_NextAgree_Web_ReflectsAuthoritativeState`（高）
+- [x] **SEF-ET-013** `UI_NextAgree_Web_ReflectsAuthoritativeState`（高）
   - **來源**：`SEF-BDD-058／SEF-AC-008`；情境：再次遊玩按鈕等待雙方同意
   - **前置／操作**：雙人本地 Web 場景：劇情已完成而只有 A 想再玩
   - **驗證**：操作「A 點擊再次遊玩」後畫面應符合「顯示我已同意、等待另一位玩家」及「B 拒絕或離線時保持聊天與 completed 狀態」
@@ -1935,7 +1937,7 @@
 
 ### 建議測試檔：`tests/e2e/web/scene-event-framework.spec.ts`
 
-- [ ] **SEF-ET-023** `UI_EndConfirmation_Web_ReflectsAuthoritativeState`（高）
+- [x] **SEF-ET-023** `UI_EndConfirmation_Web_ReflectsAuthoritativeState`（高）
   - **來源**：`SEF-BDD-063／SEF-AC-009`；情境：結束配對仍需二次確認
   - **前置／操作**：雙人本地 Web 場景：劇情已完成且兩人仍在聊天
   - **驗證**：操作「一人點擊結束本輪互動」後畫面應符合「先提示原 pair 永久不再互配並要求確認」及「取消不結束且不影響下一場同意」
@@ -1949,7 +1951,7 @@
 
 ### E2E 稽核補充（2026-11-12，風險確認後新增）
 
-**預定測試檔**：`tests/e2e/web/scene-event-framework.spec.ts 及 tests/e2e/android/scene-event-framework.mjs`。此處所有項目均 **未實作／未執行**；與原測試清單並存，不重建舊 ID。
+**預定測試檔**：`tests/e2e/web/scene-event-framework.spec.ts 及 tests/e2e/android/scene-event-framework.mjs`。各項狀態依 checklist 與驗證紀錄；與原測試清單並存，不重建舊 ID。
 
 - [ ] **SEF-ET-025** `FinishChapter_PartnerPendingInteraction_ShowsCancelled`（高）
   - **來源**：`SEF-BDD-057／SEF-AC-007`；`SEF-GAP-05`
@@ -2000,7 +2002,7 @@
   - **操作**：Web＋Android 兩名獨立玩家：B1 中斷、尚未 ready 或新五圖之一解碼失敗
   - **驗證**：保留完整舊角色或佔位、沒有新 Gemini 請求或正式採用
 
-- [ ] **SEF-ET-034** `EpisodeNewScene_ResetsStageNotChat`（高）
+- [x] **SEF-ET-034** `EpisodeNewScene_ResetsStageNotChat`（高）
   - **來源**：`SEF-BDD-073／SEF-AC-015`；跨 SPEC 影響稽核
   - **操作**：Web＋Android 兩名獨立玩家：第一場與第二場均有 entry 節點
   - **驗證**：新場台詞、鏡頭、Event modal 初始化而 Round 聊天與已採用角色保留
@@ -2015,7 +2017,7 @@
   - **操作**：Web＋Android 兩名獨立玩家：退出 Round 後舊圖片請求晚回
   - **驗證**：不復活私人圖片，不混進下一 Round
 
-- [ ] **SEF-ET-037** `CompletedChapter_StillRendersStageAndChat`（高）
+- [x] **SEF-ET-037** `CompletedChapter_StillRendersStageAndChat`（高）
   - **來源**：`SEF-BDD-076／SEF-AC-015`；跨 SPEC 影響稽核
   - **操作**：Web＋Android 兩名獨立玩家：未完成支線而主線已到結尾
   - **驗證**：兩端顯示已完成劇情與保留聊天室，未完支線不可操作
@@ -2114,6 +2116,7 @@
 | SEF-BDD-076 | SEF-UT-227、SEF-UT-228、SEF-UT-229 | SEF-ET-037 | SEF-AC-015 |
 | SEF-BDD-077 | SEF-UT-230、SEF-UT-231、SEF-UT-232 | SEF-ET-038 | SEF-AC-016 |
 | SEF-BDD-078 | SEF-UT-233、SEF-UT-234、SEF-UT-235 | SEF-ET-039 | SEF-AC-016 |
+| SEF-BDD-079 | SEF-UT-236 | SEF-IT-080、SEF-API-027、SEF-ET-040 | SEF-AC-017 |
 
 ### 8 組 RiskAudit 缺漏的 TDD 對應
 
@@ -2145,6 +2148,14 @@
 
 **需求回查**：AC-005-04～15 → SPEC SEF-AC-001～016 → 本頁 `SEF-BDD-001～078` → 上列 TDD；全部 **78 場**有至少三個 Unit 斷言與真 D1 或 E2E 測試。API 明列 7 類端點的成功、失敗、安全及競態。測試名稱及檔案是預計實作位置，尚不存在的測試檔不得宣稱已建立。新版故事狀態必須另跑原 StoryDialogueAndExit 的 Web／Android／Avatar UX 回歸，不可拿本 SPEC 的測試代替。
 
+## 本人目前採用化身入口補充（SEF-AC-017／SEF-BDD-079）
+
+- [x] **SEF-UT-236** `OwnAvatarNotReady_ClearsPrivateSceneAndOffersProfileReturn`：初載或已顯示場景後收到本人未就緒錯誤，清除私人內容與草稿、禁止互動並導向個人檔案；游標超過 snapshot 時重新讀權威狀態，不以事件 receipt 冒認畫面已同步。
+- [x] **SEF-IT-080** `CurrentAdoptedAvatar_RequiresCompleteOwnedPack`：真 Miniflare D1／R2 驗本人當前 ready 資產、有效清單與五物件；缺圖、pending、他人資產拒絕；另一組 pending 不影響已就緒採用者；R2 等待後撤銷401。
+- [x] **SEF-API-027** `OwnAvatarNotReady_BlocksEntryTicketAndCommands`：真 HTTP／Application／D1 驗入口、票券與共用 WS 命令用例拒絕且零寫入；本人恢復後可進；第三人403，end 及 ended 安全狀態不受阻。
+- [x] **SEF-ET-040** `BothPlatforms_OwnAvatarGateAndReadyResume`：Web／Android 真 UI 以 active Round 直接重入驗阻擋、無角色及聊天室、個人檔案入口；恢復原採用者後回同 Round 繼續遊戲，不重抽。
+
+
 ## 測試清單使用說明
 
 1. [RiskAudit](../specs/SPEC-001-SceneEventFramework-RiskAudit.md) RA-Q1=A／RA-Q2=A 已確認，八組缺漏已補入，規劃可交 well-done；這不代表任何產品測試通過。
@@ -2157,7 +2168,7 @@
 **交接狀態：Ready for well-done（僅規劃文件可交開發，不代表程式已完成或測試通過）**  
 **最後確認日期：2026-11-12**  
 **本輪唯一目標**：`SPEC-001-SceneEventFramework`；未自動切換到其他 SPEC  
-**現況**：BDD **0/78**、TDD **0/379** 已實作／驗收；本輪零產品程式、Migration、D1、Web／Android 測試操作。
+**交接時基線**：BDD **0/78**、TDD **0/379**；當時僅規劃。**目前開發現況**以頂部分層統計與 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md) 為準。
 
 ### 文件包
 
@@ -2234,7 +2245,7 @@
 | TDD E2E-028～039 | 12 | 0/12 通過 |
 | 新的 SEF-UX-GAP-01～08 | 8 | 文件均有 TDD 落點，尚未實作 |
 
-本次更新後 **SPEC 16/16、BDD 78/78 均有測試規劃對應**；最終 TDD **0/379 通過**。既有原 12 項 RiskAudit 與 8 組 Gap 仍保留，另 8 項視覺／整合風險的防護措施見 RiskAudit §六。
+本次更新後 **SPEC 16/16、BDD 78/78 均有測試規劃對應**；規劃交接當時 TDD 為 **0/379**；目前實作統計見本頁頂部與驗證紀錄。既有原 12 項 RiskAudit 與 8 組 Gap 仍保留，另 8 項視覺／整合風險的防護措施見 RiskAudit §六。
 
 ### 不得進入開發的規劃阻斷項
 

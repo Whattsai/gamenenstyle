@@ -1,5 +1,6 @@
 // 先保留每一個屬性的資訊，避免 JSON.parse 靜默覆蓋重複權限欄位。
-export function parseStrictJson(text:string):unknown{
+export function parseStrictJson(text:string,maxDepth=8):unknown{
+ if(!Number.isInteger(maxDepth)||maxDepth<1||maxDepth>32)throw new SyntaxError('INVALID_JSON');
  let index=0;const whitespace=()=>{while(/[\x20\t\r\n]/.test(text[index]??'!'))index++;};
  const fail=():never=>{throw new SyntaxError('INVALID_JSON');};
  function string():string{
@@ -7,7 +8,7 @@ export function parseStrictJson(text:string):unknown{
   while(index<text.length){const c=text[index++];if(!escaped&&c==='"')return JSON.parse(text.slice(start,index));if(!escaped&&c==='\\')escaped=true;else escaped=false;}return fail();
  }
  function value(depth:number):unknown{
-  whitespace();if(depth>8)return fail();const c=text[index];
+  whitespace();if(depth>maxDepth)return fail();const c=text[index];
   if(c==='"')return string();
   if(c==='{'){
    index++;whitespace();const result:Record<string,unknown>=Object.create(null),keys=new Set<string>();if(text[index]==='}'){index++;return result;}

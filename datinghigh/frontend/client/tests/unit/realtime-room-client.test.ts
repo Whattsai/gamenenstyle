@@ -9,6 +9,10 @@ it('standard socket uses no token URL and waits for authorized cursor sync befor
 it('disconnect rejects an unacknowledged write as unknown and reconnect never resends it',async()=>{
  vi.useFakeTimers();const t=setup();t.client.start();await flush();t.sockets[0].onopen();await flush();const pending=t.client.send('message.send','original-id',{text:'one real message'});const failed=expect(pending).rejects.toMatchObject({uncertain:true});t.sockets[0].close();await failed;await vi.advanceTimersByTimeAsync(1000);await flush();expect(t.sockets).toHaveLength(2);expect(t.sockets[1].sent).toEqual([]);t.client.stop();
 });
+it('recovery stays explicitly offline while a new ticket is pending and cannot imply synchronized state',async()=>{
+ vi.useFakeTimers();const t=setup();t.client.start();await flush();t.sockets[0].onopen();await flush();
+ t.request.mockImplementation(()=>new Promise(()=>{}));t.sockets[0].close();await vi.advanceTimersByTimeAsync(1000);await flush();expect(t.status).toHaveBeenLastCalledWith('offline');t.client.stop();
+});
 it('only matching round ACK resolves the pending original request; explicit replay keeps the same ID',async()=>{
  const t=setup();t.client.start();await flush();const ws=t.sockets[0];let resolved=false;const pending=t.client.send('message.send','original-id',{text:'hello'}).then(r=>{resolved=true;return r;});ws.frame({version:1,type:'command.ack',roundId:'other',clientRequestId:'original-id',eventSeq:3});await flush();expect(resolved).toBe(false);ws.frame({version:1,type:'command.ack',roundId:'round',clientRequestId:'original-id',eventSeq:3});expect(await pending).toEqual({clientRequestId:'original-id',eventSeq:3});const retry=t.client.send('message.send','original-id',{text:'hello'});ws.frame({version:1,type:'command.ack',roundId:'round',clientRequestId:'original-id',eventSeq:3});await retry;expect(ws.sent.map(s=>JSON.parse(s).clientRequestId)).toEqual(['original-id','original-id']);t.client.stop();
 });

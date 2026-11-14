@@ -90,6 +90,7 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 - Web 先 export、build:e2e-host，再跑 `matching-sessions.spec.ts`；原生 `matching-sessions.mjs` 使用專用裝置／ADB port、自有8084 Metro，可依 basic／extended／routing／card 分組。它們不與同裝置或同 port 的測試並行。
 - `npm run game:list:local`／`npm run game:end:local -- --round-id UUID` 只供本地維運；`tests/integration/local-game-maintenance.test.mjs` 驗 CLI 與 D1 rollback，不替代產品退出 UX。
 - `npm run test:story:web` 前先 export Web／build E2eHost；`npm run test:story:android` 指定QA裝置與ADB port，單程序獨占UiAutomator，透過SDK launch參數關閉開發浮動按鈕。`npm run test:story:live` 需真local平台ready。
+- `npm run test:scene:web` 明確啟用 scene-event.v1 的隔離真 D1／R2／DO；Android 以 `DATINGHIGH_E2E_SCENE_FRAMEWORK=1` 執行相同原生入口，先驗 Metro manifest 與完整 bundle 就緒。兩套共用8081而原生另占8084，須依序執行。多場次證據須檢查 Session／SceneVisit 數、草稿／聊天保留、舊場指令拒絕及自然收尾，不以舊0005通過代替。
 - 劇情 fixture 可驗多個完整內容的選場引擎，不當作額外正式故事。技術回放不替代本人 Gate B，Gate B 確認前不得擴充其餘九場。
 
 ### UI 與追溯原則

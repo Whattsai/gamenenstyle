@@ -12,7 +12,7 @@
     "ACCESS_TOKEN_ISSUER": "datinghigh-local",
     "ACCESS_TOKEN_AUDIENCE": "datinghigh-local-client",
     "EmailDeliveryMode": "Log",
-    "EXPECTED_MIGRATION": "0005_story_dialogue_exit.sql"
+    "EXPECTED_MIGRATION": "0006_scene_event_framework.sql"
   },
   "assets": {
     "directory": "../frontend/client/dist",

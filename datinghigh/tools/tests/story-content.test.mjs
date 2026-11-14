@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {validateStory,buildStoryBundle,validateStoryUpgradeTarget,oldGamePurgeStatements} from '../story-content-policy.mjs';
 const source=JSON.parse(fs.readFileSync(new URL('../../contracts/story-scenes.json',import.meta.url),'utf8')).stories[0];
+test('SEF-UT-025/026: publisher accepts a complete linear narrative with one reachable ending',()=>{
+ const story=structuredClone(source);delete story.scenePresentation;story.interactions=[];
+ story.nodes=[{id:'entry',lines:[{speaker:'旁白',text:'雨落下。'}],choices:[{id:'continue',next:'ending'}]},
+  {id:'ending',ending:true,lines:[{speaker:'旁白',text:'找到書了。'}],choices:[]}];
+ assert.doesNotThrow(()=>validateStory(story));
+});
+test('SEF-UT-127: whitespace-only narrative lines cannot be published',()=>{
+ const story=structuredClone(source);story.nodes[0].lines[0].text='   ';
+ assert.throws(()=>validateStory(story));
+});
 const withPresentation=()=>{const story=structuredClone(source);story.scenePresentation={version:'2.5d.v1',backgroundAsset:story.backgroundAsset,cameras:[{id:'wide',scale:1,focus:{x:.5,y:.5},portrait:{x:.5,headY:.08,height:.9},foreground:false,tint:'#8899bb',tintOpacity:.1}],hotspots:[{id:'bookmark',definitionId:'bookmark',label:'翻看手寫書籤',x:.7,y:.8}],foreground:[{id:'desk',x:0,y:.75,width:1,height:.25,color:'#513531'}]};for(const node of story.nodes)node.presentation={cameraId:'wide',expression:'neutral',hotspotIds:['bookmark']};return story;};
 
 test('SD-UT-073/079: presentation references stay inside the versioned story and fixed nonverbal expressions',()=>{

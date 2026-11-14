@@ -6,6 +6,9 @@ import {ready} from '../src/platform';
 import {oldGamePurgeStatements} from '../../tools/story-content-policy.mjs';
 import {readStoryContent,serveStoryAsset} from '../src/story-content';
 import { executeCommand,planCommand } from '../src/commands';
+import {readAuthorizedSceneEventContent} from '../src/scene-event-read';
+// @ts-expect-error 共用本地內容建構器，實際讀寫真 R2。
+import {buildSceneEventBundle} from '../../tools/scene-event-content-policy.mjs';
 
 let mf:Miniflare, db:D1Database;
 const now=Date.UTC(2026,10,8);
@@ -13,6 +16,20 @@ const id=(n:number)=>`019a281e-0000-7000-8000-${n.toString().padStart(12,'0')}`;
 const auth=(n=1)=>({accountId:id(n),sessionId:id(n+100),cv:1,accessExpiresAt:now+600000});
 const rows=async(sql:string,...values:unknown[])=>(await db.prepare(sql).bind(...values).all()).results as any[];
 const run=(command:string,p:any)=>executeCommand(db,command,p,now);
+it('SEF content read: selected immutable layers recheck authorization after R2 and deny outsiders before IO',async()=>{
+ await catalog(1);await accept();
+ const source=JSON.parse(readFileSync(new URL('../../contracts/story-scenes.json',import.meta.url),'utf8')).stories[0];
+ const options={sceneCatalogId:id(4001),narrativeCatalogId:id(301),sceneId:'rain-bookshop',sceneVersion:'v1',narrativeId:'rain-bookshop-lost-note',narrativeVersion:'v1',capabilities:['bookshop'],eligibleCategoryCodes:['romance'],categories:[{categoryId:id(4003),code:'romance',version:'v1',title:'浪漫',interestTagIds:['reading'],recommendationPriority:1}]};
+ const bundle=buildSceneEventBundle(source,new URL('../../',import.meta.url),options);const bucket=await mf.getR2Bucket('STORY_CONTENT')as unknown as R2Bucket;
+ for(const object of bundle.objects)await bucket.put(object.key,object.bytes);
+ await db.prepare("UPDATE content_story_catalog SET story_id=?,version=?,manifest_key=?,manifest_sha256=?,status='retired' WHERE catalog_id=?").bind(bundle.narrative.id,bundle.narrative.version,bundle.narrative.key,bundle.narrative.sha256,id(301)).run();
+ const input={...auth(),roundId:id(502),catalogId:id(301)};
+ expect((await readAuthorizedSceneEventContent(input,{DB:db,STORY_CONTENT:bucket},now)).content.scene.sceneId).toBe('rain-bookshop');
+ let reads=0;const inaccessible={get:async()=>{reads++;return null;}}as unknown as R2Bucket;
+ await expect(readAuthorizedSceneEventContent({...input,...auth(3)},{DB:db,STORY_CONTENT:inaccessible},now)).rejects.toThrow();expect(reads).toBe(0);
+ const revoke={get:async(key:string)=>{const object=await bucket.get(key);await db.prepare('UPDATE auth_sessions SET revoked_at=? WHERE session_id=?').bind(now,id(101)).run();return object;}}as unknown as R2Bucket;
+ await expect(readAuthorizedSceneEventContent(input,{DB:db,STORY_CONTENT:revoke},now)).rejects.toThrow();
+});
 async function catalog(n:number,tags=['reading'],priority=n){
  await db.prepare('INSERT INTO content_story_catalog VALUES(?,?,?,?,?,?,?,\'published\',?)').bind(id(300+n),`fixture-${n}`,'v1',JSON.stringify(tags),priority,`story-content/stories/fixture-${n}/v1/manifest.json`,'a'.repeat(64),now).run();
 }
@@ -23,7 +40,7 @@ async function accept(seed=500){
 beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'story-isolated'},r2Buckets:['STORY_CONTENT']}));
  db=await mf.getD1Database('DB') as unknown as D1Database;
- for(const name of readdirSync(new URL('../migrations/',import.meta.url)).filter(n=>n.endsWith('.sql')).sort())
+ for(const name of readdirSync(new URL('../migrations/',import.meta.url)).filter(n=>n.endsWith('.sql')&&n<'0006').sort())
   await db.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
 });
 afterAll(async()=>{await mf?.dispose();});
@@ -143,6 +160,26 @@ it('SD-IT-050/051/057/058: sequential episodes coexist, duplicate episode and co
  expect(await rows("SELECT * FROM game_story_sessions WHERE chapter_status='playing'")).toHaveLength(1);
 });
 const action=(seed=800,extra={})=>({...auth(),roundId:id(502),clientRequestId:id(seed),eventId:id(seed+10000),nodeEventId:id(seed+20000),completionEventId:id(seed+30000),storySessionId:id(502),episodeSeq:1,expectedRevision:1,nodeId:'entry',nextNodeId:'icebreak',completed:false,kind:'story.choice.committed',payload:JSON.stringify({nodeId:'icebreak'}),requestPayload:JSON.stringify({nodeId:'entry',choiceId:'enter'}),interaction:null,...extra});
+it('SEF-IT-069: chapter completion atomically cancels unfinished interactions and leaves chat active',async()=>{
+ await catalog(1);await accept();
+ await db.prepare("INSERT INTO game_interaction_instances VALUES(?,?,'entry','bookmark','v1','active','{}',1,?,NULL)").bind(id(910),id(502),now).run();
+ const p=action(800,{completed:true,nextNodeId:'ending'});await run('story.action.commit',p);
+ expect(await rows('SELECT status,completed_at,revision FROM game_interaction_instances')).toEqual([{status:'cancelled',completed_at:now,revision:2}]);
+ expect(await rows('SELECT status FROM game_rounds')).toEqual([{status:'active'}]);await send(2,'收尾後聊天',706);
+ await run('story.action.commit',p);expect(await rows("SELECT kind FROM game_round_events WHERE kind='chapter.completed'")).toHaveLength(1);
+ await expect(run('story.action.commit',action(801))).rejects.toThrow();
+});
+
+it('SEF-IT-069: zero-row unfinished cancellation rolls back chapter, revision and completion events',async()=>{
+ await catalog(1);await accept();
+ await db.prepare("INSERT INTO game_interaction_instances VALUES(?,?,'entry','bookmark','v1','active','{}',1,?,NULL)").bind(id(910),id(502),now).run();
+ const plan=planCommand('story.action.commit',action(800,{completed:true,nextNodeId:'ending'}),now);
+ const index=plan.findIndex(s=>s.sql.startsWith('UPDATE game_interaction_instances SET status=\'cancelled\''));expect(index).toBeGreaterThanOrEqual(0);
+ plan[index].sql=plan[index].sql.replace('WHERE ','WHERE 0 AND ');
+ await expect(db.batch(plan.map(s=>db.prepare(s.sql).bind(...s.values)))).rejects.toThrow();
+ expect(await rows('SELECT chapter_status,progress_revision FROM game_story_sessions')).toEqual([{chapter_status:'playing',progress_revision:1}]);
+ expect(await rows('SELECT status FROM game_interaction_instances')).toEqual([{status:'active'}]);expect(await rows('SELECT * FROM game_round_events')).toHaveLength(1);
+});
 it.each(['node','completion'])('SD-IT-023/054: a zero-row %s event cannot leave partially advanced story state',async(kind)=>{
  await catalog(1);await accept();const p=action(800,{completed:kind==='completion',nextNodeId:kind==='completion'?'ending':'icebreak'});const plan=planCommand('story.action.commit',p,now);
  const index=plan.findIndex(s=>s.sql.startsWith('INSERT INTO game_round_events')&&s.sql.includes(kind==='node'?"'story.node_changed'":"'chapter.completed'"));expect(index).toBeGreaterThanOrEqual(0);plan[index].sql=plan[index].sql.replace('WHERE r.round_id=?','WHERE 0 AND r.round_id=?');

@@ -25,7 +25,8 @@ public sealed class StoryDialogueService(IPlatformClient platform,IRoundRealtime
         if(rows.Count==0){var valid=await platform.ExecuteAsync("session.validate",MatchingSessionService.Auth(u),ct);throw valid["rows"]!.AsArray().Count==0?new DomainException("SESSION_REVOKED",401):new DomainException("RESOURCE_FORBIDDEN",403);}
         return new(){["roundId"]=roundId,["status"]=rows[0]!["status"]!.DeepClone()};
     }
-    private async Task Active(CurrentUser u,string roundId,CancellationToken ct){if((await StatusAsync(u,roundId,ct)).Text("status")!="active")throw new DomainException("ROUND_NOT_ACTIVE",409);}
+    private async Task AvatarReady(CurrentUser u,CancellationToken ct){var result=await platform.ExecuteAsync("avatar.current.readiness",MatchingSessionService.Auth(u),ct);if(result["ready"]?.GetValue<bool>()!=true)throw new DomainException("OWN_AVATAR_PACK_NOT_READY",409);}
+    private async Task Active(CurrentUser u,string roundId,CancellationToken ct){if((await StatusAsync(u,roundId,ct)).Text("status")!="active")throw new DomainException("ROUND_NOT_ACTIVE",409);await AvatarReady(u,ct);}
     private async Task<JsonArray> Snapshot(CurrentUser u,string roundId,CancellationToken ct){await Active(u,roundId,ct);return await Rows("story.snapshot",Auth(u,roundId),ct);}
     private static JsonNode? Record(JsonArray rows,string type)=>rows.FirstOrDefault(r=>r?.Maybe("record_type")==type);
     private async Task<JsonObject> Manifest(CurrentUser u,string roundId,string catalogId,CancellationToken ct)
@@ -40,7 +41,9 @@ public sealed class StoryDialogueService(IPlatformClient platform,IRoundRealtime
     public async Task<JsonObject> ExperienceAsync(CurrentUser u,string roundId,CancellationToken ct=default)
     {
         var status=await StatusAsync(u,roundId,ct);if(status.Text("status")=="ended")return new(){["roundId"]=roundId,["phase"]="ended"};
+        await AvatarReady(u,ct);
         var rows=await Rows("story.snapshot",Auth(u,roundId),ct);var round=Record(rows,"round")!;var story=Record(rows,"story");
+        if(round.Maybe("framework")=="scene-event.v1"){var projection=await new SceneEventFrameworkService(platform,notifier,limiter).ExperienceAsync(u,roundId,rows,ct);await AvatarReady(u,ct);return projection;}
         var votes=rows.Where(r=>r?.Maybe("record_type")=="vote").ToArray();
         var result=new JsonObject{["roundId"]=roundId,["episodeSeq"]=1,["eventSeq"]=round["last_event_seq"]!.DeepClone(),["phase"]=story is null?"pending_story_selection":"playing"};
         var my= votes.FirstOrDefault(v=>v!.Text("actor_account_id")==u.AccountId);result["myVote"]=my is null?null:JsonNode.Parse(my.Text("payload_json"))?["catalogId"]?.DeepClone();
@@ -87,6 +90,8 @@ public sealed class StoryDialogueService(IPlatformClient platform,IRoundRealtime
     public async Task<JsonObject> CommandAsync(CurrentUser u,string roundId,string type,string requestId,JsonObject input,CancellationToken ct=default)
     {
         Id(roundId);Id(requestId);await Active(u,roundId,ct);
+        var frameworkSnapshot=await Rows("story.snapshot",Auth(u,roundId),ct);
+        if(Record(frameworkSnapshot,"round")?.Maybe("framework")=="scene-event.v1")return await new SceneEventFrameworkService(platform,notifier,limiter).CommandAsync(u,roundId,type,requestId,input,frameworkSnapshot,ct);
         var p=Auth(u,roundId);p["clientRequestId"]=requestId;p["eventId"]=EntityId.New();string command;
         if(type=="story.vote.submit"){
             Only(input,"episodeSeq","catalogId");StorySelectionPolicy.CurrentEdition(input["episodeSeq"]?.GetValue<int>()??0);var catalog=Required(input,"catalogId");Id(catalog);

@@ -34,7 +34,7 @@ Domain 嵌入根 `contracts/profile-fields.json` 與 `contracts/builtin-avatar-p
 | Typed HttpClient | IPlatformClient→CloudflarePlatformClient；base `http://platform.internal/`、timeout 15 秒 |
 | 媒體／AI | IImageCompressionService→ImageCompressionService（singleton）；IPrivateMediaStore→PrivateMediaStore、IAvatarCandidateStore→AvatarCandidateStore（內部HTTP30秒）；IAvatarImageGenerator→GeminiAvatarImageGenerator（HTTP100秒、單次生成90秒、無redirect／自動重送）；IAvatarExpressionGenerator→GeminiAvatarImageGenerator（HTTP100秒／provider90秒）、IAvatarExpressionStore→AvatarExpressionStore、IAvatarReadStore→AvatarReadStore（內部HTTP30秒）；AvatarService、AvatarExpressionService、AvatarReadService、OwnCardPreviewService scoped |
 | Scoped | DatingProfileService、PersonalPhotosService、RateLimiter／Application IRateLimiter、IEmailCodeSender→EmailCodeSender、AuthApplication、Readiness、IPrivateObjectStore→PrivateObjectStore |
-| 配對／劇情 | MatchingSessionService、StoryDialogueService scoped；IMatchingCandidateProfileReader→MatchingCandidateProfileReader；IRoundRealtimeNotifier→CloudflareRoundRealtimeNotifier |
+| 配對／劇情 | MatchingSessionService、StoryDialogueService scoped；StoryDialogueService 以既有 platform／clock／notifier 建立 SceneEventFrameworkService，無第二套房間服務；IMatchingCandidateProfileReader→MatchingCandidateProfileReader；IRoundRealtimeNotifier→CloudflareRoundRealtimeNotifier |
 | Framework | 自訂 Platform authentication scheme、PlatformAccess authorization policy、允許單一 Web origin 的 CORS |
 
 Google validator 由 factory 建立，讀取各 platform allowlist，並使用平台 client 取得 JWKS。不要繞過這些介面在頁面或 Domain 加外部 I/O。
@@ -46,7 +46,7 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 | Cloudflare bindings | Worker 的 `API` Durable Object／Container、`DB` D1、`FILES` 私人 R2、`ASSETS` 靜態檔、`GAME_ROOMS` Room DO、`STORY_CONTENT` 獨立故事 R2、僅 Worker 使用的 `ROUND_TICKET_HMAC_KEY`；cloud sender 另需 `EMAIL`／`EMAIL_FROM` |
 | .NET Linux container | Dockerfile 固定 SDK／ASP.NET 10 映像 digest、非 root、8080；Worker 傳入認證與 Google 設定 |
 | D1 | 所有寫入經固定 prepared commands／batch；.NET 不直接連 SQLite／D1 HTTP API |
-| R2 | FILES 保存 owner 私人照片、候選、生成角色、Manifest 與 probe；STORY_CONTENT 保存公開故事素材。免費 WebP 由 ASSETS 讀取，Round 通道重驗授權 |
+| R2 | FILES 保存 owner 私人照片、候選、生成角色、Manifest 與 probe；STORY_CONTENT 保存四層版本內容及公開素材，內容 Manifest 只由受保護 bridge 讀取。免費 WebP 由 ASSETS 讀取，Round 通道重驗授權 |
 | Gemini | .NET 固定 generativelanguage.googleapis.com generateContent；server header secret；來源為本人已壓縮照片，候選與五表情每次只產一張；表情使用同一候選，不重送真人照；AvatarChromaMask 使用既有 Skia 去背，失敗及未知成本不自動重試 |
 | Google | Web GIS `https://accounts.google.com/gsi/client`；native SDK；Worker 只取 `https://www.googleapis.com/oauth2/v3/certs`，.NET 驗 RS256／audience／azp／Email |
 | Email | local／Log 在專用 category；staging／production 使用 Cloudflare sender binding，部署前須核對實際 binding／sender |

@@ -21,3 +21,9 @@ it('SD-UT-076: rejected audio remains muted with a usable retry and does not aff
  render(<StoryAudio url="rain"/>);state.players.get('rain').play.mockImplementation(()=>{throw Error('platform rejected audio');});
  fireEvent.click(screen.getByLabelText('開啟場景聲音'));await screen.findByText('聲音暫時無法播放，仍可繼續故事。');expect(screen.getByLabelText('開啟場景聲音')).toBeTruthy();
 });
+it('an event sequence plays at most once and restoring the base cue cannot replay old sound',async()=>{
+ const view=render(<StoryAudio url="rain" cueUrl="page" cueId="story:entry"/>),page=state.players.get('page');fireEvent.click(screen.getByLabelText('開啟場景聲音'));
+ view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:event:8"/>);await waitFor(()=>expect(page.play).toHaveBeenCalledTimes(1));
+ view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:entry"/>);view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:event:8"/>);
+ await Promise.resolve();expect(page.play).toHaveBeenCalledTimes(1);
+});

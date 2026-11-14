@@ -7,6 +7,7 @@ import {PrimaryButton,s} from './ui';
 export function StoryAudio({url,cueUrl,cueId}:{url:string;cueUrl?:string;cueId?:string}){
  const player=useAudioPlayer(url),cue=useAudioPlayer(cueUrl??null),status=useAudioPlayerStatus(player),[enabled,setEnabled]=useState(false),[volume,setVolume]=useState(.3),[error,setError]=useState(false),lastCue=useRef(cueId),active=useRef(false);
  const failed=()=>{active.current=false;setEnabled(false);setError(true);player.pause();cue.pause();};
+ const seenCues=useRef(new Set(cueId?[cueId]:[])),cueGeneration=useRef(0);
  useEffect(()=>{player.volume=volume;cue.volume=volume;},[volume,player,cue]);
  useEffect(()=>{
   player.loop=true;const subscription=AppState.addEventListener('change',state=>{if(state!=='active'){active.current=false;player.pause();cue.pause();setEnabled(false);}});
@@ -14,8 +15,9 @@ export function StoryAudio({url,cueUrl,cueId}:{url:string;cueUrl?:string;cueId?:
  },[player,cue]);
  useEffect(()=>{if(status.error)failed();},[status.error]);
  useEffect(()=>{
-  const changed=lastCue.current!==cueId;lastCue.current=cueId;
-  if(changed&&enabled&&active.current&&cueUrl)void cue.seekTo(0).then(()=>{if(active.current)cue.play();}).catch(failed);
+  const changed=lastCue.current!==cueId;lastCue.current=cueId;const generation=++cueGeneration.current;
+  const fresh=!!cueId&&!seenCues.current.has(cueId)&&seenCues.current.size<4096;if(cueId)seenCues.current.add(cueId);
+  if(changed&&fresh&&enabled&&active.current&&cueUrl)void cue.seekTo(0).then(()=>{if(active.current&&generation===cueGeneration.current)cue.play();}).catch(failed);
  },[cueId,cueUrl,enabled,cue]);
  return <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:6}}>
   <PrimaryButton label={enabled?'靜音場景聲音':'開啟場景聲音'} secondary compact onPress={()=>{if(enabled){active.current=false;player.pause();cue.pause();setEnabled(false);}else try{player.play();active.current=true;setEnabled(true);setError(false);}catch{failed();}}}/>

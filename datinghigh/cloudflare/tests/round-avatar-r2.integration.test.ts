@@ -15,7 +15,7 @@ const media=(version:string,who=1,expression='neutral',targetEnv=env)=>dispatch(
 beforeAll(async()=>{
  mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'round-avatars'},r2Buckets:{FILES:'round-avatars'}}));
  env={DB:await mf.getD1Database('DB') as unknown as D1Database,FILES:await mf.getR2Bucket('FILES') as unknown as R2Bucket,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0005_story_dialogue_exit.sql'};
- for(const name of readdirSync(new URL('../migrations/',import.meta.url)).filter(n=>n.endsWith('.sql')).sort())await env.DB.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>env.DB.prepare(s)));
+ for(const name of readdirSync(new URL('../migrations/',import.meta.url)).filter(n=>n.endsWith('.sql')&&n<'0006').sort())await env.DB.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>env.DB.prepare(s)));
 });
 beforeEach(async()=>{
  for(const table of ['game_active_round_claims','game_rounds','match_invitations','content_story_catalog','user_media_assets','user_profiles','auth_sessions','auth_accounts'])await env.DB.prepare(`DELETE FROM ${table}`).run();
@@ -40,6 +40,21 @@ beforeEach(async()=>{
  await publishReadyAvatarPack(env.FILES,{manifestSchemaVersion:1,ownerAccountId:id(2),avatarAssetId:asset,expressionSpecVersion:'v1',avatarAssetSpecVersion:'full-body.v1',sourceImageSha256:'a'.repeat(64),sourceAssetRef:id(80),status:'ready',framing:'full_body',pose:'standing',stageAnchors:{head:{x:.5,y:.08},feet:{x:.5,y:.96}},masterAsset:expressions.neutral,expressions,generatorModel:'test-fixture',promptVersion:'test.v1',verifiedAt:now},id(2),asset);
 });
 afterAll(async()=>{await mf?.dispose();});
+const current=(who=2,target=env)=>dispatch(new Request('http://platform.internal/v1/commands/avatar.current.readiness',{method:'POST',body:JSON.stringify(auth(who))}),target,now);
+it('current own avatar requires the adopted complete pack; an unrelated pending asset cannot block a ready selection',async()=>{
+ expect((await current()).status).toBe(200);
+ await env.DB.prepare("INSERT INTO user_media_assets VALUES(?,?,'generated_avatar',?,'image/jpeg',NULL,'pending',?,NULL)").bind(id(23),id(2),`private/${id(2)}/avatar/${id(23)}`,now).run();
+ expect((await current()).status).toBe(200);
+ await env.FILES.delete(avatarExpressionPrefix(id(2),asset)+'concerned.webp');
+ const missing=await current();expect(missing.status).toBe(409);expect(await missing.json()).toMatchObject({code:'OWN_AVATAR_PACK_NOT_READY'});
+ await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='builtin',selected_avatar_ref='female-01' WHERE account_id=?").bind(id(2)).run();expect((await current()).status).toBe(200);
+ await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='generated',selected_avatar_ref=? WHERE account_id=?").bind(id(23),id(2)).run();expect((await current()).status).toBe(409);
+ await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='generated',selected_avatar_ref=? WHERE account_id=?").bind(asset,id(1)).run();expect((await current(1)).status).toBe(409);
+});
+it('own current readiness rechecks selection and session after private storage I/O',async()=>{
+ let changed=false;const files=new Proxy(env.FILES,{get(target,key){if(key==='get')return async(name:string)=>{const result=await target.get(name);if(!changed){changed=true;await env.DB.prepare('UPDATE auth_sessions SET revoked_at=? WHERE session_id=?').bind(now,id(102)).run();}return result;};const v=Reflect.get(target,key,target);return typeof v==='function'?v.bind(target):v;}});
+ expect((await current(2,{...env,FILES:files})).status).toBe(401);
+});
 it('SD-IT-062/074: approved builtin five-expression art uses the same authorized round channel and verified static bytes',async()=>{
  const pack=builtinCatalog.packs['female-01'];
  await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='builtin',selected_avatar_ref='female-01' WHERE account_id=?").bind(id(2)).run();
