@@ -21,7 +21,7 @@ export function StoryAudio({url,cueUrl,cueId}:{url:string;cueUrl?:string;cueId?:
  },[cueId,cueUrl,enabled,cue]);
  return <View style={{flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:6}}>
   <PrimaryButton label={enabled?'靜音場景聲音':'開啟場景聲音'} secondary compact onPress={()=>{if(enabled){active.current=false;player.pause();cue.pause();setEnabled(false);}else try{player.play();active.current=true;setEnabled(true);setError(false);}catch{failed();}}}/>
-  {enabled&&<><PrimaryButton label="降低音量" secondary compact disabled={volume<=.1} onPress={()=>setVolume(v=>Math.max(.1,Number((v-.1).toFixed(1))))}/><Text style={s.footer}>{Math.round(volume*100)}%</Text><PrimaryButton label="提高音量" secondary compact disabled={volume>=1} onPress={()=>setVolume(v=>Math.min(1,Number((v+.1).toFixed(1))))}/></>}
+  {enabled&&<><PrimaryButton label="降低音量" secondary compact disabled={volume<=.1} onPress={()=>setVolume(v=>Math.max(.1,Number((v-.1).toFixed(1))))}/><Text style={[s.footer,{minWidth:34}]}>{Math.round(volume*100)}%</Text><PrimaryButton label="提高音量" secondary compact disabled={volume>=1} onPress={()=>setVolume(v=>Math.min(1,Number((v+.1).toFixed(1))))}/></>}
   {(error||status.error)&&<Text style={s.subtleText}>聲音暫時無法播放，仍可繼續故事。</Text>}
  </View>;
 }

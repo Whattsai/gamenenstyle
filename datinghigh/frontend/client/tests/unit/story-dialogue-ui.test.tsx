@@ -16,13 +16,18 @@ import {StoryExperienceScreen} from '../../src/StoryExperienceScreen';
 import scenes from '../../../../contracts/story-scenes.json';
 const avatarProjection=(version:string)=>({avatarAssetId:'019a281e-0000-7000-8000-000000000022',avatarVersion:version,expressionSpecVersion:'v1',avatarAssetSpecVersion:'full-body.v1',framing:'full_body',pose:'standing',stageAnchors:{head:{x:.5,y:.08},feet:{x:.5,y:.96}},expressions:Object.fromEntries(['neutral','smile','surprised','thoughtful','concerned'].map(e=>[e,{url:`/api/v1/game-rounds/round/partner-avatar/${version}/${e}`,sha256:'a'.repeat(64),mimeType:'image/webp',width:768,height:1024,byteSize:3}]))});
 const persona={nickname:'對方旅人',selectedAvatarType:'builtin',selectedAvatarRef:'female-01'};
+async function openChatInput(){
+ const toggle=await screen.findByLabelText('展開聊天室').catch(()=>null);
+ if(toggle)fireEvent.click(toggle);
+ return screen.findByLabelText('你的訊息');
+}
 beforeEach(()=>{
  vi.clearAllMocks();state.roundId='round';state.experience={phase:'playing',roundId:'round',episodeSeq:1,eventSeq:1,storySessionId:'story',progressRevision:1,chapterStatus:'playing',title:'雨聲書店',currentNode:{id:'entry',title:'雨聲落在書頁上',lines:[{speaker:'旁白',text:'窗外的雨，落在書頁上。'}],choices:[{id:'next',label:'走近推薦卡',next:'icebreak'}],objects:[]},objects:[],assets:[],suggestions:[{id:'warm',label:'溫暖型',text:'你好，很高興遇見你。'}]};
  state.request.mockImplementation(async(path:string)=>{if(path.endsWith('/partner-avatar'))throw new ApiFailure('AVATAR_PACK_NOT_READY',409);return path.endsWith('/experience')?state.experience:path.endsWith('/events/query')?{events:[],cursor:1,hasMore:false}:path==='/me/dating-profile'?{nickname:'本人旅人',selectedAvatarType:'builtin',selectedAvatarRef:'male-01'}:{roundId:'round',persona};});state.send.mockResolvedValue({eventSeq:2});
 });
 afterEach(cleanup);
 it('own unready avatar blocks direct entry and clears an already displayed scene with a profile return',async()=>{
- render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');fireEvent.change(await screen.findByLabelText('你的訊息'),{target:{value:'私人草稿'}});
+ render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');fireEvent.change(await openChatInput(),{target:{value:'私人草稿'}});
  const request=state.request.getMockImplementation()!;state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/experience')?Promise.reject(new ApiFailure('OWN_AVATAR_PACK_NOT_READY',409)):request(path,...args));
  await act(async()=>{await state.sync().catch(()=>{});});
  await screen.findByText('目前採用的化身表情尚未準備好，請先到個人檔案選用已就緒的化身。');expect(screen.queryByText('雨聲書店')).toBeNull();expect(screen.queryByLabelText('你的訊息')).toBeNull();expect(state.send).not.toHaveBeenCalled();
@@ -36,7 +41,7 @@ it('a cursor newer than the snapshot forces an authoritative reread before finis
 });
 it('completed players can agree or withdraw for the actual completed episode without ending chat',async()=>{
  state.experience={...state.experience as any,phase:'completed',chapterStatus:'completed',episodeSeq:3,myAgreedNext:false,partnerAgreedNext:true,currentNode:{...(state.experience as any).currentNode,choices:[],ending:true}};
- render(<StoryExperienceScreen/>);fireEvent.change(await screen.findByLabelText('你的訊息'),{target:{value:'下一章也保留的聊天草稿'}});fireEvent.click(await screen.findByLabelText('一起開始下一場'));
+ render(<StoryExperienceScreen/>);fireEvent.change(await openChatInput(),{target:{value:'下一章也保留的聊天草稿'}});fireEvent.click(await screen.findByLabelText('一起開始下一場'));
  await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][0]).toBe('story.next.requested');expect(state.send.mock.calls[0][2]).toEqual({completedEpisodeSeq:3,agree:true});
  const request=state.request.getMockImplementation()!;state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/events/query')?Promise.resolve({events:[{eventSeq:2,type:'story.next.requested',actorAccountId:'me',clientRequestId:state.send.mock.calls[0][1],payload:{completedEpisodeSeq:3,agree:true}}],cursor:2,hasMore:false}):request(path,...args));
  state.experience={...state.experience as any,myAgreedNext:true,eventSeq:2};await act(async()=>state.sync());fireEvent.click(await screen.findByLabelText('撤回下一場同意'));
@@ -45,7 +50,7 @@ it('completed players can agree or withdraw for the actual completed episode wit
 });
 it('the next category selection keeps round chat and submits categoryId in the current episode',async()=>{
  state.experience={phase:'pending_category_selection',roundId:'round',episodeSeq:2,eventSeq:8,partnerHasVoted:true,offers:[{categoryId:'romance-category',rank:1,title:'浪漫',summary:'一起讀書',reason:'共同探索'},{categoryId:'mystery-category',rank:2,title:'懸疑',summary:'一起解開線索',reason:'共同探索'}]};
- render(<StoryExperienceScreen/>);await screen.findByText('選擇下一場的主題');expect(screen.getByLabelText('你的訊息')).toBeTruthy();
+ render(<StoryExperienceScreen/>);await screen.findByText('選擇下一場的主題');expect(await openChatInput()).toBeTruthy();
  fireEvent.click(screen.getByLabelText('選擇 懸疑'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][2]).toEqual({episodeSeq:2,categoryId:'mystery-category'});
 });
 it('a qualified free event previews without a write and submits its binding instead of a node transition',async()=>{
@@ -67,41 +72,41 @@ it('SEF-UT-218/219/220: a new session resets narrative and open object while kee
  const node={...(state.experience as any).currentNode,lines:[{speaker:'旁白',text:'第一場開場。'},{speaker:'旁白',text:'第一場第二句。'}]};
  const definition={id:'bookmark',title:'書籤',moduleType:'inspect-object',prompt:'舊場物件',options:[{id:'turn',label:'翻面'}]};
  state.experience={...state.experience as any,currentNode:node,objects:[definition]};render(<StoryExperienceScreen/>);
- fireEvent.change(await screen.findByLabelText('你的訊息'),{target:{value:'聊天草稿保留'}});
- fireEvent.click(screen.getByLabelText('顯示完整句'));fireEvent.click(await screen.findByLabelText('下一句'));
+ fireEvent.change(await openChatInput(),{target:{value:'聊天草稿保留'}});
+ fireEvent.click(screen.getByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));
  fireEvent.click(screen.getByLabelText('書籤'));await screen.findByText('舊場物件');
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,currentNode:{...node,lines:[{speaker:'旁白',text:'第二場開場。'},{speaker:'旁白',text:'第二場第二句。'}]}};
  await act(async()=>state.sync());
- expect(screen.queryByText('舊場物件')).toBeNull();fireEvent.click(screen.getByLabelText('顯示完整句'));
+ expect(screen.queryByText('舊場物件')).toBeNull();fireEvent.click(screen.getByLabelText('對話框，點擊繼續'));
  expect(await screen.findByText('第二場開場。')).toBeTruthy();expect(screen.queryByText('第二場第二句。')).toBeNull();
  expect((screen.getByLabelText('你的訊息') as HTMLTextAreaElement).value).toBe('聊天草稿保留');expect(state.send).not.toHaveBeenCalled();
 });
 
 it('SEF-UT-227/228/229: completed phase keeps ending and chat and removes side interaction controls',async()=>{
  state.experience={...state.experience as any,phase:'completed',chapterStatus:'completed',scenePresentation:scenes.stories[0].scenePresentation,currentNode:{...(state.experience as any).currentNode,id:'ending',ending:true,title:'本次收尾',choices:[],presentation:{cameraId:'table-medium',expression:'neutral',hotspotIds:['bookmark']}},objects:[{id:'bookmark',title:'不能再探索的書籤'}]};
- render(<StoryExperienceScreen/>);await screen.findByText('本次收尾');expect(screen.getByLabelText('你的訊息')).toBeTruthy();
+ render(<StoryExperienceScreen/>);await screen.findByText('本次收尾');expect(await openChatInput()).toBeTruthy();
  expect(screen.queryByLabelText('不能再探索的書籤')).toBeNull();expect(state.send).not.toHaveBeenCalled();
  expect(screen.queryByLabelText('場景物件：翻看手寫書籤')).toBeNull();expect(screen.queryByLabelText('完成劇情')).toBeNull();
 });
 
 it('SEF-UT-218: actions use the server episode number instead of the first episode',async()=>{
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2};render(<StoryExperienceScreen/>);
- fireEvent.click(await screen.findByLabelText('顯示完整句'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
+ fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
  await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][2].episodeSeq).toBe(2);expect(state.send.mock.calls[0][2].storySessionId).toBe('story-two');
 });
 it('SEF-UT-220: an old episode ACK cannot restore pending controls after the next session starts',async()=>{
  let acknowledge:(value:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise(resolve=>{acknowledge=resolve;}));
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('顯示完整句'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
  await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,eventSeq:4};await act(async()=>state.sync());
  await act(async()=>{acknowledge({eventSeq:2});});
- const input=screen.getByLabelText('你的訊息');fireEvent.change(input,{target:{value:'新場仍可聊天'}});
+ const input=await openChatInput();fireEvent.change(input,{target:{value:'新場仍可聊天'}});
  expect((screen.getByLabelText('傳送訊息') as HTMLButtonElement).disabled).toBe(false);
 });
 it('SEF-UT-220: a late recovery failure from the old episode cannot overwrite the new scene notice',async()=>{
  let rejectRecovery:(error:unknown)=>void=()=>{};
  state.send.mockRejectedValueOnce(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true)).mockImplementationOnce(()=>new Promise((_resolve,reject)=>{rejectRecovery=reject;}));
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('顯示完整句'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
  fireEvent.click(await screen.findByLabelText('以原編號查回結果'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,eventSeq:4};await act(async()=>state.sync());
  await act(async()=>{rejectRecovery(new ApiFailure('DEPENDENCY_UNAVAILABLE',503));});
@@ -123,11 +128,16 @@ it('SD-UT-016/029: cancelling permanent exit confirmation never calls end',async
  expect(state.request.mock.calls.some(([p])=>p.endsWith('/end'))).toBe(false);
 });
 it('SD-UT-027/028: exit language prompts only the author and can return to editing',async()=>{
- render(<StoryExperienceScreen/>);const input=await screen.findByLabelText('你的訊息');fireEvent.change(input,{target:{value:'先到這邊'}});fireEvent.click(screen.getByLabelText('傳送訊息'));
+ render(<StoryExperienceScreen/>);const input=await openChatInput();fireEvent.change(input,{target:{value:'先到這邊'}});fireEvent.click(screen.getByLabelText('傳送訊息'));
  await screen.findByText('是否想結束這段互動？');expect(state.send).not.toHaveBeenCalled();fireEvent.click(screen.getByLabelText('返回編輯'));expect((screen.getByLabelText('你的訊息') as HTMLTextAreaElement).value).toBe('先到這邊');
 });
 it('SD-UT-069: the chat drawer can close and reopen without restarting the scene or losing the draft',async()=>{
- render(<StoryExperienceScreen/>);const input=await screen.findByLabelText('你的訊息');
+ render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');
+ expect(screen.queryByTestId('story-chat-drawer')).toBeNull();
+ fireEvent.click(screen.getByLabelText('展開聊天室'));
+ const drawer=await screen.findByTestId('story-chat-drawer');
+ expect((drawer as HTMLElement).style.position).toBe('absolute');
+ const input=await screen.findByLabelText('你的訊息');
  fireEvent.change(input,{target:{value:'這是一段尚未送出的話'}});
  fireEvent.click(screen.getByLabelText('收起聊天室'));
  expect(screen.queryByLabelText('你的訊息')).toBeNull();expect(screen.getByText('雨聲落在書頁上')).toBeTruthy();
@@ -146,10 +156,10 @@ it.each([2,3])('safe ordered %i-offer cards hide story assets and lock a pending
  const buttons=Array.from({length:count},(_,i)=>screen.getByLabelText('選擇 故事'+i));fireEvent.click(buttons[0]);fireEvent.click(buttons[0]);expect(state.send).toHaveBeenCalledTimes(1);expect(state.send.mock.calls[0][2]).toEqual({episodeSeq:1,catalogId:'catalog-0'});finish({eventSeq:1});
 });
 it('unknown commit preserves payload and explicitly reuses the original request ID',async()=>{
- state.send.mockRejectedValueOnce(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true)).mockResolvedValue({eventSeq:2});render(<StoryExperienceScreen/>);fireEvent.change(await screen.findByLabelText('你的訊息'),{target:{value:'原本的訊息'}});fireEvent.click(screen.getByLabelText('傳送訊息'));await screen.findByLabelText('以原編號查回結果');expect(screen.getByText('送出結果不明，請重新同步')).toBeTruthy();fireEvent.click(screen.getByLabelText('以原編號查回結果'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));expect(state.send.mock.calls[1]).toEqual(state.send.mock.calls[0]);
+ state.send.mockRejectedValueOnce(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true)).mockResolvedValue({eventSeq:2});render(<StoryExperienceScreen/>);fireEvent.change(await openChatInput(),{target:{value:'原本的訊息'}});fireEvent.click(screen.getByLabelText('傳送訊息'));await screen.findByLabelText('以原編號查回結果');expect(screen.getByText('送出結果不明，請重新同步')).toBeTruthy();fireEvent.click(screen.getByLabelText('以原編號查回結果'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));expect(state.send.mock.calls[1]).toEqual(state.send.mock.calls[0]);
 });
 it('cooperative waiting can return to exploration without inventing a partner choice',async()=>{
- state.experience={...state.experience as object,interaction:{myChoice:'warm',status:'active',definition:{id:'path',title:'一起選擇',moduleType:'cooperative-choice',options:[{id:'warm',label:'溫暖'},{id:'adventure',label:'冒險'}]}}};render(<StoryExperienceScreen/>);await screen.findByText(/等待另一方選擇；可以返回探索或聊天/);fireEvent.click(screen.getByLabelText('返回場景探索'));expect(screen.getByText('等待另一方選擇；你的合作選擇已保存。')).toBeTruthy();expect(screen.getByLabelText('你的訊息')).toBeTruthy();expect(state.send).not.toHaveBeenCalled();
+ state.experience={...state.experience as object,interaction:{myChoice:'warm',status:'active',definition:{id:'path',title:'一起選擇',moduleType:'cooperative-choice',options:[{id:'warm',label:'溫暖'},{id:'adventure',label:'冒險'}]}}};render(<StoryExperienceScreen/>);await screen.findByText(/等待另一方選擇；可以返回探索或聊天/);fireEvent.click(screen.getByLabelText('返回場景探索'));expect(screen.getByText('等待另一方選擇；你的合作選擇已保存。')).toBeTruthy();expect(await openChatInput()).toBeTruthy();expect(state.send).not.toHaveBeenCalled();
 });
 it('SD-IT-075: avatar notifications read one latest projection without resetting the story or posting a mutation',async()=>{
  render(<StoryExperienceScreen/>);await screen.findByText('對方旅人');
@@ -195,11 +205,11 @@ it('SD-IT-076: another avatar hint during an in-flight read schedules one latest
 
 it('a late message ACK from the previous room cannot restore its private text in the next room',async()=>{
  let finish:(v:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise(r=>finish=r));
- const view=render(<StoryExperienceScreen/>);fireEvent.change(await screen.findByLabelText('你的訊息'),{target:{value:'previous-room-private-message'}});fireEvent.click(screen.getByLabelText('傳送訊息'));expect(state.send).toHaveBeenCalledTimes(1);
+ const view=render(<StoryExperienceScreen/>);fireEvent.change(await openChatInput(),{target:{value:'previous-room-private-message'}});fireEvent.click(screen.getByLabelText('傳送訊息'));expect(state.send).toHaveBeenCalledTimes(1);
  state.roundId='next-room';state.experience={...state.experience as object,roundId:'next-room'};view.rerender(<StoryExperienceScreen/>);
  await waitFor(()=>expect(state.request.mock.calls.some(([path])=>path==='/game-rounds/next-room/events/query')).toBe(true));
  expect(screen.queryByText('previous-room-private-message')).toBeNull();
  await act(async()=>{finish({eventSeq:2});await Promise.resolve();});
  expect(screen.queryByText('previous-room-private-message')).toBeNull();
- expect((screen.getByLabelText('你的訊息') as HTMLTextAreaElement).disabled).toBe(false);
+ expect((await openChatInput() as HTMLTextAreaElement).disabled).toBe(false);
 });

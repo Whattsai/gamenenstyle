@@ -10,7 +10,7 @@ export function SceneBackground({children,scrollRef,header,scrollProps}:{childre
  return <View style={s.scene}>
   <Image source={cafeBackground} style={[StyleSheet.absoluteFill,{width:'100%',height:'100%'}]} resizeMode="cover" accessibilityIgnoresInvertColors/>
   <View pointerEvents="none" style={[StyleSheet.absoluteFill,{backgroundColor:'rgba(24,10,34,.78)'}]}/>
-  <SafeAreaView style={{flex:1}}>{header}<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView {...scrollProps} ref={scrollRef} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>
+  <SafeAreaView style={{flex:1}}>{header}<KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} {...scrollProps} ref={scrollRef} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">{children}</ScrollView></KeyboardAvoidingView></SafeAreaView>
  </View>;
 }
 
@@ -21,6 +21,14 @@ export function GlassPanel({children,onLayout,style}:{children:React.ReactNode;o
 export function PrimaryButton({label,onPress,disabled=false,secondary=false,compact=false,active=false,accentColor}:{label:string;onPress:()=>void;disabled?:boolean;secondary?:boolean;compact?:boolean;active?:boolean;accentColor?:string}){
  return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled,selected:active||undefined}} disabled={disabled} onPress={onPress} style={({pressed})=>[s.button,secondary&&s.secondary,compact&&s.compact,active&&s.activeTab,accentColor&&{borderColor:accentColor,backgroundColor:active?accentColor:'rgba(255,255,255,.06)'},disabled&&{opacity:.45},pressed&&{opacity:.78}]}>
   <Text style={[s.buttonText,secondary&&!active&&{color:'#fff7fa'},compact&&{fontSize:13,lineHeight:18}]}>{label}</Text>
+ </Pressable>;
+}
+
+// 視覺小說劇情選項專用按鈕（對齊 prototype.v2 .choiceBtn 左側玫瑰色／金色邊條與左對齊排版）
+export function StoryChoiceButton({label,onPress,disabled=false,accentColor=colors.rose}:{label:string;onPress:()=>void;disabled?:boolean;accentColor?:string}){
+ return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={({pressed})=>[s.choiceButton,{borderLeftColor:accentColor},disabled&&{opacity:.45},pressed&&{opacity:.82,backgroundColor:'rgba(255,122,162,.18)'}]}>
+  <Text style={s.choiceText}>{label}</Text>
+  <Text style={[s.choiceArrow,{color:accentColor}]}>▶</Text>
  </Pressable>;
 }
 
@@ -67,6 +75,9 @@ export const s=StyleSheet.create({
  secondary:{backgroundColor:'rgba(255,255,255,.08)',borderWidth:1,borderColor:'rgba(255,255,255,.24)'},
  compact:{minHeight:36,paddingHorizontal:10,paddingVertical:6,borderRadius:999,borderWidth:0},
  activeTab:{backgroundColor:colors.rose,borderColor:colors.rose},
+ choiceButton:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:10,paddingVertical:9,paddingHorizontal:14,borderRadius:14,borderWidth:1,borderColor:'rgba(255,255,255,.24)',borderLeftWidth:5,backgroundColor:'rgba(24,10,36,.88)',boxShadow:'0 8px 20px rgba(0,0,0,.28)'},
+ choiceText:{flex:1,color:'#fff7fa',fontSize:14,lineHeight:19,fontWeight:'700'},
+ choiceArrow:{fontSize:12,fontWeight:'800'},
  subtleBadge:{paddingHorizontal:12,paddingVertical:8,borderRadius:12,backgroundColor:'rgba(123,224,184,.10)',borderWidth:1,borderColor:'rgba(123,224,184,.42)'},
  subtleText:{color:'#c8f5e0',fontSize:12,lineHeight:18},
  focus:{outlineColor:colors.gold,outlineWidth:3,outlineOffset:3},

@@ -2,7 +2,7 @@
 import React from 'react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {render,screen,fireEvent,cleanup} from '@testing-library/react';
-vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web')}));
+vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web'),useWindowDimensions:()=>({width:window.innerWidth,height:window.innerHeight,scale:1,fontScale:1})}));
 import {StoryStage} from '../../src/StoryStage';
 import source from '../../../../contracts/story-scenes.json';
 import type {ScenePresentation} from '../../src/story-stage-geometry';
@@ -31,4 +31,22 @@ it('SD-UT-073/078: the two authoritative ending cameras differ in distance, ligh
  expect(screen.getByTestId('scene-camera-together-warm')).toBeTruthy();expect(screen.getByTestId('scene-foreground')).toBeTruthy();
  view.rerender(<StoryStage presentation={scene} cameraId="two-pages-blue" hotspotIds={[]} safeToSwap onInspect={vi.fn()}/>);
  expect(screen.getByTestId('scene-camera-two-pages-blue')).toBeTruthy();expect(screen.queryByTestId('scene-foreground')).toBeNull();expect(screen.queryByText('旁白')).toBeNull();
+});
+it('narrow portrait viewports expose horizontal pan controls and keep the partner anchored to the scene floor',()=>{
+ const originalWidth=window.innerWidth;Object.defineProperty(window,'innerWidth',{configurable:true,value:390});
+ try{
+  render(<StoryStage presentation={scene} cameraId="table-medium" hotspotIds={['bookmark']} background="https://content.test/background" foreground="https://content.test/table" partner={{name:'對方',source:{uri:'data:image/png;base64,Ag=='}}} height={490} safeToSwap onInspect={vi.fn()}/>);
+  const background=screen.getByTestId('scene-background') as HTMLElement,foreground=screen.getByTestId('scene-foreground-art') as HTMLElement,partner=screen.getByTestId('scene-partner') as HTMLElement;
+  const centerLeft=parseFloat(background.style.left),relativePartnerOffset=parseFloat(partner.style.left)-centerLeft;
+  fireEvent.click(screen.getByLabelText('環視左側場景'));
+  expect(parseFloat(background.style.left)).toBeGreaterThan(centerLeft);
+  expect(foreground.style.left).toBe(background.style.left);
+  expect(parseFloat(partner.style.left)-parseFloat(background.style.left)).toBeCloseTo(relativePartnerOffset,2);
+  fireEvent.click(screen.getByLabelText('環視右側場景'));
+  expect(parseFloat(background.style.left)).toBeLessThan(centerLeft);
+  expect(foreground.style.left).toBe(background.style.left);
+  expect(parseFloat(partner.style.left)-parseFloat(background.style.left)).toBeCloseTo(relativePartnerOffset,2);
+  fireEvent.click(screen.getByLabelText('重設場景視角'));
+  expect(parseFloat(background.style.left)).toBeCloseTo(centerLeft,1);
+ }finally{Object.defineProperty(window,'innerWidth',{configurable:true,value:originalWidth});}
 });

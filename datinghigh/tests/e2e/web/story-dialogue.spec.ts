@@ -28,8 +28,7 @@ async function pair(a:Page,b:Page){
  return new URL(a.url()).pathname.split('/').at(-1)!;
 }
 async function choose(page:Page,label:string){
- const skip=page.getByRole('button',{name:'略過本段演出',exact:true});if(await skip.count())await skip.click();
- const reveal=page.getByRole('button',{name:'顯示完整句',exact:true});if(await reveal.count())await reveal.click();
+ const skip=page.getByRole('button',{name:'略過',exact:true});if(await skip.count())await skip.click();
  await page.getByRole('button',{name:label,exact:true}).click();
  await expect(page.getByRole('button',{name:label,exact:true})).toHaveCount(0);
 }

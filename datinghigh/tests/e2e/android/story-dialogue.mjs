@@ -34,7 +34,7 @@ const checks=[];checks.push=(...items)=>{console.log(items.join(', '));return Ar
 let serial=900000;const id=()=>`019a281e-0000-7000-8000-${String(++serial).padStart(12,'0')}`;
 async function post(page,path,body){return page.evaluate(async({path,body})=>{const r=await fetch('/api/v1'+path,{method:'POST',headers:{'Content-Type':'application/json','X-DatingHigh-Client':'web'},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};},{path,body});}
 async function choose(page,label){
- const skip=page.getByRole('button',{name:'略過本段演出',exact:true});if(await skip.count())await skip.click();const reveal=page.getByRole('button',{name:'顯示完整句',exact:true});if(await reveal.count())await reveal.click();
+ const skip=page.getByRole('button',{name:'略過',exact:true});if(await skip.count())await skip.click();
  await page.getByRole('button',{name:label,exact:true}).click();await page.getByRole('button',{name:label,exact:true}).waitFor({state:'detached'});
 }
 try{
