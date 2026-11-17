@@ -46,7 +46,7 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 | Cloudflare bindings | Worker 的 `API` Durable Object／Container、`DB` D1、`FILES` 私人 R2、`ASSETS` 靜態檔、`GAME_ROOMS` Room DO、`STORY_CONTENT` 獨立故事 R2、僅 Worker 使用的 `ROUND_TICKET_HMAC_KEY`；cloud sender 另需 `EMAIL`／`EMAIL_FROM` |
 | .NET Linux container | Dockerfile 固定 SDK／ASP.NET 10 映像 digest、非 root、8080；Worker 傳入認證與 Google 設定 |
 | D1 | 所有寫入經固定 prepared commands／batch；.NET 不直接連 SQLite／D1 HTTP API |
-| R2 | FILES 保存 owner 私人照片、候選、生成角色、Manifest 與 probe；STORY_CONTENT 保存四層版本內容及公開素材，內容 Manifest 只由受保護 bridge 讀取。免費 WebP 由 ASSETS 讀取，Round 通道重驗授權 |
+| R2 | FILES 保存 owner 私人照片、候選、生成角色、Manifest 與 probe；STORY_CONTENT 保存四層版本內容及公開素材，內容 Manifest 只由受保護 bridge 讀取。免費 WebP 由 ASSETS 讀取，Round 本人／對方通道重驗授權 |
 | Gemini | .NET 固定 generativelanguage.googleapis.com generateContent；server header secret；來源為本人已壓縮照片，候選與五表情每次只產一張；表情使用同一候選，不重送真人照；AvatarChromaMask 使用既有 Skia 去背，失敗及未知成本不自動重試 |
 | Google | Web GIS `https://accounts.google.com/gsi/client`；native SDK；Worker 只取 `https://www.googleapis.com/oauth2/v3/certs`，.NET 驗 RS256／audience／azp／Email |
 | Email | local／Log 在專用 category；staging／production 使用 Cloudflare sender binding，部署前須核對實際 binding／sender |
@@ -54,6 +54,8 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 | 本地 proxy | Ubuntu WSL 的隔離 Node `24.11.1`／Wrangler 與本專案 loopback egress relay，處理 Docker Desktop outbound 位址；不是公開代理 |
 | Android build | JDK 17、Android SDK／adb、專案固定 Ninja `1.13.2`、CMake staging；Expo plugin 關閉 OkHttp 連線失敗自動重送 |
 
-即時通訊使用標準 WebSocket／JSON，client 不依賴 Cloudflare SDK。沒有 SignalR、queue、Identity、EF、獨立資料庫服務或 repo CI/CD pipeline。Wrangler 已有 observability 開關且關閉 invocation logs；沒有額外 observability vendor。也沒有 EAS 設定可作現成 iOS 建置入口。
+即時通訊使用標準 WebSocket／JSON，client 不依賴 Cloudflare SDK；新增雙 Track、物件與演出使用既有 React Native Animated／PanResponder，沒有新增套件。沒有 SignalR、queue、Identity、EF、獨立資料庫服務或 repo CI/CD pipeline。Wrangler 已有 observability 開關且關閉 invocation logs；沒有額外 observability vendor。也沒有 EAS 設定可作現成 iOS 建置入口。
+
+Android 場景 framebuffer 位移檢查另使用本地 Python／Pillow 比對同一 ROI 的開／關微動畫面，僅為測試依賴，不進入應用程式。
 
 測試對 Miniflare、Docker／WSL、Chrome、emulator 的前提見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md)，部署設定與 secrets 分類見 [環境變數](../04-deployment/02-environment-variables-template.md)。

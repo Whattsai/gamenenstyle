@@ -1,13 +1,13 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {Animated,Pressable,ScrollView,Text,View,type StyleProp,type ViewStyle} from 'react-native';
-import {PrimaryButton,StoryChoiceButton,colors,s} from './ui';
+import {PrimaryButton,colors,s} from './ui';
 import type {StoryNode} from './story';
 import type {StagePortrait} from './StoryPortrait';
-import {StoryStage} from './StoryStage';
+import {StoryStage,type TrackStagePresentation} from './StoryStage';
 import type {ScenePresentation} from './story-stage-geometry';
 
 /** 節點／敘事 renderer 與劇本分離；選項只在伺服器確認後推進。 */
-export function ADVStage({node,storySessionId,interactionsEnabled=true,partner,disabled,choose,scene,onInspect,children,stageHeight,narrativeStyle,narrativeContentStyle}:{node:StoryNode;storySessionId?:string;interactionsEnabled?:boolean;partner?:StagePortrait;disabled:boolean;choose:(id:string)=>void;scene?:{presentation?:ScenePresentation;background?:string;foreground?:string};onInspect?:(id:string)=>void;children?:React.ReactNode;stageHeight?:number;narrativeStyle?:StyleProp<ViewStyle>;narrativeContentStyle?:StyleProp<ViewStyle>}){
+export function ADVStage({node,storySessionId,interactionsEnabled=true,partner,disabled,scene,onInspect,children,stageHeight,narrativeStyle,narrativeContentStyle,track}:{node:StoryNode;storySessionId?:string;interactionsEnabled?:boolean;partner?:StagePortrait;disabled:boolean;scene?:{presentation?:ScenePresentation;background?:string;foreground?:string};onInspect?:(id:string)=>void;children?:React.ReactNode;stageHeight?:number;narrativeStyle?:StyleProp<ViewStyle>;narrativeContentStyle?:StyleProp<ViewStyle>;track?:TrackStagePresentation}){
  const [line,setLine]=useState(0),[letters,setLetters]=useState(0);const opacity=useRef(new Animated.Value(0)).current,narrative=useRef<React.ComponentRef<typeof ScrollView>|null>(null),skipping=useRef(false);
  useEffect(()=>{skipping.current=false;setLine(0);setLetters(0);narrative.current?.scrollTo({y:0,animated:false});opacity.setValue(0);const animation=Animated.timing(opacity,{toValue:1,duration:350,useNativeDriver:true});animation.start();return()=>animation.stop();},[storySessionId,node.id,opacity]);
  const current=node.lines[Math.min(line,node.lines.length-1)],text=[...(current?.text??'')];
@@ -18,14 +18,11 @@ export function ADVStage({node,storySessionId,interactionsEnabled=true,partner,d
  const advanceDialog=()=>{if(!complete){setLetters(text.length);return;}if(!last)setLine(n=>n+1);};
  return <View style={{flex:1,minHeight:0,width:'100%',position:'relative',overflow:'hidden'}}>
   <Animated.View style={isCompactStage?{opacity,position:'relative',width:'100%'}:{opacity,position:'absolute',left:0,right:0,top:0,bottom:0}}>
-   <StoryStage presentation={scene?.presentation} background={scene?.background} foreground={scene?.foreground} cameraId={node.presentation?.cameraId} hotspotIds={interactionsEnabled?(node.presentation?.hotspotIds??[]):[]} partner={partner} safeToSwap={complete} onInspect={id=>onInspect?.(id)} height={stageHeight}/>
+   <StoryStage storySessionId={storySessionId} track={track} presentation={scene?.presentation} background={scene?.background} foreground={scene?.foreground} cameraId={node.presentation?.cameraId} hotspotIds={interactionsEnabled?(node.presentation?.hotspotIds??[]):[]} partner={partner} safeToSwap={complete} onInspect={id=>onInspect?.(id)} height={stageHeight}/>
   </Animated.View>
   <ScrollView ref={narrative} testID="story-narrative" showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} style={[isCompactStage?{flex:1,minHeight:0,width:'100%',backgroundColor:'rgba(16,7,26,.92)'}:{position:'absolute',left:0,right:0,bottom:0,maxHeight:'50%',zIndex:6,width:'100%',backgroundColor:'transparent'},narrativeStyle]} contentContainerStyle={[{flexGrow:1,justifyContent:'flex-end',width:'100%',maxWidth:980,alignSelf:'center',gap:8,paddingHorizontal:14,paddingTop:16,paddingBottom:10},narrativeContentStyle]} keyboardShouldPersistTaps="handled">
   {node.ending&&<View style={{alignSelf:'center',flexDirection:'row',gap:node.visual==='two-pages'?16:0,alignItems:'center',paddingHorizontal:12,paddingVertical:6,borderRadius:16,backgroundColor:'rgba(24,10,36,.76)',borderWidth:1,borderColor:'rgba(255,210,122,.42)'}}>
    {['#ffb6c9','#a8c8ef'].map((color,index)=><View key={color} style={{width:36,height:44,backgroundColor:'#f1dfc4',borderRadius:5,borderLeftWidth:4,borderColor:'#b99f83',transform:[{rotate:`${node.visual==='two-pages'?(index===0?-8:8):0}deg`}],marginLeft:node.visual==='together'&&index===1?-22:0}}><View style={{width:7,height:24,backgroundColor:color,marginLeft:14,borderBottomLeftRadius:4,borderBottomRightRadius:4}}/></View>)}
-  </View>}
-  {complete&&last&&node.choices.length>0&&<View style={{gap:6}}>
-   {node.choices.map(choice=><StoryChoiceButton key={choice.id} label={choice.label} disabled={disabled} onPress={()=>choose(choice.id)}/>)}
   </View>}
   <View style={{position:'relative',paddingHorizontal:18,paddingTop:18,paddingBottom:10,borderRadius:20,gap:6,minHeight:82,backgroundColor:node.visual==='note'?'rgba(62,38,42,.84)':'rgba(24,10,38,.78)',borderWidth:1,borderColor:'rgba(255,218,235,.32)',boxShadow:'0 12px 36px rgba(0,0,0,.52)'}}>
    <View style={{position:'absolute',left:16,right:16,top:-13,flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:8}}>

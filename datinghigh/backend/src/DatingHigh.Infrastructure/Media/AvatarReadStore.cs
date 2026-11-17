@@ -11,7 +11,7 @@ public sealed class AvatarReadStore(HttpClient http):IAvatarReadStore
     public async Task<PrivateMediaContent> ReadAsync(CurrentUser user,AvatarReadScope scope,string targetId,string version,string expression,CancellationToken ct=default)
     {
         AvatarReadService.Validate(scope,targetId,version,expression);
-        using var request=new HttpRequestMessage(HttpMethod.Get,$"v1/avatar/{(scope==AvatarReadScope.RoundPartner?"rounds":"assets")}/{targetId}/{version}/{expression}");
+        using var request=new HttpRequestMessage(HttpMethod.Get,$"v1/avatar/{(scope switch{AvatarReadScope.RoundPartner=>"rounds",AvatarReadScope.RoundSelf=>"round-self",_=>"assets"})}/{targetId}/{version}/{expression}");
         request.Headers.Add("X-DatingHigh-Media-Account-Id",user.AccountId);request.Headers.Add("X-DatingHigh-Media-Session-Id",user.SessionId);
         request.Headers.Add("X-DatingHigh-Media-Cv",user.CredentialVersion.ToString(CultureInfo.InvariantCulture));request.Headers.Add("X-DatingHigh-Media-Expires-At",user.AccessExpiresAt.ToString(CultureInfo.InvariantCulture));
         try{

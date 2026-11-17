@@ -47,6 +47,8 @@ it('SEF-IT-052/067: exactly five tables, constrained JSON/FK/versions and zero t
 it('readiness requires the complete framework schema, indices and content/realtime dependencies',async()=>{
  await db.prepare('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT)').run();await db.prepare("INSERT INTO d1_migrations(name)VALUES('0006_scene_event_framework.sql')").run();
  const env={DB:db,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0006_scene_event_framework.sql',FILES:{get:async()=>({text:async()=>probeText})},STORY_CONTENT:{},GAME_ROOMS:{},ROUND_TICKET_HMAC_KEY:'isolated-ready-key-32-characters-only'}as any;
+ await expect(ready(env)).rejects.toThrow();
+ await batch(readFileSync(new URL('../migrations/0007_scene_event_tracks.sql',import.meta.url),'utf8'));await db.prepare("INSERT INTO d1_migrations(name)VALUES('0007_scene_event_tracks.sql')").run();env.EXPECTED_MIGRATION='0007_scene_event_tracks.sql';
  expect(await ready(env)).toEqual({status:'ready',probe:probeText});
  await expect(ready({...env,STORY_CONTENT:undefined})).rejects.toThrow();
  await db.prepare('DROP INDEX idx_game_event_repeat').run();await expect(ready(env)).rejects.toThrow();

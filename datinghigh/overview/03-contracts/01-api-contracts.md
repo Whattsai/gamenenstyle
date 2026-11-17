@@ -4,7 +4,7 @@
 
 ## 角色授權讀圖
 
-讀圖端點：`GET /api/v1/game-rounds/{roundId}/partner-avatar` 及 `.../partner-avatar/{version}/{expression}`；本人 `GET /api/v1/me/avatar/assets/{assetId}/expressions` 及 `.../{version}/{expression}`。只回固定五表情、SHA／MIME／尺寸／大小、full-body.v1／standing／anchors 與授權 URL，不回 owner／來源照片／private key。binary no-store 且 IO 後重驗授權／目前選角；免費已確認套組也走同房通道。
+讀圖端點：`GET /api/v1/game-rounds/{roundId}/partner-avatar` 及 `.../partner-avatar/{version}/{expression}`；同房本人 `GET /api/v1/game-rounds/{roundId}/my-avatar` 及 `.../my-avatar/{version}/{expression}`；本人 `GET /api/v1/me/avatar/assets/{assetId}/expressions` 及 `.../{version}/{expression}`。只回固定五表情、SHA／MIME／尺寸／大小、full-body.v1／standing／anchors 與授權 URL，不回 owner／來源照片／private key。binary no-store 且 IO 後重驗授權／目前選角；免費已確認套組也走同房通道。
 
 ## 五表情製作與採用
 
@@ -18,18 +18,20 @@
 |---|---|
 | GET `/game-rounds/{id}/status` | 原始兩人成員可查active／ended；第三人403、撤銷401 |
 | GET `/game-rounds/{id}/experience` | 真正最新 episodeSeq；pending_category_selection 回同序類別、本人票、partnerHasVoted；playing／completed 只回目前節點、安全已觸發事件及釘選素材，completed 帶雙方同意狀態；ended 僅安全狀態 |
-| GET `/game-rounds/{id}/story/offers` | 受保護類別投影；卡片含 categoryId／rank／title／summary／中性 reason，不回對方票或隱藏主線；明確舊0005模式保留 Catalog 卡片 |
-| POST `/game-rounds/{id}/story/vote` | clientRequestId、episodeSeq、categoryId；同ID同payload回原序號，改payload或已決議場次409；舊0005模式才接受catalogId |
+| GET `/game-rounds/{id}/story/offers` | 受保護類別投影；卡片含 categoryId／rank／title／summary／中性 reason，不回對方票或隱藏主線 |
+| POST `/game-rounds/{id}/story/vote` | clientRequestId、episodeSeq、categoryId；同ID同payload回原序號，改payload或已決議場次409 |
 | POST `/game-rounds/{id}/story/next` | clientRequestId、completedEpisodeSeq、agree；本人同意／撤回，只有同一最新已完成場次雙方同意才建立下一場；回最新 experience，無內容409 NO_PLAYABLE_STORY |
-| POST `/game-rounds/{id}/story/event` | clientRequestId、storySessionId、expectedRevision、bindingId、actionId；episode／node 由目前 Session 推導，完整限定 binding 必須已 active，回原 receipt 或 revision conflict；拒 client nextNode／state／演出覆寫 |
+| POST `/game-rounds/{id}/story/event` | clientRequestId、storySessionId、bindingId、actionId、嚴格 params、expectedTrackRevision；共用世界／Shared 操作另帶 expectedSharedRevision，已有實例另帶 expectedEventRevision。actor／role／node 由登入與 Session 推導；同 payload 回原 receipt，舊 CAS 或改 payload 409；拒 client nextNode／state／另一人答案 |
 | POST `/game-rounds/{id}/events/query` | afterSeq或beforeSeq恰一個、limit1～100；未決議他人票由伺服器投影vote_status仍保留sequence；ended拒私人歷史 |
 | POST `/game-rounds/{id}/realtime-ticket` | deviceId UUIDv7；30秒一次性ticket綁account／family／cv／Round／device／platform，絕不放URL |
 | GET `/game-rounds/{id}/ws` | Upgrade；子協定datinghigh.v1、ticket.<短效值>、device.<UUID>，只echo datinghigh.v1；Web Origin精確比對，native僅無Origin或連線同來源 |
 | POST `/game-rounds/{id}/end` | 空object，二次確認由UI執行，任一原成員可永久end；冪等安全狀態 |
 
-WS envelope 為 `{version:1,type,roundId,clientRequestId?,payload}`。命令白名單：`presence.ping`、`story.vote.submit`、`message.send`、`story.choice.submit`、`interaction.submit`、`story.next.requested`、`story.event.submit`。節點命令含 storySessionId／episodeSeq／nodeId／expectedRevision／choiceId，舊互動另有 definitionId，新事件使用完整限定 bindingId／actionId。actor 只取登入身份；nextNode 與 state 不接受 client 聲稱。成功回 command.ack 原 requestId／eventSeq；不明提交保持原 ID 並經 snapshot／cursor 查回，不換 ID 自動重送。合作分歧由已釘選 Narrative Binding 的 outcomeTransitions 決定。訊息為 trim 後1～500 Unicode scalar，拒控制字元、孤立 surrogate 及 HTML。
+WS envelope 為 `{version:1,type,roundId,clientRequestId?,payload}`；白名單 presence.ping、story.vote.submit、message.send、story.next.requested、story.event.submit。`story.choice.submit`／`interaction.submit` 已拒絕。HTTP／WS 的事件命令共用同一 v2 嚴格 payload 與 Application，actor 僅取登入。成功 ACK 帶原 requestId／eventSeq；未知結果保留原 ID 查 receipt，禁止改 ID 自動重送。已知 CAS 409 只重新讀權威快照，由玩家再次明確操作。訊息 trim 後1～500 Unicode scalar，拒控制字元、孤立 surrogate 及 HTML；NPC 台詞不寫成真人訊息。
 
-Event 投影只含已觸發的 bindingId、eventInstanceId、eventSeq、main、revision、definition、安全演出、本人選項及 partnerHasSubmitted；不公開對方答案、觸發條件或 contentPins。讀取 R2 前後及最終投影再驗登入與成員，撤銷401／第三人403；completed 保留舞台及聊天，事件不可再提交。內部 `story.framework.*` 為固定 bridge 用例，沒有公開 command 端點。
+事件先驗角色、場次／Track／Shared／Event revision、觸發前置及角色可用動作條件，再於合格動作中比對參數。尚未解鎖的私有互動回安全 `EVENT_STATE_CONFLICT`，不能以正／誤答案的不同參數錯誤探測私人線索；有可用動作時的非法參數仍拒絕，任何失敗均不寫入進度或世界狀態。
+
+playing／completed 的 `schemaVersion=scene-event.v2`，含 myTrack(role/nodeId/areaId/revision)、sharedRevision、合法 areas、可見 world.objects／flags、knownClues、availableEvents、cooperation 及 partnerPresence.inSameArea；不提供另一人的 Progress／私有台詞。availableEvents 只帶本人當前合法 params／revision。兩張真人類別票決議後另附 selectionReason，說明同票或採原邀請方最後有效票；未決議及唯一類別直接進場不提供該理由或對方票。presentationCue 含 eventSeq 與有界 camera／audio／expression／character／object／pause 步驟；動畫不提交操作。首次載入、失焦恢復及重送不重播舊 cue；結局 cue 必須在 Server 成功結算後才播放。completed 保留舞台、Round 聊天與 next 同意，沒有新探索或完成按鈕。R2 讀取前後及投影前重驗 family／成員；內部 story.framework.* 只走私有 bridge，raw Manifest 不公開。釘選內容缺檔／SHA 錯誤回 `503 INVALID_STORY_CONTENT`，畫面提供重新同步；恢復讀取原版，不重抽或更改 Session。
 
 active 遊戲入口／恢復、events query、realtime-ticket 及 HTTP／WS 遊戲命令另驗本人目前採用的 ready 五表情；不完整回 `409 OWN_AVATAR_PACK_NOT_READY`。前端清空私人場景並提供個人檔案入口；另一組 pending 化身不影響已就緒的採用者。end 與 ended 安全投影保留。固定內部 `avatar.current.readiness` 只接收登入身分、回 `{ready:true}`，不接受 owner／assetId 或公開素材路徑。
 

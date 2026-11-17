@@ -9,12 +9,16 @@ const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{
 const hash=z.string().regex(/^[0-9a-f]{64}$/);
 const authSchema=z.strictObject({accountId:id,sessionId:id,cv:z.number().int().positive(),accessExpiresAt:z.number().int().positive()});
 type Auth=z.infer<typeof authSchema>;
-type Target={kind:'round';roundId:string}|{kind:'owner';assetId:string}|{kind:'current'};
+type Target={kind:'round';roundId:string}|{kind:'round-self';roundId:string}|{kind:'owner';assetId:string}|{kind:'current'};
 type Context={owner:string;assetId:string;fingerprint:string;builtinId?:string};
 export class AvatarReadError extends Error{constructor(public code:string,public status=403){super(code);}}
 async function authorize(env:PlatformEnv,auth:Auth,now:number){if((await executeCommand(env.DB,'session.validate',auth,now)).rows.length!==1)throw new AvatarReadError('SESSION_REVOKED',401);}
 async function context(env:PlatformEnv,auth:Auth,target:Target,now:number):Promise<Context>{
  await authorize(env,auth,now);
+ if(target.kind==='round-self'){
+  if((await executeCommand(env.DB,'game.round.get',{...auth,roundId:target.roundId},now)).rows.length!==1)throw new AvatarReadError('RESOURCE_FORBIDDEN',403);
+  return context(env,auth,{kind:'current'},now);
+ }
  if(target.kind==='current'){
   const profile=await env.DB.prepare('SELECT selected_avatar_type,selected_avatar_ref FROM user_profiles WHERE account_id=?').bind(auth.accountId).first<{selected_avatar_type:string;selected_avatar_ref:string}>();
   if(profile?.selected_avatar_type==='builtin'&&builtinAvatarPack(profile.selected_avatar_ref))return {owner:auth.accountId,assetId:profile.selected_avatar_ref,builtinId:profile.selected_avatar_ref,fingerprint:auth.accountId+'/builtin/'+profile.selected_avatar_ref};
@@ -48,6 +52,7 @@ async function load(env:PlatformEnv,auth:Auth,target:Target,time:()=>number){
 }
 function targetInput(command:string,input:unknown){
  const own=(p:Auth)=>authSchema.parse({accountId:p.accountId,sessionId:p.sessionId,cv:p.cv,accessExpiresAt:p.accessExpiresAt});
+ if(command==='avatar.round.self-projection'){const p=authSchema.extend({roundId:id}).parse(input);return {auth:own(p),target:{kind:'round-self',roundId:p.roundId} as Target};}
  if(command==='avatar.round.projection'){const p=authSchema.extend({roundId:id}).parse(input);return {auth:own(p),target:{kind:'round',roundId:p.roundId} as Target};}
  if(command==='avatar.expression.projection'){const p=authSchema.extend({assetId:id}).parse(input);return {auth:own(p),target:{kind:'owner',assetId:p.assetId} as Target};}
  throw new AvatarReadError('INVALID_REQUEST',400);
@@ -57,7 +62,7 @@ export async function avatarProjection(command:string,input:unknown,env:Platform
  const {auth,target}=targetInput(command,input),started=Date.now(),time=()=>now+Math.max(0,Date.now()-started);
  const {source,manifest,avatarVersion}=await load(env,auth,target,time);
  const checked=await context(env,auth,target,time());if(checked.fingerprint!==source.fingerprint)throw new AvatarReadError('AVATAR_VERSION_CONFLICT',409);
- const prefix=target.kind==='round'?`/api/v1/game-rounds/${target.roundId}/partner-avatar`:`/api/v1/me/avatar/assets/${source.assetId}/expressions`;
+ const prefix=target.kind==='round-self'?`/api/v1/game-rounds/${target.roundId}/my-avatar`:target.kind==='round'?`/api/v1/game-rounds/${target.roundId}/partner-avatar`:`/api/v1/me/avatar/assets/${source.assetId}/expressions`;
  const expressions=Object.fromEntries(expressionIds.map(e=>{const image=manifest.expressions[e];return [e,{url:`${prefix}/${avatarVersion}/${e}`,sha256:image.sha256,mimeType:image.mimeType,width:image.width,height:image.height,byteSize:image.byteSize}];}));
  return {avatarAssetId:manifest.avatarAssetId,avatarVersion,expressionSpecVersion:manifest.expressionSpecVersion,avatarAssetSpecVersion:manifest.avatarAssetSpecVersion,framing:manifest.framing,pose:manifest.pose,stageAnchors:manifest.stageAnchors,expressions};
 }
@@ -81,7 +86,7 @@ export async function currentAvatarReadiness(input:unknown,env:PlatformEnv,now:n
 export async function avatarReadMedia(request:Request,env:PlatformEnv,now:number){
  const url=new URL(request.url),parts=url.pathname.split('/');
  if(request.method!=='GET'||url.search||parts.length!==7)throw new AvatarReadError('NOT_FOUND',404);
- const target:Target=parts[3]==='rounds'?{kind:'round',roundId:id.parse(parts[4])}:parts[3]==='assets'?{kind:'owner',assetId:id.parse(parts[4])}:(()=>{throw new AvatarReadError('NOT_FOUND',404);})();
+ const target:Target=parts[3]==='round-self'?{kind:'round-self',roundId:id.parse(parts[4])}:parts[3]==='rounds'?{kind:'round',roundId:id.parse(parts[4])}:parts[3]==='assets'?{kind:'owner',assetId:id.parse(parts[4])}:(()=>{throw new AvatarReadError('NOT_FOUND',404);})();
  const expected=hash.parse(parts[5]),expression=z.enum(expressionIds).parse(parts[6]);
  const auth=authSchema.parse({accountId:request.headers.get('X-DatingHigh-Media-Account-Id'),sessionId:request.headers.get('X-DatingHigh-Media-Session-Id'),cv:Number(request.headers.get('X-DatingHigh-Media-Cv')),accessExpiresAt:Number(request.headers.get('X-DatingHigh-Media-Expires-At'))});
  const started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),{source,manifest,avatarVersion}=await load(env,auth,target,time);

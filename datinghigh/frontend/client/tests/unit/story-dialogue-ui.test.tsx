@@ -13,7 +13,8 @@ vi.mock('../../src/session',()=>({api:{origin:'http://localhost',platform:'web',
 vi.mock('../../src/RealtimeRoomClient',()=>({RealtimeRoomClient:class{constructor(_h:unknown,_r:string,c:any){state.sync=c.sync;state.status=c.status;state.avatarUpdate=c.avatarUpdated;}start(){state.status('connected');}stop(){}synchronize(){return state.sync();}send(...args:unknown[]){return state.send(...args);}presence(){}}}));
 import {ApiFailure} from '../../src/api';
 import {StoryExperienceScreen} from '../../src/StoryExperienceScreen';
-import scenes from '../../../../contracts/story-scenes.json';
+import {SceneCueFence} from '../../src/scene-event-track';
+import scenes from '../../../../contracts/rain-bookshop-last-order.json';
 const avatarProjection=(version:string)=>({avatarAssetId:'019a281e-0000-7000-8000-000000000022',avatarVersion:version,expressionSpecVersion:'v1',avatarAssetSpecVersion:'full-body.v1',framing:'full_body',pose:'standing',stageAnchors:{head:{x:.5,y:.08},feet:{x:.5,y:.96}},expressions:Object.fromEntries(['neutral','smile','surprised','thoughtful','concerned'].map(e=>[e,{url:`/api/v1/game-rounds/round/partner-avatar/${version}/${e}`,sha256:'a'.repeat(64),mimeType:'image/webp',width:768,height:1024,byteSize:3}]))});
 const persona={nickname:'對方旅人',selectedAvatarType:'builtin',selectedAvatarRef:'female-01'};
 async function openChatInput(){
@@ -22,16 +23,39 @@ async function openChatInput(){
  return screen.findByLabelText('你的訊息');
 }
 beforeEach(()=>{
- vi.clearAllMocks();state.roundId='round';state.experience={phase:'playing',roundId:'round',episodeSeq:1,eventSeq:1,storySessionId:'story',progressRevision:1,chapterStatus:'playing',title:'雨聲書店',currentNode:{id:'entry',title:'雨聲落在書頁上',lines:[{speaker:'旁白',text:'窗外的雨，落在書頁上。'}],choices:[{id:'next',label:'走近推薦卡',next:'icebreak'}],objects:[]},objects:[],assets:[],suggestions:[{id:'warm',label:'溫暖型',text:'你好，很高興遇見你。'}]};
+ vi.clearAllMocks();state.roundId='round';state.experience={phase:'playing',roundId:'round',schemaVersion:'scene-event.v2',episodeSeq:1,eventSeq:1,storySessionId:'story',chapterStatus:'playing',title:'雨聲書店',currentNode:{id:'i01',title:'雨聲落在書頁上',lines:[{speaker:'旁白',text:'門邊有一張取書單。'}],choices:[],objects:[],visual:'bookshop',presentation:{cameraId:'entrance',expression:'neutral',hotspotIds:[]}},myTrack:{role:'inviter',nodeId:'i01',areaId:'entrance',revision:1},sharedRevision:1,areas:[{id:'entrance',title:'門口'},{id:'counter',title:'櫃檯'}],world:{objects:[{id:'pickup-slip-27',label:'濕紙單',rendererId:'paper',state:'on-floor',areaId:'entrance',holderRole:null,x:.2,y:.4}],flags:{}},knownClues:[],cooperation:[],partnerPresence:{inSameArea:true},availableEvents:[{bindingId:'narrative:rain-bookshop-last-order:arrive-inviter',trackScope:'inviter',moduleType:'inspect-object',main:true,revision:null,needsSharedRevision:false,actions:[{actionId:'inspect',label:'查看門口的取書單',params:{objectId:'pickup-slip-27'}}]}],scenePresentation:scenes.scene.scenePresentation,assets:[],suggestions:[{id:'warm',label:'溫暖型',text:'你好，很高興遇見你。'}]};
  state.request.mockImplementation(async(path:string)=>{if(path.endsWith('/partner-avatar'))throw new ApiFailure('AVATAR_PACK_NOT_READY',409);return path.endsWith('/experience')?state.experience:path.endsWith('/events/query')?{events:[],cursor:1,hasMore:false}:path==='/me/dating-profile'?{nickname:'本人旅人',selectedAvatarType:'builtin',selectedAvatarRef:'male-01'}:{roundId:'round',persona};});state.send.mockResolvedValue({eventSeq:2});
 });
 afterEach(cleanup);
+it.each(['node','empty-cue'])('a %s change cancels the previous finite performance instead of carrying it into the new authoritative state',async change=>{
+ const focus=vi.spyOn(document,'hasFocus').mockReturnValue(true),visibility=vi.spyOn(document,'visibilityState','get').mockReturnValue('visible'),cues=vi.spyOn(SceneCueFence.prototype,'accept');
+ try{
+  render(<StoryExperienceScreen/>);await screen.findByLabelText('查看門口的取書單');
+  state.experience={...state.experience as any,eventSeq:2,presentationCue:{eventSeq:2,steps:[{type:'pause',durationMs:3000},{type:'expression',role:'inviter',expression:'concerned'}]}};
+  await act(async()=>{await state.sync();});expect(cues.mock.results.map(r=>r.value?.length)).toContain(2);await screen.findByTestId('scene-story-motion');
+  state.experience={...state.experience as any,eventSeq:3,...(change==='node'?{currentNode:{...(state.experience as any).currentNode,id:'i03'}}:{presentationCue:{eventSeq:3,steps:[]}})};
+  await act(async()=>{await state.sync();});
+  await waitFor(()=>expect(screen.queryByTestId('scene-story-motion')).toBeNull(),{timeout:800});expect(state.send).not.toHaveBeenCalled();
+ }finally{focus.mockRestore();visibility.mockRestore();cues.mockRestore();}
+});
+it('v2 scene objects preview locally; a caller action sends exact params and independent track CAS',async()=>{
+ state.experience={...state.experience,schemaVersion:'scene-event.v2',myTrack:{role:'inviter',nodeId:'i02',areaId:'entrance',revision:7},sharedRevision:4,areas:[{id:'entrance',title:'門口'}],world:{objects:[{id:'paper',label:'濕紙單',areaId:'entrance',holderRole:null,state:'wet',rendererId:'paper',x:.4,y:.4}],flags:{}},knownClues:[],cooperation:[],partnerPresence:{inSameArea:false},availableEvents:[{bindingId:'narrative:rain:inspect',trackScope:'inviter',moduleType:'inspect-object',main:true,revision:null,needsSharedRevision:false,actions:[{actionId:'flip',label:'翻看取書單背面',params:{objectId:'paper'}}]}]};
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('場景物件：濕紙單'));expect(state.send).not.toHaveBeenCalled();
+ fireEvent.click(await screen.findByRole('button',{name:'翻看取書單背面'}));await waitFor(()=>expect(state.send).toHaveBeenCalledWith('story.event.submit',expect.any(String),{storySessionId:'story',bindingId:'narrative:rain:inspect',actionId:'flip',params:{objectId:'paper'},expectedTrackRevision:7}));
+ expect(screen.queryByTestId('scene-partner')).toBeNull();
+});
 it('own unready avatar blocks direct entry and clears an already displayed scene with a profile return',async()=>{
  render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');fireEvent.change(await openChatInput(),{target:{value:'私人草稿'}});
  const request=state.request.getMockImplementation()!;state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/experience')?Promise.reject(new ApiFailure('OWN_AVATAR_PACK_NOT_READY',409)):request(path,...args));
  await act(async()=>{await state.sync().catch(()=>{});});
  await screen.findByText('目前採用的化身表情尚未準備好，請先到個人檔案選用已就緒的化身。');expect(screen.queryByText('雨聲書店')).toBeNull();expect(screen.queryByLabelText('你的訊息')).toBeNull();expect(state.send).not.toHaveBeenCalled();
  fireEvent.click(screen.getByLabelText('前往個人檔案'));expect(state.router.replace).toHaveBeenCalledWith('/profile');
+});
+it('invalid pinned story content shows a retryable content error without a fake story, then restores the same authoritative session',async()=>{
+ const request=state.request.getMockImplementation()!;let unavailable=true;
+ state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/experience')&&unavailable?Promise.reject(new ApiFailure('INVALID_STORY_CONTENT',503)):request(path,...args));
+ render(<StoryExperienceScreen/>);await screen.findByText('無法載入劇情內容，請重新同步後再試。');expect(screen.queryByLabelText('查看門口的取書單')).toBeNull();expect(state.send).not.toHaveBeenCalled();
+ unavailable=false;fireEvent.click(screen.getByLabelText('重新同步'));await screen.findByLabelText('查看門口的取書單');expect(state.send).not.toHaveBeenCalled();expect((state.experience as any).storySessionId).toBe('story');
 });
 it('a cursor newer than the snapshot forces an authoritative reread before finishing recovery',async()=>{
  const request=state.request.getMockImplementation()!;let advanced=false;state.request.mockImplementation(async(path:string,method:string,body:any)=>{
@@ -53,50 +77,36 @@ it('the next category selection keeps round chat and submits categoryId in the c
  render(<StoryExperienceScreen/>);await screen.findByText('選擇下一場的主題');expect(await openChatInput()).toBeTruthy();
  fireEvent.click(screen.getByLabelText('選擇 懸疑'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][2]).toEqual({episodeSeq:2,categoryId:'mystery-category'});
 });
-it('a qualified free event previews without a write and submits its binding instead of a node transition',async()=>{
- const definition={id:'scene:bookshop:shelf',bindingId:'scene:bookshop:shelf',version:'v1',title:'書架線索',moduleType:'inspect-object',prompt:'看看夾在書頁裡的字',options:[{id:'turn',label:'展開紙頁'}]};
- state.experience={...state.experience as any,objects:[definition],events:[{bindingId:definition.bindingId,eventInstanceId:'event-one',eventSeq:2,revision:1,status:'active',definition}]};
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('書架線索'));expect(state.send).not.toHaveBeenCalled();fireEvent.click(await screen.findByLabelText('展開紙頁'));
- await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][0]).toBe('story.event.submit');expect(state.send.mock.calls[0][2]).toEqual({storySessionId:'story',bindingId:definition.bindingId,actionId:'turn',expectedRevision:1});
-});
-it('cooperation shows the committed partner status without exposing their selected option',async()=>{
- state.experience={...state.experience as any,interaction:{definition:{id:'reading-path',title:'閱讀方向',moduleType:'cooperative-choice',prompt:'一起選擇',options:[{id:'warm',label:'溫暖的日常'},{id:'adventure',label:'未知的冒險'}]},partnerHasSubmitted:true,status:'active'}};
- render(<StoryExperienceScreen/>);await screen.findByText('對方已提交，等待你的選擇。');expect(screen.queryByText(/對方的選擇/)).toBeNull();expect(state.send).not.toHaveBeenCalled();
-});
-it('a pending cooperative answer shows an unconfirmed sending status and prevents duplicate choices',async()=>{
- state.experience={...state.experience as any,interaction:{definition:{id:'reading-path',title:'閱讀方向',moduleType:'cooperative-choice',prompt:'一起選擇',options:[{id:'warm',label:'溫暖的日常'},{id:'adventure',label:'未知的冒險'}]},status:'active'}};
- state.send.mockImplementation(()=>new Promise(()=>{}));render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('溫暖的日常'));
- await screen.findByText('送出中，尚未確認。');expect(screen.queryByText(/你的選擇：/)).toBeNull();expect((screen.getByLabelText('未知的冒險')as HTMLButtonElement).disabled).toBe(true);fireEvent.click(screen.getByLabelText('溫暖的日常'));expect(state.send).toHaveBeenCalledTimes(1);
-});
-it('SEF-UT-218/219/220: a new session resets narrative and open object while keeping round chat draft',async()=>{
- const node={...(state.experience as any).currentNode,lines:[{speaker:'旁白',text:'第一場開場。'},{speaker:'旁白',text:'第一場第二句。'}]};
- const definition={id:'bookmark',title:'書籤',moduleType:'inspect-object',prompt:'舊場物件',options:[{id:'turn',label:'翻面'}]};
- state.experience={...state.experience as any,currentNode:node,objects:[definition]};render(<StoryExperienceScreen/>);
- fireEvent.change(await openChatInput(),{target:{value:'聊天草稿保留'}});
- fireEvent.click(screen.getByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));
- fireEvent.click(screen.getByLabelText('書籤'));await screen.findByText('舊場物件');
- state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,currentNode:{...node,lines:[{speaker:'旁白',text:'第二場開場。'},{speaker:'旁白',text:'第二場第二句。'}]}};
- await act(async()=>state.sync());
- expect(screen.queryByText('舊場物件')).toBeNull();fireEvent.click(screen.getByLabelText('對話框，點擊繼續'));
- expect(await screen.findByText('第二場開場。')).toBeTruthy();expect(screen.queryByText('第二場第二句。')).toBeNull();
- expect((screen.getByLabelText('你的訊息') as HTMLTextAreaElement).value).toBe('聊天草稿保留');expect(state.send).not.toHaveBeenCalled();
+it('a qualified side event previews locally and submits only the pinned action on explicit press',async()=>{
+ const base=state.experience as any;state.experience={...base,availableEvents:[{...base.availableEvents[0],main:false}]};render(<StoryExperienceScreen/>);expect(screen.queryByLabelText('查看門口的取書單')).toBeNull();fireEvent.click(await screen.findByLabelText('場景物件：濕紙單'));expect(state.send).not.toHaveBeenCalled();fireEvent.click(await screen.findByLabelText('查看門口的取書單'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][0]).toBe('story.event.submit');expect(state.send.mock.calls[0][2]).toEqual({storySessionId:'story',bindingId:base.availableEvents[0].bindingId,actionId:'inspect',params:{objectId:'pickup-slip-27'},expectedTrackRevision:1});
 });
 
-it('SEF-UT-227/228/229: completed phase keeps ending and chat and removes side interaction controls',async()=>{
- state.experience={...state.experience as any,phase:'completed',chapterStatus:'completed',scenePresentation:scenes.stories[0].scenePresentation,currentNode:{...(state.experience as any).currentNode,id:'ending',ending:true,title:'本次收尾',choices:[],presentation:{cameraId:'table-medium',expression:'neutral',hotspotIds:['bookmark']}},objects:[{id:'bookmark',title:'不能再探索的書籤'}]};
- render(<StoryExperienceScreen/>);await screen.findByText('本次收尾');expect(await openChatInput()).toBeTruthy();
- expect(screen.queryByLabelText('不能再探索的書籤')).toBeNull();expect(state.send).not.toHaveBeenCalled();
- expect(screen.queryByLabelText('場景物件：翻看手寫書籤')).toBeNull();expect(screen.queryByLabelText('完成劇情')).toBeNull();
+it('cooperation shows committed status and never a partner option',async()=>{state.experience={...state.experience as any,cooperation:[{bindingId:'shared',mySubmitted:false,partnerHasSubmitted:true}]};render(<StoryExperienceScreen/>);await screen.findByText('對方的操作已保存，現在等你親自完成。');expect(screen.queryByText(/對方的選擇/)).toBeNull();expect(state.send).not.toHaveBeenCalled();});
+
+it('a pending action shows unconfirmed sending status and prevents duplicate presses',async()=>{state.send.mockImplementation(()=>new Promise(()=>{}));render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('查看門口的取書單'));await screen.findByText('送出中，尚未確認。');fireEvent.click(screen.getByLabelText('查看門口的取書單'));expect(state.send).toHaveBeenCalledTimes(1);expect(screen.queryByText('對方的操作已保存，現在等你親自完成。')).toBeNull();});
+
+it('SEF-UT-218/219/220: a new session resets narration and preview while keeping round chat draft',async()=>{
+ const node={...(state.experience as any).currentNode,lines:[{speaker:'旁白',text:'第一場開場。'},{speaker:'旁白',text:'第一場第二句。'}]};state.experience={...state.experience as any,currentNode:node};render(<StoryExperienceScreen/>);fireEvent.change(await openChatInput(),{target:{value:'聊天草稿保留'}});fireEvent.click(screen.getByLabelText('場景物件：濕紙單'));expect(screen.getByLabelText('收起物件預覽')).toBeTruthy();state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,eventSeq:2,currentNode:{...node,lines:[{speaker:'旁白',text:'第二場開場。'},{speaker:'旁白',text:'第二場第二句。'}]}};await act(async()=>state.sync());expect(screen.queryByLabelText('收起物件預覽')).toBeNull();fireEvent.click(screen.getByLabelText('對話框，點擊繼續'));expect(await screen.findByText('第二場開場。')).toBeTruthy();expect(screen.queryByText('第二場第二句。')).toBeNull();expect((screen.getByLabelText('你的訊息')as HTMLTextAreaElement).value).toBe('聊天草稿保留');expect(state.send).not.toHaveBeenCalled();
 });
 
-it('SEF-UT-218: actions use the server episode number instead of the first episode',async()=>{
- state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2};render(<StoryExperienceScreen/>);
- fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
- await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][2].episodeSeq).toBe(2);expect(state.send.mock.calls[0][2].storySessionId).toBe('story-two');
+it('SEF-UT-227/228/229: completed keeps ending/chat and removes every scene action and object',async()=>{state.experience={...state.experience as any,phase:'completed',chapterStatus:'completed',currentNode:{...(state.experience as any).currentNode,id:'e01',title:'本次收尾',ending:true}};render(<StoryExperienceScreen/>);await screen.findByText('本次收尾');expect(await openChatInput()).toBeTruthy();expect(screen.queryByLabelText('場景物件：濕紙單')).toBeNull();expect(screen.queryByLabelText('查看門口的取書單')).toBeNull();expect(screen.queryByLabelText('完成劇情')).toBeNull();expect(state.send).not.toHaveBeenCalled();});
+
+it('a known CAS conflict refreshes the caller track without resubmitting; the next explicit press uses the new revision',async()=>{
+ state.send.mockImplementationOnce(async()=>{state.experience={...state.experience as any,eventSeq:2,myTrack:{...(state.experience as any).myTrack,revision:2}};throw new ApiFailure('EVENT_STATE_CONFLICT',409);});
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('查看門口的取書單'));
+ await screen.findByText('場景狀態已更新，請再次操作。');expect(state.send).toHaveBeenCalledTimes(1);
+ fireEvent.click(screen.getByLabelText('查看門口的取書單'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));expect(state.send.mock.calls[1][2].expectedTrackRevision).toBe(2);
 });
+it('a late uncertain error cannot resurrect an operation already confirmed by its committed receipt',async()=>{
+ let reject:(error:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise((_resolve,fail)=>{reject=fail;}));render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('查看門口的取書單'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));const requestId=state.send.mock.calls[0][1];
+ state.experience={...state.experience as any,eventSeq:2,myTrack:{...(state.experience as any).myTrack,revision:2}};const request=state.request.getMockImplementation()!;state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/events/query')?Promise.resolve({events:[{eventSeq:2,type:'story.track.updated',actorAccountId:'me',clientRequestId:requestId,payload:{}}],cursor:2,hasMore:false}):request(path,...args));
+ await act(async()=>{await state.sync();});expect(screen.queryByText('送出中，尚未確認。')).toBeNull();await act(async()=>{reject(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true));});expect(screen.queryByLabelText('以原編號查回結果')).toBeNull();expect(screen.queryByText('目前無法確認送出結果，請重新同步。')).toBeNull();expect(state.send).toHaveBeenCalledTimes(1);
+});
+it('actions use the current storySession and independent revision after the episode changes',async()=>{state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,myTrack:{...(state.experience as any).myTrack,revision:8}};render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('查看門口的取書單'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][2]).toMatchObject({storySessionId:'story-two',expectedTrackRevision:8});expect(state.send.mock.calls[0][2].episodeSeq).toBeUndefined();});
+
 it('SEF-UT-220: an old episode ACK cannot restore pending controls after the next session starts',async()=>{
  let acknowledge:(value:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise(resolve=>{acknowledge=resolve;}));
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('查看門口的取書單'));
  await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,eventSeq:4};await act(async()=>state.sync());
  await act(async()=>{acknowledge({eventSeq:2});});
@@ -106,20 +116,14 @@ it('SEF-UT-220: an old episode ACK cannot restore pending controls after the nex
 it('SEF-UT-220: a late recovery failure from the old episode cannot overwrite the new scene notice',async()=>{
  let rejectRecovery:(error:unknown)=>void=()=>{};
  state.send.mockRejectedValueOnce(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true)).mockImplementationOnce(()=>new Promise((_resolve,reject)=>{rejectRecovery=reject;}));
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('走近推薦卡'));
+ render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('對話框，點擊繼續'));fireEvent.click(await screen.findByLabelText('查看門口的取書單'));
  fireEvent.click(await screen.findByLabelText('以原編號查回結果'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));
  state.experience={...state.experience as any,storySessionId:'story-two',episodeSeq:2,eventSeq:4};await act(async()=>state.sync());
  await act(async()=>{rejectRecovery(new ApiFailure('DEPENDENCY_UNAVAILABLE',503));});
  expect(screen.queryByText('目前無法確認送出結果，請重新同步。')).toBeNull();
 });
-it('SD-UT-071/072: inspecting a scene object and returning preserve the node without submitting until the player explicitly chooses',async()=>{
- const definition={id:'bookmark',title:'書籤特寫',moduleType:'inspect-object',prompt:'書籤背面留有一行字。',options:[{id:'turn',label:'翻到書籤背面'}]};
- state.experience={...state.experience as any,scenePresentation:scenes.stories[0].scenePresentation,objects:[definition],currentNode:{...(state.experience as any).currentNode,presentation:{cameraId:'table-medium',hotspotIds:['bookmark'],expression:'thoughtful'}}};
- render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('場景物件：翻看手寫書籤'));await screen.findByText(definition.prompt);
- expect(state.send).not.toHaveBeenCalled();fireEvent.click(screen.getByLabelText('返回場景'));expect(screen.queryByText(definition.prompt)).toBeNull();expect(screen.getByTestId('scene-camera-table-medium')).toBeTruthy();expect(state.send).not.toHaveBeenCalled();
- fireEvent.click(screen.getByLabelText('場景物件：翻看手寫書籤'));fireEvent.click(await screen.findByLabelText('翻到書籤背面'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));
- expect(state.send.mock.calls[0][0]).toBe('interaction.submit');expect(state.send.mock.calls[0][2]).toEqual({storySessionId:'story',episodeSeq:1,nodeId:'entry',expectedRevision:1,choiceId:'turn',definitionId:'bookmark'});
-});
+it('SD-UT-071/072: inspecting and closing a scene object never submits server progress',async()=>{render(<StoryExperienceScreen/>);fireEvent.click(await screen.findByLabelText('場景物件：濕紙單'));expect(state.send).not.toHaveBeenCalled();fireEvent.click(screen.getByLabelText('收起物件預覽'));expect(screen.queryByLabelText('收起物件預覽')).toBeNull();expect(screen.getByTestId('scene-camera-entrance')).toBeTruthy();fireEvent.click(screen.getByLabelText('場景物件：濕紙單'));fireEvent.click(screen.getByLabelText('查看門口的取書單'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));expect(state.send.mock.calls[0][0]).toBe('story.event.submit');});
+
 it('SD-UT-007/032: N1 renders real scene and labeled narrator without story selection',async()=>{
  render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');await screen.findByText('對方旅人');expect(screen.queryByText('選擇今晚的故事')).toBeNull();expect(screen.queryByText('夏樹')).toBeNull();
 });
@@ -151,16 +155,15 @@ it('SD-UT-017: ended snapshot contains no old message controls or private portra
 });
 
 it.each([2,3])('safe ordered %i-offer cards hide story assets and lock a pending vote',async(count)=>{
- state.experience={phase:'pending_story_selection',roundId:'round',episodeSeq:1,eventSeq:0,partnerHasVoted:true,offers:Array.from({length:count},(_,i)=>({catalogId:'catalog-'+i,rank:i+1,title:'故事'+i,summary:'安全摘要'+i,reason:'共同閱讀'}))};
- let finish:(v:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise(resolve=>{finish=resolve;}));render(<StoryExperienceScreen/>);await screen.findByText('選擇今晚的故事');expect(screen.getByText('對方已選好，等待你的選擇。')).toBeTruthy();expect(screen.queryByLabelText('你的訊息')).toBeNull();
- const buttons=Array.from({length:count},(_,i)=>screen.getByLabelText('選擇 故事'+i));fireEvent.click(buttons[0]);fireEvent.click(buttons[0]);expect(state.send).toHaveBeenCalledTimes(1);expect(state.send.mock.calls[0][2]).toEqual({episodeSeq:1,catalogId:'catalog-0'});finish({eventSeq:1});
+ state.experience={phase:'pending_category_selection',roundId:'round',episodeSeq:1,eventSeq:0,partnerHasVoted:true,offers:Array.from({length:count},(_,i)=>({categoryId:'category-'+i,rank:i+1,title:'故事'+i,summary:'安全摘要'+i,reason:'共同閱讀'}))};
+ let finish:(v:unknown)=>void=()=>{};state.send.mockImplementation(()=>new Promise(resolve=>{finish=resolve;}));render(<StoryExperienceScreen/>);await screen.findByText('選擇下一場的主題');expect(screen.getByText('對方已選好，等待你的選擇。')).toBeTruthy();expect(screen.getByLabelText('展開聊天室')).toBeTruthy();
+ const buttons=Array.from({length:count},(_,i)=>screen.getByLabelText('選擇 故事'+i));fireEvent.click(buttons[0]);fireEvent.click(buttons[0]);expect(state.send).toHaveBeenCalledTimes(1);expect(state.send.mock.calls[0][2]).toEqual({episodeSeq:1,categoryId:'category-0'});finish({eventSeq:1});
 });
 it('unknown commit preserves payload and explicitly reuses the original request ID',async()=>{
  state.send.mockRejectedValueOnce(new ApiFailure('UNKNOWN_COMMIT',0,undefined,0,true)).mockResolvedValue({eventSeq:2});render(<StoryExperienceScreen/>);fireEvent.change(await openChatInput(),{target:{value:'原本的訊息'}});fireEvent.click(screen.getByLabelText('傳送訊息'));await screen.findByLabelText('以原編號查回結果');expect(screen.getByText('送出結果不明，請重新同步')).toBeTruthy();fireEvent.click(screen.getByLabelText('以原編號查回結果'));await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(2));expect(state.send.mock.calls[1]).toEqual(state.send.mock.calls[0]);
 });
-it('cooperative waiting can return to exploration without inventing a partner choice',async()=>{
- state.experience={...state.experience as object,interaction:{myChoice:'warm',status:'active',definition:{id:'path',title:'一起選擇',moduleType:'cooperative-choice',options:[{id:'warm',label:'溫暖'},{id:'adventure',label:'冒險'}]}}};render(<StoryExperienceScreen/>);await screen.findByText(/等待另一方選擇；可以返回探索或聊天/);fireEvent.click(screen.getByLabelText('返回場景探索'));expect(screen.getByText('等待另一方選擇；你的合作選擇已保存。')).toBeTruthy();expect(await openChatInput()).toBeTruthy();expect(state.send).not.toHaveBeenCalled();
-});
+it('cooperative waiting leaves exploration and chat available without inventing a partner action',async()=>{state.experience={...state.experience as any,cooperation:[{bindingId:'shared',mySubmitted:true,partnerHasSubmitted:false}]};render(<StoryExperienceScreen/>);await screen.findByText('你的操作已保存；雙人合作事項還沒全部完成。');fireEvent.click(screen.getByLabelText('場景物件：濕紙單'));fireEvent.click(screen.getByLabelText('收起物件預覽'));expect(await openChatInput()).toBeTruthy();expect(state.send).not.toHaveBeenCalled();});
+
 it('SD-IT-075: avatar notifications read one latest projection without resetting the story or posting a mutation',async()=>{
  render(<StoryExperienceScreen/>);await screen.findByText('對方旅人');
  const before=state.request.mock.calls.filter(([path])=>path.endsWith('/partner-avatar')).length;

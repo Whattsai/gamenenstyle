@@ -18,7 +18,7 @@ export function decodeXmlAttribute(value){
   return Number.isInteger(point)&&point>0&&point<=0x10ffff&&(point<0xd800||point>0xdfff)?String.fromCodePoint(point):entity;
  });
 }
-export function nodes(){let failure;for(let attempt=0;attempt<3;attempt++){try{const xml=invoke('shell','-tt','uiautomator','dump','--compressed','/dev/tty');const parsed=[...xml.matchAll(/<node\b[^>]*>/g)].map(m=>Object.fromEntries([...m[0].matchAll(/([\w-]+)="([^"]*)"/g)].map(a=>[a[1],decodeXmlAttribute(a[2])])));if(parsed.length){const root=parsed[0].bounds?.match(/-?\d+/g)?.map(Number);if(root?.length===4&&root[0]===0&&root[1]===0&&root[2]>0&&root[3]>0)screenBounds={width:root[2],height:root[3]};return parsed;}}catch(error){failure=error;}}if(failure)throw failure;return [];}
+export function nodes(){let failure;for(let attempt=0;attempt<3;attempt++){try{const xml=invoke('shell','-tt','uiautomator','dump','--compressed','/dev/tty');const parsed=[...xml.matchAll(/<node\b[^>]*>/g)].map(m=>Object.fromEntries([...m[0].matchAll(/([\w-]+)="([^"]*)"/g)].map(a=>[a[1],decodeXmlAttribute(a[2])])));if(!parsed.length&&xml.includes('could not get idle state'))failure=new Error('Android UI dump could not reach idle state');if(parsed.length){const root=parsed[0].bounds?.match(/-?\d+/g)?.map(Number);if(root?.length===4&&root[0]===0&&root[1]===0&&root[2]>0&&root[3]>0)screenBounds={width:root[2],height:root[3]};return parsed;}}catch(error){failure=error;}}if(failure)throw failure;return [];}
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 // UiAutomator會回傳捲出畫面的倒置bounds；不能取絕對座標誤點另一個控制項。

@@ -41,6 +41,10 @@ function collect(bundles){
    const previous=objects.get(object.key);if(previous&&previous.sha256!==object.sha256)throw new Error('IMMUTABLE_CONTENT_CONFLICT');objects.set(object.key,object);
   }
  }
+ for(const bundle of bundles){
+  if(!Array.isArray(bundle.scene.manifest.assets))invalid();
+  for(const asset of bundle.scene.manifest.assets){const object=objects.get(asset.key);if(!object||object.sha256!==asset.sha256||object.bytes.length!==asset.byteLength||object.mimeType!==asset.mimeType)invalid();}
+ }
  if(new Set([...categories.values()].map(c=>c.code)).size!==categories.size||new Set([...scenes.values()].map(s=>s.sceneId)).size!==scenes.size||new Set([...narratives.values()].map(n=>n.storyId)).size!==narratives.size)invalid();
  for(const category of categories.values())if(!bundles.some(b=>b.narrative.manifest.eligibleCategoryCodes.includes(category.code)))invalid();
  const narrativeIds=new Set([...narratives.values()].map(n=>n.storyId));
@@ -98,27 +102,72 @@ export function planSceneEventPublication(bundles,now=Date.now()){
  return out;
 }
 
+function presentationDiagnostic(bundle,schema){
+ // 僅在權威 validator 已拒絕後補本地診斷，不用這段決定內容是否合法。
+ const array=value=>Array.isArray(value)?value:[],scene=bundle.scene?.manifest??{},narrative=bundle.narrative?.manifest??{};
+ const cameras=new Set(array(scene.scenePresentation?.cameras).map(camera=>camera?.id));
+ const lists=[narrative.eventBindings,narrative.sharedEventBindings,scene.sceneEventBindings,bundle.pool?.manifest?.eventBindings];
+ const steps=[...lists.flatMap(list=>array(list).flatMap(binding=>[...array(binding?.startPresentationSteps),...array(binding?.actions).flatMap(action=>array(action?.presentationSteps))])),...array(narrative.endings).flatMap(ending=>array(ending?.presentationSteps))];
+ const describe=(kind,value)=>`invalid presentation ${kind}${stable(value)?' '+value:''}`;
+ for(const step of steps){
+  const parsed=schema.safeParse(step);
+  if(!parsed.success){
+   if(step?.type==='expression'&&parsed.error.issues.some(issue=>issue.path[0]==='expression'))return describe('expression',step.expression);
+   continue;
+  }
+  if(parsed.data.type==='camera'&&!cameras.has(parsed.data.cameraId))return describe('camera',parsed.data.cameraId);
+  if(parsed.data.type==='audio'&&!Object.hasOwn(scene.audioCues??{},parsed.data.cueId))return describe('audio',parsed.data.cueId);
+ }
+}
+/** 與 R2 runtime 共用的四層嚴格發布驗證；沒有 DB 或上傳副作用。 */
+export async function validateSceneEventBundles(bundles,validationRoot){
+ const data=collect(bundles);
+ const{readPinnedSceneEventContent,trackDefinitionSchema,trackPresentationStepSchema}=await runtimeValidator(validationRoot),objects=new Map(data.objects.map(o=>[o.key,o]));let missingReference;
+ for(const bundle of bundles)for(const event of bundle.events){
+  const moduleType=event.manifest.moduleType;
+  if(!trackDefinitionSchema.shape.moduleType.safeParse(moduleType).success)throw new Error(stable(moduleType)?`INVALID_STORY_CONTENT: unsupported module ${moduleType}`:'INVALID_STORY_CONTENT');
+ }
+ const staged={get:async key=>{const object=objects.get(key);if(!object){const match=/^story-content\/(scenes|narratives|pools|events)\/([a-z][a-z0-9-]{0,63})\/(v[1-9][0-9]{0,7})\/manifest\.json$/.exec(key);if(match)missingReference=`${match[1]} ${match[2]}@${match[3]}`;return null;}return{size:object.bytes.length,arrayBuffer:async()=>Uint8Array.from(object.bytes).buffer};}};
+ for(const bundle of bundles)try{missingReference=undefined;await readPinnedSceneEventContent(staged,{id:bundle.narrative.id,version:bundle.narrative.version,key:bundle.narrative.key,sha256:bundle.narrative.sha256});}catch{
+  const diagnostic=missingReference?'missing '+missingReference:presentationDiagnostic(bundle,trackPresentationStepSchema);
+  throw new Error(diagnostic?'INVALID_STORY_CONTENT: '+diagnostic:'INVALID_STORY_CONTENT');
+ }
+ return data;
+}
+/** 正式首條的 SDD 劇本契約；通用引擎 fixtures 不經此入口，也不計正式內容驗收。
+ * 摘要只固定已確認 v2 的台詞／演出，不是美術或使用者 Gate B 核准。
+ * 調校新版本時必須同時檢視劇本契約與需求，不可只重算資產 SHA 略過必經台詞。
+ */
+export async function validateFormalSceneEventBundles(bundles,validationRoot){
+ const data=await validateSceneEventBundles(bundles,validationRoot);
+ for(const bundle of bundles){
+  const n=bundle.narrative.manifest;
+  if(n.narrativeId!=='rain-bookshop-last-order'||n.version!=='v2')throw new Error('FIRST_STORY_GATE_REQUIRED');
+  const dialogue=[...['inviter','acceptor'].flatMap(role=>n.tracks[role].nodes.map(node=>[role,node.id,node.lines])),...n.sharedEventBindings.map(binding=>['shared',binding.bindingId,binding.lines]),...n.endings.map(ending=>['ending',ending.id,ending.lines])];
+  const performance=[...n.eventBindings.map(binding=>[binding.bindingId,binding.startPresentationSteps,binding.actions.map(action=>[action.actionId,action.stepId,action.presentationSteps])]),...n.sharedEventBindings.map(binding=>[binding.bindingId,binding.startPresentationSteps,binding.actions.map(action=>[action.actionId,action.stepId,action.presentationSteps])]),...n.endings.map(ending=>[ending.id,ending.presentationSteps])];
+  if(sha(Buffer.from(JSON.stringify(dialogue)))!=='fcdbfa3b0bb5ed0169885fe1d0466a9fda0126868663fc107f3cd28a0a38fd3f'||sha(Buffer.from(JSON.stringify(performance)))!=='fcb20a23ecc58d7a1f8bf646202f80095e96e74191bb38e60601bcb0a80669d5')invalid();
+ }
+ return data;
+}
 /** 本地 wrapper 專用：先 create-only 寫入全部公開內容並讀回驗證，再原子發布 D1。 */
 export async function publishSceneEventBundles(db,bucket,bundles,{firstStoryGate,validationRoot,now=Date.now()}={}){
- const data=collect(bundles);
- const{readPinnedSceneEventContent}=await runtimeValidator(validationRoot),objects=new Map(data.objects.map(o=>[o.key,o]));
- const staged={get:async key=>{const object=objects.get(key);return object?{size:object.bytes.length,arrayBuffer:async()=>Uint8Array.from(object.bytes).buffer}:null;}};
- for(const bundle of bundles)try{await readPinnedSceneEventContent(staged,{id:bundle.narrative.id,version:bundle.narrative.version,key:bundle.narrative.key,sha256:bundle.narrative.sha256});}catch{throw new Error('INVALID_STORY_CONTENT');}
+ const data=await validateSceneEventBundles(bundles,validationRoot);
  const baselineFields=['catalog_id','story_id','version','manifest_sha256','scene_catalog_id','status','sequence_group_id','sequence_order','prerequisites_json'];
  const baseline=(await db.prepare(`SELECT ${baselineFields.join(',')} FROM content_story_catalog WHERE scene_catalog_id IS NOT NULL ORDER BY CASE status WHEN 'published' THEN 0 WHEN 'retired' THEN 1 ELSE 2 END,published_at DESC,catalog_id DESC`).all()).results;
  validateDependencies(baseline,data.narratives);const existing=baseline.filter(n=>n.status==='published');
  const allIds=new Set([...existing.map(n=>n.story_id),...data.narratives.map(n=>n.storyId)]);
- if([...allIds].some(id=>id!=='rain-bookshop-lost-note')){
+ const firstId='rain-bookshop-last-order';
+ if([...allIds].some(id=>id!==firstId)){
   const first=[...existing.map(n=>({id:n.story_id,version:n.version,sha256:n.manifest_sha256})),...bundles.map(b=>({id:b.narrative.id,version:b.narrative.version,sha256:b.narrative.sha256}))];
-  if(firstStoryGate?.approvedByUser!==true||firstStoryGate.narrativeId!=='rain-bookshop-lost-note'||!first.some(n=>n.id===firstStoryGate.narrativeId&&n.version===firstStoryGate.version&&n.sha256===firstStoryGate.sha256))throw new Error('FIRST_STORY_GATE_REQUIRED');
+  if(firstStoryGate?.approvedByUser!==true||firstStoryGate.narrativeId!==firstId||!first.some(n=>n.id===firstStoryGate.narrativeId&&n.version===firstStoryGate.version&&n.sha256===firstStoryGate.sha256))throw new Error('FIRST_STORY_GATE_REQUIRED');
  }
  const changed=baselineFields.map(field=>`c.${field} IS NOT json_extract(j.value,'$.${field}')`).join(' OR ');
  const plan=[guard(`(SELECT COUNT(*) FROM content_story_catalog WHERE scene_catalog_id IS NOT NULL)=? AND NOT EXISTS(SELECT 1 FROM content_story_catalog c WHERE c.scene_catalog_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM json_each(?) j WHERE json_extract(j.value,'$.catalog_id')=c.catalog_id AND NOT(${changed})))`,baseline.length,JSON.stringify(baseline)),...planSceneEventPublication(bundles,now)];
  for(const object of data.objects){
   const previous=await bucket.get(object.key);
-  if(previous){if(previous.size!==object.bytes.length||sha(Buffer.from(await previous.arrayBuffer()))!==object.sha256)throw new Error('IMMUTABLE_CONTENT_CONFLICT');}
+  if(previous){if(previous.size!==object.bytes.length||previous.httpMetadata?.contentType!==(object.mimeType??'application/json')||sha(Buffer.from(await previous.arrayBuffer()))!==object.sha256)throw new Error('IMMUTABLE_CONTENT_CONFLICT');}
   else await bucket.put(object.key,object.bytes,{onlyIf:{etagDoesNotMatch:'*'},httpMetadata:{contentType:object.mimeType??'application/json'}});
-  const verified=await bucket.get(object.key);if(!verified||verified.size!==object.bytes.length||sha(Buffer.from(await verified.arrayBuffer()))!==object.sha256)throw new Error('IMMUTABLE_CONTENT_CONFLICT');
+  const verified=await bucket.get(object.key);if(!verified||verified.size!==object.bytes.length||verified.httpMetadata?.contentType!==(object.mimeType??'application/json')||sha(Buffer.from(await verified.arrayBuffer()))!==object.sha256)throw new Error('IMMUTABLE_CONTENT_CONFLICT');
  }
  await db.batch(plan.map(s=>db.prepare(s.sql).bind(...s.values)));
  return {categories:data.categories.length,scenes:data.scenes.length,narratives:data.narratives.length,objects:data.objects.length};

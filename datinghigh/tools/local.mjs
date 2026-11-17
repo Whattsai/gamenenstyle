@@ -2,9 +2,9 @@ import path from 'node:path';import fs from 'node:fs/promises';import {existsSyn
 import {root,resolveInstance,parseLocalArgs,invocation,backupPath,restoreTarget,withPausedControl} from './local-policy.mjs';
 import {watchWslEgress} from './wsl-egress.mjs';
 import {waitLocalReady,shutdownLocal} from './restart-local.mjs';
-import {buildStoryBundle,validateStoryUpgradeTarget,oldGamePurgeStatements} from './story-content-policy.mjs';
-import {buildSceneEventBundle} from './scene-event-content-policy.mjs';
-import {publishSceneEventBundles} from './scene-event-publish-policy.mjs';
+import {validateStoryUpgradeTarget,oldGamePurgeStatements} from './story-content-policy.mjs';
+import {buildSceneEventTrackBundle} from './scene-event-content-policy.mjs';
+import {publishSceneEventBundles,validateFormalSceneEventBundles} from './scene-event-publish-policy.mjs';
 import {applySceneEventUpgrade,validateSceneEventTarget,sceneEventMigration} from './scene-event-local-policy.mjs';
 import {createAvatarResetPlan,applyAvatarResetPlan,validateAvatarResetTarget,avatarResetDevelopmentReady} from './avatar-reset-policy.mjs';
 import {createRequire} from 'node:module';
@@ -23,7 +23,7 @@ function run(args,cwd=instance.cwd,capture=false){return new Promise((resolve,re
  if(capture){child.stdout.on('data',d=>out+=d);child.stderr.on('data',d=>err+=d);}
  child.on('error',reject);child.on('exit',code=>code===0?resolve(out):reject(new Error(`Wrangler exited ${code}${capture?`: ${err}`:''}`)));
 });}
-async function invoke(cmd,target=instance,extra=opts){if(cmd==='game-end'){const config=JSON.parse(await fs.readFile(target.config,'utf8'));extra={...extra,framework:config.vars?.EXPECTED_MIGRATION===sceneEventMigration};}const i=invocation(cmd,target,extra);return run(i.args,i.cwd);}
+async function invoke(cmd,target=instance,extra=opts){const i=invocation(cmd,target,extra);return run(i.args,i.cwd);}
 async function initializeSecrets(){
  const target=path.join(instance.cwd,'.dev.vars');const previous=existsSync(target)?await fs.readFile(target,'utf8'):'';
  const missing=['ACCESS_TOKEN_SECRET','EMAIL_CODE_HMAC_KEY','RATE_LIMIT_HMAC_KEY','ROUND_TICKET_HMAC_KEY'].filter(name=>!new RegExp(`^${name}=`, 'm').test(previous));
@@ -70,10 +70,20 @@ if(command==='dev'){
   const sql=["SELECT CASE WHEN EXISTS(SELECT 1 FROM d1_migrations WHERE name='0004_matching_sessions.sql') THEN 1 ELSE json('UNKNOWN_BASELINE') END",...oldGamePurgeStatements(),await fs.readFile(path.join(root,'cloudflare/migrations/0005_story_dialogue_exit.sql'),'utf8'),"INSERT INTO d1_migrations(name) VALUES('0005_story_dialogue_exit.sql')"].join(';\n');
   const file=path.join(root,'.local',`story-upgrade-${instance.name}.sql`);await fs.writeFile(file,sql);await invoke('execute',instance,{file});console.log('Local Story schema upgraded; accounts and profiles retained');
  });
+}else if(command==='scene-status'){
+ const config=JSON.parse(await fs.readFile(instance.config,'utf8')),target=validateSceneEventTarget(config);
+ const {getPlatformProxy}=createRequire(path.join(root,'cloudflare/package.json'))('wrangler');
+ const proxy=await getPlatformProxy({configPath:instance.config,envFiles:[],persist:{path:path.join(instance.state,'v3')},remoteBindings:false});
+ try{const migrations=(await proxy.env.DB.prepare('SELECT name FROM d1_migrations ORDER BY id').all()).results;const counts={};for(const table of ['auth_accounts','user_profiles','user_media_assets','match_conditions','match_invitations','game_rounds','game_story_sessions','game_round_events','game_scene_visits','game_event_instances','content_story_catalog'])if(await proxy.env.DB.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").bind(table).first())counts[table]=(await proxy.env.DB.prepare('SELECT COUNT(*) AS total FROM '+table).first()).total;
+ console.log(JSON.stringify({instance:instance.name,target,state:instance.state,buckets:config.r2_buckets.map(b=>({binding:b.binding,name:b.bucket_name})),migrations,counts}));}finally{await proxy.dispose();}
 }else if(command==='scene-upgrade'||command==='scene-publish'){
  const config=JSON.parse(await fs.readFile(instance.config,'utf8'));validateSceneEventTarget(config);
  const directory=path.join(root,'.local','scene-event-publish',instance.name);await fs.mkdir(directory,{recursive:true});const lease=await fs.open(path.join(directory,'publisher.lock'),'wx');
  try{await withPausedWrites(async()=>{
+   const definitions=JSON.parse(await fs.readFile(path.join(root,'contracts/scene-event-content.json'),'utf8'));
+   if(definitions.schemaVersion!=='scene-event.authoring.v2'||!Array.isArray(definitions.stories)||definitions.stories.length!==1||definitions.stories[0].sourceFile!=='contracts/rain-bookshop-last-order.json')throw new Error('FIRST_STORY_GATE_REQUIRED');
+   const bundles=[];for(const definition of definitions.stories){const source=JSON.parse(await fs.readFile(path.join(root,definition.sourceFile),'utf8'));bundles.push(buildSceneEventTrackBundle(source,root,definition));}
+   await validateFormalSceneEventBundles(bundles,root);
   if(command==='scene-upgrade'){
    const output=backupPath(`scene-${Date.now()}-${randomBytes(3).toString('hex')}`);await fs.mkdir(path.dirname(output),{recursive:true});const reserve=await fs.open(output,'wx');await reserve.close();const temporary=output+'.'+randomBytes(8).toString('hex')+'.tmp';
    try{await invoke('backup',instance,{output:temporary});await fs.rename(temporary,output);}catch(error){await fs.rm(temporary,{force:true});await fs.rm(output,{force:true});throw error;}
@@ -81,42 +91,15 @@ if(command==='dev'){
   const{getPlatformProxy}=createRequire(path.join(root,'cloudflare/package.json'))('wrangler');
   const proxy=await getPlatformProxy({configPath:instance.config,envFiles:[],persist:{path:path.join(instance.state,'v3')},remoteBindings:false});
   try{
+   const privateFingerprint=async()=>{const rows=[];let cursor;do{const page=await proxy.env.FILES.list({limit:1000,...(cursor?{cursor}:{})});rows.push(...page.objects.map(o=>[o.key,o.etag,o.size]));cursor=page.truncated?page.cursor:undefined;}while(cursor);rows.sort(([a],[b])=>a.localeCompare(b));return{count:rows.length,sha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex')};};
+   const privateBefore=await privateFingerprint();
    const upgrade=command==='scene-upgrade'?await applySceneEventUpgrade(proxy.env.DB,config):null;
    if(!await proxy.env.DB.prepare('SELECT 1 FROM d1_migrations WHERE name=?').bind(sceneEventMigration).first())throw new Error('Run the local scene-upgrade wrapper first');
-   const source=JSON.parse(await fs.readFile(path.join(root,'contracts/story-scenes.json'),'utf8')),definitions=JSON.parse(await fs.readFile(path.join(root,'contracts/scene-event-content.json'),'utf8'));
-   if(definitions.schemaVersion!=='scene-event.authoring.v1'||!Array.isArray(definitions.stories)||definitions.stories.length!==1||definitions.stories[0].narrativeId!=='rain-bookshop-lost-note')throw new Error('FIRST_STORY_GATE_REQUIRED');
-   const bundles=definitions.stories.map(definition=>{const story=source.stories.find(s=>s.storyId===definition.sourceStoryId);if(!story)throw new Error('INVALID_STORY_CONTENT');return buildSceneEventBundle(story,root,definition);});
    const published=await publishSceneEventBundles(proxy.env.DB,proxy.env.STORY_CONTENT,bundles,{validationRoot:root});
+   const privateAfter=await privateFingerprint();if(JSON.stringify(privateBefore)!==JSON.stringify(privateAfter))throw new Error('PRIVATE_MEDIA_CHANGED');
    config.vars.EXPECTED_MIGRATION=sceneEventMigration;await fs.writeFile(instance.config,JSON.stringify(config,null,2)+'\n');
-   console.log(JSON.stringify({instance:instance.name,migration:sceneEventMigration,upgrade,published}));
+   console.log(JSON.stringify({instance:instance.name,migration:sceneEventMigration,upgrade,published,privateMedia:{retainedObjects:privateBefore.count,unchanged:true},contentPins:bundles.map(b=>({narrativeId:b.narrative.id,version:b.narrative.version,sha256:b.narrative.sha256,sceneSha256:b.scene.sha256}))}));
   }finally{await proxy.dispose();}
- });}finally{await lease.close();await fs.rm(path.join(directory,'publisher.lock'));}
-}else if(command==='story-publish'){
- const config=JSON.parse(await fs.readFile(instance.config,'utf8'));validateStoryUpgradeTarget(config);
- const bucket=config.r2_buckets.find(b=>b.binding==='STORY_CONTENT')?.bucket_name;if(!bucket||!/^datinghigh-local(?:-[a-z0-9-]+)?-story-content$/.test(bucket))throw new Error('Unknown local content bucket');
- const source=JSON.parse(await fs.readFile(path.join(root,'contracts/story-scenes.json'),'utf8'));const directory=path.join(root,'.local','story-publish');await fs.mkdir(directory,{recursive:true});
- const lease=await fs.open(path.join(directory,'publisher.lock'),'wx');
- try{await withPausedWrites(async()=>{
-  for(const story of source.stories){
-   const bundle=buildStoryBundle(story,root);
-   const manifestFile=path.join(directory,`${story.storyId}-${story.version}.json`);await fs.writeFile(manifestFile,bundle.bytes);
-   const previous=manifestFile+'.previous';let exists=false;
-   try{await run(['r2','object','get',`${bucket}/${bundle.key}`,'--local','--config',instance.config,'--file',previous],instance.cwd,true);exists=true;}
-   catch(e){if(!/not found|does not exist|NoSuchKey|not exist/i.test(e.message))throw e;}
-   if(exists&&createHash('sha256').update(await fs.readFile(previous)).digest('hex')!==bundle.sha256)throw new Error('Immutable story version already exists with different bytes');
-   for(const asset of bundle.assets)await run(['r2','object','put',`${bucket}/${asset.key}`,'--local','--config',instance.config,'--file',path.join(root,asset.file),'--content-type',asset.mimeType],instance.cwd,true);
-   if(!exists)await run(['r2','object','put',`${bucket}/${bundle.key}`,'--local','--config',instance.config,'--file',manifestFile,'--content-type','application/json'],instance.cwd,true);
-   // 上傳完成後讀回驗證；catalog 只在全部 known local R2 位元組一致後發布。
-   for(const object of [...bundle.assets,{key:bundle.key,sha256:bundle.sha256}]){
-    const verified=path.join(directory,object.sha256+'.verified');await run(['r2','object','get',`${bucket}/${object.key}`,'--local','--config',instance.config,'--file',verified],instance.cwd,true);
-    if(createHash('sha256').update(await fs.readFile(verified)).digest('hex')!==object.sha256)throw new Error('Story content verification failed before catalog publication');
-   }
-   const quote=value=>`'${String(value).replaceAll("'","''")}'`;
-   const sql=`SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM content_story_catalog WHERE (catalog_id=${quote(story.catalogId)} OR manifest_key=${quote(bundle.key)}) AND manifest_sha256<>${quote(bundle.sha256)}) THEN 1 ELSE json('IMMUTABLE_CONTENT_CONFLICT') END;
- UPDATE content_story_catalog SET status='retired' WHERE story_id=${quote(story.storyId)} AND version<>${quote(story.version)} AND status='published';
- INSERT INTO content_story_catalog VALUES(${[story.catalogId,story.storyId,story.version,JSON.stringify(story.interestTagIds)].map(quote).join(',')},${story.recommendationPriority},${quote(bundle.key)},${quote(bundle.sha256)},'published',${Date.now()}) ON CONFLICT(catalog_id) DO NOTHING;`;
-   const file=path.join(directory,'publish.sql');await fs.writeFile(file,sql);await invoke('execute',instance,{file});console.log(`Published local immutable ${story.storyId}/${story.version}`);
-  }
  });}finally{await lease.close();await fs.rm(path.join(directory,'publisher.lock'));}
 }else if(command==='migrate'||command==='query'||command==='execute'||command==='game-end'){
  if(command==='execute'&&!opts.file)throw new Error('--file is required');

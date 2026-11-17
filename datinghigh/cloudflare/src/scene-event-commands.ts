@@ -13,13 +13,8 @@ const memberSchema=nextSchema.pick({accountId:true,sessionId:true,cv:true,access
 type Member=z.infer<typeof memberSchema>;
 type Receipt=Member&{clientRequestId:string};
 const voteSchema=nextSchema.omit({completedEpisodeSeq:true,agree:true,offersEventId:true}).extend({episodeSeq:z.number().int().min(1).max(2147483647),categoryId:id});
-const local=z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),version=z.string().regex(/^v[1-9][0-9]{0,7}$/),bindingKey=z.string().regex(/^(narrative|scene|global):[a-z][a-z0-9-]{0,63}:[a-z][a-z0-9-]{0,63}$/);
-const jsonObject=z.string().max(16384).refine(s=>{try{const v=JSON.parse(s);return v!==null&&typeof v==='object'&&!Array.isArray(v);}catch{return false;}});
-const episodeState={storySessionId:id,episodeSeq:z.number().int().min(1).max(2147483647),nodeId:local,expectedRevision:z.number().int().positive()};
-const activationSchema=memberSchema.extend({...episodeState,activationEventId:id,instances:z.array(z.strictObject({instanceId:id,bindingId:bindingKey,eventId:local,eventVersion:version,repeatGroup:local,repeatScope:z.enum(['playthrough','round']),status:z.enum(['active','cancelled']),stateJson:jsonObject,eventSequenceId:id})).min(1).max(256)}).refine(p=>new Set(p.instances.map(i=>i.bindingId)).size===p.instances.length);
-const actionSchema=memberSchema.extend({...episodeState,clientRequestId:id,eventId:id,nodeEventId:id,completionEventId:id,nextNodeId:local,completed:z.boolean(),kind:z.enum(['story.choice.committed','interaction.updated']),payload:jsonObject,requestPayload:z.string().min(1).max(4000),instance:z.strictObject({instanceId:id,bindingId:bindingKey,eventVersion:version,expectedRevision:z.number().int().positive(),status:z.enum(['active','completed']),stateJson:jsonObject}).nullable()});
 type Env={DB:D1Database;STORY_CONTENT?:R2Bucket};
-export interface VerifiedFrameworkCatalog {catalogId:string;catalogSha256:string;sceneCatalogId:string;sceneSha256:string;sceneId:string;narrativeId:string;eligibleCategoryCodes:string[];sceneCategoryCodes:string[];pins:unknown[];}
+export interface VerifiedFrameworkCatalog {catalogId:string;catalogSha256:string;sceneCatalogId:string;sceneSha256:string;sceneId:string;narrativeId:string;eligibleCategoryCodes:string[];sceneCategoryCodes:string[];pins:unknown[];initialWorld?:unknown;entries?:{inviter:{nodeId:string;areaId:string};acceptor:{nodeId:string;areaId:string}};}
 
 /** 只載入 published 組合，並把 D1 索引與 R2 四層依賴逐一核對；不讀玩家 Profile。 */
 export async function loadFrameworkCatalog(env:Env):Promise<VerifiedFrameworkCatalog[]>{
@@ -28,8 +23,8 @@ export async function loadFrameworkCatalog(env:Env):Promise<VerifiedFrameworkCat
  const result:VerifiedFrameworkCatalog[]=[];
  for(const c of records){
   const content=await readPinnedSceneEventContent(env.STORY_CONTENT!,{id:c.story_id,version:c.version,key:c.manifest_key,sha256:c.manifest_sha256});
-  if(content.scene.sceneId!==c.scene_id||content.scene.version!==c.scene_version||content.narrative.scene.key!==c.scene_manifest_key||content.narrative.scene.sha256!==c.scene_manifest_sha256||content.narrative.sequenceGroupId!==c.sequence_group_id||content.narrative.sequenceOrder!==c.sequence_order||JSON.stringify(content.narrative.prerequisites)!==JSON.stringify(JSON.parse(c.prerequisites_json)))throw new SceneEventFrameworkError('DEPENDENCY_UNAVAILABLE',503);
-  result.push({catalogId:c.catalog_id,catalogSha256:c.manifest_sha256,sceneCatalogId:c.scene_catalog_id,sceneSha256:c.scene_manifest_sha256,sceneId:c.scene_id,narrativeId:c.story_id,eligibleCategoryCodes:content.narrative.eligibleCategoryCodes,sceneCategoryCodes:content.scene.categoryCodes,pins:content.pins});
+  if(content.scene.sceneId!==c.scene_id||content.scene.version!==c.scene_version||content.narrative.scene!.key!==c.scene_manifest_key||content.narrative.scene!.sha256!==c.scene_manifest_sha256||content.narrative.sequenceGroupId!==c.sequence_group_id||content.narrative.sequenceOrder!==c.sequence_order||JSON.stringify(content.narrative.prerequisites)!==JSON.stringify(JSON.parse(c.prerequisites_json)))throw new SceneEventFrameworkError('DEPENDENCY_UNAVAILABLE',503);
+  result.push({catalogId:c.catalog_id,catalogSha256:c.manifest_sha256,sceneCatalogId:c.scene_catalog_id,sceneSha256:c.scene_manifest_sha256,sceneId:c.scene_id,narrativeId:c.story_id,eligibleCategoryCodes:content.narrative.eligibleCategoryCodes,sceneCategoryCodes:content.scene.categoryCodes,pins:content.pins,...(content.narrative.schemaVersion==='scene-event.v2'?{initialWorld:{objects:Object.fromEntries(content.scene.sceneObjects.map((o:any)=>[o.id,o.initialState])),flags:Object.fromEntries(content.scene.sharedFlags.map((f:any)=>[f.id,f.initialValue]))},entries:Object.fromEntries((['inviter','acceptor'] as const).map(role=>{const track=content.narrative.tracks[role],node=track.nodes.find((n:any)=>n.id===track.entry);return[role,{nodeId:node!.id,areaId:node!.areaId}];})) as NonNullable<VerifiedFrameworkCatalog['entries']>}: {})});
  }
  return result;
 }
@@ -43,9 +38,9 @@ const receipt=`SELECT 1 FROM game_round_events WHERE round_id=? AND actor_accoun
 const receiptArgs=(p:Receipt)=>[p.roundId,p.accountId,p.clientRequestId];
 const payload=(p:Next)=>JSON.stringify({episodeSeq:p.completedEpisodeSeq,completedEpisodeSeq:p.completedEpisodeSeq,agree:p.agree});
 const replay=`EXISTS(${receipt} AND kind='story.next.requested' AND payload_json=json(?))`;
-const sync=(p:Pick<Next,'roundId'>)=>[
- stmt(`UPDATE game_rounds SET last_event_seq=COALESCE((SELECT MAX(sequence) FROM game_round_events WHERE round_id=?),0) WHERE round_id=?`,p.roundId,p.roundId),
- guard(`EXISTS(SELECT 1 FROM game_rounds WHERE round_id=? AND last_event_seq=COALESCE((SELECT MAX(sequence) FROM game_round_events WHERE round_id=?),0))`,p.roundId,p.roundId)
+const sync=(p:Pick<Next,'roundId'>,gate='1',values:unknown[]=[])=>[
+ stmt(`UPDATE game_rounds SET last_event_seq=COALESCE((SELECT MAX(sequence) FROM game_round_events WHERE round_id=?),0) WHERE round_id=? AND (${gate})`,p.roundId,p.roundId,...values),
+ guard(`NOT(${gate}) OR EXISTS(SELECT 1 FROM game_rounds WHERE round_id=? AND last_event_seq=COALESCE((SELECT MAX(sequence) FROM game_round_events WHERE round_id=?),0))`,...values,p.roundId,p.roundId)
 ];
 
 // 一個 statement 的所有內容／Profile／完成事實皆由相同 D1 提交讀取。RNG 只注入數值，SQL 不呼叫外部服務。
@@ -79,13 +74,18 @@ const both=`(SELECT COUNT(*) FROM game_round_events e JOIN game_rounds r ON r.ro
 type SelectionIds=Pick<Next,'roundId'|'storySessionId'|'sceneVisitId'|'categoryEventId'|'sceneEventId'|'narrativeEventId'>;
 function initializeSelection(p:SelectionIds,context:unknown[],episode:number,now:number,ownOffer:string,ownArgs:unknown[]):Statement[]{
  const out=[
- stmt(`WITH ${selectionCte} INSERT INTO game_story_sessions(story_session_id,round_id,episode_seq,catalog_id,current_node_id,chapter_status,progress_revision,created_at,updated_at,selected_category_id) SELECT ?,rr.round_id,i.episode,n.catalog_id,'entry','playing',1,?,?,d.category_id FROM rr,i,chosen n,decision d WHERE ${ownOffer} AND NOT EXISTS(SELECT 1 FROM game_story_sessions s WHERE s.round_id=rr.round_id AND s.episode_seq=i.episode)`,...context,p.storySessionId,now,now,...ownArgs),
+ stmt(`WITH ${selectionCte} INSERT INTO game_story_sessions(story_session_id,round_id,episode_seq,catalog_id,chapter_status,shared_revision,created_at,updated_at,selected_category_id,world_state_json) SELECT ?,rr.round_id,i.episode,n.catalog_id,'playing',1,?,?,d.category_id,json(json_extract(n.verified,'$.initialWorld')) FROM rr,i,chosen n,decision d WHERE ${ownOffer} AND NOT EXISTS(SELECT 1 FROM game_story_sessions s WHERE s.round_id=rr.round_id AND s.episode_seq=i.episode)`,...context,p.storySessionId,now,now,...ownArgs),
  guard(`NOT(${ownOffer}) OR EXISTS(SELECT 1 FROM game_story_sessions WHERE round_id=? AND episode_seq=?)`,...ownArgs,p.roundId,episode),
  stmt(`WITH ${selectionCte} INSERT INTO game_scene_visits SELECT ?,s.story_session_id,1,c.scene_catalog_id,?,NULL FROM game_story_sessions s JOIN content_story_catalog c ON c.catalog_id=s.catalog_id,i WHERE s.round_id=i.round_id AND s.episode_seq=i.episode AND s.story_session_id=? AND ${ownOffer} AND NOT EXISTS(SELECT 1 FROM game_scene_visits v WHERE v.story_session_id=s.story_session_id)`,...context,p.sceneVisitId,now,p.storySessionId,...ownArgs),
  guard(`NOT(${ownOffer}) OR EXISTS(SELECT 1 FROM game_scene_visits v JOIN game_story_sessions s ON s.story_session_id=v.story_session_id JOIN content_story_catalog c ON c.catalog_id=s.catalog_id WHERE s.round_id=? AND s.episode_seq=? AND v.scene_catalog_id=c.scene_catalog_id AND v.visit_seq=1)`,...ownArgs,p.roundId,episode)];
+ for(const role of ['inviter','acceptor'] as const){
+  const actor=role==='inviter'?'rr.initiator_account_id':"CASE WHEN rr.initiator_account_id=rr.account_low_id THEN rr.account_high_id ELSE rr.account_low_id END";
+  out.push(stmt(`WITH ${selectionCte} INSERT INTO game_story_participant_progress SELECT s.story_session_id,${actor},'${role}',json_extract(n.verified,'$.entries.${role}.nodeId'),json_extract(n.verified,'$.entries.${role}.areaId'),1,? FROM rr,i,chosen n JOIN game_story_sessions s ON s.round_id=rr.round_id AND s.episode_seq=i.episode WHERE s.story_session_id=? AND ${ownOffer} AND NOT EXISTS(SELECT 1 FROM game_story_participant_progress q WHERE q.story_session_id=s.story_session_id AND q.role='${role}')`,...context,now,p.storySessionId,...ownArgs));
+  out.push(guard(`NOT(${ownOffer}) OR EXISTS(SELECT 1 FROM game_story_participant_progress q JOIN game_story_sessions s ON s.story_session_id=q.story_session_id JOIN game_rounds r ON r.round_id=s.round_id JOIN match_invitations m ON m.invitation_id=r.invitation_id WHERE s.round_id=? AND s.episode_seq=? AND q.role='${role}' AND q.account_id=CASE WHEN '${role}'='inviter' THEN m.initiator_account_id WHEN m.initiator_account_id=r.account_low_id THEN r.account_high_id ELSE r.account_low_id END)`,...ownArgs,p.roundId,episode));
+ }
  for(const [kind,eventId]of [['story.category.selected',p.categoryEventId],['story.scene.selected',p.sceneEventId],['story.narrative.selected',p.narrativeEventId]]){
   out.push(stmt(`WITH ${selectionCte} INSERT INTO game_round_events SELECT ?,rr.round_id,rr.last_event_seq+1,NULL,NULL,?,json_object('episodeSeq',i.episode,'storySessionId',s.story_session_id,'categoryId',s.selected_category_id,'sceneCatalogId',c.scene_catalog_id,'catalogId',s.catalog_id,'contentPins',json((SELECT json_extract(verified,'$.pins') FROM chosen))),? FROM rr,i JOIN game_story_sessions s ON s.round_id=rr.round_id AND s.episode_seq=i.episode JOIN content_story_catalog c ON c.catalog_id=s.catalog_id WHERE ${ownOffer} AND NOT EXISTS(SELECT 1 FROM game_round_events e WHERE e.round_id=rr.round_id AND e.kind=? AND json_extract(e.payload_json,'$.episodeSeq')=i.episode)`,...context,eventId,kind,now,...ownArgs,kind));
-  out.push(guard(`NOT(${ownOffer}) OR EXISTS(SELECT 1 FROM game_round_events WHERE round_id=? AND kind=? AND json_extract(payload_json,'$.episodeSeq')=?)`,...ownArgs,p.roundId,kind,episode),...sync(p));
+  out.push(guard(`NOT(${ownOffer}) OR EXISTS(SELECT 1 FROM game_round_events WHERE round_id=? AND kind=? AND json_extract(payload_json,'$.episodeSeq')=?)`,...ownArgs,p.roundId,kind,episode),...sync(p,ownOffer,ownArgs));
  }
  return out;
 }
@@ -111,53 +111,10 @@ async function batch(db:D1Database,plans:Statement[]){
  const result=await db.batch(plans.map(s=>db.prepare(s.sql).bind(...s.values)));
  return{rows:result.flatMap(r=>r.results??[]).filter(r=>typeof r==='object'&&r!==null&&!Object.hasOwn(r,'__scene_guard')),changes:result.map(r=>r.meta.changes)};
 }
-export function planFrameworkActivation(value:unknown,now:number):Statement[]{
- const p=activationSchema.parse(value),reused=`NOT EXISTS(SELECT 1 FROM json_each(?) j WHERE NOT EXISTS(SELECT 1 FROM game_event_instances e WHERE e.story_session_id=? AND e.binding_id=json_extract(j.value,'$.bindingId') AND e.event_id=json_extract(j.value,'$.eventId') AND e.event_version=json_extract(j.value,'$.eventVersion') AND e.repeat_group=json_extract(j.value,'$.repeatGroup')))`,serialized=JSON.stringify(p.instances);
- const plans=[guard(active,...authArgs(p,now)),guard(`EXISTS(SELECT 1 FROM game_story_sessions WHERE story_session_id=? AND round_id=? AND episode_seq=? AND chapter_status='playing' AND current_node_id=? AND (progress_revision=? OR (${reused})))`,p.storySessionId,p.roundId,p.episodeSeq,p.nodeId,p.expectedRevision,serialized,p.storySessionId),
-  stmt(`UPDATE game_story_sessions SET progress_revision=progress_revision+1,updated_at=? WHERE story_session_id=? AND progress_revision=? AND NOT(${reused})`,now,p.storySessionId,p.expectedRevision,serialized,p.storySessionId),guard(`changes()=1 OR (${reused})`,serialized,p.storySessionId)];
- for(const event of p.instances){
-  plans.push(guard(`EXISTS(SELECT 1 FROM game_event_instances WHERE story_session_id=? AND binding_id=?) OR NOT EXISTS(SELECT 1 FROM game_event_instances e JOIN game_story_sessions s ON s.story_session_id=e.story_session_id WHERE s.round_id=? AND e.repeat_group=? AND ((e.story_session_id=? AND e.status IN('active','completed')) OR (?='round' AND e.status='completed')))`,p.storySessionId,event.bindingId,p.roundId,event.repeatGroup,p.storySessionId,event.repeatScope));
-  plans.push(stmt(`INSERT INTO game_event_instances SELECT ?,?,?,?,?,?,?,json(?),1,?,? WHERE NOT EXISTS(SELECT 1 FROM game_event_instances WHERE story_session_id=? AND binding_id=?)`,event.instanceId,p.storySessionId,event.bindingId,event.eventId,event.eventVersion,event.repeatGroup,event.status,event.stateJson,now,event.status==='cancelled'?now:null,p.storySessionId,event.bindingId));
-  plans.push(guard(`changes()=1 OR EXISTS(SELECT 1 FROM game_event_instances WHERE story_session_id=? AND binding_id=? AND event_id=? AND event_version=? AND repeat_group=?)`,p.storySessionId,event.bindingId,event.eventId,event.eventVersion,event.repeatGroup));
-  if(event.status==='active')plans.push(stmt(`INSERT INTO game_round_events SELECT ?,r.round_id,r.last_event_seq+1,NULL,NULL,'story.event.started',json_object('episodeSeq',?,'storySessionId',?,'bindingId',?,'eventInstanceId',?),? FROM game_rounds r WHERE r.round_id=? AND EXISTS(SELECT 1 FROM game_event_instances WHERE event_instance_id=?) AND NOT EXISTS(SELECT 1 FROM game_round_events WHERE round_id=r.round_id AND kind='story.event.started' AND json_extract(payload_json,'$.eventInstanceId')=?)`,event.eventSequenceId,p.episodeSeq,p.storySessionId,event.bindingId,event.instanceId,now,p.roundId,event.instanceId,event.instanceId),guard(`EXISTS(SELECT 1 FROM game_round_events WHERE round_id=? AND kind='story.event.started' AND json_extract(payload_json,'$.eventInstanceId')=(SELECT event_instance_id FROM game_event_instances WHERE story_session_id=? AND binding_id=?))`,p.roundId,p.storySessionId,event.bindingId),...sync(p));
- }
- // 負向機率裁定也要推進恢復游標；系統通知不包含 hidden Binding 名稱、數量或條件。
- const own=`EXISTS(SELECT 1 FROM json_each(?) j JOIN game_event_instances e ON e.event_instance_id=json_extract(j.value,'$.instanceId') WHERE e.story_session_id=?)`;
- plans.push(stmt(`INSERT INTO game_round_events SELECT ?,r.round_id,r.last_event_seq+1,NULL,NULL,'story.state.updated',json_object('episodeSeq',?,'storySessionId',?,'progressRevision',(SELECT progress_revision FROM game_story_sessions WHERE story_session_id=?)),? FROM game_rounds r WHERE r.round_id=? AND ${own} AND NOT EXISTS(SELECT 1 FROM game_round_events WHERE event_id=?)`,p.activationEventId,p.episodeSeq,p.storySessionId,p.storySessionId,now,p.roundId,serialized,p.storySessionId,p.activationEventId),guard(`NOT(${own}) OR EXISTS(SELECT 1 FROM game_round_events WHERE event_id=? AND round_id=? AND kind='story.state.updated')`,serialized,p.storySessionId,p.activationEventId,p.roundId),...sync(p));
- // revision 在插入前更新，因此完全重播不重置答案／狀態，也不依賴毫秒時間判斷。
- return plans;
-}
-
-export function planFrameworkAction(value:unknown,now:number):Statement[]{
- const p=actionSchema.parse(value),fresh=`NOT EXISTS(${receipt})`,replay=`EXISTS(${receipt} AND kind=? AND json_extract(payload_json,'$.requestPayload')=?)`,replayArgs=[...receiptArgs(p),p.kind,p.requestPayload],body=JSON.stringify({...JSON.parse(p.payload),requestPayload:p.requestPayload,episodeSeq:p.episodeSeq,storySessionId:p.storySessionId});
- const plans=[guard(active,...authArgs(p,now)),guard(`${replay} OR (${fresh} AND EXISTS(SELECT 1 FROM game_story_sessions WHERE story_session_id=? AND round_id=? AND episode_seq=? AND chapter_status='playing' AND current_node_id=? AND progress_revision=?))`,...replayArgs,...receiptArgs(p),p.storySessionId,p.roundId,p.episodeSeq,p.nodeId,p.expectedRevision)];
- if(p.instance){const event=p.instance;
-  plans.push(guard(`${replay} OR EXISTS(SELECT 1 FROM game_event_instances WHERE event_instance_id=? AND story_session_id=? AND binding_id=? AND event_version=? AND status='active' AND revision=?)`,...replayArgs,event.instanceId,p.storySessionId,event.bindingId,event.eventVersion,event.expectedRevision));
-  plans.push(stmt(`UPDATE game_event_instances SET status=?,state_json=json(?),revision=revision+1,completed_at=? WHERE event_instance_id=? AND ${fresh}`,event.status,event.stateJson,event.status==='completed'?now:null,event.instanceId,...receiptArgs(p)),guard(`changes()=1 OR ${replay}`,...replayArgs));
- }
- plans.push(stmt(`UPDATE game_story_sessions SET current_node_id=?,chapter_status=?,progress_revision=progress_revision+1,updated_at=? WHERE story_session_id=? AND ${fresh}`,p.nextNodeId,p.completed?'completed':'playing',now,p.storySessionId,...receiptArgs(p)),guard(`changes()=1 OR ${replay}`,...replayArgs));
- if(p.completed){
-  plans.push(stmt(`UPDATE game_event_instances SET status='cancelled',completed_at=?,revision=revision+1 WHERE story_session_id=? AND status='active' AND ${fresh}`,now,p.storySessionId,...receiptArgs(p)),guard(`NOT EXISTS(SELECT 1 FROM game_event_instances WHERE story_session_id=? AND status='active')`,p.storySessionId));
-  plans.push(stmt(`UPDATE game_interaction_instances SET status='cancelled',completed_at=?,revision=revision+1 WHERE story_session_id=? AND status='active' AND ${fresh}`,now,p.storySessionId,...receiptArgs(p)),guard(`NOT EXISTS(SELECT 1 FROM game_interaction_instances WHERE story_session_id=? AND status='active')`,p.storySessionId));
-  plans.push(stmt(`UPDATE game_scene_visits SET left_at=? WHERE story_session_id=? AND left_at IS NULL AND ${fresh}`,now,p.storySessionId,...receiptArgs(p)),guard(`EXISTS(SELECT 1 FROM game_scene_visits WHERE story_session_id=? AND left_at IS NOT NULL)`,p.storySessionId));
- }
- plans.push(stmt(`INSERT INTO game_round_events SELECT ?,r.round_id,r.last_event_seq+1,?,?,?,json(?),? FROM game_rounds r WHERE r.round_id=? AND ${fresh}`,p.eventId,p.accountId,p.clientRequestId,p.kind,body,now,p.roundId,...receiptArgs(p)),guard(`changes()=1 OR ${replay}`,...replayArgs),...sync(p));
- const events:{eventId:string;kind:string;body:string}[]=[];
- if(p.instance?.status==='completed')events.push({eventId:p.instance.instanceId,kind:'story.event.completed',body:JSON.stringify({episodeSeq:p.episodeSeq,storySessionId:p.storySessionId,bindingId:p.instance.bindingId,eventInstanceId:p.instance.instanceId})});
- if(p.nodeId!==p.nextNodeId)events.push({eventId:p.nodeEventId,kind:'story.node_changed',body:JSON.stringify({episodeSeq:p.episodeSeq,storySessionId:p.storySessionId,nodeId:p.nextNodeId})});
- if(p.completed)events.push({eventId:p.completionEventId,kind:'chapter.completed',body:JSON.stringify({episodeSeq:p.episodeSeq,storySessionId:p.storySessionId,nodeId:p.nextNodeId})});
- for(const event of events){const body=JSON.stringify({...JSON.parse(event.body),sourceEventId:p.eventId});
-  plans.push(stmt(`INSERT INTO game_round_events SELECT ?,r.round_id,r.last_event_seq+1,NULL,NULL,?,json(?),? FROM game_rounds r WHERE r.round_id=? AND EXISTS(SELECT 1 FROM game_round_events WHERE event_id=? AND round_id=r.round_id) AND NOT EXISTS(SELECT 1 FROM game_round_events WHERE round_id=r.round_id AND kind=? AND json_extract(payload_json,'$.sourceEventId')=?)`,event.eventId,event.kind,body,now,p.roundId,p.eventId,event.kind,p.eventId));
-  plans.push(guard(`NOT EXISTS(SELECT 1 FROM game_round_events WHERE event_id=? AND round_id=?) OR EXISTS(SELECT 1 FROM game_round_events WHERE round_id=? AND kind=? AND json_extract(payload_json,'$.sourceEventId')=?)`,p.eventId,p.roundId,p.roundId,event.kind,p.eventId),...sync(p));
- }
- plans.push(stmt(`SELECT sequence,kind FROM game_round_events WHERE round_id=? AND actor_account_id=? AND client_request_id=?`,...receiptArgs(p)));return plans;
-}
 async function authorizedBatch(db:D1Database,value:unknown,now:number,plans:Statement[]){
  const started=Date.now(),current=()=>now+Math.max(0,Date.now()-started);await assertFrameworkMember(db,value,current());
  try{return await batch(db,plans);}catch(error){await assertFrameworkMember(db,value,current());throw error;}
 }
-export async function executeFrameworkActivation(db:D1Database,value:unknown,now=Date.now()){return authorizedBatch(db,value,now,planFrameworkActivation(value,now));}
-export async function executeFrameworkAction(db:D1Database,value:unknown,now=Date.now()){return authorizedBatch(db,value,now,planFrameworkAction(value,now));}
 export async function executeFrameworkMessage(db:D1Database,value:unknown,now=Date.now()){
  const p=storySchemas['story.message.send'].parse(value);
  return authorizedBatch(db,p,now,planStoryCommand('story.message.send',p,now,{allowPendingRoundChat:true}));
@@ -206,7 +163,7 @@ export function planFrameworkVote(value:unknown,catalog:VerifiedFrameworkCatalog
  // chosen 的存在是獨立 guard；最後一票不能只提交票卻留下不可恢復的空決議。
  plans.push(stmt(`WITH ${selectionCte} SELECT CASE WHEN NOT EXISTS(SELECT 1 FROM decision) OR EXISTS(SELECT 1 FROM chosen) THEN 1 ELSE json('NO_PLAYABLE_STORY') END AS __scene_guard`,...context));
  // 共用初始化裡的 gate 是相關子查詢，必須有自己的 CTE（guard 並非 INSERT 的延續）。
- const initialize=initializeSelection(p,context,p.episodeSeq,now,own,ownArgs).map(s=>s.sql.startsWith('SELECT CASE')&&s.sql.includes('FROM decision')?{...s,sql:`WITH ${selectionCte} ${s.sql}`,values:[...context,...s.values]}:s);
+ const initialize=initializeSelection(p,context,p.episodeSeq,now,own,ownArgs).map(s=>!s.sql.startsWith('WITH')&&s.sql.includes('FROM decision')?{...s,sql:`WITH ${selectionCte} ${s.sql}`,values:[...context,...s.values]}:s);
  plans.push(...initialize,stmt(`SELECT sequence,kind FROM game_round_events WHERE round_id=? AND actor_account_id=? AND client_request_id=?`,...receiptArgs(p)));return plans;
 }
 
@@ -224,15 +181,16 @@ const latestEpisode=`SELECT MAX(COALESCE((SELECT MAX(episode_seq) FROM game_stor
 export async function readFrameworkSnapshot(db:D1Database,value:unknown,now=Date.now()){
  const p=memberSchema.parse(value),episode=latestEpisode,args=[p.roundId,p.roundId];
  return authorizedBatch(db,p,now,[guard(active,...authArgs(p,now)),
-  stmt(`SELECT 'round' AS record_type,'scene-event.v1' AS framework,r.round_id,r.account_low_id,r.account_high_id,r.last_event_seq,r.story_offer_category_ids_json,m.initiator_account_id,(${episode}) AS episode_seq FROM game_rounds r JOIN match_invitations m ON m.invitation_id=r.invitation_id WHERE r.round_id=?`,...args,p.roundId),
+  stmt(`SELECT 'round' AS record_type,'scene-event.v2' AS framework,r.round_id,r.account_low_id,r.account_high_id,r.last_event_seq,r.story_offer_category_ids_json,m.initiator_account_id,(${episode}) AS episode_seq FROM game_rounds r JOIN match_invitations m ON m.invitation_id=r.invitation_id WHERE r.round_id=?`,...args,p.roundId),
   stmt(`SELECT 'offers' AS record_type,CASE WHEN (${episode})=1 THEN r.story_offer_category_ids_json ELSE (SELECT json_extract(payload_json,'$.categoryIds') FROM game_round_events WHERE round_id=r.round_id AND kind='story.episode.offers.frozen' AND json_extract(payload_json,'$.episodeSeq')=(${episode})) END AS category_ids_json FROM game_rounds r WHERE r.round_id=?`,...args,...args,p.roundId),
   stmt(`SELECT 'category' AS record_type,category_id,code,title FROM content_story_categories WHERE category_id IN(SELECT value FROM game_rounds r,json_each(r.story_offer_category_ids_json) WHERE r.round_id=?) OR category_id IN(SELECT value FROM game_round_events e,json_each(e.payload_json,'$.categoryIds') WHERE e.round_id=? AND e.kind='story.episode.offers.frozen' AND json_extract(e.payload_json,'$.episodeSeq')=(${episode}))`,p.roundId,p.roundId,...args),
   stmt(`SELECT 'story' AS record_type,s.*,cat.code AS selected_category_code FROM game_story_sessions s JOIN content_story_categories cat ON cat.category_id=s.selected_category_id WHERE s.round_id=? AND s.episode_seq=(${episode})`,p.roundId,...args),
   stmt(`SELECT 'vote' AS record_type,e.actor_account_id,CASE WHEN e.actor_account_id=? OR EXISTS(SELECT 1 FROM game_story_sessions WHERE round_id=e.round_id AND episode_seq=json_extract(e.payload_json,'$.episodeSeq')) THEN e.payload_json ELSE json_object('episodeSeq',json_extract(e.payload_json,'$.episodeSeq')) END AS payload_json FROM game_round_events e WHERE e.round_id=? AND e.kind='story.category.vote.submitted' AND json_extract(e.payload_json,'$.episodeSeq')=(${episode}) AND e.sequence=(SELECT MAX(v.sequence) FROM game_round_events v WHERE v.round_id=e.round_id AND v.kind=e.kind AND v.actor_account_id=e.actor_account_id AND json_extract(v.payload_json,'$.episodeSeq')=json_extract(e.payload_json,'$.episodeSeq'))`,p.accountId,p.roundId,...args),
   stmt(`SELECT 'consent' AS record_type,e.actor_account_id,e.payload_json FROM game_round_events e WHERE e.round_id=? AND e.kind='story.next.requested' AND json_extract(e.payload_json,'$.completedEpisodeSeq')=(${episode}) AND e.sequence=(SELECT MAX(v.sequence) FROM game_round_events v WHERE v.round_id=e.round_id AND v.kind=e.kind AND v.actor_account_id=e.actor_account_id AND json_extract(v.payload_json,'$.completedEpisodeSeq')=json_extract(e.payload_json,'$.completedEpisodeSeq'))`,p.roundId,...args),
+  stmt(`SELECT 'participant_progress' AS record_type,q.* FROM game_story_participant_progress q JOIN game_story_sessions s ON s.story_session_id=q.story_session_id WHERE s.round_id=? AND s.episode_seq=(${episode})`,p.roundId,...args),
+  stmt(`SELECT 'cue_event' AS record_type,e.sequence,e.payload_json FROM game_round_events e WHERE e.round_id=? AND json_extract(e.payload_json,'$.episodeSeq')=(${episode}) AND e.kind='story.track.updated' AND (e.actor_account_id=? OR json_extract(e.payload_json,'$.trackScope')='shared') ORDER BY e.sequence DESC LIMIT 1`,p.roundId,...args,p.accountId),
   stmt(`SELECT 'event_instance' AS record_type,e.*,(SELECT MAX(sequence) FROM game_round_events h WHERE h.round_id=s.round_id AND h.kind='story.event.started' AND json_extract(h.payload_json,'$.eventInstanceId')=e.event_instance_id) AS event_seq FROM game_event_instances e JOIN game_story_sessions s ON s.story_session_id=e.story_session_id WHERE s.round_id=? AND s.episode_seq=(${episode})`,p.roundId,...args),
-  stmt(`SELECT DISTINCT 'event_history' AS record_type,s.round_id,e.story_session_id,e.binding_id,e.repeat_group,e.status FROM game_event_instances e JOIN game_story_sessions s ON s.story_session_id=e.story_session_id WHERE s.round_id=? AND e.status IN('active','completed')`,p.roundId),
-  stmt(`SELECT 'fact_event' AS record_type,e.kind,e.payload_json FROM game_round_events e JOIN game_story_sessions s ON s.story_session_id=json_extract(e.payload_json,'$.storySessionId') WHERE e.round_id=? AND s.episode_seq=(${episode}) AND e.kind IN('story.node_changed','story.choice.committed') ORDER BY e.sequence LIMIT 4001`,p.roundId,...args),
+  stmt(`SELECT DISTINCT 'event_history' AS record_type,s.round_id,e.story_session_id,e.binding_id,e.repeat_group,e.track_scope,e.status FROM game_event_instances e JOIN game_story_sessions s ON s.story_session_id=e.story_session_id WHERE s.round_id=? AND e.status IN('active','completed')`,p.roundId),
   stmt(`SELECT DISTINCT 'completed_narrative' AS record_type,c.story_id FROM game_story_sessions s JOIN content_story_catalog c ON c.catalog_id=s.catalog_id JOIN game_rounds h ON h.round_id=s.round_id JOIN game_rounds r ON r.account_low_id=h.account_low_id AND r.account_high_id=h.account_high_id WHERE r.round_id=? AND s.chapter_status='completed'`,p.roundId),guard(active,...authArgs(p,now))]);
 }
 /** 私有固定命令：receipt 先於 R2／RNG 恢復，未知結果也先查 receipt，不重新抽選。 */

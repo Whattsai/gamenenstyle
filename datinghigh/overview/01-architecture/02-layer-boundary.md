@@ -36,11 +36,11 @@ Application 的 `Media/` 定義壓縮、provider 與媒體儲存介面；Infrast
 
 R2 adoption CAS／ready Manifest 管套組完整性，D1 Profile revision 與條件交易管正式選用；取消以既有 revision fence 阻止晚到提交。`AvatarReadService` 經 `IAvatarReadStore` 讀固定內部 binary URL；Worker `round-avatar.ts` 保有 Session、Round、claims 與目前選角權威，物件讀取後重新驗證授權。
 
-`StoryPresentationPolicy` 是無 I/O 的內容規則。免費角色只有 public 目錄的一份正式 WebP；前端靜態匯入與 Worker ASSETS 讀取共用來源。
+`SceneEventTrackPolicy` 是無 I/O 的角色進度、共享世界與事件規則。免費角色只有 public 目錄的一份正式 WebP；前端靜態匯入與 Worker ASSETS 讀取共用來源。
 
 ## 劇情與前端
 
-`StoryGraphPolicy`、推薦與文字政策屬 Domain；HTTP 與 WebSocket 共用 `StoryDialogueService`，依釘選 manifest 計算轉移。`IRoundRealtimeNotifier` 不含 Cloudflare 型別；adapter 只發送提交成功後的安全提示。
+`SceneEventTrackPolicy`、推薦與文字政策屬 Domain；Publisher 的嚴格四層 reader 與有限狀態可達性驗證由 Worker 共用；HTTP 與 WebSocket 共用 `StoryDialogueService`，依釘選 manifest 計算轉移。`IRoundRealtimeNotifier` 不含 Cloudflare 型別；adapter 只發送提交成功後的安全提示。
 
 `app/` 組合畫面與導覽；`src/api.ts` 統一 HTTP、refresh 與未知結果復原；`session.tsx` 管應用狀態，`storage*.ts`／`flow.ts` 限制持久化欄位，Google 平台元件隔離 SDK。頁面不得自行持久化平台 token、採信 client 自報身分，或繞過 ApiClient 重送 mutation。
 

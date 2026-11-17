@@ -1,57 +1,63 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {buildSceneEventBundle} from '../scene-event-content-policy.mjs';
+import {buildTrackFixture} from '../../tests/support/scene-event-content-fixture.mjs';
+import {validateSceneEventBundles} from '../scene-event-publish-policy.mjs';
 const root=new URL('../../',import.meta.url);
-const source=JSON.parse(fs.readFileSync(new URL('../../contracts/story-scenes.json',import.meta.url),'utf8')).stories[0];
-const settings=()=>({sceneCatalogId:'019a281e-0000-7000-8000-000000004001',narrativeCatalogId:'019a281e-0000-7000-8000-000000004002',sceneId:'rain-bookshop',sceneVersion:'v1',narrativeId:'rain-bookshop-lost-note',narrativeVersion:'v1',capabilities:['bookshop'],eligibleCategoryCodes:['romance'],categories:[{categoryId:'019a281e-0000-7000-8000-000000004003',code:'romance',version:'v1',title:'浪漫',interestTagIds:['reading'],recommendationPriority:1}]});
+const valid=async options=>{const b=buildTrackFixture(root,options);await validateSceneEventBundles([b]);return b;};
 
-test('SEF content split preserves the entire approved scene, nodes and two endings without copying assets',()=>{
- const bundle=buildSceneEventBundle(source,root,settings());
- assert.deepEqual(bundle.scene.manifest.scenePresentation,source.scenePresentation);
- assert.deepEqual(bundle.scene.manifest.audioCues,source.audioCues);
- assert.deepEqual(bundle.narrative.manifest.nodes,source.nodes);
- assert.equal(bundle.narrative.manifest.nodes.filter(n=>n.ending).length,2);
- assert.equal(bundle.narrative.manifest.scenePresentation,undefined);assert.equal(bundle.narrative.manifest.assets,undefined);
- assert.equal(bundle.assets.length,source.assets.length);
- assert.deepEqual(bundle.narrative.manifest.eligibleCategoryCodes,['romance']);
- const cooperative=bundle.events.find(e=>e.manifest.moduleType==='cooperative-choice');
- assert.equal(cooperative.manifest.sameNext,undefined);
- assert.ok(bundle.narrative.manifest.eventBindings.find(b=>b.definition.eventId===cooperative.id).outcomeTransitions.same);
+test('malformed presentation containers retain the safe content error instead of failing inside local diagnostics',async()=>{
+ const bundle=buildTrackFixture(root);bundle.narrative.manifest.eventBindings={};
+ bundle.narrative.bytes=Buffer.from(JSON.stringify(bundle.narrative.manifest));bundle.narrative.sha256=createHash('sha256').update(bundle.narrative.bytes).digest('hex');bundle.narrativeIndex.manifestSha256=bundle.narrative.sha256;
+ await assert.rejects(()=>validateSceneEventBundles([bundle]),error=>{assert.equal(error.message,'INVALID_STORY_CONTENT');return true;});
 });
 
-test('every immutable layer carries matching bytes, version, key and SHA including the global pool',()=>{
- const a=buildSceneEventBundle(source,root,settings()),b=buildSceneEventBundle(source,root,settings());
- assert.equal(a.objects.length,source.interactions.length+3);
- for(const object of a.objects){assert.equal(object.sha256,createHash('sha256').update(object.bytes).digest('hex'));assert.ok(object.key.endsWith('/'+object.version+'/manifest.json'));assert.equal(object.sha256,b.objects.find(o=>o.key===object.key).sha256);assert.doesNotMatch(object.bytes.toString(),/"file":|private\/|Gemini|avatarVersion/);}
- assert.equal(a.narrative.manifest.scene.sha256,a.scene.sha256);assert.equal(a.narrative.manifest.globalPool.sha256,a.pool.sha256);
- for(const binding of a.narrative.manifest.eventBindings)assert.ok(a.events.some(e=>e.key===binding.definition.key&&e.sha256===binding.definition.sha256));
-});
-
-test('publisher refuses mismatched categories, unsupported modules and invalid presentation references',()=>{
- for(const mutate of [s=>s.eligibleCategoryCodes=['mystery'],s=>s.bindingOverrides={bookmark:{presentationEffects:{cameraId:'missing'}}},s=>s.bindingOverrides={bookmark:{presentationEffects:{expressionId:'angry'}}},s=>s.bindingOverrides={bookmark:{presentationEffects:{url:'https://invalid.test'}}},s=>s.bindingOverrides={bookmark:{presentationEffects:{hotspotVisibility:{missing:true}}}}]){const options=settings();mutate(options);assert.throws(()=>buildSceneEventBundle(source,root,options),/INVALID_STORY_CONTENT/);}
- const invalid=structuredClone(source);invalid.interactions[0].moduleType='not-implemented';assert.throws(()=>buildSceneEventBundle(invalid,root,settings()),/INVALID_STORY_CONTENT/);
-});
-
-test('publisher rejects scripts, missing binding dependencies and dependency cycles before producing an index',()=>{
- for(const triggerConditions of [{script:'true'},{event_completed:'narrative:rain-bookshop-lost-note:missing'},{all:[]}, {all:[{node_entered:'missing'},{script:'ignored'}]}]){
-  assert.throws(()=>buildSceneEventBundle(source,root,{...settings(),bindingOverrides:{bookmark:{triggerConditions}}}),/INVALID_STORY_CONTENT/);
+test('invalid event presentation identifies a missing camera, expression or audio reference without reflecting private input',async()=>{
+ for(const [step,diagnostic]of [
+  [{type:'camera',cameraId:'missing-camera',durationMs:100},'camera missing-camera'],
+  [{type:'expression',role:'inviter',expression:'unknown-expression'},'expression unknown-expression'],
+  [{type:'audio',cueId:'unpublished-audio'},'audio unpublished-audio'],
+  [{type:'expression',role:'inviter',expression:'private/path?token=fixture'},'expression'],
+ ]){
+  const bundle=buildTrackFixture(root,{mutate(content){content.narrative.eventBindings[0].actions[0].presentationSteps=[step];}});
+  await assert.rejects(()=>validateSceneEventBundles([bundle]),error=>{
+   assert.equal(error.message,`INVALID_STORY_CONTENT: invalid presentation ${diagnostic}`);
+   assert.doesNotMatch(error.message,/private\/|token=|story-content\//);return true;
+  });
  }
- const prefix='narrative:rain-bookshop-lost-note:';
- assert.throws(()=>buildSceneEventBundle(source,root,{...settings(),bindingOverrides:{bookmark:{triggerConditions:{event_completed:prefix+'reading-path'}},'reading-path':{triggerConditions:{event_completed:prefix+'bookmark'}}}}),/INVALID_STORY_CONTENT/);
 });
-test('the existing object can belong to the scene while the cooperative gate remains narrative-owned',()=>{
- const bundle=buildSceneEventBundle(source,root,{...settings(),bindingSources:{bookmark:'scene'}});
- assert.deepEqual(bundle.narrative.manifest.eventBindings.map(b=>b.bindingId),['reading-path']);
- assert.equal(bundle.scene.manifest.sceneEventBindings[0].bindingId,'bookmark');assert.equal(bundle.scene.manifest.sceneEventBindings[0].scope,'scene');
- assert.deepEqual(bundle.narrative.manifest.nodes,source.nodes);
- assert.throws(()=>buildSceneEventBundle(source,root,{...settings(),bindingSources:{'reading-path':'scene'}}),/INVALID_STORY_CONTENT/);
+
+test('unsupported publication module reports a public module ID but never reflects arbitrary input',async()=>{
+ for(const moduleType of ['execute-script','private/path?token=fixture']){
+  const bundle=buildTrackFixture(root,{mutate(content){content.eventDefinitions[0].manifest.moduleType=moduleType;}});
+  await assert.rejects(()=>validateSceneEventBundles([bundle]),error=>{
+   assert.equal(error.message,moduleType==='execute-script'?'INVALID_STORY_CONTENT: unsupported module execute-script':'INVALID_STORY_CONTENT');
+   assert.doesNotMatch(error.message,/private\/|token=|story-content\//);return true;
+  });
+ }
 });
-test('a scene or global binding cannot declare itself a required narrative main event',()=>{
- for(const scope of ['scene','global'])assert.throws(()=>buildSceneEventBundle(source,root,{...settings(),bindingSources:{bookmark:scope},bindingOverrides:{bookmark:{narrativeRole:'main',requiredForEnding:true}}}),/INVALID_STORY_CONTENT/);
+
+test('missing publication dependency identifies only its public kind, ID and version, without leaking raw keys',async()=>{
+ const bundle=buildTrackFixture(root),missing=bundle.events[0];bundle.objects=bundle.objects.filter(o=>o.key!==missing.key);
+ await assert.rejects(()=>validateSceneEventBundles([bundle]),error=>{
+  assert.equal(error.message,`INVALID_STORY_CONTENT: missing events ${missing.id}@${missing.version}`);
+  assert.doesNotMatch(error.message,/story-content\/|private\/|file:|[A-Z]:\\/);return true;
+ });
 });
-test('a required ending event or the only cooperative gate cannot be randomly cancelled forever',()=>{
- for(const requiredForEnding of [true,false])assert.throws(()=>buildSceneEventBundle(source,root,{...settings(),bindingOverrides:{'reading-path':{requiredForEnding,selectionMode:'weighted_random',probability:.5}}}),/INVALID_STORY_CONTENT/);
- assert.doesNotThrow(()=>buildSceneEventBundle(source,root,{...settings(),bindingOverrides:{'reading-path':{visibility:'hidden',selectionMode:'weighted_random',probability:1}}}));
+test('omitting a declared scene asset or changing its MIME cannot publish an incomplete scene',async()=>{
+ for(const change of ['missing','mime']){
+  const bundle=buildTrackFixture(root),asset=bundle.assets[0];
+  if(change==='missing'){bundle.assets=bundle.assets.filter(a=>a.key!==asset.key);bundle.objects=bundle.objects.filter(a=>a.key!==asset.key);}else asset.mimeType='audio/wav';
+  await assert.rejects(()=>validateSceneEventBundles([bundle]),/INVALID_STORY_CONTENT/);
+ }
+});
+test('v2 has independent tracks, shared bindings and two endings; immutable layers do not copy private assets',async()=>{
+ const b=await valid();assert.equal(b.narrative.manifest.tracks.inviter.nodes.length,8);assert.equal(b.narrative.manifest.tracks.acceptor.nodes.length,8);assert.equal(b.narrative.manifest.sharedEventBindings.length,3);assert.equal(b.narrative.manifest.endings.length,2);assert.equal(b.narrative.manifest.assets,undefined);
+ const same=buildTrackFixture(root);for(const object of b.objects){assert.equal(object.sha256,createHash('sha256').update(object.bytes).digest('hex'));assert.equal(object.sha256,same.objects.find(o=>o.key===object.key).sha256);assert.doesNotMatch(object.bytes.toString(),/"file":|private\/|avatarVersion/);}
+ assert.equal(b.narrative.manifest.scene.sha256,b.scene.sha256);assert.equal(b.narrative.manifest.globalPool.sha256,b.pool.sha256);assert.equal(b.events.length,6);
+});
+for(const kind of ['category','module','camera','expression','bounds','hotspot','asset','script','color','audio','foreground','blank-line','dsl','dependency','role','random-required'])test('publication independently rejects '+kind,async()=>{
+ await assert.rejects(valid({mutate(c){const n=c.narrative,b=n.eventBindings[0],p=c.scene.scenePresentation;
+ if(kind==='category')n.eligibleCategoryCodes=['missing'];if(kind==='module')c.eventDefinitions[0].manifest.moduleType='execute-script';if(kind==='camera')n.tracks.inviter.nodes[0].presentation.cameraId='missing';if(kind==='expression')n.tracks.inviter.nodes[0].presentation.expression='real-emotion';if(kind==='bounds')p.cameras[0].portrait.height=99;if(kind==='hotspot')n.tracks.inviter.nodes[0].presentation.hotspotIds=['missing'];if(kind==='asset')p.backgroundAsset='private/user';if(kind==='script')p.cameras[0].script='alert(1)';if(kind==='color')p.cameras[0].tint='url(https://other.test)';if(kind==='audio')c.scene.audioCues['fx-gust']='private/photo';if(kind==='foreground')p.foregroundAsset=c.scene.audioAsset;if(kind==='blank-line')n.tracks.inviter.nodes[0].lines[0].text='   ';if(kind==='dsl')b.triggerConditions={script:'true'};if(kind==='dependency')b.triggerConditions={shared_event_completed:'narrative:missing:missing'};if(kind==='role')b.trackScope='shared';if(kind==='random-required')b.probability=.5;
+ }}),/INVALID_STORY_CONTENT/);
 });

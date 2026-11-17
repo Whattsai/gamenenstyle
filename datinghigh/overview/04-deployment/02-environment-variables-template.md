@@ -30,10 +30,10 @@ Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Go
 
 | 名稱 | 種類 | 用途 |
 |---|---|---|
-| EXPECTED_MIGRATION | var，必要 | default local 為0006_scene_event_framework.sql，ready查21表／零Trigger／場景事件索引；staging仍0005、16表，另依環境授權遷移；不轉入.NET |
+| EXPECTED_MIGRATION | var，必要 | default local 為0007_scene_event_tracks.sql，ready查21表／零Trigger／場景事件索引；staging仍0005、16表，另依環境授權遷移；不轉入.NET |
 | EMAIL_FROM | 一般設定，cloud必要 | 已完成sender domain驗證的寄件地址；不以任意地址替代 |
 | EMAIL | Email sender binding，cloud必要 | 平台寄信用；部署前必須實際配置 |
-| DB | D1 binding | 現行0006共21張自有表及migration metadata；Foundation／Avatar基線保持，欄位／索引見資料契約，不能換其他專案DB |
+| DB | D1 binding | 現行0007共21張自有表及migration metadata；Foundation／Avatar基線保持，欄位／索引見資料契約，不能換其他專案DB |
 | ROUND_TICKET_HMAC_KEY | Secret，至少32字元 | 僅Worker用於30秒一次性房間ticket；local產生32-byte Base64，已有值不覆寫，不傳Container／client |
 | STORY_CONTENT | 獨立R2 binding | local為datinghigh-local-story-content；named instance隔離，與FILES分離 |
 | GAME_ROOMS | SQLite Hibernation DO binding | GameRoomSocket，migration tag v2-game-rooms；不取代API Container DO |

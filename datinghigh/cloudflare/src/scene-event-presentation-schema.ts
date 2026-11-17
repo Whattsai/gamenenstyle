@@ -1,0 +1,6 @@
+import {z} from 'zod';
+const local=z.string().regex(/^[a-z][a-z0-9-]{0,63}$/),text=z.string().min(1).max(4000),hash=z.string().regex(/^[0-9a-f]{64}$/);
+const point=z.strictObject({x:z.number().min(0).max(1),y:z.number().min(0).max(1)});
+const scenePresentation=z.strictObject({version:z.literal('2.5d.v1'),backgroundAsset:local,foregroundAsset:local.optional(),cameras:z.array(z.strictObject({id:local,scale:z.number().min(1).max(2),focus:point,portrait:z.strictObject({x:z.number().min(.3).max(.7),headY:z.number().min(.04).max(.2),height:z.number().min(.7).max(2.2)}),foreground:z.boolean(),tint:z.string().regex(/^#[0-9a-f]{6}$/i),tintOpacity:z.number().min(0).max(.35)})).min(1).max(12),hotspots:z.array(z.strictObject({id:local,definitionId:local,label:text,x:z.number().min(0).max(1),y:z.number().min(0).max(1)})).max(24),foreground:z.array(z.strictObject({id:local,x:z.number().min(0).max(1),y:z.number().min(0).max(1),width:z.number().positive().max(1),height:z.number().positive().max(1),color:z.string().regex(/^#[0-9a-f]{6}$/i)})).max(24)});
+const asset=z.strictObject({id:local,key:z.string().regex(/^story-content\/assets\/[0-9a-f]{64}$/),sha256:hash,mimeType:z.enum(['image/png','image/jpeg','image/webp','audio/wav']),byteLength:z.number().int().min(1).max(8388608)}).refine(a=>a.key===`story-content/assets/${a.sha256}`);
+export {asset,scenePresentation};

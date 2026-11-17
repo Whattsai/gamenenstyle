@@ -1,146 +1,31 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-const root=fileURLToPath(new URL('../',import.meta.url));
-const tddPath='docs/tdd/SPEC-001-StoryDialogueAndExit-TDD.md',bddPath='docs/bdd/SPEC-001-StoryDialogueAndExit-BDD.md';
-const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const point=(file,anchor)=>{const lines=read(file).split(/\r?\n/),n=lines.findIndex(s=>s.includes(anchor));if(n<0)throw new Error('Missing evidence anchor: '+file+' '+anchor);return {file,line:n+1,anchor};};
-const d1='cloudflare/tests/story-dialogue-d1.integration.test.ts',sql='cloudflare/src/story-commands.ts',api='backend/tests/DatingHigh.Api.Tests/StoryDialogueEndpointTests.cs',app='backend/src/DatingHigh.Application/StoryDialogueService.cs',ui='frontend/client/src/StoryExperienceScreen.tsx',uiTest='frontend/client/tests/unit/story-dialogue-ui.test.tsx',web='tests/e2e/web/story-dialogue.spec.ts',native='tests/e2e/android/story-dialogue.mjs',ws='cloudflare/tests/story-dialogue-websocket.test.ts';
-const groups={
- init:{implementation:[['cloudflare/src/matching-commands.ts','INSERT INTO game_story_sessions']],tests:[[d1,'N1 accept atomically'],[d1,'N0 accept fails'],[web,'scene01 real Web↔Web']],reason:'同一接受 batch 建立凍結候選、兩筆claim、episode1與selected事件；逐步零列注入與雙端N1直接進場。'},
- rank:{implementation:[['cloudflare/src/matching-commands.ts','AS shared'],['backend/src/DatingHigh.Domain/StoryPolicies.cs','StoryRecommendationPolicy']],tests:[[d1,'additional catalogs use stable'],['backend/tests/DatingHigh.Unit.Tests/Application/StoryDialogueTests.cs','Recommendation_RanksShared']],reason:'排名在同一D1 batch直接讀當下兩方興趣與published Catalog，穩定取前三；純政策另驗共同／均衡／總命中與priority。N2/3僅隔離fixture，不是額外正式內容。'},
- vote:{implementation:[[sql,"if(command==='story.selection.vote')"],[app,'story.vote.submit']],tests:[[d1,'last committed vote wins'],[d1,'simultaneous same votes'],[api,'SafeOffersAndLatestVote']],reason:'真D1重建兩人各自最新有效票，原邀請方決勝；同ID重播不改票，隱藏對方選項；HTTP／Application與安全preview另驗。'},
- scene:{implementation:[['frontend/client/src/ADVStage.tsx','export function ADVStage'],[ui,"phase==='playing'"]],tests:[[uiTest,'N1 renders real scene'],[web,'scene01 real Web↔Web'],[native,'native-n1-one-authorized-fixture-portrait']],reason:'共用資料驅動ADV只呈現對方授權角色、3:4框、逐句／略過及明確旁白／NPC標示；新Web與Android使用明示幾何角色fixture驗流程，不代表正式全身美術或真Gemini品質通過。'},
- chat:{implementation:[[app,'message.send'],[sql,"if(command==='story.message.send')"],[ui,"message.committed"]],tests:[[d1,'Unicode scalar and unsafe text'],[d1,'concurrent chat keeps strict sequence'],[web,'scene01 real Web↔Web'],[native,'native-web-bidirectional-messages']],reason:'真兩人身份與釘選建議；Unicode scalar 1/500/501、HTML／控制字元／surrogate拒絕；提交後ACK、單調序號與同ID唯一事件，無假對方回答或假已讀。'},
- coop:{implementation:[[app,'cooperative-choice'],['frontend/client/src/InteractionRenderer.tsx','export function InteractionRenderer']],tests:[[api,'FullFirstStory_BranchCooperationAndChatRemainReal'],[uiTest,'cooperative waiting'],[web,'scene01 real Web↔Web'],[native,'native-real-cooperative-ending']],reason:'實例只綁StorySession；個人探索與雙人合作分開，未有對方真回答不補假答案，等待可聊天／回探索；同選與分歧走manifest定義的兩個結尾。'},
- graph:{implementation:[['backend/src/DatingHigh.Domain/StoryGraphPolicy.cs','public static void Validate'],['frontend/client/src/ADVStage.tsx','node.ending']],tests:[[api,'FullFirstStory_BranchCooperationAndChatRemainReal'],['tools/tests/story-content.test.mjs','content rejects'],[web,'scene01 real Web↔Web'],[native,'native-real-cooperative-ending']],reason:'完整無環可達圖、支線合流、兩個可達結局與章節completed；不自行end Round，章節後仍可聊天；音訊只明確點擊播放並在背景暫停。'},
- exit:{implementation:[[app,'EndAsync'],['cloudflare/src/matching-commands.ts',"case 'game.round.end'"],[ui,'<Modal visible={confirm}']],tests:[[d1,'simultaneous end and message'],[uiTest,'cancelling permanent exit'],[api,'ThirdPartyRevocationAndEnd'],[web,'scene01 real Web↔Web'],[native,'web-end-clears-native-private-ui']],reason:'正式二次確認永久pair排除，取消不寫；end與write線性化，原子釋放claim／取消active互動；雙端清私人畫面，原成員僅安全ended，第三人無私有內容。'},
- realtime:{implementation:[['cloudflare/src/room-socket.ts','class GameRoomSocket'],['frontend/client/src/RealtimeRoomClient.ts','async synchronize']],tests:[[ws,'handshake validates origin'],[ws,'revocation while connected'],['frontend/client/tests/unit/realtime-room-client.test.ts','disconnect rejects'],[web,'real commit with lost ACK'],[native,'native-foreground-cursor-recovery']],reason:'標準WS短效單次ticket、Origin／device／Round／family重新授權；斷線只重取票及cursor補漏，不自動重送寫入；真commit遺失ACK後同ID查回唯一事件。'},
- content:{implementation:[['cloudflare/src/story-content.ts','readStoryContent'],['tools/story-content-policy.mjs','validateStory']],tests:[[d1,'separate real R2'],['tools/tests/story-content.test.mjs','content rejects'],['tests/integration/story-dialogue-live.test.mjs','pinned-scene-and-real-separate-r2-assets']],reason:'獨立R2、釘選SHA／immutable版本，retired保留既有引用；讀取前後驗授權，private任意key／query／竄改拒絕；內容工具拒不完整圖及不合法素材。'},
- schema:{implementation:[['cloudflare/migrations/0005_story_dialogue_exit.sql','CREATE TABLE content_story_catalog']],tests:[[d1,'adds exactly four tables'],[d1,'controlled old game purge'],['tests/integration/local-game-maintenance.test.mjs','failed release rolls back'],['cloudflare/tests/matching-sessions-d1.integration.test.ts','cross-pair concurrent accept']],reason:'真D1驗0004→0005、四張新表與欄數、claims更名／UNIQUE／FK及零Trigger；只清核准非正式舊遊戲，帳號Profile逐欄保留；失敗回滾，CLI釋放亦實測。'},
- auth:{implementation:[[sql,'const round='],[app,'StatusAsync']],tests:[[d1,'chat is idempotent'],[d1,'illicit third claim'],[api,'ThirdPartyRevocationAndEnd'],[api,'RevokedFamilyAndSecondEpisode'],[ws,'revocation while connected']],reason:'所有業務寫入在真D1重驗帳號、當前family／cv、expiry、原配對身份與恰好兩筆claim；第三人、額外claim、撤銷與ended均fail closed。'},
- future:{implementation:[['cloudflare/migrations/0005_story_dialogue_exit.sql','CREATE TABLE game_story_sessions'],[sql,'episodeSeq:z.literal(1)']],tests:[[d1,'sequential episodes coexist'],[d1,'future episode fixture'],[d1,'future fixture freeze CAS'],[api,'RevokedFamilyAndSecondEpisode']],reason:'僅保留資料模型：同輪多個依序Session、每episode唯一、最多一個playing；隔離fixture驗offers.frozen、分場最新票、CAS及rollback；public固定episode1，沒有第二場入口。'}
-};
-const assignments={init:[1],rank:[2,3,4,24,35],vote:[5,6,23,25,26,33,34,38,39,45,46,47,56,57,58,59,60,69],scene:[7,32,55],chat:[8,9,36,37,44,61],coop:[10,11,12,31,41,63],graph:[13,14,15,64],exit:[16,17,27,28,29,48,49,65,66,67],realtime:[18,50,51,62,68],content:[19,30,52,53],schema:[21,22,40,54,71],auth:[42,43],future:[72,73,74,75,76,77,78,79]};
-const groupFor=new Map();for(const [group,ids] of Object.entries(assignments))for(const id of ids)groupFor.set(id,group);
-groupFor.set(33,'init');groupFor.set(34,'schema');groupFor.set(20,'graph');groupFor.set(70,'realtime');
-const pendingBdd={20:'Gate B需使用者完整實玩與確認，不能由自動測試代簽。',70:'本地雙Room隔離／presence及重連量測、真Container訊息讀回已有數據；雲端hibernation喚醒、Container冷啟動及成本尚未量測，不擴推雲端通過。'};
-for(const n of [56,57,58,59,60,69])pendingBdd[n]='N2/3引擎、API與共用元件有隔離驗證；只有scene-01正式內容，尚缺兩篇正式故事的雙平台真人UX證據，依Gate B後續驗收。';
-const pendingTdd={
- 'SD-UT-020':pendingBdd[20],'SD-IT-037':pendingBdd[70],
- 'SD-ET-012':pendingBdd[20],'SD-ET-036':pendingBdd[20],'SD-ET-034':pendingBdd[70],
- ...Object.fromEntries([13,20,21,22,23,24,33].map(n=>['SD-ET-'+String(n).padStart(3,'0'),'目前只有scene-01正式內容；N2/3的Domain／真D1／API／共用元件已驗，未把隔離內容fixture當作兩篇正式故事的Web／Android真人驗收。後續內容依Gate B再展開。']))
-};
-const evidence=group=>{const g=groups[group];return {implementation:g.implementation.map(p=>point(...p)),tests:g.tests.map(p=>point(...p)),review:g.reason};};
-const acIds=text=>[...new Set([...text.matchAll(/SD-AC-(\d{3})(?:\/(\d{3}))?/g)].flatMap(m=>[m[1],m[2]].filter(Boolean).map(n=>'SD-AC-'+n)))];
-const nativeEvidenceFile=path.join(root,'.local/evidence/story-android-both.json');const nativeVerified=fs.existsSync(nativeEvidenceFile)&&JSON.parse(fs.readFileSync(nativeEvidenceFile,'utf8')).status==='passed';
-const tdd=read(tddPath),matches=[...tdd.matchAll(/^- \[[ x]\] \*\*(SD-(UT|IT|API|ET)-\d{3})\*\*[^\n]*([\s\S]*?)(?=^- \[[ x]\] \*\*SD-|^## |$(?![\s\S]))/gm)];
-if(matches.length!==295)throw new Error('Expected 295 cases, got '+matches.length);
-const incremental=matches.filter(m=>Number(m[1].split('-').at(-1))>({UT:50,IT:61,API:37,ET:39}[m[2]]));
-matches.splice(0,matches.length,...matches.filter(m=>!incremental.includes(m)));
-const cases=matches.map(m=>{const source=m[0].match(/SD-BDD-(\d{3})/);let bdd=source?Number(source[1]):0;const n=Number(m[1].split('-').at(-1));if(!bdd){if(m[2]==='UT')bdd=n>=43?72+(n-43):71;if(m[2]==='IT')bdd=n>=50?72:71;if(m[2]==='API')bdd=77;if(m[2]==='ET')bdd=77;}
- const group=groupFor.get(bdd)||'future';const pending=pendingTdd[m[1]]??(m[2]==='ET'&&!nativeVerified?'完整Android雙結局suite尚未成功完成；途中證據不代簽整輪。':undefined);return {id:m[1],layer:m[2],source:point(tddPath,m[1]+'**'),acceptanceCriteria:acIds(m[0]),assertions:m[0].split(/\r?\n/).filter(s=>s.includes('**斷言**')).map(s=>s.trim()),bdd:'SD-BDD-'+String(bdd).padStart(3,'0'),status:pending?'partial':'verified',limitation:pending??null,...evidence(group)};});
-const allScenarios=[...read(bddPath).matchAll(/^### (SD-BDD-(\d{3}))：([^\n]+)/gm)];
-const scenarios=allScenarios.filter(m=>Number(m[2])<=79).map(m=>{const n=Number(m[2]);return {id:m[1],title:m[3],source:point(bddPath,'### '+m[1]),status:pendingBdd[n]?'partial':'verified',limitation:pendingBdd[n]??null,...evidence(groupFor.get(n))};});if(scenarios.length!==79)throw new Error('Expected 79 legacy scenarios');
-const unverified={status:'partial',limitation:'2026-11-12 增量尚未完成逐項全斷言／平台驗收；部分程式測試證據見 Verification 同日章節，不由腳本自動批准。',implementation:[],tests:[],review:'保留未驗收，不借用舊版成功證據。'};
-// 增量逐場證據與完整驗收分開；僅明確人工確認且完成斷言的原畫案例升為verified。
-const newGroups=[
- [[80,103,108],[[ui,'const portrait=']],[['frontend/client/tests/unit/story-visual-policy.test.tsx','SD-UT-051'],[web,'approved art: all sixteen']]],
- [[81,82],[['contracts/builtin-avatar-packs.json','"packs":'],['frontend/client/src/avatar-assets.ts','export']],[['tools/tests/builtin-avatar-assets.test.mjs','all 16 approved'],[web,'approved art: all sixteen']]],
- [[83],[['backend/src/DatingHigh.Infrastructure/Media/GeminiAvatarImageGenerator.cs','public const string PromptVersion']],[['backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarGeneratorTests.cs','Generate_ExplicitTwoPhotoRequest'],['tests/e2e/web/avatar-full-body-gemini-live.spec.ts','one full-body candidate for identity review only']]],
- [[84,85,86,87,88,89,91],[['frontend/client/src/avatar-adoption.ts','produceAvatarExpressions'],['cloudflare/src/avatar-adoption.ts','beginAvatarAdoption']],[['frontend/client/tests/unit/avatar-adoption.test.ts','B1 runs one awaited expression'],['cloudflare/tests/avatar-adoption-r2.integration.test.ts','SD-IT-067']]],
- [[92],[['cloudflare/src/round-avatar.ts','export async function avatarReadMedia']],[['cloudflare/tests/round-avatar-r2.integration.test.ts','round projection exposes only'],['backend/tests/DatingHigh.Api.Tests/AvatarExpressionEndpointTests.cs','PartnerProjection_HttpUsesAuthenticatedRound']]],
- [[93,94],[['cloudflare/src/avatar-notification.ts','export async function notifyAvatarSelection']],[['cloudflare/tests/round-avatar-r2.integration.test.ts','only a committed selection notifies'],[uiTest,'another avatar hint during an in-flight read']]],
- [[95,110],[['frontend/client/src/StoryPortrait.tsx','export function StoryPortrait']],[['frontend/client/tests/unit/story-portrait.test.tsx','all five new expressions decode'],['frontend/client/tests/unit/story-portrait.test.tsx','same asset version across dialogue']]],
- [[96,97,102,107],[['frontend/client/src/StoryStage.tsx','export function StoryStage'],['frontend/client/src/story-stage-geometry.ts','export function portraitFrame']],[['frontend/client/tests/unit/story-stage-geometry.test.ts','keeps the head safe'],['frontend/client/tests/unit/story-stage.test.tsx','two authoritative ending cameras differ']]],
- [[98,99,106],[[ui,'const mutate=']],[[uiTest,'chat drawer can close and reopen'],[uiTest,'unknown commit preserves payload']]],
- [[100,101],[['frontend/client/src/StoryStage.tsx','onInspect(h.definitionId)']],[['frontend/client/tests/unit/story-stage.test.tsx','visible scene hotspot opens local inspection'],[uiTest,'cooperative waiting can return to exploration']]],
- [[104,105],[['frontend/client/src/StoryAudio.tsx','export function StoryAudio']],[['frontend/client/tests/unit/story-audio.test.tsx','audio requires a gesture'],['frontend/client/tests/unit/story-audio.test.tsx','rejected audio remains muted']]],
- [[109],[['backend/src/DatingHigh.Infrastructure/Media/AvatarChromaMask.cs','public static byte[] Apply'],['backend/src/DatingHigh.Infrastructure/Media/ImageCompressionService.cs','if(options.LosslessWebp)']],[['backend/tests/DatingHigh.Unit.Tests/Infrastructure/ImageCompressionTests.cs','Compress_LosslessSprite'],['backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarChromaMaskTests.cs','DarkOutlineBesideWhiteClothes']]],
- [[90,112,113,114],[['tools/avatar-reset-policy.mjs','export async function applyAvatarResetPlan']],[['cloudflare/tests/avatar-reset-d1-r2.integration.test.ts','target validation refuses production'],['cloudflare/tests/avatar-reset-d1-r2.integration.test.ts','D1 rollback, cross-service failure']]],
- [[111,115],[['tools/avatar-reset-policy.mjs','avatarResetDevelopmentReady']],[['tools/tests/avatar-reset-policy.test.mjs','reset readiness requires pre-reset technical evidence']]]
-];
-const newLimits={
- 80:'已確認Gemini成品的Web5項／Android雙結局24項完整通過；逐層POV與權威節點斷言仍須合併覆核。',
- 81:null,
- 82:'80檔與人工一致性確認完整；尚待原生全16款切回／選用的完整平台矩陣。',
- 83:'Web真候選及相似度已確認；Android新B1前景7項通過，四成功候選額度與全身完整性拒絕的合併覆核未完。',
- 84:'尚缺跨Web／Android前景中斷與第二裝置改選的整體UX矩陣。',
- 85:'五檔ready→D1 CAS有證據；仍需合併正式採用／通知與失敗窗口的逐層完整覆核。',
- 86:'單元故障注入證明保留舊角並只補缺圖；Android QA31 503續做修正後，按鈕已送出狀態GET 200及下一表情POST，但該次API仍回503，完整補齊與正式採用未驗；取消／過期／結果不明原生操作未齊。',
- 87:'同帳號R2 CAS鎖與D1 revision fence已有測試；第二裝置實際UI提示矩陣待補。',
- 88:'來源／hash／版本／尺寸已驗；幾何metadata不等於完整缺腳／姿勢影像品質拒絕。',
- 89:'Android正式套組免費／保存切回、App重開同hash及0重產已通過；完整重登與不同資產版次失效仍待逐層合併覆核。',
- 90:'沒有半身升級API／UI；default local已完成精確avatar reset與保護hash驗證，新隔離profile的Web完整流程重播通過；Android重試點擊與Gate B仍未完成。',
- 91:'穩定request／revision及取消後晚到D1寫入有證據；最終採用ACK不明的雙平台UI矩陣未完。',
- 92:'用途隔離與R2讀後重驗已測；仍需逐層對照完整ACL斷言及平台重入。',
- 93:'只有正式D1提交後送不透明提示；新B1與對方收提示的跨平台矩陣未完。',
- 94:'去重／合併／重連校正無DB polling；尚待新成品提示風暴與平台量測。',
- 95:'五張解碼及句尾原子換包有UT；真Web／Android句中採用操作尚待完整覆核。',
- 96:'同一master遠中近與前景矩陣已有實作；新生成角色落地／遮擋需雙平台完整目視。',
- 97:'stage量測及頭部／熱區同矩陣已有測試；Android鍵盤、多尺寸及方向矩陣未完。',
- 98:'收合保留草稿／節點有UT，新成品Web及Android雙分支與真訊息已通過；長歷史捲動與鍵盤矩陣仍待覆核。',
- 99:'送出中／已提交／未知與原ID恢復已有測試；API／原生完整故障矩陣待合併。',
- 100:'熱區同背景矩陣、局部inspect與返回已接；Android真點位／縮放全矩陣未完。',
- 101:'inspect不寫合作答案，只有本人明確選項才提交；尚待完整事件及故障窗口覆核。',
- 102:'固定鏡位、前景與兩結局光色有別；完整新角色鏡頭路徑與質感待Gate B。',
- 103:'略過不送進度，前景按權威cursor恢復；尚待安全鏡位／退出／互動全平台覆核。',
- 104:'手勢啟音、音量、短cue及背景暫停已測；實際聽感與微動品質仍待平台／Gate B。',
- 105:'拒絕音訊保持可玩並可重試，新增可手動關閉場景裝飾微動；Android真音訊失敗及低資源矩陣仍未全。',
- 106:'合作等待／未知／真結算已有狀態；新UI完整送出、取消及失敗矩陣待合併。',
- 107:'兩種真結局有不同敘事／道具／光色且保留聊天，最新成品Web／Android雙分支已通過；完整視覺斷言合併覆核與本人Gate B未完。',
- 108:'固定非語言表情、旁白／NPC及真人來源分開；不做口型或情緒推斷；平台標示仍須完整覆核。',
- 109:'真圖已定位去背與有損邊緣並修為無損WebP；雙平台近臉、邊緣與失真拒絕界線未全覆核。',
- 110:'同版五圖保持掛載、台詞不重抓；峰值記憶體與新素材實際平台量測未完。',
- 111:'原16圖與五表情、真人候選／五表情均已各有人工確認；不等於本人首場完整Gate B。',
- 112:'本地wrapper精確目標預覽developmentReady=true；三個閒置測試profile、六筆生成資產及47個avatar R2 key已逐項列入，兩個active-round帳號排除。',
- 113:'真D1/R2測試驗CAS、逐key/etag及中斷續刪；default local備份後清理三profile、六筆生成資產與47個物件，最終status complete。',
- 114:'default local reset前後三組帳號／個人照片保護hash一致；備份存在，D1照片與個人資料未變，沒有新增或改動16款原畫。',
- 115:'沒有半身相容路徑；default local reset完成，新隔離profile的Web全流程用既有核准主圖／五表情零provider-call重播通過；Android明確重試與本人Gate B仍未完成。'
-};
-const newVerified=new Set(['SD-UT-052','SD-UT-053','SD-IT-063','SD-IT-064','SD-ET-041','SD-IT-095','SD-IT-096']);
-// 各層分開判讀；單元完整通過不借用尚缺的裝置矩陣，也不因此代簽該BDD整體。
-const unitReviews={
- 'SD-UT-055':{implementation:[['frontend/client/src/DatingProfileScreen.tsx','const appActive='],['frontend/client/src/avatar-adoption.ts','produceAvatarExpressions']],tests:[['frontend/client/tests/unit/dating-profile-screen.test.tsx','foreground B1 names'],['frontend/client/tests/unit/dating-profile-screen.test.tsx','backgrounding stops'],['frontend/client/tests/unit/avatar-adoption.test.ts','B1 runs one awaited expression']],review:'component驗進度／禁止切角與重複操作，AppState背景使舊迴圈失效；純協調器驗五張循序await且ready前不提交選角。裝置矩陣仍在IT/API層保留partial。'},
- 'SD-UT-066':{implementation:[['frontend/client/src/StoryPortrait.tsx','export function StoryPortrait']],tests:[['frontend/client/tests/unit/story-portrait.test.tsx','waits for the current sentence'],['frontend/client/tests/unit/story-portrait.test.tsx','all five new expressions decode']],review:'分別驗當前句未完不換角、五張皆decode才原子換包、失敗／舊decode保留原角；換表情重用同套已掛載圖片。'},
- 'SD-UT-069':{implementation:[[ui,'chatOpen']],tests:[[uiTest,'chat drawer can close and reopen']],review:'共用畫面實際收合／展開，原劇情文字與未送草稿保留，不增加讀取或發送；不是原生鍵盤矩陣的代簽。'},
- 'SD-UT-071':{implementation:[['frontend/client/src/StoryStage.tsx','onInspect(h.definitionId)'],['frontend/client/src/story-stage-geometry.ts','export function hotspotFrame']],tests:[['frontend/client/tests/unit/story-stage.test.tsx','visible scene hotspot opens local inspection'],['frontend/client/tests/unit/story-stage-geometry.test.ts','hotspot coordinates follow exactly'],[uiTest,'inspecting a scene object and returning']],review:'純幾何驗熱區與背景同矩陣、離屏不誤點；畫面點物件進正確特寫，返回保留節點，只有明確選項才提交。雙平台實際點位另列ET。'},
- 'SD-UT-081':{implementation:[['frontend/client/src/StoryPortrait.tsx','export function StoryPortrait']],tests:[['frontend/client/tests/unit/story-portrait.test.tsx','same asset version across dialogue'],['frontend/client/tests/unit/story-portrait.test.tsx','all five new expressions decode']],review:'相同資產版次多次敘事render不建立新preload；五圖解碼後切expression仍重用同包。峰值記憶體另列整合／平台量測，不混入本純元件斷言。'}
- ,'SD-UT-051':{implementation:[[ui,'const portrait='] ],tests:[['frontend/client/tests/unit/story-visual-policy.test.tsx','SD-UT-051'],[web,'approved art: all sixteen']],review:'Unit驗第一人稱舞台只呈現授權對方角色；Web真雙人場景另驗雙端各自進入同一權威Round。正式全16款原生矩陣仍另列ET partial。'}
- ,'SD-UT-054':{implementation:[['backend/src/DatingHigh.Infrastructure/Media/GeminiAvatarImageGenerator.cs','public const string PromptVersion']],tests:[['backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarGeneratorTests.cs','Generate_ExplicitTwoPhotoRequest'],['tests/e2e/web/avatar-full-body-gemini-live.spec.ts','real Gemini: one full-body candidate for identity review only']],review:'固定prompt／兩張來源照片及3:4全身候選預覽有單元與隔離回放證據；候選視覺身份由使用者先前明確確認。新候選的自動缺腳像素拒絕及逐裝置畫質仍為其他層級partial。'}
- ,'SD-UT-056':{implementation:[['frontend/client/src/avatar-adoption.ts','produceAvatarExpressions'],['cloudflare/src/avatar-adoption.ts','beginAvatarAdoption']],tests:[['frontend/client/tests/unit/avatar-adoption.test.ts','B1 runs one awaited expression'],['cloudflare/tests/avatar-adoption-r2.integration.test.ts','SD-IT-067'],['cloudflare/tests/avatar-adoption-d1.integration.test.ts','SD-IT-067']],review:'前景協調器逐張await且五張ready才正式選角；真R2/D1測試驗receipt、五張完備與條件提交。Android明確重試UI仍有單獨partial。'}
- ,'SD-UT-057':{implementation:[['frontend/client/src/DatingProfileScreen.tsx','async function continueAdoption'],['frontend/client/src/avatar-adoption.ts','produceAvatarExpressions']],tests:[['frontend/client/tests/unit/dating-profile-screen.test.tsx','a provider failure keeps the old role and explicit retry finishes only the missing expressions'],['frontend/client/tests/unit/avatar-adoption.test.ts','B1 resumes only missing expressions']],review:'單元故障注入證明保留舊角、重試只補缺圖且不重做已保存表情；取消與未知結果仍不盲目重送。Android原生重試點擊另列未通過，不由本UT代簽。'}
- ,'SD-UT-058':{implementation:[['frontend/client/src/DatingProfileScreen.tsx','async function selectBuiltin'],['cloudflare/src/avatar-adoption.ts','beginAvatarAdoption']],tests:[['frontend/client/tests/unit/dating-profile-screen.test.tsx','another foreground adoption lock gives a recovery instruction'],['cloudflare/tests/avatar-adoption-d1.integration.test.ts','foreground begin locks free selection and generation on another request']],review:'另一前景B1鎖存在時UI提供復原指示並阻止改角／重新生成；真D1競態測試證明鎖與revision拒絕第二操作。跨實體裝置提示矩陣仍為BDD／ET partial。'}
- ,'SD-UT-059':{implementation:[['cloudflare/src/avatar-expression-manifest.ts','export function validateAvatarExpressionManifest']],tests:[['cloudflare/tests/avatar-expression-manifest.test.ts','SD-UT-059']],review:'ready Manifest單元拒錯表情集合、來源、SHA、版本、尺寸、alpha與full-body站姿欄位；像素缺腳由影像品質UT另驗。'}
- ,'SD-UT-060':{implementation:[['cloudflare/src/avatar-expression-manifest.ts','export function validateAvatarExpressionManifest']],tests:[['cloudflare/tests/avatar-expression-manifest.test.ts','SD-UT-060']],review:'同套組以asset與固定兩版次精確重用；只改model metadata不會變更素材或觸發重新生成。'}
- ,'SD-UT-061':{implementation:[['tools/avatar-reset-policy.mjs','async function applyAvatarResetPlan'],['tools/local.mjs',"command==='avatar-reset-apply'"]],tests:[['cloudflare/tests/avatar-reset-d1-r2.integration.test.ts','SD-IT-095/096'],['tools/tests/avatar-reset-policy.test.mjs','reset readiness requires pre-reset technical evidence']],review:'default local明確預覽、備份後以D1 CAS及固定R2 key/etag完成三個閒置profile清理；六筆生成資產與47個角色物件清空，帳號／非角色profile／個人照片保護hash前後一致。fresh isolated Web profile另完成主圖至五表情回放；Android native retry及Gate B不由此代簽。'}
- ,'SD-UT-062':{implementation:[['cloudflare/src/avatar-attempts.ts',"if(command==='avatar.attempt.select')"],['cloudflare/src/avatar-adoption.ts','publishAvatarExpression']],tests:[['cloudflare/tests/avatar-adoption-r2.integration.test.ts','SD-IT-067'],['cloudflare/tests/avatar-adoption-d1.integration.test.ts','SD-IT-067'],['cloudflare/tests/avatar-adoption-d1.integration.test.ts','SD-IT-068/073']],review:'真R2 receipt先核驗五表情來源與SHA；真D1整合測試拒絕未ready採用並驗profile revision CAS／取消後晚到提交拒絕。'}
- ,'SD-UT-063':{implementation:[['cloudflare/src/round-avatar.ts','export async function avatarReadMedia']],tests:[['cloudflare/tests/round-avatar-r2.integration.test.ts','round projection exposes only'],['backend/tests/DatingHigh.Api.Tests/AvatarExpressionEndpointTests.cs','PartnerProjection_HttpUsesAuthenticatedRound']],review:'只本人或有效同房對象可按用途讀固定五表情；讀後重新核驗Session、active Round與目前選角，第三人／已結束／未ready拒絕。'}
- ,'SD-UT-064':{implementation:[['cloudflare/src/avatar-notification.ts','export async function notifyAvatarSelection'],['frontend/client/src/RealtimeRoomClient.ts','async synchronize']],tests:[['cloudflare/tests/round-avatar-r2.integration.test.ts','only a committed selection notifies'],['frontend/client/tests/unit/story-dialogue-ui.test.tsx','another avatar hint during an in-flight read']],review:'通知僅在角色正式提交後送不透明revision提示；失敗提交不通知，UI只重讀最新版並取消舊版在途結果。雲端提示延遲仍不在Unit層宣稱通過。'}
- ,'SD-UT-065':{implementation:[['frontend/client/src/RealtimeRoomClient.ts','private retry(generation'],['frontend/client/src/StoryExperienceScreen.tsx','const avatarReadAgain=']],tests:[['frontend/client/tests/unit/realtime-room-client.test.ts','same-round avatar revision hints deduplicate across reconnects'],['frontend/client/tests/unit/story-dialogue-ui.test.tsx','another avatar hint during an in-flight read']],review:'同Round重連提示去重且不啟動輪詢；讀取中有新版只排一次最新讀取，舊資產不會在結束或撤權後重入。'}
- ,'SD-UT-067':{implementation:[['frontend/client/src/StoryStage.tsx','export function StoryStage'],['frontend/client/src/story-stage-geometry.ts','export function portraitFrame']],tests:[['frontend/client/tests/unit/story-stage-geometry.test.ts','keeps the head safe'],['frontend/client/tests/unit/story-stage.test.tsx','two authoritative ending cameras differ']],review:'多尺寸與遠中近鏡位維持3:4不變形且頭臉留在安全區；結尾鏡位依伺服器權威結果改變。'}
- ,'SD-UT-068':{implementation:[['frontend/client/src/story-stage-geometry.ts','export function portraitFrame']],tests:[['frontend/client/tests/unit/story-stage-geometry.test.ts','keeps the head safe'],['frontend/client/tests/unit/story-stage-geometry.test.ts','hotspot coordinates follow exactly']],review:'同一幾何純函式計算舞台安全區與互動點，窄畫面不裁掉頭部，熱區隨cover／camera變換一致；原生鍵盤另有實測。'}
- ,'SD-UT-070':{implementation:[[ui,'const mutate=']],tests:[[uiTest,'chat drawer can close and reopen'],[uiTest,'unknown commit preserves payload']],review:'聊天室保持送出中／未知／已提交差異；同request ID查回結果，收合保留草稿與章節，不能用客戶端動畫假設對方選擇。'}
- ,'SD-UT-072':{implementation:[['frontend/client/src/StoryStage.tsx','onInspect(h.definitionId)'],['frontend/client/src/story-stage-geometry.ts','export function hotspotFrame']],tests:[['frontend/client/tests/unit/story-stage.test.tsx','visible scene hotspot opens local inspection'],[uiTest,'cooperative waiting can return to exploration']],review:'可見物件只開本地特寫，返回保留故事節點；等待合作時可探索，不會由檢視自動提交選擇。'}
- ,'SD-UT-073':{implementation:[['frontend/client/src/StoryStage.tsx','export function StoryStage'],['tools/story-content-policy.mjs','validateStory']],tests:[['frontend/client/tests/unit/story-stage.test.tsx','a player can stop decorative motion on a slow device'],['frontend/client/tests/unit/story-stage.test.tsx','two authoritative ending cameras differ'],['tools/tests/story-content.test.mjs','SD-UT-073/079']],review:'場景微動可由玩家關閉，兩結局的鏡位／光色不同且取版本化權威內容；不冒充真人狀態。'}
- ,'SD-UT-074':{implementation:[['frontend/client/src/StoryStage.tsx','onInspect(h.definitionId)']],tests:[['frontend/client/tests/unit/story-visual-policy.test.tsx','SD-UT-074']],review:'略過的是本地非權威演出；鏡位回安全畫面後仍可選互動或離場，不提交故事節點、不裁臉。'}
- ,'SD-UT-075':{implementation:[['frontend/client/src/StoryAudio.tsx','export function StoryAudio']],tests:[['frontend/client/tests/unit/story-audio.test.tsx','audio requires a gesture'],['tools/tests/story-content.test.mjs','SD-UT-075']],review:'音訊需明確手勢啟動、音量調整與節點cue依manifest；切到背景停止，音效不表示真人在線。'}
- ,'SD-UT-076':{implementation:[['frontend/client/src/StoryAudio.tsx','export function StoryAudio']],tests:[['frontend/client/tests/unit/story-audio.test.tsx','rejected audio remains muted']],review:'平台拒播時保持靜音並提供可用重試，不阻擋旁白、選擇、合作與聊天室。'}
- ,'SD-UT-077':{implementation:[[ui,'interactionOpen']],tests:[[uiTest,'cooperative waiting can return to exploration'],[uiTest,'unknown commit preserves payload']],review:'合作等待、本人送出與結果不明以不同狀態呈現；可回探索／聊天，不虛構對方回應，查回沿用原request ID。'}
- ,'SD-UT-078':{implementation:[['frontend/client/src/StoryStage.tsx','export function StoryStage']],tests:[['frontend/client/tests/unit/story-stage.test.tsx','two authoritative ending cameras differ'],[native,'native-real-cooperative-ending']],review:'兩種正式決議對應不同鏡位／光色並由雙端真合作流程到達；章節完成仍保留聊天，結束Round另需明確確認。'}
- ,'SD-UT-079':{implementation:[['tools/story-content-policy.mjs','validateStory'],['frontend/client/src/StoryPortrait.tsx','export function StoryPortrait']],tests:[['tools/tests/story-content.test.mjs','SD-UT-073/079'],['frontend/client/tests/unit/story-portrait.test.tsx','same asset version across dialogue']],review:'內容限制表情為固定非語言角色呈現；不讓NPC代替真人發話，不推斷對方情緒／已讀，也不將真人聊天配上虛構口型。'}
- ,'SD-UT-080':{implementation:[['backend/src/DatingHigh.Infrastructure/Media/AvatarFullBodyQuality.cs','public static bool HasCompleteStandingFigure'],['backend/src/DatingHigh.Infrastructure/Media/ImageCompressionService.cs','if(options.LosslessWebp)']],tests:[['backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarExpressionGeneratorTests.cs','Expression_MissingLegsMissingFootOrCroppedSole'],['backend/tests/DatingHigh.Unit.Tests/Infrastructure/ImageCompressionTests.cs','Compress_LosslessSprite'],['backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarChromaMaskTests.cs','DarkOutlineBesideWhiteClothes']],review:'表情圖缺腿、缺腳／鞋、鞋底裁切會在ready前回錯；五表情採無損alpha並驗邊緣／深色線條。像素門檻不取代身份與畫風人工確認。'}
-};
-function newEvidence(bdd,id){
- if(id&&unitReviews[id]){const row=unitReviews[id];return {status:'verified',limitation:null,implementation:row.implementation.map(p=>point(...p)),tests:row.tests.map(p=>point(...p)),review:row.review};}
- const row=newGroups.find(r=>r[0].includes(bdd));if(!row||!Object.hasOwn(newLimits,bdd))throw new Error('Missing incremental review '+bdd);
- const verified=id?newVerified.has(id):bdd===81;
- return {status:verified?'verified':'partial',limitation:verified?null:newLimits[bdd],implementation:row[1].map(p=>point(...p)),tests:row[2].map(p=>point(...p)),review:bdd===81?'依使用者最新決策直接AI延伸、逐款原畫視覺比對及逐批人工確認；人工確認結果見驗證紀錄；目前只保存runtime使用的80張WebP與固定角色ID，不保存原畫／製作中間檔。':verified&&(bdd===113||bdd===114)?newLimits[bdd]:verified?'16×5元資訊／SHA及同master人工一致性確認完整，免費SelectAsync不呼叫provider；原生全款切回另列ET待驗。':newLimits[bdd],...(bdd===81||bdd===82?{userArtApprovals:[point('docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md','16 款全身方向／16 套五表情已人工確認')]}:{})};
+
+// Read-only: the verification document owns reviews. A checked planning item or
+// a runner/test-name match must never grant an approval, including old v1 evidence.
+export function auditSceneTraceability({tdd,bdd,spec,verification,readSource,expected={UT:366,IT:129,API:53,ET:77,BDD:121,AC:24}}){
+ const sources=[...tdd.matchAll(/^- \[[ x]\] \*\*(SEF-(UT|IT|API|ET)-\d{3})\*\*/gm)].map(m=>m[1]);
+ sources.push(...[...bdd.matchAll(/^#{2,4} (SEF-BDD-\d{3})：/gm)].map(m=>m[1]));
+ sources.push(...[...spec.matchAll(/^\| (SEF-AC-\d{3}) \|/gm)].map(m=>m[1]));
+ if(new Set(sources).size!==sources.length)throw Error('Duplicate planning ID');
+ for(const [layer,count]of Object.entries(expected))if(sources.filter(id=>id.startsWith(`SEF-${layer}-`)).length!==count)throw Error('Unexpected planning count: '+layer);
+ const reviews=new Map();
+ for(const match of verification.matchAll(/^\| (SEF-(?:UT|IT|API|ET|BDD|AC)-\d{3}) \| (verified|partial|pending|gate) \|([^\n]*)/gm)){
+  const[id,status,detail]=match.slice(1);if(reviews.has(id))throw Error('Duplicate review: '+id);if(!sources.includes(id))throw Error('Unknown review: '+id);
+  if(status==='verified'&&(!/\]\(\.\.\/\.\.\/(?:backend\/src|cloudflare\/src|frontend\/client\/src|tools)\/[^)]+:\d+\)/.test(detail)||!/\]\(\.\.\/\.\.\/(?:backend\/tests|cloudflare\/tests|frontend\/client\/tests|tests|tools\/tests)\/[^)]+:\d+\)/.test(detail)))throw Error('Missing implementation and test evidence: '+id);
+  if(status==='verified'&&readSource)for(const link of detail.matchAll(/\]\(\.\.\/\.\.\/([^):]+):(\d+)\)/g)){
+   let source;try{source=readSource(link[1]);}catch{}
+   const line=Number(link[2]);if(typeof source!=='string'||line<1||line>source.trimEnd().split(/\r?\n/).length)throw Error('Unresolved evidence line: '+id);
+  }
+  reviews.set(id,status);
+ }
+ for(const id of sources)if(!reviews.has(id))throw Error('Missing review: '+id);
+ const counts=Object.fromEntries(Object.keys(expected).map(layer=>{const ids=sources.filter(id=>id.startsWith(`SEF-${layer}-`));return[layer,{total:ids.length,verified:ids.filter(id=>reviews.get(id)==='verified').length,partial:ids.filter(id=>reviews.get(id)==='partial').length,pending:ids.filter(id=>reviews.get(id)==='pending').length,gate:ids.filter(id=>reviews.get(id)==='gate').length}];}));
+ return{indexed:reviews.size,verified:[...reviews.values()].filter(v=>v==='verified').length,complete:[...reviews.values()].every(v=>v==='verified'),counts};
 }
-cases.push(...incremental.map(m=>{const bdd=Number(m[0].match(/SD-BDD-(\d{3})/)[1]);return {id:m[1],layer:m[2],source:point(tddPath,m[1]+'**'),acceptanceCriteria:acIds(m[0]),assertions:m[0].split(/\r?\n/).filter(s=>s.includes('**斷言**')).map(s=>s.trim()),bdd:'SD-BDD-'+String(bdd).padStart(3,'0'),...newEvidence(bdd,m[1])};}));
-scenarios.push(...allScenarios.filter(m=>Number(m[2])>79).map(m=>({id:m[1],title:m[3],source:point(bddPath,'### '+m[1]),...newEvidence(Number(m[2]))})));
-if(cases.length!==295||scenarios.length!==115)throw new Error('Latest Story package counts mismatch');
-const specPath='docs/specs/SPEC-001-StoryDialogueAndExit.md';const requirements=Array.from({length:30},(_,i)=>{const id='SD-AC-'+String(i+1).padStart(3,'0');const related=cases.filter(c=>c.acceptanceCriteria.includes(id));return {id,source:point(specPath,'| `'+id+'`'),status:related.some(c=>c.status!=='verified')?'partial':'verified',cases:related.map(c=>c.id)};});
-const layers=Object.fromEntries(['UT','IT','API','ET'].map(layer=>[layer,{verified:cases.filter(c=>c.layer===layer&&c.status==='verified').length,total:cases.filter(c=>c.layer===layer).length}]));const verified=cases.filter(c=>c.status==='verified').length;
-const report={auditedAt:'2026-11-13',method:'逐案人工判讀後的固定對照；腳本只核對唯一ID、錨點、數量並計算，不執行測試或自動批准。SQL規劃落在UT的案例以更強真D1補證；UI斷言以共用元件與實際平台補證。',gateA:nativeVerified?'local-technical-evidence-collected':'android-suite-pending',gateB:'pending-user-playthrough',verified,total:cases.length,percent:Math.round(verified/cases.length*1000)/10,layers,scenarioVerified:scenarios.filter(c=>c.status==='verified').length,scenarioTotal:115,requirements,cases,scenarios};
-if(process.argv.includes('--write'))fs.writeFileSync(path.join(root,'docs/verification/story-dialogue-exit-traceability.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({verified,total:295,percent:report.percent,layers,bdd:report.scenarioVerified+'/115',pending:cases.filter(c=>c.status!=='verified').map(c=>c.id)},null,2));
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const root=fileURLToPath(new URL('../',import.meta.url)),read=p=>fs.readFileSync(path.join(root,p),'utf8');
+ const report=auditSceneTraceability({tdd:read('docs/tdd/SPEC-001-SceneEventFramework-TDD.md'),bdd:read('docs/bdd/SPEC-001-SceneEventFramework-BDD.md'),spec:read('docs/specs/SPEC-001-SceneEventFramework.md'),verification:read('docs/verification/SPEC-001-SceneEventFramework-Verification.md'),readSource:read});
+ console.log(JSON.stringify(report,null,2));
+}

@@ -1,8 +1,74 @@
 # SPEC-001-SceneEventFramework — 實作前風險與缺漏稽核（RiskAudit）
 
-**日期**：2026-11-13（原十二項風險確認日期 2026-11-12）  
-**規劃狀態**：**Ready for well-done（僅規劃交接）**；RA-Q1=A／RA-Q2=A 已由使用者確認，首條新架構尚未實作，舊視覺 Gate B 未驗收  
-**來源**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md) → [已確認 SDD](SPEC-001-SceneEventFramework.md) → [78 個 BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) → [379 項 TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md)
+**日期**：2026-11-16（新版 V2-RQ-01=A 已確認；2026-11-12～13 歷史風險稽核保留於下方）
+**規劃狀態**：**Ready for well-done（Phase 5 規劃交接）**；V2-RQ-01=A 已由使用者確認，新版 12 項風險均有決策／測試落點、10 組 GAP 均已寫入 TDD。原 RA-Q1=A／RA-Q2=A 保留有效；未開始產品測試或人工 Gate B。
+**來源**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md) → [最新版 SDD](SPEC-001-SceneEventFramework.md) → [121 個 BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) → [625 項 TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md)
+
+## 2026-11-16 新版雙 Track／雨聲書店 RiskAudit 定案（Phase 4 結束）
+
+**適用範圍**：MVP-001 AC-005-17～23、SDD §3.3～3.8.6／§4～§8、BDD-080～121、TDD Unit-237～366／Integration-081～129／API-028～053／E2E-041～077（舊 Phase 3 計畫外新增稽核測試見下文）。**本節是 2026-11-16 最新決策；下方 2026-11-12～13 的舊版 Ready／測試數字均為歷史快照，不取代本次 625 項規劃與 Gate B 規則。**
+
+### 一、需求→SPEC→BDD→TDD 最新追溯
+
+| MVP 業務需求 | SDD 與 SPEC | BDD | TDD 分層 |
+|---|---|---|---|
+| AC-005-17：雙方獨立進度、離線不跳戲 | §3.5／§4／SEF-AC-018 | 080～083 | UT-237～248、IT-081～084，API-028～031 |
+| AC-005-18：多次交會、回單方／雙方、共同收尾 | §3.3／3.5／SEF-AC-019 | 084～089 | UT-249～266、IT-085～090，API-032～034 |
+| AC-005-19：私人知識與共享世界一致 | §3.6／§6／SEF-AC-020 | 090～094 | UT-267～281、IT-091～095，API-035～039 |
+| AC-005-20：Area／物件／NPC／角色演出 | §3.7／SEF-AC-021 | 095～099 | UT-282～296、IT-096～100，API-040～044 |
+| AC-005-21：可見微動／必要 StoryMotion | §3.7／3.8.5／SEF-AC-022 | 100～103 | UT-297～308、IT-101～104，ET-041～044 |
+| AC-005-22：完整雨聲書店與首條 Gate | §3.8.1～3.8.6／SEF-AC-023 | 104～117、121（RB-01～14） | UT-309～350／UT-360～362、IT-105～118／IT-122，API-045～049 中的對應案例、ET-045～072 |
+| AC-005-23：安全地清舊表／程式／內容且不破壞既有資料 | §7.1／SEF-AC-024 | 118～120 | UT-351～359、IT-119～121 |
+
+**統計基線**：SPEC **24/24** 有既有／新增 BDD；BDD 原 79＋新 42＝**121 個**。TDD 原 383＋雙軌 Phase 3 增量 222＋本次 RiskAudit 增量 20＝**625 項**（Unit 366、Integration 129、API 53、E2E 77）。既有完整覆核 **BDD 1/79、TDD 56/383**，新版 **BDD 0/42、TDD 0/242**，總體 **BDD 1/121、TDD 56/625**。此為規劃與既有證據統計，不能宣稱新引擎已實作。
+
+### 二、全域一致性與技術風險（新增 12 項）
+
+| ID | 等級 | 來源與實際風險 | 可執行的緩解／現有規劃證據 | 本輪處置 |
+|---|---|---|---|---|
+| **SEF-V2-RA-01** | 高 | §3.5／§4；只建立一筆 Progress 或以 shared currentNode 覆蓋另一人，會讓快慢不同的雙人直接跳過劇情 | 兩個 role 的 Progress 同 D1 batch 建立；每人 revision 獨立。BDD-080～084、UT-237～251、IT-081～085 | 已補回 SDD／BDD／TDD；IT-123/124 驗證真 D1 失敗時不殘留半場 |
+| **SEF-V2-RA-02** | 高 | §6；S02 第一位真人提交後先 completed／第二人重送，會造成假合作、雙份物件或半套世界 | Shared EventInstance 保留獨立真人答案、event revision CAS、WorldState 同批提交 receipt；BDD-091～093、110～111、IT-092～094／111～112 | 已補回 SDD／BDD／TDD；IT-123～126 驗 CAS／合作事件真人提交 |
+| **SEF-V2-RA-03** | 高 | §3.6／§4.3／§5；若完整雙 Track Manifest 由公開 R2 直接給 Client，對方私有書名或未解鎖 hidden binding 可被解析，不只畫面隱藏不足 | 只傳已授權的 caller view／hotspot，隱藏內容不發給 client；API/WS／R2 權限篩檢。BDD-090、094、RB-02／04 | 已補回 SDD／BDD／TDD；API-050/051 驗私有 R2／WS／experience 洩漏負例 |
+| **SEF-V2-RA-04** | 高 | §3.3／§3.5；Shared→A only／雙方各自的解鎖與直接推進混用、必要依賴互等，造成死鎖或另一人被代玩 | role-aware DSL、不可達圖拒發、unlock 與 currentNode 兩種效果分離；BDD-085～089、112 | 已補回 SDD／BDD／TDD；UT-363/364 驗三次交會、可選循環與必經死鎖 |
+| **SEF-V2-RA-05** | 高 | §4／§7.1；在未知環境刪掉舊表／R2，或只刪表卻留 Worker 查詢，會導致資料損壞或遊戲崩潰 | 只辨明 local DB／R2、保護帳號與角色、實際引用查核、全鏈 clean rebuild、Schema 不保留 Legacy；BDD-118～120 | 已補回 SDD／BDD／TDD；IT-127/128 驗未知環境拒清及 local 保護資料不變 |
+| **SEF-V2-RA-06** | 高 | §3.7／§4.3；v2 含 move-area／manipulate-object／cooperative-action，但 Publisher 或 UI 仍只懂 v1 的 inspect／choice，玩家看到假熱區而無法操作 | 嚴格 v2 Schema／module registry／renderer／物件轉移，引用已發布素材，發布時 fail-closed；BDD-095～103、119 | 已補回 SDD／BDD／TDD；UT-365／API-052 驗 v2 Publisher 與 action/params 拒絕 |
+| **SEF-V2-RA-07** | 高 | §3.8；雨聲書店 21 個 ID／台詞／Cue 與實際 R2 內容若部分缺漏，自動測試僅驗引擎可能錯誤宣稱首條完成 | 為 21 節點／三次交會、四 Area、必要物件及兩結局建立 manifest-to-SDD 對照；RB-01～14／BDD-104～117 | 已補回 SDD／BDD／TDD；UT-366／IT-129 驗 21 Node、Cue、SHA 與實際 R2 發布 |
+| **SEF-V2-RA-08** | 中 | RB-08 舊稿將 A 專屬取回標籤描述成「兩人都可搶」，與角色授權不符 | **本輪已修正** SDD RB-08、BDD-111、UT-330～332／IT-112／API-047／ET-059～060；A 雙裝置並發、I 越權拒絕 | 已修正角色授權差異並補回 IT-125/126；真 D1 並發仍待 well-done |
+| **SEF-V2-RA-09** | 中 | E01 舊文案「再逛一下」可能誤導玩家期待能繼續探索，與自然完成封存 Side 衝突 | **V2-RQ-01=A**：改選項為「再看一眼書架，替今天畫個句點」；純收尾鏡頭後立即 completed、Side 封存，無新互動／結束按鈕，Round 聊天保留 | **使用者 V2-RQ-01=A 已確認**；E01 短書架收尾後自然 completed，已回寫 SDD／BDD-113/114／ET-076/077 |
+| **SEF-V2-RA-10** | 中 | §3.8.3／§3.8.5；NPC／系統的台詞若被當作對方真人訊息或未選過的玩家選項，會損害真實交友可信度 | 只以 NPC/旁白身分播台詞，真人意圖必須 actor 親提交或自由聊天；BDD-098、106、113～114 | 已補回 SDD／BDD／TDD；API-053／ET-073 驗 NPC/真人作者歸屬 |
+| **SEF-V2-RA-11** | 中 | §3.7／§4.4；環境雨景、人物全身五表情與紙標籤動畫若效能差或動畫跳過便遺失線索，實際遊玩不完整 | Ambient／Story Motion 分離、關閉微動不損必要互動、Web/Android 真 jank／資產量測；BDD-100～103、116 | 已補回 SDD／BDD／TDD；ET-074/075 驗 Web/Android 環境微動與背景恢復 |
+| **SEF-V2-RA-12** | 中 | §7／Gate B；僅通過 625 項的部分程式測試仍可能劇情難懂、交會不自然，甚至未完成便製作另外九條 | 21 節點與 RB-01～14 驗證、獨立真人雙端試玩、使用者人工確認；未簽核不得做其餘九條 | 已補回 SDD／BDD／TDD；ET-076/077 保留使用者人工 Gate B 不代簽 |
+
+### 三、稽核辨識的 10 項缺漏已正式補入 TDD（各兩項，共 20 項）
+
+以下是**Phase 4 已完成正式補強的 10 組 GAP**：每組兩項獨立的 Unit／Integration／API／E2E 測試，總新增 **20** 項，已包含在 TDD **625** 項，不重複算 Phase 3 的 222 項。此處的「已補入」只指規劃文件，**全部尚未開始產品測試**。
+
+| 缺漏 ID | 對應 BDD／來源 | 正式補強測試與斷言 | 風險／處置 |
+|---|---|---|---|
+| SEF-V2-GAP-01 | BDD-080、092、110 | IT-123/124：Shared 第一人提交與第二人失敗 rollback，不提前 completed | RA-01／02（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-02 | BDD-091、111 | IT-125/126：A 雙裝置 stale revision 單一成功；I 越權拒絕 | RA-02／08（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-03 | BDD-090、094、105 | API-050/051：experience／WS／公開 R2 不外洩對方私有線索 | RA-03（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-04 | BDD-087、088、089 | UT-363/364：多次交會合法圖可達、必要互等死鎖拒發 | RA-04（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-05 | BDD-095～099、103 | UT-365／API-052：未知 Area/object/slot/action/params／版本拒絕且無 receipt | RA-06（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-06 | BDD-118～120 | IT-127/128：remote/未知環境拒清、local 重建仍保護帳號／角色 | RA-05（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-07 | BDD-104～117 | UT-366／IT-129：21 Node、四 Area、兩 Ending、Cue 和 R2 SHA 完整 | RA-07（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-08 | BDD-098、113～114 | API-053／ET-073：NPC／旁白不冒充真人訊息或提交 | RA-10（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-09 | BDD-100～103、116 | ET-074/075：Ambient 關閉不影響 StoryMotion，背景重連不重播 | RA-11（已補回文件，待 well-done 驗證） |
+| SEF-V2-GAP-10 | BDD-113～114、117、121 | ET-076/077：**V2-RQ-01=A** 的 E01/E02 收尾、Side、聊天及人工 Gate 硬限制 | RA-09／12（已補回文件，待 well-done 驗證） |
+
+### 四、V2-RQ-01 最終業務決策（使用者確認 A）
+
+**V2-RQ-01=A（2026-11-16 已明確確認）**：兩人若都選 `look_back`，介面文字固定「再看一眼書架，替今天畫個句點」，E01 僅以暖光／雙人回望書架短演出作結，**自然完成本次 Chapter，未完成 Side 同交易封存，不提供額外探索、物件熱區、延伸劇情或結束按鈕**；Round 保持 active，仍可聊天。任一方選 `rest_chat` 則 E02，同樣自然完成，不能代替真人作答。這符合原 `SEF-RQ-02=A`，沒有新增尾聲模式／計時器／資料表。
+
+**回寫落點**：SDD §3.8.3/3.8.4/3.8.5/3.8.6、BDD-113/114、其 Phase 3 TDD Unit-336～341／Integration-114～115／E2E-063～066，以及 Phase 4 ET-076/077 的 Ending 行為。純演出時間和素材完成度仍屬未來人工 Gate B 驗證，不預先宣稱已完成。
+
+### 五、Phase 4 定案及 Phase 5 交接判定
+
+**新增風險 12 項（高 7、中 5）均已在上表確定處置**。RA-09 由使用者直接選 A；其餘依先前同意之 SDD 保留具體技術防護，不新增未授權業務規則；RA-08 的 A 專屬取回標籤角色衝突已修復。**SEF-V2-GAP-01～10 共 10 組、20 項新測試**均已補回 TDD，原 12 項 SEF-RA、8 項 SEF-UX-RA 及歷史確認決策仍適用。
+
+**交接狀態：Ready for well-done（規劃層）**，無待使用者確認的風險規則或缺漏。Well-Done 可按 TDD Phase 5 Gate 1／2 開始測試先行、實作與回歸；**本次沒有執行任何產品程式碼、資料清除、Web／Android 測試或人工 Gate B 驗收**。第一條使用者實玩核准前不可製作其餘九條。
+
+---
 
 ## 一、需求追溯與執行事實
 

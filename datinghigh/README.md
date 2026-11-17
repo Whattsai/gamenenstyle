@@ -26,7 +26,7 @@ npm run dev:platform
 
 停止本地平台使用 `npm run dev:platform:stop`；重新啟動使用 `npm run dev:platform:restart`。
 
-既有0004／0005且有舊遊戲資料時，使用 `npm run db:upgrade-scene:local`：對已知 local instance 停寫、備份、只清舊遊戲資料後套0006並發布首條分層內容；帳號、個資、照片與化身以保護表雜湊比對。不要把舊 StoryCatalog ID 當成 Category 或以空候選回填舊 Round。還原只建新目錄，沒有 remote 模式。
+既有0005／0006且有舊遊戲資料時，使用 `npm run db:upgrade-scene:local`：對已知 local instance 停寫、備份、只清舊遊戲資料後套0007並發布雙 Track 首條內容；帳號、個資、照片與化身以保護表雜湊比對。不要把舊 StoryCatalog ID 當成 Category 或以空候選回填舊 Round。還原只建新目錄，沒有 remote 模式。
 
 另一個終端執行 `node tools/serve-web.mjs`，開啟 **http://localhost:8081**；API 為 http://localhost:8787。網站來源請保持 `localhost`，以符合 Origin／Strict Cookie 設定。種子只有無登入能力的 disabled 帳號。
 

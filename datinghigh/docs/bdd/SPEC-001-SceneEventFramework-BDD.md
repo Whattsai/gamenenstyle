@@ -1,21 +1,21 @@
 # SPEC-001-SceneEventFramework — BDD 場景規格
 
-> **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～15）  
-> **已確認 SDD**：[SPEC-001-SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)，SEF-RQ-01～03=A  
-> **生成日期**：2026-11-12；**規劃狀態**：Ready for well-done（僅已完成 SDD／RiskAudit／BDD/TDD 文件規劃），**79 個 BDD 尚未全數結案**；不得和既有 StoryDialogueAndExit 的驗收結果混算。
+> **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～23）
+> **已確認 SDD**：[SPEC-001-SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)（原 SEF-RQ-01～03=A；新版雙 Track、雨聲書店詳稿已由使用者指示繼續 perfect-plan）
+> **原規劃**：2026-11-12；**2026-11-16 最終計畫**：BDD-080～121 新增 42 項，合計 121 場景。V2-RQ-01=A 已確認，Phase 4 的 10 組 GAP 也已回寫 TDD，**新版 Phase 5 Ready for well-done（只代表規劃完成）**。舊版僅 1/79 完整覆核，新版仍 0/42，絕非產品已通過。
 
 ## Feature 描述
 
-**Feature**：配對雙人從共同類別隨機進入場景與主線、觸發可重用事件、自然收尾與雙方同意再次遊玩。
+**Feature**：配對雙人選類別後在同一 Scene 進行個人雙 Track 與多次 Shared Event 交會；有真實場景物件操作、角色／雨景演出、私人線索與共享世界，首條「雨聲書店」的 21 個節點有明確文案與驗收。
 
-**目標**：場景、主線與事件獨立而可組合；同一對玩家的未玩內容權重 3:1；主線完成後封存舊支線、保留配對及聊天；維持真 D1／WebSocket 授權與一致性。MVP-002 AI 動態主線及 Housekeeping 明確排除。
+**目標**：保留 Category→Scene→Narrative→EventBinding、未玩 3:1、自然完成／聊天／真人同意下一場，新增雙軌獨立進度、反覆交會／單方分流、Scene Area、嚴格動作參數／CAS、Web／Android 實際品質和 RB-01～RB-14。MVP-002／Housekeeping 不在本期。
 
 ## 前端 UX 實作進度
 
 ```text
 📦 SceneEventFramework
 ├─ 目前階段：依使用者要求暫停；首條主要技術流程及本人化身入口已驗證
-├─ BDD：1/79 完整覆核通過（1.3%）
+├─ BDD：舊版完整覆核 1/79；新版規劃 0/42；合計 1/121（各版證據不得互代）
 ├─ 新增視覺需求：需延用 StoryDialogueAndExit 原 Gate B
 └─ 首條雨聲書店：必須由使用者試玩調校確認後才開發其餘九條
 ```
@@ -1160,6 +1160,612 @@ Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身�
   And 第三人與撤銷仍回 403 與 401，未就緒也可永久結束本輪
 ```
 
+## 2026-11-15 新版雙軌框架與雨聲書店 BDD（SEF-BDD-080～121）
+
+**本次新增 Scenario 一律未執行**；原 BDD-001～079 的既有測試證據和人工 Gate 不得代簽，BDD-080～121 以 SDD §3.3～3.8.6、§4～8 與 MVP AC-005-17～23 為規劃依據。
+
+### 引擎：可驗證的行為
+
+#### SEF-BDD-080：雙軌原子初始化
+
+- [ ] **Scenario: 雙軌原子初始化**
+  - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 雙軌原子初始化
+  Given 場次決議已成功且兩名真人身分有效
+  When Server 建立 StorySession
+  Then 同交易建立兩筆不同角色 Progress、單一 SceneVisit、共享世界
+  And 任何一筆建立失敗都不能留下半場
+```
+
+#### SEF-BDD-081：各自推進不互蓋另一人
+
+- [ ] **Scenario: 各自推進不互蓋另一人**
+  - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 各自推進不互蓋另一人
+  Given I 和 A 各位於不同個人節點
+  When I 先完成本人可用的事件
+  Then 僅 I 的 node、Area、revision 進步，A 不變
+  And A 可稍後親自完成未玩節點
+```
+
+#### SEF-BDD-082：角色授權只能按原邀請紀錄
+
+- [ ] **Scenario: 角色授權只能按原邀請紀錄**
+  - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 角色授權只能按原邀請紀錄
+  Given Round 已固定原邀請人及接受人
+  When 前端假造另一方 role、nodeId 或 accountId
+  Then Server 拒絕假冒且不修改進度
+  And 不可用帳號大小或先上線順序決定角色
+```
+
+#### SEF-BDD-083：落後玩家離線重連不跳節點
+
+- [ ] **Scenario: 落後玩家離線重連不跳節點**
+  - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 落後玩家離線重連不跳節點
+  Given I 前進而 A 還在 A02
+  When A 重新登入取授權 experience
+  Then A 恢復 A02、Area、可操作物件及個人 revision
+  And 全域 eventSeq 不能替 A 決策
+```
+
+#### SEF-BDD-084：共同結局必須滿足雙人必經事實
+
+- [ ] **Scenario: 共同結局必須滿足雙人必經事實**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 共同結局必須滿足雙人必經事實
+  Given I 的必要節點完成而 A08 未完成
+  When I 嘗試結束本場主線
+  Then chapter 仍是 playing 且 A 可繼續
+  And A 完成及 Shared predicate 齊備才發出一次 chapter.completed
+```
+
+### 交會：可驗證的行為
+
+#### SEF-BDD-085：共同事件完成後各自分流再交會
+
+- [ ] **Scenario: 共同事件完成後各自分流再交會**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 共同事件完成後各自分流再交會
+  Given S01 兩人真人核對且 I04、A04、S02 都在合法圖中
+  When 雙方提交 S01 後分別移至不同區域
+  Then I04、A04 分別開啟並可進 S02 再交會
+  And 不修改對方未完成的私人事件
+```
+
+#### SEF-BDD-086：第二次共同事件只解鎖接受方
+
+- [ ] **Scenario: 第二次共同事件只解鎖接受方**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 第二次共同事件只解鎖接受方
+  Given S02 完成時 I 在 I08、A 尚未執行 A08
+  When 伺服器結算 S02 的合法雙人答案
+  Then 只開啟 A08 且 I 停留 I08
+  And A 驗證完才可進入 S03
+```
+
+#### SEF-BDD-087：無界迴圈與跨線互等死鎖不得發布
+
+- [ ] **Scenario: 無界迴圈與跨線互等死鎖不得發布**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 無界迴圈與跨線互等死鎖不得發布
+  Given I 必經事件等 A，A 必經事件又等不可達的 I
+  When Publisher 檢查兩條 Track 與 Shared 依賴圖
+  Then 拒絕不能到達共同 Ending 的內容
+  And 合法可選回訪不被錯誤禁止
+```
+
+#### SEF-BDD-088：角色限定 DSL 與非法條件輸入
+
+- [ ] **Scenario: 角色限定 DSL 與非法條件輸入**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 角色限定 DSL 與非法條件輸入
+  Given 條件採 role、Area、bindingKey 與共享世界事實
+  When 有人注入未知條件、過深布林或假 role
+  Then Schema 或 Domain 拒絕非法組合
+  And 合法 all、any、not 僅查已提交事實
+```
+
+#### SEF-BDD-089：單一 Scene 支援多 Area 與多次遊玩
+
+- [ ] **Scenario: 單一 Scene 支援多 Area 與多次遊玩**
+  - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 單一 Scene 支援多 Area 與多次遊玩
+  Given 玩家已在第一場 Scene 探索多個 Area
+  When 兩人完成後同意並進入第二場
+  Then 每個 StorySession 僅一筆 SceneVisit、各自有 Area
+  And 跨場次和跨角色同名節點不得互相污染
+```
+
+### 共享：可驗證的行為
+
+#### SEF-BDD-090：個人線索分享前不得洩漏給另一人
+
+- [ ] **Scenario: 個人線索分享前不得洩漏給另一人**
+  - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 個人線索分享前不得洩漏給另一人
+  Given A 詢問店員得到書名但尚未分享
+  When I 查快照、WS、熱區及可讀 Manifest
+  Then I 不得看 A 私有節點或答案
+  And A 主動分享後只公開允許的線索
+```
+
+#### SEF-BDD-091：兩人競取共享物件只有一位成功
+
+- [ ] **Scenario: 兩人競取共享物件只有一位成功**
+  - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 兩人競取共享物件只有一位成功
+  Given 書袋由共享世界權威記錄在書架
+  When 兩名真人以相同 revision 同時 pick
+  Then 只一個合法 D1 CAS 成功、另一人 409 同步
+  And 物件不複製且不重複完成事件
+```
+
+#### SEF-BDD-092：合作答案分別由兩位真人提交
+
+- [ ] **Scenario: 合作答案分別由兩位真人提交**
+  - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 合作答案分別由兩位真人提交
+  Given S02 必須 I hold-bag 與 A retrieve-tag
+  When I 先提交、A 離線後才操作
+  Then 第一次提交只保留 I 事實且 EventInstance active
+  And A 親提交後才完成一次 shared event
+```
+
+#### SEF-BDD-093：個人事件重複群組不能誤擋另一人
+
+- [ ] **Scenario: 個人事件重複群組不能誤擋另一人**
+  - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 個人事件重複群組不能誤擋另一人
+  Given 同一 EventDefinition 在 I 與 A 各有一個 binding
+  When 兩人各自完成合法個人探索
+  Then 兩份不同 scope 的 EventInstance 均存在
+  And Shared binding 僅有一個共同 instance
+```
+
+#### SEF-BDD-094：隱藏線索不能透過事件補漏流出
+
+- [ ] **Scenario: 隱藏線索不能透過事件補漏流出**
+  - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @edge-case
+Scenario: 隱藏線索不能透過事件補漏流出
+  Given A 有尚未觸發的隱藏事件
+  When I 請求 experience、events query 或公開 R2
+  Then 無 A 私人線索、未知 binding 與私人 R2 key
+  And 只顯示合作狀態的白名單摘要
+```
+
+### 操作：可驗證的行為
+
+#### SEF-BDD-095：Area 移動不增加 SceneVisit
+
+- [ ] **Scenario: Area 移動不增加 SceneVisit**
+  - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: Area 移動不增加 SceneVisit
+  Given 一場 Scene 只有一筆 SceneVisit
+  When I 由 entrance 移到 counter 再到 shelves
+  Then 本人的 Area、鏡頭和可用熱區真實更新
+  And 不可移至未解鎖或不存在的 Area
+```
+
+#### SEF-BDD-096：翻轉取書單必須親自點擊
+
+- [ ] **Scenario: 翻轉取書單必須親自點擊**
+  - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: 翻轉取書單必須親自點擊
+  Given I 在 entrance 可見濕紙單
+  When I 親自點 flip 及查看特寫
+  Then 紙張可見翻面並得到 27 的個人線索
+  And 跳過動畫不能跳過 Server 的正式操作
+```
+
+#### SEF-BDD-097：錯書拖放不得造成不可恢復進度
+
+- [ ] **Scenario: 錯書拖放不得造成不可恢復進度**
+  - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: 錯書拖放不得造成不可恢復進度
+  Given I 尚未得到分享線索或選中錯書
+  When 將 book-wednesday 拖到櫃檯
+  Then 出現可恢復的具體提示，orderStatus 不變
+  And 依正確資訊重新選書仍可完成
+```
+
+#### SEF-BDD-098：NPC 資訊由玩家觸發不代答
+
+- [ ] **Scenario: NPC 資訊由玩家觸發不代答**
+  - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: NPC 資訊由玩家觸發不代答
+  Given A 在櫃檯且店員可交談
+  When A 親自選擇 query-title
+  Then 只 A 先看到預訂資訊，分享後 I 才知道
+  And NPC 不能代另一位真人聊天或提交
+```
+
+#### SEF-BDD-099：物件參數與非法 targetSlotId
+
+- [ ] **Scenario: 物件參數與非法 targetSlotId**
+  - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: 物件參數與非法 targetSlotId
+  Given 場景及物件白名單已由 R2 釘選
+  When Client 提交未授權 objectId、targetSlotId 或 action
+  Then Server 409／明確拒絕且世界未變
+  And 合法 params 才能改 EventInstance 與進度
+```
+
+### 演出：可驗證的行為
+
+#### SEF-BDD-100：站位、五表情與鏡頭 Cue 必須配合事件
+
+- [ ] **Scenario: 站位、五表情與鏡頭 Cue 必須配合事件**
+  - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 站位、五表情與鏡頭 Cue 必須配合事件
+  Given S01、S02、S03 的角色素材與合法 Scene anchor 已釘選
+  When 兩人完成互動後播放可見演出
+  Then 鏡頭、物件、兩位真人化身及五表情符合 Cue
+  And 缺正式動作姿勢時不冒充伸手或直接呼叫 Gemini
+```
+
+#### SEF-BDD-101：雨滴位移和微動開關
+
+- [ ] **Scenario: 雨滴位移和微動開關**
+  - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 雨滴位移和微動開關
+  Given Rain Scene 顯示 AmbientMotion
+  When 玩家檢視雨絲和玻璃水痕後關閉微動
+  Then 畫面先有真正移動且關閉後停止循環
+  And 必要 StoryMotion 仍能播放並且有可讀替代狀態
+```
+
+#### SEF-BDD-102：重新回前景不能重播風起與產圖
+
+- [ ] **Scenario: 重新回前景不能重播風起與產圖**
+  - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 重新回前景不能重播風起與產圖
+  Given S02 風起已提交且標籤在窗台
+  When Android/Web 進背景再返回並恢復 Session
+  Then 根據權威狀態顯示標籤且不重觸發風事件
+  And 不 autoplay 音效、不重送指令、不再產生五表情
+```
+
+#### SEF-BDD-103：錯誤演出素材無法發布與平台量測
+
+- [ ] **Scenario: 錯誤演出素材無法發布與平台量測**
+  - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 錯誤演出素材無法發布與平台量測
+  Given Manifest 包含未知 anchor、表情、camera 或 motion
+  When Publisher 驗證並由 Web/Android 量測正式遊玩
+  Then 非法內容拒絕、合法內容保留可核對的 jank／記憶體／延遲證據
+  And 不能以缺動畫的純文字替代宣告 Gate B 成功
+```
+
+### 雨聲書店：可驗證的行為
+
+#### SEF-BDD-104：RB-01 兩端不同開場進度與台詞
+
+- [ ] **Scenario: RB-01 兩端不同開場進度與台詞**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-01；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-01 兩端不同開場進度與台詞
+  Given 雨聲書店 v2 的 I01 和 A01 已釘選
+  When I 先翻濕紙單、A 停在書架
+  Then I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立
+  And 先行者不推進另一方未完成節點
+```
+
+#### SEF-BDD-105：RB-02 紙單及袋外 27 線索只屬發現者
+
+- [ ] **Scenario: RB-02 紙單及袋外 27 線索只屬發現者**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-02；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-02 紙單及袋外 27 線索只屬發現者
+  Given I 看濕紙、A 查書袋外標籤
+  When 兩人各自 inspect 並讀取 experience
+  Then 僅本人看到已探索的資訊
+  And 未經分享不洩漏對方私有節點或觸發
+```
+
+#### SEF-BDD-106：RB-03 S01 真人核對跨離線仍可完成
+
+- [ ] **Scenario: RB-03 S01 真人核對跨離線仍可完成**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-03；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-03 S01 真人核對跨離線仍可完成
+  Given I 紙單與 A 袋子已在 counter
+  When I 先按核對、A 離線重連後再按核對
+  Then S01 在兩次真實操作後完成並分流 I04／A04
+  And 不由店員代另一方核對
+```
+
+#### SEF-BDD-107：RB-04 A 分享正確書名才開啟 I06
+
+- [ ] **Scenario: RB-04 A 分享正確書名才開啟 I06**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-04；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-04 A 分享正確書名才開啟 I06
+  Given I 看兩本海邊書、A 向店員查出正確書
+  When I 在 A 尚未分享前嘗試領走書
+  Then 不能完成；A 主動分享後 I 才能選中 book-rain
+  And 不把 A 私人店員台詞完整傳給 I
+```
+
+#### SEF-BDD-108：RB-05 試放錯書有可恢復提示
+
+- [ ] **Scenario: RB-05 試放錯書有可恢復提示**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-05；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-05 試放錯書有可恢復提示
+  Given I 選到 book-wednesday
+  When I 嘗試放進 counter-slot
+  Then 提示錯書且 orderStatus 不變
+  And 可返回 shelves 重新選擇
+```
+
+#### SEF-BDD-109：RB-06 A 先拿綠封套但 I 尚未找書
+
+- [ ] **Scenario: RB-06 A 先拿綠封套但 I 尚未找書**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-06；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-06 A 先拿綠封套但 I 尚未找書
+  Given A 知道封套位置且 I 仍在 I05
+  When A 從 window 取出並送到 counter
+  Then 只保存 A 的進度和 green-sleeve 位置、S02 不觸發
+  And I 仍可完成自己的找書流程
+```
+
+#### SEF-BDD-110：RB-07 S02 風起、真人分工和斷線恢復
+
+- [ ] **Scenario: RB-07 S02 風起、真人分工和斷線恢復**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-07；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-07 S02 風起、真人分工和斷線恢復
+  Given 正確書及封套已抵達 counter
+  When S02 風起一次、I hold、A 下線後恢復並取回標籤
+  Then 標籤只移動一次且 I 的真人提交保留
+  And A 取回並放好才完成 Shared
+```
+
+#### SEF-BDD-111：RB-08 同一張標籤只有一個權威位置
+
+- [ ] **Scenario: RB-08 同一張標籤只有一個權威位置**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-08；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-08 同一張標籤只有一個權威位置
+  Given order-tag-27 位於窗台
+  When A 以同一舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得
+  Then 僅 A 的一份合法 D1 CAS 成功，其他舊版次衝突或越權請求被拒
+  And 不產生第二張標籤或重播 S02，並顯示權威物件位置
+```
+
+#### SEF-BDD-112：RB-09 第二次共享事件後只進 A08
+
+- [ ] **Scenario: RB-09 第二次共享事件後只進 A08**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-09；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-09 第二次共享事件後只進 A08
+  Given S02 completed，I 在 I08
+  When A 到 counter 開始 verify-order
+  Then 僅 A 開啟 A08，I 保持 I08
+  And A 真人確認後才啟動 S03
+```
+
+#### SEF-BDD-113：RB-10 真人意向不同則自然進入 E02
+
+- [ ] **Scenario: RB-10 真人意向不同則自然進入 E02**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-10；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-10 真人意向不同則自然進入 E02
+  Given S03 已解鎖、兩人各自能選擇 `look_back` 或 `rest_chat`
+  When I 親自選 `look_back`（再看一眼書架，替今天畫個句點），A 親自選 `rest_chat`（先休息，接著自由聊天）
+  Then E02 自然完成並同交易封存未完成 Side，Round 仍 active 且聊天仍可用
+  And 任一方選 `rest_chat` 都不宣稱兩人同意回書架，也不會生成新的探索操作
+```
+
+#### SEF-BDD-114：RB-11 雙方回望書架後自然完成 E01
+
+- [ ] **Scenario: RB-11 雙方回望書架後自然完成 E01**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-11；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-11 雙方回望書架後自然完成 E01
+  Given 雙人的必經事實與 S03 都已完成到可提交最終意向
+  When I 與 A 各親自選 `look_back`（再看一眼書架，替今天畫個句點）
+  Then Server 在第二人合法提交時同 D1 交易完成 chapter.completed、封存未完 Side、保存 receipt，Round active／聊天保留；Client 收到成功後才播一次書架回望短鏡頭
+  And 不開放新探索／物件熱區／支線、無額外結束按鈕；未成功提交不能先播結局，動畫略過／重連不能再送完成命令
+```
+
+#### SEF-BDD-115：RB-12 重送斷線退出不得復活舊操作
+
+- [ ] **Scenario: RB-12 重送斷線退出不得復活舊操作**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-12；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-12 重送斷線退出不得復活舊操作
+  Given I/A 不同步且有已提交 requestId
+  When 重送原 payload、變造 payload、重連及退出
+  Then 冪等返回原 receipt、變造拒絕、退出後拒寫
+  And 不重抽主線或重新呼叫五表情
+```
+
+#### SEF-BDD-116：RB-13 關雨景後仍能完成風起事件
+
+- [ ] **Scenario: RB-13 關雨景後仍能完成風起事件**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-13；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-13 關雨景後仍能完成風起事件
+  Given 玩家已關閉 AmbientMotion 且 S02 可用
+  When 兩人完成按住書袋和取回標籤
+  Then 雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚
+  And 可以略過表演不能略過操作
+```
+
+#### SEF-BDD-117：RB-14 Web Android 全劇本且 Gate B 人工核准
+
+- [ ] **Scenario: RB-14 Web Android 全劇本且 Gate B 人工核准**
+  - **來源**：SEF-AC-023／SDD §3.8.6 RB-14；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @frontend @happy-path
+Scenario: RB-14 Web Android 全劇本且 Gate B 人工核准
+  Given 只發布首條正式雨聲書店並準備兩名真人
+  When 兩端實玩 I01/A01 至 E01/E02 的所有必經流程
+  Then 21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據
+  And 未取得使用者人工核准不得開始另外九條
+```
+
+### 清理：可驗證的行為
+
+#### SEF-BDD-118：本地 Clean Rebuild 不誤刪帳號與化身
+
+- [ ] **Scenario: 本地 Clean Rebuild 不誤刪帳號與化身**
+  - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @error-handling
+Scenario: 本地 Clean Rebuild 不誤刪帳號與化身
+  Given 僅識別 DatingHigh local DB 與 R2 並有保護資料清單
+  When 在開發 Gate 模擬清理及重建計畫
+  Then 只清舊遊戲測資與無用執行內容
+  And 未知、遠端、正式環境直接拒絕
+```
+
+#### SEF-BDD-119：最終 Schema 無舊互動表或單線命令
+
+- [ ] **Scenario: 最終 Schema 無舊互動表或單線命令**
+  - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @error-handling
+Scenario: 最終 Schema 無舊互動表或單線命令
+  Given scene-event.v2 新 runtime 已完整替換原路徑
+  When 從空 local DB 執行 migration 及引用稽核
+  Then game_interaction_instances 已無表與索引且雙方 Progress 正確
+  And 保留 Round／聊天／EventReceipt／退出能力
+```
+
+#### SEF-BDD-120：保留有引用的正式角色素材與書店場景
+
+- [ ] **Scenario: 保留有引用的正式角色素材與書店場景**
+  - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @error-handling
+Scenario: 保留有引用的正式角色素材與書店場景
+  Given 16 款全身與五表情已正式提供且 R2 SHA 釘選
+  When 清除舊 story-scenes 與 bookmark 發布流程
+  Then 只有失效的舊入口被移除，正式來源與本劇本素材仍正常
+  And 不能依檔案名稱相似就刪美術成品
+```
+
+#### SEF-BDD-121：人工首條 Gate 未核准禁止九條量產
+
+- [ ] **Scenario: 人工首條 Gate 未核准禁止九條量產**
+  - **來源**：SEF-AC-023；**狀態**：待實作／未驗收
+
+```gherkin
+@critical @error-handling
+Scenario: 人工首條 Gate 未核准禁止九條量產
+  Given 首條技術測試全通過但真人試玩尚未核准
+  When 開發準備製作另外九條正式主線
+  Then 維持九條擴充 Gate 阻斷並可調整首條
+  And 不以測試 fixture 或兩個 Ending 當成多條故事
+```
+
 ## SPEC 驗收覆蓋矩陣
 
 | SPEC AC | BDD Scenario |
@@ -1181,5 +1787,12 @@ Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身�
 | SEF-AC-015 | SEF-BDD-070、SEF-BDD-073、SEF-BDD-074、SEF-BDD-076 |
 | SEF-AC-016 | SEF-BDD-077、SEF-BDD-078 |
 | SEF-AC-017 | SEF-BDD-079 |
+| SEF-AC-018 | SEF-BDD-080、SEF-BDD-081、SEF-BDD-082、SEF-BDD-083 |
+| SEF-AC-019 | SEF-BDD-084、SEF-BDD-085、SEF-BDD-086、SEF-BDD-087、SEF-BDD-088、SEF-BDD-089 |
+| SEF-AC-020 | SEF-BDD-090、SEF-BDD-091、SEF-BDD-092、SEF-BDD-093、SEF-BDD-094 |
+| SEF-AC-021 | SEF-BDD-095、SEF-BDD-096、SEF-BDD-097、SEF-BDD-098、SEF-BDD-099 |
+| SEF-AC-022 | SEF-BDD-100、SEF-BDD-101、SEF-BDD-102、SEF-BDD-103 |
+| SEF-AC-023 | SEF-BDD-104、SEF-BDD-105、SEF-BDD-106、SEF-BDD-107、SEF-BDD-108、SEF-BDD-109、SEF-BDD-110、SEF-BDD-111、SEF-BDD-112、SEF-BDD-113、SEF-BDD-114、SEF-BDD-115、SEF-BDD-116、SEF-BDD-117、SEF-BDD-121 |
+| SEF-AC-024 | SEF-BDD-118、SEF-BDD-119、SEF-BDD-120 |
 
-**79/79 場景已建立規劃與追溯；1/79 完整實作覆核通過**。已將 RA-Q1=A、RA-Q2=A 增補為 SEF-BDD-064～066，不覆蓋原 63 個場景。另依 2026-11-13 全身角色／2.5D 影響稽核補入 SEF-BDD-067～078（12 場），保留原 StoryDialogueAndExit Gate B。對應 [TDD 測試清單](../tdd/SPEC-001-SceneEventFramework-TDD.md) 必須以本場景的 ID 雙向追溯。已確認的 RA-Q1=A／RA-Q2=A 及 12 項風險處置見 [RiskAudit](../specs/SPEC-001-SceneEventFramework-RiskAudit.md)，交接細節見 [TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md#規劃交接紀錄)；目前 Ready 只表示可以開始開發首條主線，非已測試通過。
+**121/121 場景已有 BDD 規劃與 SPEC AC 追溯（舊版 79＋新版 42）**；目前舊版 1/79 項完整覆核，新版 0/42，合計 1/121。RB-01～14 均對應 BDD-104～117，E01 選項依 V2-RQ-01=A 更新為「再看一眼書架，替今天畫個句點」，無互動尾聲。TDD 現為 625 項，12 項新風險與 10 組 GAP 已回寫，**Phase 5 規劃可交 well-done，但所有新行為與人工 Gate B 仍待實際驗收**。

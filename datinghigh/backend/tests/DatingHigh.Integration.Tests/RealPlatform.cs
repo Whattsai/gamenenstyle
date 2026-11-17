@@ -19,14 +19,13 @@ internal sealed class RealPlatform:IPlatformClient,IAsyncDisposable
     public Task<JsonNode> Provider(string mode,bool reset=true)=>ExecuteAsync("$test-provider",new{mode,reset});
     public Task<JsonNode> ProviderStats()=>ExecuteAsync("$test-provider-stats",new{});
     public void ObserveUtcNow(DateTimeOffset now){lock(clockLock)if(now>Clock.GetUtcNow())Clock.SetUtcNow(now);}
-    public RealPlatform(bool framework=false,bool advanceFrameworkClock=true)
+    public RealPlatform(bool framework=false,bool advanceFrameworkClock=true,bool tracks=false)
     {
-        frameworkClock=framework&&advanceFrameworkClock;
+        frameworkClock=(framework||tracks)&&advanceFrameworkClock;
         var utf8=new System.Text.UTF8Encoding(false,true);
         var start=new ProcessStartInfo("node"){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=utf8,StandardOutputEncoding=utf8,StandardErrorEncoding=utf8,UseShellExecute=false,CreateNoWindow=true};start.ArgumentList.Add(Runner);start.ArgumentList.Add(Root);
         process=Process.Start(start)??throw new InvalidOperationException("Cannot start isolated D1 runner");stderr=process.StandardError.ReadToEndAsync();
         if(process.StandardOutput.ReadLine()!="{\"ready\":true}")throw new InvalidOperationException("Isolated D1 runner did not start");
-        if(framework)ExecuteAsync("$test-framework-enable",new{}).GetAwaiter().GetResult();
     }
     private static string FindRoot(){var directory=new DirectoryInfo(AppContext.BaseDirectory);while(directory is not null){if(File.Exists(Path.Combine(directory.FullName,"cloudflare","wrangler.jsonc")))return directory.FullName;directory=directory.Parent;}throw new InvalidOperationException("Foundation root not found");}
     private static string BuildRunner()

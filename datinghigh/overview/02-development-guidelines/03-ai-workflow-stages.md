@@ -90,11 +90,14 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 - Web 先 export、build:e2e-host，再跑 `matching-sessions.spec.ts`；原生 `matching-sessions.mjs` 使用專用裝置／ADB port、自有8084 Metro，可依 basic／extended／routing／card 分組。它們不與同裝置或同 port 的測試並行。
 - `npm run game:list:local`／`npm run game:end:local -- --round-id UUID` 只供本地維運；`tests/integration/local-game-maintenance.test.mjs` 驗 CLI 與 D1 rollback，不替代產品退出 UX。
 - `npm run test:story:web` 前先 export Web／build E2eHost；`npm run test:story:android` 指定QA裝置與ADB port，單程序獨占UiAutomator，透過SDK launch參數關閉開發浮動按鈕。`npm run test:story:live` 需真local平台ready。
-- `npm run test:scene:web` 明確啟用 scene-event.v1 的隔離真 D1／R2／DO；Android 以 `DATINGHIGH_E2E_SCENE_FRAMEWORK=1` 執行相同原生入口，先驗 Metro manifest 與完整 bundle 就緒。兩套共用8081而原生另占8084，須依序執行。多場次證據須檢查 Session／SceneVisit 數、草稿／聊天保留、舊場指令拒絕及自然收尾，不以舊0005通過代替。
+- `npm run test:scene:web` 明確啟用 scene-event.v2 的隔離真 D1／R2／DO；Android 以 `DATINGHIGH_E2E_SCENE_FRAMEWORK=2` 執行`scene-event-framework.mjs` 原生入口，先驗 Metro manifest 與完整 bundle 就緒。兩套共用8081而原生另占8084，須依序執行。多場次證據須檢查 Session／SceneVisit 數、草稿／聊天保留、舊場指令拒絕及自然收尾，不以舊0005通過代替。
 - 劇情 fixture 可驗多個完整內容的選場引擎，不當作額外正式故事。技術回放不替代本人 Gate B，Gate B 確認前不得擴充其餘九場。
+- 隔離E2eHost的reset須在清空遊戲後重設內容索引及唯一首條，避免多類別／隱藏事件變體流入下一案例；R2故障還原同時保留bytes與httpMetadata，不能用丟失MIME的回填繞過immutable檢查。受控競爭提交仍走真正API／Application／D1，僅在RAM處理合成family metadata，不記錄原始命令或憑證。
+- `npm run test:scene:android:audio` 單獨驗證使用者啟用環境音、真人操作後獨立音效播放器、靜音／背景停止及返回不自動重播。只保存該 App UID 的標準化播放器 ID／狀態；它不是完整結局或人工 Gate 證據。音效 URL 改變會替換播放器，清理舊音效不得取消環境音意圖；過期 seek Promise 不能更改新音效狀態。
+- Web實際音效案例由`audio-browser.ts`啟動獨立Chrome，以`connectOverCDP`的`noDefaults`避免Playwright強制每頁前景；真正切頁後先驗證focus／visibility改變，再驗HTMLAudioElement暫停及返回不重播。此案例開啟自有測試視窗，移除遮擋造成的背景排程並正常化該視窗尺寸；不得操作使用者Chrome profile，暫存profile須驗證在workspace邊界內才清理。產品同時處理AppState與Web blur，返回不自動恢復音效。
 
 ### UI 與追溯原則
 
-圖片需量實際3:4 frame，不能只驗 aspectRatio 宣告；Web height:auto、native height:undefined。UiAutomator XML 的 emoji entity 單次解碼，輸入須定位實際 EditText，捲動使其可見；裝置 ANR／連線 timeout 不得記產品通過。
+圖片需量實際3:4 frame，不能只驗 aspectRatio 宣告；Web height:auto、native height:undefined。UiAutomator XML 的 emoji entity 單次解碼，輸入須定位實際 EditText，捲動使其可見；裝置 ANR／連線 timeout 不得記產品通過。連續舞台動畫若使 UiAutomator idle 逾時，測試可在已確認的 QA31 固定畫面以真觸控關閉既有微動，再驗原生控制項；不能用 API 代玩家操作或假稱環境微動已完整驗收。
 
-追溯工具 `audit-avatar-traceability.mjs`、`audit-matching-traceability.mjs`、`audit-story-traceability.mjs` 僅依人工覆核重建索引，不因測試名稱有 ID 就核准。追加需求的斷言與覆核紀錄須保留；規劃數、測試函式數、平台證據與完整驗收分開計算。GC 壓力測試的可控 I/O／Miniflare 結果不擴推成雲端長期負載證據。
+追溯工具 `audit-avatar-traceability.mjs`、`audit-matching-traceability.mjs` 僅依人工覆核重建索引；`audit-story-traceability.mjs` 唯讀校對 SceneEventFramework 既有 Verification 的逐 ID 覆核表，並檢查 verified 實作／測試檔案可讀及行號未越界。工具不因測試名稱有 ID、歷史 checkbox 或局部成功就核准。追加需求的斷言與覆核紀錄須保留；規劃數、測試函式數、平台證據與完整驗收分開計算。GC 壓力測試的可控 I/O／Miniflare 結果不擴推成雲端長期負載證據。

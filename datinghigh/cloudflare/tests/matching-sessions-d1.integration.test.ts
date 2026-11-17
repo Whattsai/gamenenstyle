@@ -3,10 +3,15 @@ import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, beforeEach, expect, it } from 'vitest';
 import { executeCommand, planCommand } from '../src/commands';
 import { dispatch } from '../src/platform';
+import {planFrameworkAcceptance,loadFrameworkCatalog,executeFrameworkEnd,type VerifiedFrameworkCatalog} from '../src/scene-event-commands';
+// @ts-expect-error 隔離測試直接使用 v2 正式內容建構器。
+import {buildTrackFixture} from '../../tests/support/scene-event-content-fixture.mjs';
+// @ts-expect-error 受控 Publisher 的同一個嚴格內容政策。
+import {publishSceneEventBundles} from '../../tools/scene-event-publish-policy.mjs';
 // @ts-expect-error 本地維運的純JS固定SQL契約由Node與真D1共同驗證。
 import { localGameEndStatements } from '../../tools/local-game-policy.mjs';
 
-let mf:Miniflare, db:D1Database, files:R2Bucket;
+let mf:Miniflare, db:D1Database, files:R2Bucket,bucket:R2Bucket,catalog:VerifiedFrameworkCatalog[];
 const now=Date.UTC(2026,10,6,0);
 const id=(n:number)=>`019a281e-0000-7000-8000-${n.toString().padStart(12,'0')}`;
 const owner=(n:number)=>({accountId:id(n),sessionId:id(n+100),cv:1,accessExpiresAt:now+600000});
@@ -15,7 +20,8 @@ const profile=(n:number,extra={})=>({...owner(n),expectedRevision:1,nickname:`�
  traitTagIds:['warm'],interestTagIds:['coffee'],topicTagIds:[],valueTagIds:[],weekendPreference:'explore',sleepSchedule:null,
  conversationStyle:null,expectedInteractionFrequency:null,relationshipMode:null,preferredAgeMin:null,preferredAgeMax:null,
  preferredRegionCodes:[],sharedInterestWeight:50,...extra});
-const run=(command:string,p:any,time=now)=>executeCommand(db,command,p,time);
+const acceptancePlan=(p:any,time=now)=>planFrameworkAcceptance(p,catalog,time,{sceneDraw:.25,narrativeDraw:.25});
+const run=async(command:string,p:any,time=now)=>{if(command==='game.round.end')return executeFrameworkEnd(db,p,time);if(command==='match.invite.resolve'&&p.action==='accept'){const r=await db.batch(acceptancePlan(p,time).map(s=>db.prepare(s.sql).bind(...s.values)));return{rows:r.flatMap(r=>r.results).filter((r:any)=>!Object.keys(r).some(k=>k.startsWith('__'))),changes:r.map(r=>r.meta.changes)};}return executeCommand(db,command,p,time);};
 const rows=async(sql:string,...values:unknown[])=>(await db.prepare(sql).bind(...values).all()).results as any[];
 async function person(n:number){
  await db.prepare("INSERT INTO auth_accounts VALUES(?,?,?,NULL,'active',1,?,?)").bind(id(n),`p${n}@example.invalid`,now,now,now).run();
@@ -31,16 +37,16 @@ const resolve=(who:number,invitationId:string,action='accept',seed=5000)=>run('m
  ...owner(who),invitationId,action,roundId:id(seed),participantLowId:id(seed+1),participantHighId:id(seed+2)});
 
 beforeAll(async()=>{
- mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'matching-test'},r2Buckets:{FILES:'matching-test-files'}}));
+ mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-10-24',d1Databases:{DB:'matching-test'},r2Buckets:{FILES:'matching-test-files',STORY_CONTENT:'matching-test-content'}}));
  db=await mf.getD1Database('DB') as unknown as D1Database;
  files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql'])
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql','0006_scene_event_framework.sql','0007_scene_event_tracks.sql'])
   await db.batch(readFileSync(new URL(`../migrations/${name}`,import.meta.url),'utf8').split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
+ bucket=await mf.getR2Bucket('STORY_CONTENT')as unknown as R2Bucket;await publishSceneEventBundles(db,bucket,[buildTrackFixture(new URL('../../',import.meta.url))],{now});catalog=await loadFrameworkCatalog({DB:db,STORY_CONTENT:bucket});
 });
 beforeEach(async()=>{
  const objects=await files.list();if(objects.objects.length)await files.delete(objects.objects.map(o=>o.key));
- await db.batch(['game_interaction_instances','game_round_events','game_story_sessions','game_active_round_claims','game_rounds','match_invitations','match_conditions','user_media_assets','user_profiles','auth_sessions','auth_accounts'].map(t=>db.prepare(`DELETE FROM ${t}`)));
- await db.prepare("INSERT OR IGNORE INTO content_story_catalog VALUES(?, 'fixture-story','v1','[\"reading\"]',1,'story-content/stories/fixture/v1/manifest.json',?,'published',?)").bind(id(9990),'a'.repeat(64),now).run();
+ await db.batch(['game_event_instances','game_story_participant_progress','game_scene_visits','game_round_events','game_story_sessions','game_active_round_claims','game_rounds','match_invitations','match_conditions','user_media_assets','user_profiles','auth_sessions','auth_accounts'].map(t=>db.prepare(`DELETE FROM ${t}`)));
  for(const n of [1,2,3])await person(n);
 });
 
@@ -49,7 +55,7 @@ it('MS-IT-046: generated avatar reads only the authorized formal asset and reche
  await db.prepare("INSERT INTO user_media_assets(asset_id,account_id,kind,object_key,mime_type,status,created_at) VALUES(?,?,'generated_avatar',?,'image/jpeg','ready',?)").bind(asset,id(2),key,now).run();
  await files.put(key,new Uint8Array([1,2,3]));
  await run('profile.avatar.generated',{...owner(2),expectedRevision:3,assetId:asset});
- const env={DB:db,FILES:files,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0005_story_dialogue_exit.sql'};
+ const env={DB:db,FILES:files,APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0007_scene_event_tracks.sql'};
  const request=()=>new Request('http://platform.internal/v1/commands/match.candidate.persona.read',{method:'POST',body:JSON.stringify({...owner(1),candidateId:id(202)})});
  const first=await dispatch(request(),env,now);expect(first.status).toBe(200);
  const body=await first.json() as any;expect(body.rows[0].avatar_data_url).toBe('data:image/jpeg;base64,AQID');expect(JSON.stringify(body)).not.toContain(key);
@@ -73,7 +79,7 @@ it.each(['success','zero-update','zero-release','one-participant'])('local wrapp
  const ab=(await invite(1,2)).rows[0] as any;await resolve(2,ab.invitation_id);
  if(mode==='one-participant')await db.prepare('DELETE FROM game_active_round_claims WHERE account_id=?').bind(id(1)).run();
  const before=await rows('SELECT * FROM game_active_round_claims ORDER BY participant_id');
- const plan=localGameEndStatements(id(5000),now+1) as string[];
+ const plan=localGameEndStatements(id(5000),now+1,true) as string[];
  if(mode==='zero-update'||mode==='zero-release'){
   const index=plan.findIndex(s=>s.startsWith(mode==='zero-update'?'UPDATE game_rounds':'DELETE FROM game_active_round_claims'));
   expect(index).toBeGreaterThanOrEqual(0);plan[index]=plan[index].replace('WHERE ','WHERE 0 AND ');
@@ -85,7 +91,7 @@ it.each(['success','zero-update','zero-release','one-participant'])('local wrapp
  await db.batch(plan.map(s=>db.prepare(s)));
  expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);expect(await rows('SELECT status,ended_at FROM game_rounds')).toEqual([{status:'ended',ended_at:now+1}]);
  expect((await invite(2,1,90)).rows).toHaveLength(0);expect((await invite(3,1,91)).rows.at(-1)).toMatchObject({status:'pending'});
- await db.batch(localGameEndStatements(id(5000),now+2).map((s:string)=>db.prepare(s)));expect((await rows('SELECT ended_at FROM game_rounds'))[0].ended_at).toBe(now+1);
+ await db.batch(localGameEndStatements(id(5000),now+2,true).map((s:string)=>db.prepare(s)));expect((await rows('SELECT ended_at FROM game_rounds'))[0].ended_at).toBe(now+1);
 });
 
 it('MS-IT-001/057: only ready profiles have unique conditions; no source revision or trigger',async()=>{
@@ -150,7 +156,7 @@ it('MS-IT-049/050/051/060: cross-pair concurrent accept and forced zero-change r
 
 it('MS-IT-051: a zero-row guarded accept fails inside SQL and rolls back the entire batch',async()=>{
  const ab=(await invite(1,2)).rows[0] as any;
- const plan=planCommand('match.invite.resolve',{...owner(2),invitationId:ab.invitation_id,action:'accept',roundId:id(5300),participantLowId:id(5301),participantHighId:id(5302)},now);
+ const plan=acceptancePlan({...owner(2),invitationId:ab.invitation_id,action:'accept',roundId:id(5300),participantLowId:id(5301),participantHighId:id(5302)},now);
  const index=plan.findIndex(p=>p.sql.startsWith('UPDATE match_invitations SET status=\'accepted\''));
  expect(index).toBeGreaterThanOrEqual(0);
  plan[index]={sql:plan[index].sql.replace('WHERE ', 'WHERE 0 AND '),values:plan[index].values};
@@ -243,7 +249,7 @@ it.each(['session','account','avatar','birthday'])('MS-IT-043/044/056: %s loss i
 it('MS-IT-050: failure of second participant rolls back accepted invitation, first participant and round',async()=>{
  const ab=(await invite(1,2)).rows[0] as any;
  await invite(3,1);await invite(2,3);const original=await rows('SELECT * FROM match_invitations ORDER BY invitation_id');
- const plan=planCommand('match.invite.resolve',{...owner(2),invitationId:ab.invitation_id,action:'accept',roundId:id(7200),participantLowId:id(7201),participantHighId:id(7201)},now);
+ const plan=acceptancePlan({...owner(2),invitationId:ab.invitation_id,action:'accept',roundId:id(7200),participantLowId:id(7201),participantHighId:id(7201)},now);
  await expect(db.batch(plan.map(p=>db.prepare(p.sql).bind(...p.values)))).rejects.toThrow();
  expect(await rows('SELECT * FROM game_rounds')).toHaveLength(0);
  expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(0);

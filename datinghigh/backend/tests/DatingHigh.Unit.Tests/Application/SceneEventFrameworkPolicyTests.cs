@@ -5,49 +5,6 @@ namespace DatingHigh.Unit.Tests.Application;
 
 public sealed class SceneEventFrameworkPolicyTests
 {
-    private static JsonObject Linear() => JsonNode.Parse("""
-        {"entry":"entry","locale":"zh-TW","time":"午後","place":"書店","event":"找書",
-         "interactions":[],"assets":[],"nodes":[
-           {"id":"entry","lines":[{"speaker":"旁白","text":"雨落下。"}],"choices":[{"id":"continue","next":"ending"}]},
-           {"id":"ending","ending":true,"lines":[{"speaker":"旁白","text":"找到書了。"}],"choices":[]}]}
-        """)!.AsObject();
-
-    [Fact]
-    public void SEFUT025_026_Graph_LinearTwoNodesAndOneEndingAreValid() => StoryGraphPolicy.Validate(Linear());
-
-    [Fact]
-    public void SEFUT027_Graph_RejectsUnreachableEndingAndDeadEnd()
-    {
-        var graph=Linear();graph["nodes"]![0]!["choices"]=new JsonArray();
-        var before=graph.DeepClone();
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-        Assert.True(JsonNode.DeepEquals(before,graph));
-    }
-
-    [Fact]
-    public void SEFUT127_Graph_RejectsOutgoingChoiceFromEnding()
-    {
-        var graph=Linear();graph["nodes"]![1]!["choices"]=JsonNode.Parse("""[{"id":"again","next":"entry"}]""");
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-    }
-
-    [Fact]
-    public void SEFUT127_Graph_RejectsAmbiguousChoiceIdsBeforeAnyPlayerAction()
-    {
-        var graph=Linear();graph["nodes"]![0]!["choices"]!.AsArray().Add(JsonNode.Parse("""{"id":"continue","next":"ending"}"""));
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-    }
-
-    [Fact]
-    public void SEFUT127_Graph_RejectsEmptyOrBlankNarrativeLines()
-    {
-        var graph=Linear();graph["nodes"]![0]!["lines"]=new JsonArray();
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-        graph=Linear();graph["nodes"]![0]!["lines"]![0]!["text"]="   ";
-        Assert.Throws<DomainException>(()=>StoryGraphPolicy.Validate(graph));
-    }
-
     private static NarrativeCandidate Narrative(string id,string[]? codes=null,string? group=null,int? order=null,string[]? prerequisites=null) =>
         new(id,id,"scene",codes??["romance"],"published",group,order,prerequisites??[]);
     private static PairCompletion Done(string narrative,string scene="scene",string low="A",string high="B") =>new(low,high,scene,narrative);

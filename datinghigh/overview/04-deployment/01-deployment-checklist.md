@@ -4,11 +4,11 @@
 
 ## Migration 與容器建置
 
-default local 的 EXPECTED_MIGRATION 為 `0006_scene_event_framework.sql`；ready 核對21張自有表、零 Trigger、claims、劇情及場景事件索引。staging 設定仍為0005，須以具體環境的部署授權及資料遷移另行升級，不能套用本地證據。Dockerfile 位於 backend，build context 為 DatingHigh 根目錄，Wrangler `image_build_context=".."`；根 .dockerignore 僅送 backend 與 contracts，排除 bin／obj／測試結果。
+default local 的 EXPECTED_MIGRATION 為 `0007_scene_event_tracks.sql`；ready 核對21張自有表、零 Trigger、claims、劇情及場景事件索引。staging 設定仍為0005，須以具體環境的部署授權及資料遷移另行升級，不能套用本地證據。Dockerfile 位於 backend，build context 為 DatingHigh 根目錄，Wrangler `image_build_context=".."`；根 .dockerignore 僅送 backend 與 contracts，排除 bin／obj／測試結果。
 
-乾淨 DB 使用本地 migrate wrapper。舊0004／0005有非正式遊戲資料時，使用 `npm run db:upgrade-scene:local`：鎖定已知 local instance、暫停寫入，以排他備份名稱及原子改名保存備份，再用受限 D1 batch 清舊遊戲／邀請並套0006。帳號、個資、媒體等保護表於 RAM 比對筆數與雜湊；整批失敗回滾，不補假故事候選。wrapper 發布唯一首條後才更新該 instance 的 EXPECTED_MIGRATION；重跑0006不再清遊戲，還原只建新目錄。
+乾淨 DB 使用本地 migrate wrapper。舊0005／0006有非正式遊戲資料時，使用 `npm run db:upgrade-scene:local`：鎖定已知 local instance、暫停寫入，以排他備份名稱及原子改名保存備份，再用受限 D1 batch 清舊遊戲／邀請並套0007。帳號、個資、媒體等保護表於 RAM 比對筆數與雜湊；整批失敗回滾，不補假故事候選。0007 明確移除舊互動表並建立角色進度；非空舊遊戲不得直接 migrate。wrapper 發布唯一首條後才更新該 instance 的 EXPECTED_MIGRATION；重跑0007不再清遊戲，還原只建新目錄。
 
-`npm run content:publish:local` 使用 scene-publish，固定由 contracts/scene-event-content.json 建構首條；先驗四層 immutable 內容／DSL／相依／能力，再 create-only 寫 R2 並讀回驗 SHA，最後在 D1 batch 發布 Category／Scene／關聯／Narrative。部分 R2 失敗不公開 D1 目錄，已發布內容不得覆寫。正式增加其他主線需首條使用者 Gate 的精確版本／SHA 紀錄；技術 fixture 不充正式故事。
+`npm run content:publish:local` 使用 scene-publish，固定由 contracts/scene-event-content.json 建構首條；清理前先驗首條 v2 劇本／演出契約及四層 immutable 內容／DSL／相依／能力，再 create-only 寫 R2 並讀回驗 SHA，最後在 D1 batch 發布 Category／Scene／關聯／Narrative。宣告素材必須完整且 SHA／長度／MIME 一致，R2 既存同位元組但不同 MIME 亦拒絕覆寫。部分 R2 失敗不公開 D1 目錄，已發布內容不得覆寫。本地發布錯誤只提示公開依賴 ID／版本、玩法或演出引用；任意路徑／參數不反射，HTTP 仍回安全通用內容錯誤。正式增加其他主線需首條使用者 Gate 的精確版本／SHA 紀錄；技術 fixture 不充正式故事。
 
 ## 版本化故事發布
 

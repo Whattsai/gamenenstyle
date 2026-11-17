@@ -15,10 +15,9 @@ public static class StoryRecommendationPolicy
 }
 /// <summary>真人選票的業務投影；事件 sequence 是提交順序。</summary>
 public sealed record StoryVote(int EpisodeSeq,string Actor,string CatalogId,long Sequence);
-/// <summary>只使用同場雙方的最後有效票；產品本期只啟用第一場。</summary>
+/// <summary>只使用指定場次雙方的最後有效票；原邀請方只處理真人已提交票的平手。</summary>
 public static class StorySelectionPolicy
 {
-    public static void CurrentEdition(int episode){if(episode!=1)throw new DomainException("INVALID_STORY_REQUEST");}
     public static string? Resolve(IEnumerable<StoryVote> votes,int episode,string a,string b,string initiator)
     {
         if(initiator!=a&&initiator!=b)throw new DomainException("INVALID_STORY_VOTE");

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import {it,expect,vi,afterEach} from 'vitest';
-import {render,screen,fireEvent,cleanup,waitFor} from '@testing-library/react';
+import {act,render,screen,fireEvent,cleanup,waitFor} from '@testing-library/react';
 const state=vi.hoisted(()=>({players:new Map<string,any>(),background:(_state:string)=>{}}));
 vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web'),AppState:{addEventListener:(_e:string,cb:any)=>{state.background=cb;return{remove:vi.fn()};}}}));
 vi.mock('react-native-safe-area-context',async()=>({SafeAreaView:(await vi.importActual<typeof import('react-native')>('react-native-web')).View}));
@@ -26,4 +26,27 @@ it('an event sequence plays at most once and restoring the base cue cannot repla
  view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:event:8"/>);await waitFor(()=>expect(page.play).toHaveBeenCalledTimes(1));
  view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:entry"/>);view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="story:event:8"/>);
  await Promise.resolve();expect(page.play).toHaveBeenCalledTimes(1);
+});
+it('loading a different event sound keeps explicitly enabled ambience playing and starts the new cue once',async()=>{
+ const view=render(<StoryAudio url="rain" cueId="entry"/>),rain=state.players.get('rain');fireEvent.click(screen.getByLabelText('開啟場景聲音'));
+ view.rerender(<StoryAudio url="rain" cueUrl="doorbell" cueId="event:1"/>);await waitFor(()=>expect(state.players.get('doorbell').play).toHaveBeenCalledTimes(1));
+ expect(rain.pause).not.toHaveBeenCalled();expect(screen.getByLabelText('靜音場景聲音')).toBeTruthy();
+ view.rerender(<StoryAudio url="rain" cueUrl="paper" cueId="event:2"/>);await waitFor(()=>expect(state.players.get('paper').play).toHaveBeenCalledTimes(1));
+ expect(state.players.get('doorbell').pause).toHaveBeenCalled();expect(rain.pause).not.toHaveBeenCalled();
+});
+it('a late seek failure from an older cue cannot mute the current successfully playing cue',async()=>{
+ const view=render(<StoryAudio url="rain" cueUrl="page" cueId="entry"/>),rain=state.players.get('rain'),page=state.players.get('page');let rejectOld:(error:Error)=>void=()=>{};
+ fireEvent.click(screen.getByLabelText('開啟場景聲音'));page.seekTo.mockImplementationOnce(()=>new Promise((_resolve,reject)=>{rejectOld=reject;}));
+ view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="event:1"/>);await waitFor(()=>expect(page.seekTo).toHaveBeenCalledTimes(1));
+ view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="event:2"/>);await waitFor(()=>expect(page.play).toHaveBeenCalledTimes(1));
+ await act(async()=>{rejectOld(Error('Old seek failed after the next cue'));await Promise.resolve();});
+ expect(screen.getByLabelText('靜音場景聲音')).toBeTruthy();expect(screen.queryByText('聲音暫時無法播放，仍可繼續故事。')).toBeNull();expect(rain.pause).not.toHaveBeenCalled();
+});
+
+it('a real web blur pauses ambient and pending cues; focus never resumes and unmount removes the listener',async()=>{
+ const view=render(<StoryAudio url="rain" cueUrl="page" cueId="entry"/>),rain=state.players.get('rain'),page=state.players.get('page');let completeSeek:()=>void=()=>{};
+ fireEvent.click(screen.getByLabelText('開啟場景聲音'));page.seekTo.mockImplementationOnce(()=>new Promise<void>(resolve=>{completeSeek=resolve;}));view.rerender(<StoryAudio url="rain" cueUrl="page" cueId="event:1"/>);await waitFor(()=>expect(page.seekTo).toHaveBeenCalledTimes(1));
+ fireEvent(window,new Event('blur'));expect(rain.pause).toHaveBeenCalled();expect(page.pause).toHaveBeenCalled();expect(screen.getByLabelText('開啟場景聲音')).toBeTruthy();
+ await act(async()=>{completeSeek();await Promise.resolve();});expect(page.play).not.toHaveBeenCalled();fireEvent(window,new Event('focus'));expect(rain.play).toHaveBeenCalledTimes(1);expect(screen.getByLabelText('開啟場景聲音')).toBeTruthy();
+ view.unmount();rain.pause.mockClear();page.pause.mockClear();fireEvent(window,new Event('blur'));expect(rain.pause).not.toHaveBeenCalled();expect(page.pause).not.toHaveBeenCalled();
 });

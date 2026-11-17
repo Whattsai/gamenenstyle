@@ -46,12 +46,16 @@
     "db:upgrade-story:local": "node tools/local.mjs story-upgrade",
     "content:publish:local": "node tools/local.mjs scene-publish",
     "db:upgrade-scene:local": "node tools/local.mjs scene-upgrade",
-    "test:story:web": "playwright test --config tests/playwright.config.ts story-dialogue.spec.ts",
+    "test:story:web": "node tools/test-scene-web.mjs",
     "test:scene:web": "node tools/test-scene-web.mjs",
     "test:story:live": "node --test tests/integration/story-dialogue-live.test.mjs",
     "avatar:reset:preview:local": "node tools/local.mjs avatar-reset-preview",
     "avatar:reset:apply:local": "node tools/local.mjs avatar-reset-apply",
-    "test:story:android": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite story-dialogue"
+    "test:scene:android": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-framework",
+    "test:scene:android:matrix": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-matrix",
+    "test:scene:android:audio": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-audio",
+    "test:story:android": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite story-dialogue",
+    "test:scene:android:recovery": "npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-recovery"
   },
   "license": "ISC",
   "devDependencies": {

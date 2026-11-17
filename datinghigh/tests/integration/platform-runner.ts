@@ -1,10 +1,10 @@
 import {build} from 'esbuild';
 // @ts-expect-error 共用本地發布政策。
-import {buildStoryBundle} from '../../tools/story-content-policy.mjs';
+import {buildTrackFixture} from '../support/scene-event-content-fixture.mjs';
 // @ts-expect-error 共用分層內容與固定 prepared Publisher。
-import {buildSceneEventBundle} from '../../tools/scene-event-content-policy.mjs';
+import {buildSceneEventTrackBundle} from '../../tools/scene-event-content-policy.mjs';
 // @ts-expect-error 共用分層內容與固定 prepared Publisher。
-import {publishSceneEventBundles} from '../../tools/scene-event-publish-policy.mjs';
+import {publishSceneEventBundles,validateSceneEventBundles,planSceneEventPublication} from '../../tools/scene-event-publish-policy.mjs';
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFileSync} from 'node:fs';import {createInterface} from 'node:readline';
 import {dispatch,ready,probeKey,probeText} from '../../cloudflare/src/platform';
@@ -17,15 +17,14 @@ async function main(){
  const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:compiled.outputFiles[0].text,compatibilityDate:'2026-10-24',d1Databases:{DB:'isolated-application-test'},r2Buckets:{FILES:'isolated-application-files',STORY_CONTENT:'isolated-story-content'},durableObjects:{GAME_ROOMS:{className:'GameRoomSocket',useSQLite:true},API:{className:'TestApiGateway',useSQLite:true}},bindings:{ROUND_TICKET_HMAC_KEY:'isolated-test-only-realtime-secret-32-bytes',WEB_ORIGIN:'http://localhost:8081',APP_ENV:'local'}}));
  const db=await mf.getD1Database('DB') as unknown as D1Database;const files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
  const storyContent=await mf.getR2Bucket('STORY_CONTENT') as unknown as R2Bucket;const rooms=await mf.getDurableObjectNamespace('GAME_ROOMS');const gateway=await mf.getDurableObjectNamespace('API');
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql']){
+ for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql','0006_scene_event_framework.sql','0007_scene_event_tracks.sql']){
   const sql=readFileSync(`${root}/cloudflare/migrations/${name}`,'utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
  }
- await db.prepare('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT)').run();await db.prepare('INSERT INTO d1_migrations(name) VALUES(?)').bind('0005_story_dialogue_exit.sql').run();await files.put(probeKey,probeText);
- const story=JSON.parse(readFileSync(root+'/contracts/story-scenes.json','utf8')).stories[0];const bundle=buildStoryBundle(story,root);
- await storyContent.put(bundle.key,bundle.bytes,{httpMetadata:{contentType:'application/json'}});
- for(const asset of bundle.assets)await storyContent.put(asset.key,asset.bytes,{httpMetadata:{contentType:asset.mimeType}});
- await db.prepare("INSERT INTO content_story_catalog VALUES(?,?,?,?,?,?,?,'published',?)").bind(story.catalogId,story.storyId,story.version,JSON.stringify(story.interestTagIds),story.recommendationPriority,bundle.key,bundle.sha256,Date.now()).run();
- let matchingFault:string|null=null;
+ await db.prepare('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT)').run();await db.prepare('INSERT INTO d1_migrations(name) VALUES(?)').bind('0007_scene_event_tracks.sql').run();await files.put(probeKey,probeText);
+ const content=JSON.parse(readFileSync(root+'/contracts/rain-bookshop-last-order.json','utf8'));
+ const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];
+ await publishSceneEventBundles(db,storyContent,[buildSceneEventTrackBundle(content,root,definition)],{validationRoot:root});
+ let matchingFault:string|null=null;const savedStoryContent=new Map<string,{bytes:ArrayBuffer;httpMetadata:R2HTTPMetadata}>();
  const faultDb=new Proxy(db,{get(target,property){
   if(property==='prepare')return(sql:string)=>{
    const second=matchingFault==='accept-second-participant'&&sql.startsWith('INSERT INTO game_active_round_claims')&&sql.includes('account_high_id');
@@ -39,7 +38,7 @@ async function main(){
  }});
  // 與正式 ASSETS 同責任；只讀本專案已產製的固定角色／hash 路徑，不接受任意檔案。
  const assets={fetch:async(request:Request)=>{const url=new URL(request.url);if(url.search||!/^\/avatars\/full-body\.v1\/(?:male|female)-0[1-8]\/[0-9a-f]{64}\.webp$/.test(url.pathname))return new Response(null,{status:404});try{return new Response(new Uint8Array(readFileSync(root+'/frontend/client/public'+url.pathname)),{headers:{'Content-Type':'image/webp'}});}catch{return new Response(null,{status:404});}}} as unknown as Fetcher;
- const env={DB:faultDb,FILES:files,STORY_CONTENT:storyContent,ASSETS:assets,GAME_ROOMS:rooms as unknown as DurableObjectNamespace,ROUND_TICKET_HMAC_KEY:'isolated-test-only-realtime-secret-32-bytes',WEB_ORIGIN:'http://localhost:8081',APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0005_story_dialogue_exit.sql'};
+ const env={DB:faultDb,FILES:files,STORY_CONTENT:storyContent,ASSETS:assets,GAME_ROOMS:rooms as unknown as DurableObjectNamespace,ROUND_TICKET_HMAC_KEY:'isolated-test-only-realtime-secret-32-bytes',WEB_ORIGIN:'http://localhost:8081',APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0007_scene_event_tracks.sql'};
  let socketOrigin:string|null=null;
  let providerMode='success',providerCalls=0,templatesValid=true,mailCode='000001';
  const cloud={...env,APP_ENV:'staging',EmailDeliveryMode:'Cloudflare',EMAIL_FROM:'verified@test.invalid',EMAIL:{async send(message:{from:string,to:string,subject:string,text:string}){
@@ -54,41 +53,57 @@ async function main(){
    else if(command==='$test-matching-fault-state')result={armed:matchingFault!==null};
    else if(command==='$test-provider'){providerMode=payload.mode;if(payload.reset!==false){providerCalls=0;templatesValid=true;}result={configured:true};}
    else if(command==='$test-provider-stats')result={calls:providerCalls,templatesValid};
-   else if(command==='$test-framework-enable'){
-    const sql=readFileSync(root+'/cloudflare/migrations/0006_scene_event_framework.sql','utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
-    await db.prepare('DELETE FROM content_story_catalog').run();
-    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];const layered=buildSceneEventBundle(story,root,definition);
-    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});env.EXPECTED_MIGRATION='0006_scene_event_framework.sql';result={enabled:true};
+   else if(command==='$test-content-mode'){
+    if(!['normal','missing','corrupt'].includes(payload.mode))throw new Error('Invalid isolated content fault');
+    if(payload.mode==='normal'){for(const[key,object]of savedStoryContent)await storyContent.put(key,object.bytes,{httpMetadata:object.httpMetadata});savedStoryContent.clear();}
+    else{if(savedStoryContent.size)throw new Error('Restore isolated content first');const catalogs=(await db.prepare("SELECT manifest_key FROM content_story_catalog WHERE status='published'").all()).results as {manifest_key:string}[];
+     for(const c of catalogs){const object=await storyContent.get(c.manifest_key);if(!object)throw new Error('Missing isolated original content');savedStoryContent.set(c.manifest_key,{bytes:await object.arrayBuffer(),httpMetadata:object.httpMetadata??{}});if(payload.mode==='missing')await storyContent.delete(c.manifest_key);else await storyContent.put(c.manifest_key,new Uint8Array([0]),{httpMetadata:object.httpMetadata});}
+    }result={mode:payload.mode};
    }
-   else if(command==='$test-framework-linear'){
-    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql')throw new Error('Framework required');const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];
-    const entry=structuredClone(story.nodes[0]),ending=structuredClone(story.nodes.find(n=>n.ending));entry.objects=[];entry.choices=[{id:'finish',label:'完成這段閱讀',next:'ending-only'}];delete entry.interactionId;entry.presentation.hotspotIds=[];ending.id='ending-only';ending.objects=[];ending.choices=[];delete ending.interactionId;ending.presentation.hotspotIds=[];
-    const linear={...story,nodes:[entry,ending],interactions:[],scenePresentation:{...story.scenePresentation,hotspots:[]}};
-    const layered=buildSceneEventBundle(linear,root,{...definition,sceneCatalogId:'019a281e-0000-7000-8000-000000006301',narrativeCatalogId:'019a281e-0000-7000-8000-000000006302',sceneVersion:'v50',narrativeVersion:'v50',poolVersion:'v50',bindingSources:{},bindingOverrides:{}});await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
+   else if(command==='$test-tracks-enable'||command==='$test-framework-enable')result={enabled:true};
+   else if(command==='$test-framework-reset-content'){
+    if(await db.prepare('SELECT 1 FROM game_rounds LIMIT 1').first())throw new Error('Test content reset requires an empty game fixture');
+    await db.batch(['content_scene_category_links','content_story_catalog','content_scene_catalog','content_story_categories'].map(table=>db.prepare('DELETE FROM '+table)));
+    await publishSceneEventBundles(db,storyContent,[buildSceneEventTrackBundle(content,root,definition)],{now,validationRoot:root});result={restored:true};
+   }
+   else if(command==='$test-framework-categories'||command==='$test-story-catalogs'){
+    if(![2,3].includes(payload.count))throw new Error('Invalid isolated category count');
+    const categories=[definition.categories[0],...Array.from({length:payload.count-1},(_,n)=>({categoryId:`019a281e-0000-7000-8000-${String(4204+n).padStart(12,'0')}`,code:['mystery','travel'][n],version:'v1',title:['懸疑','旅程'][n],interestTagIds:['puzzle'],recommendationPriority:n+2}))];
+    const layered=buildTrackFixture(root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6000+payload.count).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6100+payload.count).padStart(12,'0')}`,sceneVersion:`v${payload.count}0`,narrativeVersion:`v${payload.count}0`,categories});
+    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={categories:categories.map(c=>({categoryId:c.categoryId,title:c.title})),catalogs:categories.map(c=>c.categoryId)};
    }
    else if(command==='$test-framework-events'){
-    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql'||![0,1].includes(payload.probability))throw new Error('Invalid isolated event fixture');
-    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0],version=`v${40+payload.probability}`;
-    const layered=buildSceneEventBundle(story,root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6201+payload.probability*10).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6202+payload.probability*10).padStart(12,'0')}`,sceneVersion:version,narrativeVersion:version,poolVersion:version,bindingOverrides:{...definition.bindingOverrides,bookmark:{...definition.bindingOverrides.bookmark,visibility:'hidden',selectionMode:'weighted_random',probability:payload.probability,triggerConditions:{choice_committed:'enter'}}},globalBindings:[{bindingId:'global-note',eventId:'bookmark',narrativeRole:'side',visibility:'hidden',requiredCapabilities:['bookshop'],repeatScope:'round',repeatGroup:'global-note',triggerConditions:{event_completed:'scene:rain-bookshop:bookmark'}}]});
-    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
+    if(![0,1].includes(payload.probability))throw new Error('Invalid isolated probability');
+    const layered=buildTrackFixture(root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6201+payload.probability*10).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6202+payload.probability*10).padStart(12,'0')}`,sceneVersion:`v${40+payload.probability}`,narrativeVersion:`v${40+payload.probability}`,poolVersion:`v${40+payload.probability}`,mutate(c){
+     const original=structuredClone(c.narrative.eventBindings[0]);delete original.actions[0].nextNode;
+     const scene={...original,scope:'scene',sourceId:c.scene.sceneId,bindingId:'hidden-note',narrativeRole:'side',requiredForEnding:false,visibility:'hidden',selectionMode:'weighted_random',probability:payload.probability,repeatGroup:'hidden-note',triggerConditions:{track_event_completed:{role:'inviter',bindingKey:'narrative:'+c.narrative.narrativeId+':arrive-inviter'}}};c.scene.sceneEventBindings.push(scene);
+     const global={...structuredClone(scene),scope:'global',sourceId:c.pool.poolId,bindingId:'global-note',selectionMode:'fixed',probability:1,repeatGroup:'global-note',repeatScope:'round',triggerConditions:{track_event_completed:{role:'inviter',bindingKey:'scene:'+c.scene.sceneId+':hidden-note'}}};c.pool.eventBindings.push(global);
+    }});await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
    }
-   else if(command==='$test-framework-categories'){
-    if(env.EXPECTED_MIGRATION!=='0006_scene_event_framework.sql'||![2,3].includes(payload.count))throw new Error('Invalid isolated category count');
-    const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0],version=`v${payload.count}0`;
-    const categories=[definition.categories[0],...Array.from({length:payload.count-1},(_,n)=>({categoryId:`019a281e-0000-7000-8000-${String(4204+n).padStart(12,'0')}`,code:['mystery','travel'][n],version:'v1',title:['懸疑','旅程'][n],interestTagIds:['coffee'],recommendationPriority:n+2}))];
-    const layered=buildSceneEventBundle(story,root,{...definition,sceneCatalogId:`019a281e-0000-7000-8000-${String(6000+payload.count).padStart(12,'0')}`,narrativeCatalogId:`019a281e-0000-7000-8000-${String(6100+payload.count).padStart(12,'0')}`,sceneVersion:version,narrativeVersion:version,categories,eligibleCategoryCodes:categories.map(c=>c.code)});
-    await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={categories:categories.map(c=>({categoryId:c.categoryId,title:c.title}))};
+   else if(command==='$test-framework-branches'){
+    if(!['main','side'].includes(payload.purpose)||await db.prepare('SELECT 1 FROM game_rounds LIMIT 1').first())throw new Error('Invalid isolated branch fixture');
+    const layered=buildTrackFixture(root,{...definition,narrativeId:'fixture-'+payload.purpose+'-story',sceneCatalogId:'019a281e-0000-7000-8000-000000007001',narrativeCatalogId:'019a281e-0000-7000-8000-000000008001',sceneVersion:'v80',narrativeVersion:'v80',mutate(c){
+     const n=c.narrative,nodes=n.tracks.inviter.nodes,fork=nodes.find(node=>node.id==='i02');fork.id='i-left';nodes.push({...structuredClone(fork),id:'i-right'});
+     c.scene.sceneObjects.push({...structuredClone(c.scene.sceneObjects.find(o=>o.id==='pickup-slip-27')),id:'other-paper'});
+     const entry=n.eventBindings.find(b=>b.bindingId==='arrive-inviter');entry.narrativeRole=payload.purpose;entry.requiredForEnding=payload.purpose==='main';if(payload.purpose==='side')n.endingRequires=n.endingRequires.filter(key=>!key.endsWith(':arrive-inviter'));entry.actions[0].nextNode='i-left';entry.actions.push({...structuredClone(entry.actions[0]),params:{objectId:'other-paper'},targetObjectId:'other-paper',nextNode:'i-right'});
+     n.eventBindings.find(b=>b.bindingId==='inspect-slip').triggerConditions={any:[...(payload.purpose==='side'?['i01']:[]),'i-left','i-right'].map(nodeId=>({track_node_entered:{role:'inviter',nodeId}}))};
+    }});
+    // Isolated engine fixtures use the strict validator and prepared publication batch, never a fabricated user Gate.
+    await validateSceneEventBundles([layered],root);for(const object of layered.objects)await storyContent.put(object.key,object.bytes,{httpMetadata:{contentType:object.mimeType??'application/json'}});
+    await db.batch([db.prepare("UPDATE content_story_catalog SET status='retired' WHERE status='published'"),...planSceneEventPublication([layered],now).map(s=>db.prepare(s.sql).bind(...s.values))]);
+    result={configured:true,definition:layered.narrative.manifest.eventBindings.find(b=>b.bindingId==='arrive-inviter').definition};
    }
-   else if(command==='$test-story-catalogs'){
-    if(![2,3].includes(payload.count))throw new Error('Invalid isolated catalog count');const catalogs=[story.catalogId];
-    for(let n=2;n<=payload.count;n++){const fixture=structuredClone(story);fixture.storyId=`scene-${90+n}`;fixture.catalogId=`019a281e-0000-7000-8000-${String(900+n).padStart(12,'0')}`;fixture.title=`隔離完整內容 fixture ${n}`;const built=buildStoryBundle(fixture,root);await storyContent.put(built.key,built.bytes,{httpMetadata:{contentType:'application/json'}});await db.prepare("INSERT INTO content_story_catalog VALUES(?,?,?,?,?,?,?,'published',?)").bind(fixture.catalogId,fixture.storyId,fixture.version,JSON.stringify(fixture.interestTagIds),n,built.key,built.sha256,now).run();catalogs.push(fixture.catalogId);}
-    result={catalogs};
+   else if(command==='$test-framework-linear'){
+    const layered=buildTrackFixture(root,{...definition,sceneCatalogId:'019a281e-0000-7000-8000-000000006301',narrativeCatalogId:'019a281e-0000-7000-8000-000000006302',sceneVersion:'v50',narrativeVersion:'v50',poolVersion:'v50',mutate(c){
+     for(const role of ['inviter','acceptor'])c.narrative.tracks[role].nodes=c.narrative.tracks[role].nodes.slice(0,1);
+     c.narrative.eventBindings=[];c.narrative.clues=[];const b=c.narrative.sharedEventBindings[2];b.triggerConditions={all:['inviter','acceptor'].map(role=>({track_node_entered:{role,nodeId:c.narrative.tracks[role].entry}}))};b.actions=b.actions.filter(a=>a.params.optionId==='rest_chat');for(const a of b.actions)a.conditions=b.triggerConditions;b.startPresentationSteps=[];c.narrative.sharedEventBindings=[b];c.narrative.endingRequires=['narrative:'+c.narrative.narrativeId+':final-exchange'];c.narrative.endings=[{id:'ending-only',title:'簡單的相遇',lines:[{speaker:'旁白',text:'先聊聊今天吧。'}],conditions:{shared_event_completed:c.narrative.endingRequires[0]},presentationSteps:[]}];
+    }});await publishSceneEventBundles(db,storyContent,[layered],{now,validationRoot:root});result={configured:true};
    }
    else if(command==='$test-sql')result={rows:(await db.prepare(payload.sql).bind(...payload.values).all()).results};
    else if(command==='$test-r2-list'){const page=await files.list({prefix:'private/',limit:1000});result={keys:page.objects.map(object=>object.key),truncated:page.truncated};}
    else if(command==='$test-media'){
     const path=payload.path??`/v1/media/personal-photos/${payload.assetId}`;
-    if(!/^\/v1\/(?:media\/(?:personal-photos|assets)\/[0-9a-f-]+|avatar\/candidates\/[0-9a-f-]+(?:\/[1-4])?|avatar\/expressions\/[0-9a-f-]+\/(?:neutral|smile|surprised|thoughtful|concerned)|avatar\/(?:assets|rounds)\/[0-9a-f-]+\/[0-9a-f]{64}\/(?:neutral|smile|surprised|thoughtful|concerned))$/.test(path))throw new Error('Invalid private test media path');
+    if(!/^\/v1\/(?:media\/(?:personal-photos|assets)\/[0-9a-f-]+|avatar\/candidates\/[0-9a-f-]+(?:\/[1-4])?|avatar\/expressions\/[0-9a-f-]+\/(?:neutral|smile|surprised|thoughtful|concerned)|avatar\/(?:assets|rounds|round-self)\/[0-9a-f-]+\/[0-9a-f]{64}\/(?:neutral|smile|surprised|thoughtful|concerned))$/.test(path))throw new Error('Invalid private test media path');
     const response=await dispatch(new Request(`http://platform.internal${path}`,{
      method:payload.method,headers:payload.headers,
      ...(payload.content===null?{}:{body:Buffer.from(payload.content,'base64')})
@@ -103,7 +118,7 @@ async function main(){
    else if(command==='platform.ready')result=await ready(env);
    else {const response=await dispatch(new Request(`http://platform.internal/v1/commands/${command}`,{method:'POST',body:JSON.stringify(payload)}),env,now);const body=await response.json();if(!response.ok){process.stdout.write(JSON.stringify({error:body})+'\n');continue;}result=body;if(command==='round.realtime.ticket'&&socketOrigin){const origin=new URL(socketOrigin);if(payload.clientPlatform!=='web')origin.hostname='10.0.2.2';result={...result as object,socketOrigin:origin.origin};}}
    process.stdout.write(JSON.stringify({result})+'\n');
-  }catch{process.stdout.write('{"error":"DEPENDENCY_UNAVAILABLE"}\n');}
+  }catch(error){const code=error instanceof Error&&['INVALID_STORY_CONTENT','CONTENT_PUBLICATION_CONFLICT','FIRST_STORY_GATE_REQUIRED','IMMUTABLE_CONTENT_CONFLICT'].includes(error.message)?error.message:'DEPENDENCY_UNAVAILABLE';process.stdout.write(JSON.stringify({error:{code,status:503}})+'\n');}
  }}finally{await mf.dispose();}
 }
 main().catch(()=>{process.stderr.write('Isolated platform test runner failed\n');process.exitCode=1;});

@@ -15,21 +15,21 @@ test('local game CLI ends one room, preserves history, and a failed release roll
  const json=output=>JSON.parse(output.slice(output.indexOf('[\n'))).flatMap(r=>r.results??[]);
  const file=path.join(directory,'fixture.sql'),execute=sql=>{fs.writeFileSync(file,sql);return run('execute','--file',file);};
  const pair=(from,round)=>`INSERT INTO match_invitations(invitation_id,account_low_id,account_high_id,initiator_account_id,client_request_id,status,created_at,expires_at,updated_at) VALUES('${id(round+10)}','${id(from)}','${id(from+1)}','${id(from)}','${id(round+20)}','accepted',${now},${now+60000},${now});
- INSERT INTO game_rounds(round_id,invitation_id,account_low_id,account_high_id,status,started_at,story_offer_catalog_ids_json) VALUES('${id(round)}','${id(round+10)}','${id(from)}','${id(from+1)}','active',${now},'["${id(999)}"]');
+ INSERT INTO game_rounds(round_id,invitation_id,account_low_id,account_high_id,status,started_at,story_offer_category_ids_json) VALUES('${id(round)}','${id(round+10)}','${id(from)}','${id(from+1)}','active',${now},'["${id(999)}"]');
  INSERT INTO game_active_round_claims VALUES('${id(round+30)}','${id(from)}','${id(round)}',${now}),('${id(round+31)}','${id(from+1)}','${id(round)}',${now});`;
  try{
   fs.writeFileSync(path.join(directory,'wrangler.jsonc'),JSON.stringify({name:'datinghigh-game-end-cli-fixture',compatibility_date:'2026-10-24',d1_databases:[{binding:'DB',database_name:'datinghigh-game-end-cli-fixture',database_id:'00000000-0000-4000-8000-000000000991'}]}));
-  const migrations=['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql'].map(n=>fs.readFileSync(path.join(root,'cloudflare','migrations',n),'utf8')).join('\n');
+  const migrations=['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql','0006_scene_event_framework.sql','0007_scene_event_tracks.sql'].map(n=>fs.readFileSync(path.join(root,'cloudflare','migrations',n),'utf8')).join('\n');
   let seed='';for(let n=1;n<=4;n++)seed+=`INSERT INTO auth_accounts(account_id,email_normalized,email_verified_at,status,credential_version,created_at,updated_at) VALUES('${id(n)}','local-game-${n}@example.invalid',${now},'active',1,${now},${now});
   INSERT INTO user_profiles(profile_id,account_id,nickname,created_at,updated_at) VALUES('${id(100+n)}','${id(n)}','測試玩家${n}',${now},${now});\n`;
   execute(migrations+'\n'+seed+pair(1,500)+pair(3,600));
   assert.equal(json(run('query','--view','games')).length,2);
-  execute(`INSERT INTO content_story_catalog VALUES('${id(999)}','fixture','v1','[]',1,'story-content/stories/fixture/v1/manifest.json','${'a'.repeat(64)}','published',${now});
-   INSERT INTO game_story_sessions VALUES('${id(950)}','${id(500)}',1,'${id(999)}','entry','playing',1,${now},${now});
-   INSERT INTO game_interaction_instances VALUES('${id(951)}','${id(950)}','entry','fixture','v1','active','{}',1,${now},NULL);`);
+  execute(`INSERT INTO content_story_catalog(catalog_id,story_id,version,interest_tag_ids_json,recommendation_priority,manifest_key,manifest_sha256,status,published_at) VALUES('${id(999)}','fixture','v2','[]',1,'story-content/stories/fixture/v2/manifest.json','${'a'.repeat(64)}','published',${now});
+   INSERT INTO game_story_sessions(story_session_id,round_id,episode_seq,catalog_id,chapter_status,shared_revision,created_at,updated_at,world_state_json) VALUES('${id(950)}','${id(500)}',1,'${id(999)}','playing',1,${now},${now},'{}');
+   INSERT INTO game_event_instances VALUES('${id(951)}','${id(950)}','narrative:fixture:binding','cooperative-choice','v2','fixture','active','{}',1,${now},NULL,'shared');`);
 
   assert.throws(()=>run('game-end','--round-id',id(99999)));assert.equal(json(run('query','--view','games')).length,2);
-  const ended=json(run('game-end','--round-id',id(500))).find(r=>r.round_id===id(500));assert.equal(ended.status,'ended');assert.equal(ended.active_participants,0);assert.equal(json(execute("SELECT status FROM game_interaction_instances"))[0].status,'cancelled');
+  const ended=json(run('game-end','--round-id',id(500))).find(r=>r.round_id===id(500));assert.equal(ended.status,'ended');assert.equal(ended.active_participants,0);assert.equal(json(execute("SELECT status FROM game_event_instances"))[0].status,'cancelled');
   const replay=json(run('game-end','--round-id',id(500))).find(r=>r.round_id===id(500));assert.equal(replay.ended_at,ended.ended_at);
   const faulty=localGameEndStatements(id(600),Date.now()).map(sql=>sql.startsWith('DELETE FROM game_active_round_claims')?sql.replace('WHERE ','WHERE 0 AND '):sql);
   assert.throws(()=>execute(faulty.join(';\n')));

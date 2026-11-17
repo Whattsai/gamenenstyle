@@ -1,0 +1,4054 @@
+{
+  "scene": {
+    "schemaVersion": "scene-event.v2",
+    "sceneId": "rain-bookshop",
+    "version": "v2",
+    "title": "雨聲書店",
+    "time": "雨勢漸大的傍晚",
+    "place": "獨立書店",
+    "event": "被雨打亂的最後一單",
+    "locale": "zh-TW",
+    "categoryCodes": [
+      "romance"
+    ],
+    "sceneCapabilities": [
+      "bookshop"
+    ],
+    "backgroundAsset": "rain-bookshop",
+    "audioAsset": "rain",
+    "assets": [
+      {
+        "id": "rain-bookshop",
+        "key": "story-content/assets/03710ea0630b3cebc088f0faf30124c2c92c47f25dd5d276a1631925bf5a6a10",
+        "sha256": "03710ea0630b3cebc088f0faf30124c2c92c47f25dd5d276a1631925bf5a6a10",
+        "byteLength": 2257190,
+        "mimeType": "image/png"
+      },
+      {
+        "id": "rain",
+        "key": "story-content/assets/14eb036899dcc03f39684d7c4245a655e64f75a3ac079a2981c3c0ee63499b55",
+        "sha256": "14eb036899dcc03f39684d7c4245a655e64f75a3ac079a2981c3c0ee63499b55",
+        "byteLength": 128044,
+        "mimeType": "audio/wav"
+      },
+      {
+        "id": "page-turn",
+        "key": "story-content/assets/43c59ddd06cc5af28470328e439cf02ac1e0a156c440868b6ee709fd43c8ec7b",
+        "sha256": "43c59ddd06cc5af28470328e439cf02ac1e0a156c440868b6ee709fd43c8ec7b",
+        "byteLength": 9004,
+        "mimeType": "audio/wav"
+      },
+      {
+        "id": "transition",
+        "key": "story-content/assets/0f63cc5771f59d072f8dea23474ba0218ac5d68f479f5be804e6fd76a8387f97",
+        "sha256": "0f63cc5771f59d072f8dea23474ba0218ac5d68f479f5be804e6fd76a8387f97",
+        "byteLength": 20844,
+        "mimeType": "audio/wav"
+      },
+      {
+        "id": "reading-table",
+        "key": "story-content/assets/51eeae9c319ad28e0a04e946450c2557df717f6186392c10ff5c0e3ac6ae5eca",
+        "sha256": "51eeae9c319ad28e0a04e946450c2557df717f6186392c10ff5c0e3ac6ae5eca",
+        "byteLength": 862957,
+        "mimeType": "image/png"
+      },
+      {
+        "id": "doorbell",
+        "key": "story-content/assets/17d80975c314d2929990adfb7420b976f0597706f9de5a3840a60ca2f4dfb6a3",
+        "sha256": "17d80975c314d2929990adfb7420b976f0597706f9de5a3840a60ca2f4dfb6a3",
+        "byteLength": 25644,
+        "mimeType": "audio/wav"
+      },
+      {
+        "id": "gust",
+        "key": "story-content/assets/4a541e813b16686e40528e89207f9b8f6bcd0162c67b5d583b9a5908c40da8a2",
+        "sha256": "4a541e813b16686e40528e89207f9b8f6bcd0162c67b5d583b9a5908c40da8a2",
+        "byteLength": 35244,
+        "mimeType": "audio/wav"
+      }
+    ],
+    "scenePresentation": {
+      "version": "2.5d.v1",
+      "backgroundAsset": "rain-bookshop",
+      "cameras": [
+        {
+          "id": "entrance",
+          "scale": 1,
+          "focus": {
+            "x": 0.57,
+            "y": 0.5
+          },
+          "portrait": {
+            "x": 0.5,
+            "headY": 0.08,
+            "height": 0.9
+          },
+          "foreground": false,
+          "tint": "#7488b0",
+          "tintOpacity": 0.12
+        },
+        {
+          "id": "shelves",
+          "scale": 1.15,
+          "focus": {
+            "x": 0.65,
+            "y": 0.6
+          },
+          "portrait": {
+            "x": 0.52,
+            "headY": 0.07,
+            "height": 1.3
+          },
+          "foreground": true,
+          "tint": "#e2aa75",
+          "tintOpacity": 0.08
+        },
+        {
+          "id": "counter",
+          "scale": 1.25,
+          "focus": {
+            "x": 0.36,
+            "y": 0.5
+          },
+          "portrait": {
+            "x": 0.62,
+            "headY": 0.08,
+            "height": 1.2
+          },
+          "foreground": false,
+          "tint": "#8899b4",
+          "tintOpacity": 0.08
+        },
+        {
+          "id": "window",
+          "scale": 1.5,
+          "focus": {
+            "x": 0.72,
+            "y": 0.73
+          },
+          "portrait": {
+            "x": 0.58,
+            "headY": 0.06,
+            "height": 2.1
+          },
+          "foreground": true,
+          "tint": "#c8a0bd",
+          "tintOpacity": 0.14
+        }
+      ],
+      "hotspots": [],
+      "foreground": [],
+      "foregroundAsset": "reading-table"
+    },
+    "audioCues": {
+      "amb-rain-window": "rain",
+      "fx-doorbell": "doorbell",
+      "fx-paper-flip": "page-turn",
+      "fx-clue-board": "page-turn",
+      "fx-gust": "gust",
+      "fx-ending-shelf": "transition",
+      "fx-ending-window": "transition"
+    },
+    "areas": [
+      {
+        "id": "entrance",
+        "title": "門口",
+        "cameraId": "entrance",
+        "adjacent": [
+          "shelves",
+          "counter",
+          "window"
+        ]
+      },
+      {
+        "id": "shelves",
+        "title": "書架",
+        "cameraId": "shelves",
+        "adjacent": [
+          "entrance",
+          "counter",
+          "window"
+        ]
+      },
+      {
+        "id": "counter",
+        "title": "櫃檯",
+        "cameraId": "counter",
+        "adjacent": [
+          "entrance",
+          "shelves",
+          "window"
+        ]
+      },
+      {
+        "id": "window",
+        "title": "窗邊",
+        "cameraId": "window",
+        "adjacent": [
+          "entrance",
+          "shelves",
+          "counter"
+        ]
+      }
+    ],
+    "sceneObjects": [
+      {
+        "id": "pickup-slip-27",
+        "label": "被雨淋糊的取書單",
+        "initialState": "at-entrance",
+        "states": [
+          {
+            "id": "at-entrance",
+            "areaId": "entrance",
+            "holder": null
+          },
+          {
+            "id": "held-inviter",
+            "areaId": "entrance",
+            "holder": "inviter"
+          },
+          {
+            "id": "on-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [
+          {
+            "from": "at-entrance",
+            "to": "held-inviter",
+            "actionId": "pick"
+          },
+          {
+            "from": "held-inviter",
+            "to": "on-counter",
+            "actionId": "place"
+          }
+        ],
+        "rendererId": "paper",
+        "color": "#e7d9b9",
+        "visibility": "public",
+        "x": 0.3,
+        "y": 0.43
+      },
+      {
+        "id": "reserve-bag-27",
+        "label": "第 27 號預訂袋",
+        "initialState": "at-shelves",
+        "states": [
+          {
+            "id": "at-shelves",
+            "areaId": "shelves",
+            "holder": null
+          },
+          {
+            "id": "held-acceptor",
+            "areaId": "shelves",
+            "holder": "acceptor"
+          },
+          {
+            "id": "on-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [
+          {
+            "from": "at-shelves",
+            "to": "held-acceptor",
+            "actionId": "pick"
+          },
+          {
+            "from": "held-acceptor",
+            "to": "on-counter",
+            "actionId": "place"
+          }
+        ],
+        "rendererId": "bag",
+        "color": "#e7d9b9",
+        "visibility": "public",
+        "x": 0.57,
+        "y": 0.43
+      },
+      {
+        "id": "book-rain",
+        "label": "《海邊的雨天》・深藍封面",
+        "initialState": "at-shelves",
+        "states": [
+          {
+            "id": "at-shelves",
+            "areaId": "shelves",
+            "holder": null
+          },
+          {
+            "id": "held-inviter",
+            "areaId": "shelves",
+            "holder": "inviter"
+          },
+          {
+            "id": "on-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [
+          {
+            "from": "at-shelves",
+            "to": "held-inviter",
+            "actionId": "pick"
+          },
+          {
+            "from": "held-inviter",
+            "to": "on-counter",
+            "actionId": "place"
+          }
+        ],
+        "rendererId": "book",
+        "color": "#284e73",
+        "visibility": "public",
+        "x": 0.25,
+        "y": 0.38
+      },
+      {
+        "id": "book-wednesday",
+        "label": "《海邊的星期三》・淺綠封面",
+        "initialState": "at-shelves",
+        "states": [
+          {
+            "id": "at-shelves",
+            "areaId": "shelves",
+            "holder": null
+          }
+        ],
+        "transitions": [],
+        "rendererId": "book",
+        "color": "#9ab99d",
+        "visibility": "public",
+        "x": 0.75,
+        "y": 0.38,
+        "previewPlacement": {
+          "slotId": "counter-slot",
+          "areaId": "counter",
+          "hint": "這本是《海邊的星期三》。先比對共享便條上的書名，再重新選擇。",
+          "roles": [
+            "inviter"
+          ]
+        }
+      },
+      {
+        "id": "green-sleeve",
+        "label": "乾燥的綠封套",
+        "initialState": "at-window",
+        "states": [
+          {
+            "id": "at-window",
+            "areaId": "window",
+            "holder": null
+          },
+          {
+            "id": "held-acceptor",
+            "areaId": "window",
+            "holder": "acceptor"
+          },
+          {
+            "id": "on-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [
+          {
+            "from": "at-window",
+            "to": "held-acceptor",
+            "actionId": "pick"
+          },
+          {
+            "from": "held-acceptor",
+            "to": "on-counter",
+            "actionId": "place"
+          }
+        ],
+        "rendererId": "sleeve",
+        "color": "#64896d",
+        "visibility": "public",
+        "x": 0.38,
+        "y": 0.43
+      },
+      {
+        "id": "reserve-ledger",
+        "label": "預訂簿",
+        "initialState": "at-counter",
+        "states": [
+          {
+            "id": "at-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [],
+        "rendererId": "book",
+        "color": "#92664a",
+        "visibility": "acceptor",
+        "x": 0.3,
+        "y": 0.38
+      },
+      {
+        "id": "order-tag-27",
+        "label": "第 27 號標籤",
+        "initialState": "on-bag",
+        "states": [
+          {
+            "id": "on-bag",
+            "areaId": "counter",
+            "holder": null
+          },
+          {
+            "id": "at-window",
+            "areaId": "window",
+            "holder": null
+          },
+          {
+            "id": "held-acceptor",
+            "areaId": "window",
+            "holder": "acceptor"
+          },
+          {
+            "id": "on-counter",
+            "areaId": "counter",
+            "holder": null
+          }
+        ],
+        "transitions": [
+          {
+            "from": "on-bag",
+            "to": "at-window",
+            "actionId": "gust"
+          },
+          {
+            "from": "at-window",
+            "to": "held-acceptor",
+            "actionId": "retrieve"
+          },
+          {
+            "from": "held-acceptor",
+            "to": "on-counter",
+            "actionId": "place"
+          }
+        ],
+        "rendererId": "tag",
+        "color": "#e7d9b9",
+        "visibility": "public",
+        "x": 0.7,
+        "y": 0.43
+      }
+    ],
+    "slots": [
+      {
+        "id": "counter-slot",
+        "areaId": "counter",
+        "acceptedObjects": [
+          "pickup-slip-27",
+          "reserve-bag-27",
+          "book-rain",
+          "book-wednesday",
+          "green-sleeve",
+          "order-tag-27"
+        ]
+      }
+    ],
+    "npcs": [
+      {
+        "id": "clerk",
+        "label": "店員・NPC",
+        "areaId": "counter",
+        "dialogueOptions": [
+          "query-title"
+        ]
+      }
+    ],
+    "sharedFlags": [
+      {
+        "id": "order-status",
+        "values": [
+          "missing",
+          "searching",
+          "packing",
+          "verified"
+        ],
+        "initialValue": "missing",
+        "publicValues": [
+          "missing",
+          "searching",
+          "packing",
+          "verified"
+        ]
+      },
+      {
+        "id": "order-clue",
+        "values": [
+          "private",
+          "shared"
+        ],
+        "initialValue": "private",
+        "publicValues": [
+          "shared"
+        ]
+      }
+    ],
+    "sceneEventBindings": [
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-inviter-entrance",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-inviter-entrance",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "enter",
+            "label": "前往門口",
+            "params": {
+              "areaId": "entrance"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "entrance",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-inviter-shelves",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-inviter-shelves",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "enter",
+            "label": "前往書架",
+            "params": {
+              "areaId": "shelves"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "shelves",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-inviter-counter",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-inviter-counter",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "enter",
+            "label": "前往櫃檯",
+            "params": {
+              "areaId": "counter"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "counter",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-inviter-window",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-inviter-window",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "enter",
+            "label": "前往窗邊",
+            "params": {
+              "areaId": "window"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "counter"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "window",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-acceptor-entrance",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-acceptor-entrance",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter",
+            "label": "前往門口",
+            "params": {
+              "areaId": "entrance"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "entrance",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-acceptor-shelves",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-acceptor-shelves",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter",
+            "label": "前往書架",
+            "params": {
+              "areaId": "shelves"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "shelves",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-acceptor-counter",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-acceptor-counter",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "window"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter",
+            "label": "前往櫃檯",
+            "params": {
+              "areaId": "counter"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "counter",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "scene",
+        "sourceId": "rain-bookshop",
+        "bindingId": "move-acceptor-window",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "move",
+          "version": "v2",
+          "key": "story-content/events/move/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "move-acceptor-window",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "any": [
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "entrance"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "enter",
+            "label": "前往窗邊",
+            "params": {
+              "areaId": "window"
+            },
+            "conditions": {
+              "any": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "window",
+                "durationMs": 650
+              }
+            ]
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      }
+    ]
+  },
+  "narrative": {
+    "schemaVersion": "scene-event.v2",
+    "narrativeId": "rain-bookshop-last-order",
+    "version": "v2",
+    "title": "被雨打亂的最後一單",
+    "summary": "雨糊了第 27 號取書單。兩份線索、一本書，還有一陣愛搗蛋的風。",
+    "eligibleCategoryCodes": [
+      "romance"
+    ],
+    "sequenceGroupId": null,
+    "sequenceOrder": null,
+    "prerequisites": [],
+    "tracks": {
+      "inviter": {
+        "entry": "i01",
+        "nodes": [
+          {
+            "id": "i01",
+            "title": "你的取書任務 1/8",
+            "areaId": "entrance",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "雨一下大，這間書店的玻璃門看起來像裝了水族箱。"
+              },
+              {
+                "speaker": "店員・NPC",
+                "text": "歡迎！不過今天進門會附贈一個小任務。最後一筆取書單被雨淋糊了。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "entrance",
+              "expression": "neutral",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i02",
+            "title": "你的取書任務 2/8",
+            "areaId": "entrance",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "紙角還看得到『27』、『海邊的……』和『19:30』，剩下的字被雨洗到休假了。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "entrance",
+              "expression": "thoughtful",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i03",
+            "title": "你的取書任務 3/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "第 27 號？太好了，我記得預訂袋也有個 27。你先把紙放櫃檯，我們等另一份線索。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "smile",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i04",
+            "title": "你的取書任務 4/8",
+            "areaId": "shelves",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "《海邊的雨天》，深藍色；《海邊的星期三》，淺綠色。單子只剩『海邊的』，選哪一本都有點像在猜雨量。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "shelves",
+              "expression": "surprised",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i05",
+            "title": "你的取書任務 5/8",
+            "areaId": "shelves",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "書名很接近，顏色也會騙人。先看看櫃檯有沒有傳來真正的訂單線索。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "shelves",
+              "expression": "neutral",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i06",
+            "title": "你的取書任務 6/8",
+            "areaId": "shelves",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "櫃檯的便條板多了一行：第 27 號，《海邊的雨天》，深藍封面，另包綠封套。這次終於不是猜謎。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "shelves",
+              "expression": "thoughtful",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i07",
+            "title": "你的取書任務 7/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "對，就是這本。還好你沒有被綠封面的那本騙走。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "smile",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "i08",
+            "title": "你的取書任務 8/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "書袋總算沒再逃跑。你壓著袋角，櫃檯那頭正在做最後確認。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "surprised",
+              "hotspotIds": []
+            }
+          }
+        ]
+      },
+      "acceptor": {
+        "entry": "a01",
+        "nodes": [
+          {
+            "id": "a01",
+            "title": "你的核對任務 1/8",
+            "areaId": "shelves",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "這裡書好多。最醒目的不是小說，是書架邊一個一直快掉下來的布袋。"
+              },
+              {
+                "speaker": "店員・NPC",
+                "text": "我明明把預訂袋收好了啊……"
+              }
+            ],
+            "presentation": {
+              "cameraId": "shelves",
+              "expression": "neutral",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a02",
+            "title": "你的核對任務 2/8",
+            "areaId": "shelves",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "袋子外面掛著『27』。裡面好像還沒放書，先不要亂翻別人的預訂品。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "shelves",
+              "expression": "thoughtful",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a03",
+            "title": "你的核對任務 3/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "欸，找到袋子了！麻煩先放這裡。對了，別替我打開別人要送的卡片。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "smile",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a04",
+            "title": "你的核對任務 4/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "我記得有本藍色的，但客人特別說要包綠封套。等等，我翻一下預訂簿。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "surprised",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a05",
+            "title": "你的核對任務 5/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "找到了！第 27 號是《海邊的雨天》，七點半來拿。綠色封套我放窗邊，差點把兩本『海邊的』搞混。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "neutral",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a06",
+            "title": "你的核對任務 6/8",
+            "areaId": "window",
+            "lines": [
+              {
+                "speaker": "旁白",
+                "text": "窗邊的綠封套還是乾的，店員至少成功保護了其中一樣東西。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "window",
+              "expression": "thoughtful",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a07",
+            "title": "你的核對任務 7/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "綠封套也到了。你們這速度，我可能該把店名改成『失物招領書店』。"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "smile",
+              "hotspotIds": []
+            }
+          },
+          {
+            "id": "a08",
+            "title": "你的核對任務 8/8",
+            "areaId": "counter",
+            "lines": [
+              {
+                "speaker": "店員・NPC",
+                "text": "最後再看一下，這張標籤是 27，書名和綠封套也對。可以幫我確認一下嗎？"
+              }
+            ],
+            "presentation": {
+              "cameraId": "counter",
+              "expression": "surprised",
+              "hotspotIds": []
+            }
+          }
+        ]
+      }
+    },
+    "eventBindings": [
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "arrive-inviter",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "arrive-inviter",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_node_entered": {
+            "role": "inviter",
+            "nodeId": "i01"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect",
+            "label": "查看門口的取書單",
+            "params": {
+              "objectId": "pickup-slip-27"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "entrance"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "audio",
+                "cueId": "fx-doorbell"
+              },
+              {
+                "type": "camera",
+                "cameraId": "entrance",
+                "durationMs": 650
+              }
+            ],
+            "nextNode": "i02",
+            "targetObjectId": "pickup-slip-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "inspect-slip",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "inspect-slip",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_node_entered": {
+            "role": "inviter",
+            "nodeId": "i02"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "flip"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "flip",
+            "label": "翻看取書單背面",
+            "params": {
+              "objectId": "pickup-slip-27"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "entrance"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "audio",
+                "cueId": "fx-paper-flip"
+              },
+              {
+                "type": "object",
+                "objectId": "pickup-slip-27",
+                "fromAreaId": "entrance",
+                "toAreaId": "entrance",
+                "motion": "flip",
+                "durationMs": 900
+              }
+            ],
+            "nextNode": "i03",
+            "targetObjectId": "pickup-slip-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "pick-slip",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "pick-slip",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "inviter",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-slip"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "pick"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "pick",
+            "label": "拿起取書單",
+            "params": {
+              "objectId": "pickup-slip-27"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "entrance"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "pickup-slip-27",
+                    "state": "at-entrance"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "pickup-slip-27",
+                "from": "at-entrance",
+                "to": "held-inviter",
+                "actionId": "pick"
+              }
+            ],
+            "presentationSteps": [],
+            "targetObjectId": "pickup-slip-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "place-slip",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "place-slip",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "inviter",
+            "bindingKey": "narrative:rain-bookshop-last-order:pick-slip"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "place"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "place",
+            "label": "把紙單放在櫃檯",
+            "params": {
+              "objectId": "pickup-slip-27",
+              "targetSlotId": "counter-slot"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "pickup-slip-27",
+                    "state": "held-inviter"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "pickup-slip-27",
+                "from": "held-inviter",
+                "to": "on-counter",
+                "actionId": "place"
+              }
+            ],
+            "presentationSteps": [
+              {
+                "type": "object",
+                "objectId": "pickup-slip-27",
+                "fromAreaId": "entrance",
+                "toAreaId": "counter",
+                "motion": "place",
+                "durationMs": 900
+              }
+            ],
+            "targetObjectId": "pickup-slip-27",
+            "dropSlotId": "counter-slot"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "arrive-acceptor",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "arrive-acceptor",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_node_entered": {
+            "role": "acceptor",
+            "nodeId": "a01"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect",
+            "label": "看看書架邊的布袋",
+            "params": {
+              "objectId": "reserve-bag-27"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "nextNode": "a02",
+            "targetObjectId": "reserve-bag-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "inspect-bag",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "inspect-bag",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_node_entered": {
+            "role": "acceptor",
+            "nodeId": "a02"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect",
+            "label": "檢查袋外的編號",
+            "params": {
+              "objectId": "reserve-bag-27"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "reserve-bag-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "pick-bag",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "pick-bag",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-bag"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "pick"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "pick",
+            "label": "拿起第 27 號布袋",
+            "params": {
+              "objectId": "reserve-bag-27"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "reserve-bag-27",
+                    "state": "at-shelves"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "reserve-bag-27",
+                "from": "at-shelves",
+                "to": "held-acceptor",
+                "actionId": "pick"
+              }
+            ],
+            "presentationSteps": [],
+            "nextNode": "a03",
+            "targetObjectId": "reserve-bag-27"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "place-bag",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "place-bag",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:pick-bag"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "place"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "place",
+            "label": "把布袋放在櫃檯",
+            "params": {
+              "objectId": "reserve-bag-27",
+              "targetSlotId": "counter-slot"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "reserve-bag-27",
+                    "state": "held-acceptor"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "reserve-bag-27",
+                "from": "held-acceptor",
+                "to": "on-counter",
+                "actionId": "place"
+              }
+            ],
+            "presentationSteps": [],
+            "targetObjectId": "reserve-bag-27",
+            "dropSlotId": "counter-slot"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "compare-books",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "compare-books",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "shared_event_completed": "narrative:rain-bookshop-last-order:counter-meet"
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect",
+            "label": "比較深藍封面的書",
+            "params": {
+              "objectId": "book-rain"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "track_node_entered": {
+                    "role": "inviter",
+                    "nodeId": "i04"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "nextNode": "i05",
+            "targetObjectId": "book-rain"
+          },
+          {
+            "role": "inviter",
+            "actionId": "inspect",
+            "label": "比較淺綠封面的書",
+            "params": {
+              "objectId": "book-wednesday"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "track_node_entered": {
+                    "role": "inviter",
+                    "nodeId": "i04"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "nextNode": "i05",
+            "targetObjectId": "book-wednesday"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "query-title",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "npc",
+          "version": "v2",
+          "key": "story-content/events/npc/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "query-title",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "shared_event_completed": "narrative:rain-bookshop-last-order:counter-meet"
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "choose"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "choose",
+            "label": "問店員：第 27 號預訂哪本書？",
+            "params": {
+              "npcId": "clerk",
+              "dialogueOptionId": "query-title"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "track_node_entered": {
+                    "role": "acceptor",
+                    "nodeId": "a04"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [],
+            "presentationSteps": [
+              {
+                "type": "camera",
+                "cameraId": "counter",
+                "durationMs": 650
+              }
+            ],
+            "nextNode": "a05"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "inspect-ledger",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "inspect-ledger",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:query-title"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect",
+            "label": "查看預訂簿",
+            "params": {
+              "objectId": "reserve-ledger"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "reserve-ledger"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "share-order-clue",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "choose",
+          "version": "v2",
+          "key": "story-content/events/choose/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "share-order-clue",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-ledger"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "submit"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "分享：書名和綠封套",
+            "params": {
+              "optionId": "share-clue"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [
+              {
+                "type": "flag",
+                "flagId": "order-clue",
+                "value": "shared"
+              }
+            ],
+            "presentationSteps": [
+              {
+                "type": "audio",
+                "cueId": "fx-clue-board"
+              }
+            ],
+            "nextNode": "a06"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "read-shared-clue",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "choose",
+          "version": "v2",
+          "key": "story-content/events/choose/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "read-shared-clue",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "all": [
+            {
+              "track_event_completed": {
+                "role": "inviter",
+                "bindingKey": "narrative:rain-bookshop-last-order:compare-books"
+              }
+            },
+            {
+              "shared_flag_equals": {
+                "key": "order-clue",
+                "value": "shared"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "submit"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "查看共享便條上的書名",
+            "params": {
+              "optionId": "read-note"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "nextNode": "i06"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "pick-book",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "pick-book",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "all": [
+            {
+              "track_event_completed": {
+                "role": "inviter",
+                "bindingKey": "narrative:rain-bookshop-last-order:read-shared-clue"
+              }
+            },
+            {
+              "shared_flag_equals": {
+                "key": "order-clue",
+                "value": "shared"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "pick"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "pick",
+            "label": "拿《海邊的雨天》",
+            "params": {
+              "objectId": "book-rain"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "shelves"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "book-rain",
+                    "state": "at-shelves"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "book-rain",
+                "from": "at-shelves",
+                "to": "held-inviter",
+                "actionId": "pick"
+              }
+            ],
+            "presentationSteps": [],
+            "nextNode": "i07",
+            "targetObjectId": "book-rain"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "deliver-book",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "deliver-book",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "inviter",
+            "bindingKey": "narrative:rain-bookshop-last-order:pick-book"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "place"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "place",
+            "label": "把深藍色的書放在櫃檯",
+            "params": {
+              "objectId": "book-rain",
+              "targetSlotId": "counter-slot"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "inviter",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "book-rain",
+                    "state": "held-inviter"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "book-rain",
+                "from": "held-inviter",
+                "to": "on-counter",
+                "actionId": "place"
+              }
+            ],
+            "presentationSteps": [],
+            "nextNode": "i08",
+            "targetObjectId": "book-rain",
+            "dropSlotId": "counter-slot"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "pick-sleeve",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "pick-sleeve",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:share-order-clue"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "pick"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "pick",
+            "label": "拿起乾燥的綠封套",
+            "params": {
+              "objectId": "green-sleeve"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "window"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "green-sleeve",
+                    "state": "at-window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "green-sleeve",
+                "from": "at-window",
+                "to": "held-acceptor",
+                "actionId": "pick"
+              }
+            ],
+            "presentationSteps": [],
+            "nextNode": "a07",
+            "targetObjectId": "green-sleeve"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "deliver-sleeve",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "manipulate",
+          "version": "v2",
+          "key": "story-content/events/manipulate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "deliver-sleeve",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:pick-sleeve"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "place"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "place",
+            "label": "把綠封套放在櫃檯",
+            "params": {
+              "objectId": "green-sleeve",
+              "targetSlotId": "counter-slot"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "green-sleeve",
+                    "state": "held-acceptor"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "green-sleeve",
+                "from": "held-acceptor",
+                "to": "on-counter",
+                "actionId": "place"
+              }
+            ],
+            "presentationSteps": [],
+            "targetObjectId": "green-sleeve",
+            "dropSlotId": "counter-slot"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "verify-order",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "choose",
+          "version": "v2",
+          "key": "story-content/events/choose/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "verify-order",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "shared_event_completed": "narrative:rain-bookshop-last-order:wind-rescue"
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "submit"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "確認第 27 號訂單",
+            "params": {
+              "optionId": "verify-order"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "book-rain",
+                    "state": "on-counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "green-sleeve",
+                    "state": "on-counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "order-tag-27",
+                    "state": "on-counter"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "flag",
+                "flagId": "order-status",
+                "value": "verified"
+              }
+            ],
+            "presentationSteps": []
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "observe-books-inviter",
+        "trackScope": "inviter",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "observe-books-inviter",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "actor_area_is": {
+            "role": "inviter",
+            "areaId": "shelves"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "inspect",
+            "label": "檢視深藍色封面",
+            "params": {
+              "objectId": "book-rain"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "book-rain"
+          },
+          {
+            "role": "inviter",
+            "actionId": "inspect",
+            "label": "檢視淺綠色封面",
+            "params": {
+              "objectId": "book-wednesday"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "book-wednesday"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "observe-books-acceptor",
+        "trackScope": "acceptor",
+        "definition": {
+          "eventId": "inspect",
+          "version": "v2",
+          "key": "story-content/events/inspect/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "side",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "observe-books-acceptor",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": false,
+        "triggerConditions": {
+          "actor_area_is": {
+            "role": "acceptor",
+            "areaId": "shelves"
+          }
+        },
+        "requiredActions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect"
+          }
+        ],
+        "actions": [
+          {
+            "role": "acceptor",
+            "actionId": "inspect",
+            "label": "檢視深藍色封面",
+            "params": {
+              "objectId": "book-rain"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "book-rain"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "inspect",
+            "label": "檢視淺綠色封面",
+            "params": {
+              "objectId": "book-wednesday"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "shelves"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "targetObjectId": "book-wednesday"
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "repeatable"
+      }
+    ],
+    "sharedEventBindings": [
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "counter-meet",
+        "trackScope": "shared",
+        "definition": {
+          "eventId": "cooperate",
+          "version": "v2",
+          "key": "story-content/events/cooperate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "counter-meet",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "all": [
+            {
+              "track_event_completed": {
+                "role": "inviter",
+                "bindingKey": "narrative:rain-bookshop-last-order:place-slip"
+              }
+            },
+            {
+              "track_event_completed": {
+                "role": "acceptor",
+                "bindingKey": "narrative:rain-bookshop-last-order:place-bag"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "submit"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "我來核對紙單",
+            "params": {
+              "optionId": "confirm-slip"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "我來核對袋標",
+            "params": {
+              "optionId": "confirm-bag"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [
+          {
+            "type": "flag",
+            "flagId": "order-status",
+            "value": "searching"
+          }
+        ],
+        "transitions": {
+          "inviterNextNode": "i04",
+          "acceptorNextNode": "a04",
+          "unlockNodes": {
+            "inviter": [
+              "i04"
+            ],
+            "acceptor": [
+              "a04"
+            ]
+          }
+        },
+        "completionMode": "all-actions",
+        "lines": [
+          {
+            "speaker": "店員・NPC",
+            "text": "一張單是 27，一個袋也是 27。至少今天還有一件事沒被雨沖走。"
+          },
+          {
+            "speaker": "店員・NPC",
+            "text": "一個人幫我找書，另一個幫我核對預訂紀錄，好嗎？"
+          }
+        ],
+        "startPresentationSteps": [
+          {
+            "type": "character",
+            "role": "inviter",
+            "areaId": "counter",
+            "x": 0.34,
+            "visible": true,
+            "durationMs": 450
+          },
+          {
+            "type": "character",
+            "role": "acceptor",
+            "areaId": "counter",
+            "x": 0.66,
+            "visible": true,
+            "durationMs": 450
+          },
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "smile"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "smile"
+          }
+        ]
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "wind-rescue",
+        "trackScope": "shared",
+        "definition": {
+          "eventId": "cooperate",
+          "version": "v2",
+          "key": "story-content/events/cooperate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "wind-rescue",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "all": [
+            {
+              "shared_event_completed": "narrative:rain-bookshop-last-order:counter-meet"
+            },
+            {
+              "track_event_completed": {
+                "role": "inviter",
+                "bindingKey": "narrative:rain-bookshop-last-order:deliver-book"
+              }
+            },
+            {
+              "track_event_completed": {
+                "role": "acceptor",
+                "bindingKey": "narrative:rain-bookshop-last-order:deliver-sleeve"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "stepId": "hold-bag"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "stepId": "retrieve-tag"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "stepId": "place-tag"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "準備把書放進袋裡",
+            "params": {
+              "optionId": "start"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "stepId": "start",
+            "targetObjectId": "reserve-bag-27"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "準備把書放進袋裡",
+            "params": {
+              "optionId": "start"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "stepId": "start",
+            "targetObjectId": "reserve-bag-27"
+          },
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "按住書袋",
+            "params": {
+              "optionId": "hold-bag"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": [],
+            "stepId": "hold-bag",
+            "targetObjectId": "reserve-bag-27"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "取回窗台的第 27 號標籤",
+            "params": {
+              "optionId": "retrieve-tag"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "window"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "order-tag-27",
+                    "state": "at-window"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "order-tag-27",
+                "from": "at-window",
+                "to": "held-acceptor",
+                "actionId": "retrieve"
+              }
+            ],
+            "presentationSteps": [
+              {
+                "type": "object",
+                "objectId": "order-tag-27",
+                "fromAreaId": "window",
+                "toAreaId": "window",
+                "motion": "highlight",
+                "durationMs": 900
+              }
+            ],
+            "stepId": "retrieve-tag",
+            "targetObjectId": "order-tag-27"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "把標籤放回櫃檯",
+            "params": {
+              "optionId": "place-tag"
+            },
+            "conditions": {
+              "all": [
+                {
+                  "actor_area_is": {
+                    "role": "acceptor",
+                    "areaId": "counter"
+                  }
+                },
+                {
+                  "world_object_state": {
+                    "objectId": "order-tag-27",
+                    "state": "held-acceptor"
+                  }
+                }
+              ]
+            },
+            "worldEffects": [
+              {
+                "type": "object",
+                "objectId": "order-tag-27",
+                "from": "held-acceptor",
+                "to": "on-counter",
+                "actionId": "place"
+              }
+            ],
+            "presentationSteps": [
+              {
+                "type": "object",
+                "objectId": "order-tag-27",
+                "fromAreaId": "window",
+                "toAreaId": "counter",
+                "motion": "place",
+                "durationMs": 900
+              }
+            ],
+            "stepId": "place-tag",
+            "targetObjectId": "order-tag-27",
+            "dropSlotId": "counter-slot"
+          }
+        ],
+        "startEffects": [
+          {
+            "type": "object",
+            "objectId": "order-tag-27",
+            "from": "on-bag",
+            "to": "at-window",
+            "actionId": "gust"
+          }
+        ],
+        "completionEffects": [
+          {
+            "type": "flag",
+            "flagId": "order-status",
+            "value": "packing"
+          }
+        ],
+        "transitions": {
+          "acceptorNextNode": "a08",
+          "unlockNodes": {
+            "acceptor": [
+              "a08"
+            ]
+          }
+        },
+        "completionMode": "all-actions",
+        "lines": [
+          {
+            "speaker": "店員・NPC",
+            "text": "好，書放進去就——欸，窗邊！標籤飛走了！"
+          },
+          {
+            "speaker": "旁白",
+            "text": "一陣風從窗縫灌進來，第 27 號標籤滑到窗台。"
+          },
+          {
+            "speaker": "店員・NPC",
+            "text": "一個先幫我按住書袋，另一個把標籤拿回來！"
+          }
+        ],
+        "startPresentationSteps": [
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "surprised"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "surprised"
+          },
+          {
+            "type": "audio",
+            "cueId": "fx-gust"
+          },
+          {
+            "type": "object",
+            "objectId": "order-tag-27",
+            "fromAreaId": "counter",
+            "toAreaId": "window",
+            "motion": "gust",
+            "durationMs": 900
+          },
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "concerned"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "concerned"
+          }
+        ]
+      },
+      {
+        "scope": "narrative",
+        "sourceId": "rain-bookshop-last-order",
+        "bindingId": "final-exchange",
+        "trackScope": "shared",
+        "definition": {
+          "eventId": "cooperate",
+          "version": "v2",
+          "key": "story-content/events/cooperate/v2/manifest.json",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "narrativeRole": "main",
+        "visibility": "visible",
+        "selectionMode": "fixed",
+        "probability": 1,
+        "repeatScope": "playthrough",
+        "repeatGroup": "final-exchange",
+        "requiredCapabilities": [
+          "bookshop"
+        ],
+        "requiredForEnding": true,
+        "triggerConditions": {
+          "all": [
+            {
+              "shared_event_completed": "narrative:rain-bookshop-last-order:counter-meet"
+            },
+            {
+              "shared_event_completed": "narrative:rain-bookshop-last-order:wind-rescue"
+            },
+            {
+              "track_event_completed": {
+                "role": "acceptor",
+                "bindingKey": "narrative:rain-bookshop-last-order:verify-order"
+              }
+            },
+            {
+              "shared_flag_equals": {
+                "key": "order-status",
+                "value": "verified"
+              }
+            }
+          ]
+        },
+        "requiredActions": [
+          {
+            "role": "inviter",
+            "actionId": "submit"
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit"
+          }
+        ],
+        "actions": [
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "再看一眼書架，替今天畫個句點",
+            "params": {
+              "optionId": "look_back"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          },
+          {
+            "role": "inviter",
+            "actionId": "submit",
+            "label": "先休息，接著自由聊天",
+            "params": {
+              "optionId": "rest_chat"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "inviter",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "再看一眼書架，替今天畫個句點",
+            "params": {
+              "optionId": "look_back"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          },
+          {
+            "role": "acceptor",
+            "actionId": "submit",
+            "label": "先休息，接著自由聊天",
+            "params": {
+              "optionId": "rest_chat"
+            },
+            "conditions": {
+              "actor_area_is": {
+                "role": "acceptor",
+                "areaId": "counter"
+              }
+            },
+            "worldEffects": [],
+            "presentationSteps": []
+          }
+        ],
+        "startEffects": [],
+        "completionEffects": [],
+        "transitions": {
+          "unlockNodes": {}
+        },
+        "completionMode": "all-actions",
+        "lines": [
+          {
+            "speaker": "店員・NPC",
+            "text": "太好了！第 27 號總算完整，客人來時我可以裝得很從容。"
+          },
+          {
+            "speaker": "店員・NPC",
+            "text": "這回真的有人來了。謝謝你們，想不想再各挑一張書籤當謝禮？"
+          }
+        ],
+        "startPresentationSteps": [
+          {
+            "type": "audio",
+            "cueId": "fx-doorbell"
+          },
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "smile"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "smile"
+          }
+        ]
+      }
+    ],
+    "endingRequires": [
+      "narrative:rain-bookshop-last-order:arrive-inviter",
+      "narrative:rain-bookshop-last-order:inspect-slip",
+      "narrative:rain-bookshop-last-order:pick-slip",
+      "narrative:rain-bookshop-last-order:place-slip",
+      "narrative:rain-bookshop-last-order:arrive-acceptor",
+      "narrative:rain-bookshop-last-order:inspect-bag",
+      "narrative:rain-bookshop-last-order:pick-bag",
+      "narrative:rain-bookshop-last-order:place-bag",
+      "narrative:rain-bookshop-last-order:compare-books",
+      "narrative:rain-bookshop-last-order:query-title",
+      "narrative:rain-bookshop-last-order:inspect-ledger",
+      "narrative:rain-bookshop-last-order:share-order-clue",
+      "narrative:rain-bookshop-last-order:read-shared-clue",
+      "narrative:rain-bookshop-last-order:pick-book",
+      "narrative:rain-bookshop-last-order:deliver-book",
+      "narrative:rain-bookshop-last-order:pick-sleeve",
+      "narrative:rain-bookshop-last-order:deliver-sleeve",
+      "narrative:rain-bookshop-last-order:verify-order",
+      "narrative:rain-bookshop-last-order:counter-meet",
+      "narrative:rain-bookshop-last-order:wind-rescue",
+      "narrative:rain-bookshop-last-order:final-exchange"
+    ],
+    "endings": [
+      {
+        "id": "e01",
+        "title": "再翻一頁",
+        "lines": [
+          {
+            "speaker": "店員・NPC",
+            "text": "想再看一眼書架？好啊。今天真的多虧你們了！"
+          },
+          {
+            "speaker": "旁白",
+            "text": "兩人回望書架，暖光落在一排書脊。這場雨天的小任務，正好在這裡畫上句點。"
+          }
+        ],
+        "conditions": {
+          "all": [
+            {
+              "shared_event_completed": "narrative:rain-bookshop-last-order:final-exchange"
+            },
+            {
+              "all": [
+                {
+                  "track_choice_committed": {
+                    "role": "inviter",
+                    "bindingKey": "narrative:rain-bookshop-last-order:final-exchange",
+                    "actionId": "submit",
+                    "optionId": "look_back"
+                  }
+                },
+                {
+                  "track_choice_committed": {
+                    "role": "acceptor",
+                    "bindingKey": "narrative:rain-bookshop-last-order:final-exchange",
+                    "actionId": "submit",
+                    "optionId": "look_back"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "presentationSteps": [
+          {
+            "type": "camera",
+            "cameraId": "shelves",
+            "durationMs": 650
+          },
+          {
+            "type": "character",
+            "role": "inviter",
+            "areaId": "shelves",
+            "x": 0.38,
+            "visible": true,
+            "durationMs": 450
+          },
+          {
+            "type": "character",
+            "role": "acceptor",
+            "areaId": "shelves",
+            "x": 0.62,
+            "visible": true,
+            "durationMs": 450
+          },
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "smile"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "smile"
+          },
+          {
+            "type": "audio",
+            "cueId": "fx-ending-shelf"
+          },
+          {
+            "type": "pause",
+            "durationMs": 600
+          }
+        ]
+      },
+      {
+        "id": "e02",
+        "title": "雨聲裡的五分鐘",
+        "lines": [
+          {
+            "speaker": "店員・NPC",
+            "text": "今天多虧你們。不急，坐著等雨小一點也好。"
+          },
+          {
+            "speaker": "旁白",
+            "text": "書袋送好了，窗上的雨聲還在。接下來要說什麼，由你們自己決定。"
+          }
+        ],
+        "conditions": {
+          "all": [
+            {
+              "shared_event_completed": "narrative:rain-bookshop-last-order:final-exchange"
+            },
+            {
+              "not": {
+                "all": [
+                  {
+                    "track_choice_committed": {
+                      "role": "inviter",
+                      "bindingKey": "narrative:rain-bookshop-last-order:final-exchange",
+                      "actionId": "submit",
+                      "optionId": "look_back"
+                    }
+                  },
+                  {
+                    "track_choice_committed": {
+                      "role": "acceptor",
+                      "bindingKey": "narrative:rain-bookshop-last-order:final-exchange",
+                      "actionId": "submit",
+                      "optionId": "look_back"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "presentationSteps": [
+          {
+            "type": "camera",
+            "cameraId": "window",
+            "durationMs": 650
+          },
+          {
+            "type": "audio",
+            "cueId": "fx-ending-window"
+          },
+          {
+            "type": "expression",
+            "role": "inviter",
+            "expression": "neutral"
+          },
+          {
+            "type": "expression",
+            "role": "acceptor",
+            "expression": "neutral"
+          },
+          {
+            "type": "pause",
+            "durationMs": 400
+          }
+        ]
+      }
+    ],
+    "suggestions": [
+      {
+        "id": "team",
+        "label": "一起核對",
+        "text": "你那邊找到什麼線索？"
+      },
+      {
+        "id": "rain",
+        "label": "聊聊雨天",
+        "text": "今天的雨真的好大，你有淋到嗎？"
+      },
+      {
+        "id": "thanks",
+        "label": "謝謝合作",
+        "text": "謝謝你，還好有你一起幫忙。"
+      }
+    ],
+    "clues": [
+      {
+        "id": "slip-fragment",
+        "role": "inviter",
+        "text": "取書單殘存：27／海邊的……／19:30",
+        "conditions": {
+          "track_event_completed": {
+            "role": "inviter",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-slip"
+          }
+        }
+      },
+      {
+        "id": "bag-label",
+        "role": "acceptor",
+        "text": "袋外標籤是第 27 號。",
+        "conditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-bag"
+          }
+        }
+      },
+      {
+        "id": "private-title",
+        "role": "acceptor",
+        "text": "第 27 號：《海邊的雨天》，深藍封面，另包綠封套。",
+        "conditions": {
+          "track_event_completed": {
+            "role": "acceptor",
+            "bindingKey": "narrative:rain-bookshop-last-order:inspect-ledger"
+          }
+        }
+      },
+      {
+        "id": "shared-order",
+        "role": "shared",
+        "text": "第 27 號：《海邊的雨天》，深藍封面，另包綠封套。",
+        "conditions": {
+          "shared_flag_equals": {
+            "key": "order-clue",
+            "value": "shared"
+          }
+        }
+      }
+    ]
+  },
+  "pool": {
+    "schemaVersion": "scene-event.v2",
+    "poolId": "global",
+    "version": "v2",
+    "eventBindings": []
+  },
+  "eventDefinitions": [
+    {
+      "reference": {
+        "eventId": "inspect",
+        "version": "v2",
+        "key": "story-content/events/inspect/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "inspect",
+        "version": "v2",
+        "moduleType": "inspect-object",
+        "title": "檢視物件",
+        "actions": [
+          "inspect",
+          "flip"
+        ]
+      }
+    },
+    {
+      "reference": {
+        "eventId": "move",
+        "version": "v2",
+        "key": "story-content/events/move/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "move",
+        "version": "v2",
+        "moduleType": "move-area",
+        "title": "場內移動",
+        "actions": [
+          "enter"
+        ]
+      }
+    },
+    {
+      "reference": {
+        "eventId": "manipulate",
+        "version": "v2",
+        "key": "story-content/events/manipulate/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "manipulate",
+        "version": "v2",
+        "moduleType": "manipulate-object",
+        "title": "拿取與放置",
+        "actions": [
+          "pick",
+          "place"
+        ]
+      }
+    },
+    {
+      "reference": {
+        "eventId": "npc",
+        "version": "v2",
+        "key": "story-content/events/npc/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "npc",
+        "version": "v2",
+        "moduleType": "talk-to-npc",
+        "title": "和店員說話",
+        "actions": [
+          "choose"
+        ]
+      }
+    },
+    {
+      "reference": {
+        "eventId": "cooperate",
+        "version": "v2",
+        "key": "story-content/events/cooperate/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "cooperate",
+        "version": "v2",
+        "moduleType": "cooperative-action",
+        "title": "雙人分工",
+        "actions": [
+          "submit"
+        ]
+      }
+    },
+    {
+      "reference": {
+        "eventId": "choose",
+        "version": "v2",
+        "key": "story-content/events/choose/v2/manifest.json",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "manifest": {
+        "schemaVersion": "scene-event.v2",
+        "eventId": "choose",
+        "version": "v2",
+        "moduleType": "cooperative-choice",
+        "title": "本人意向",
+        "actions": [
+          "submit"
+        ]
+      }
+    }
+  ],
+  "pins": [],
+  "assetSources": [
+    {
+      "id": "rain-bookshop",
+      "file": "contracts/story-assets/rain-bookshop-clean-v2.png"
+    },
+    {
+      "id": "rain",
+      "file": "contracts/story-assets/rain-v1.wav"
+    },
+    {
+      "id": "page-turn",
+      "file": "contracts/story-assets/page-turn-v1.wav"
+    },
+    {
+      "id": "transition",
+      "file": "contracts/story-assets/transition-v1.wav"
+    },
+    {
+      "id": "reading-table",
+      "file": "contracts/story-assets/rain-bookshop-foreground-v2.png"
+    },
+    {
+      "id": "doorbell",
+      "file": "contracts/story-assets/doorbell-v2.wav"
+    },
+    {
+      "id": "gust",
+      "file": "contracts/story-assets/gust-v2.wav"
+    }
+  ]
+}

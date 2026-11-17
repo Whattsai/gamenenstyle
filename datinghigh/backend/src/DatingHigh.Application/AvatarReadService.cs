@@ -5,7 +5,7 @@ using DatingHigh.Domain;
 namespace DatingHigh.Application;
 
 /// <summary>私人表情讀取的固定用途；同輪對方與本人保存資產分開授權。</summary>
-public enum AvatarReadScope {Own,RoundPartner}
+public enum AvatarReadScope {Own,RoundPartner,RoundSelf}
 /// <summary>只含已授權用途與公開版本，不接受 owner 或 R2 key。</summary>
 public interface IAvatarReadStore
 {
@@ -22,8 +22,8 @@ public sealed class AvatarReadService(IPlatformClient platform,IAvatarReadStore 
     public async Task<JsonObject> ProjectionAsync(CurrentUser user,AvatarReadScope scope,string targetId,CancellationToken ct=default)
     {
         Validate(scope,targetId);
-        var payload=new Dictionary<string,object?>{["accountId"]=user.AccountId,["sessionId"]=user.SessionId,["cv"]=user.CredentialVersion,["accessExpiresAt"]=user.AccessExpiresAt,[scope==AvatarReadScope.RoundPartner?"roundId":"assetId"]=targetId};
-        var result=await platform.ExecuteAsync(scope==AvatarReadScope.RoundPartner?"avatar.round.projection":"avatar.expression.projection",payload,ct);
+        var payload=new Dictionary<string,object?>{["accountId"]=user.AccountId,["sessionId"]=user.SessionId,["cv"]=user.CredentialVersion,["accessExpiresAt"]=user.AccessExpiresAt,[scope==AvatarReadScope.Own?"assetId":"roundId"]=targetId};
+        var result=await platform.ExecuteAsync(scope switch{AvatarReadScope.RoundPartner=>"avatar.round.projection",AvatarReadScope.RoundSelf=>"avatar.round.self-projection",_=>"avatar.expression.projection"},payload,ct);
         var safe=Pick(result,"avatarAssetId","avatarVersion","expressionSpecVersion","avatarAssetSpecVersion","framing","pose");
         if(result["stageAnchors"] is JsonObject anchors){var points=new JsonObject();foreach(var point in new[]{"head","feet"})if(anchors[point] is JsonObject value)points[point]=Pick(value,"x","y");safe["stageAnchors"]=points;}
         var expressions=new JsonObject();foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})if(result["expressions"]?[expression] is JsonObject image)expressions[expression]=Pick(image,"url","sha256","mimeType","width","height","byteSize");safe["expressions"]=expressions;

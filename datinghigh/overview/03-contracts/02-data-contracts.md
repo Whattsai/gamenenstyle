@@ -1,6 +1,6 @@
 # 資料與儲存契約
 
-現行 migration 基線為 `0006_scene_event_framework.sql`，共21張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄保持。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
+現行 migration 基線為 `0007_scene_event_tracks.sql`，共21張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄保持。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
 
 ## D1 schema
 
@@ -62,7 +62,7 @@ AI狀態不加job表：每帳號R2 active pointer與60分鐘manifest以ETag CAS�
 
 ## 配對與占用
 
-配對投影、邀請、房間與占用採固定 prepared SQL；現行 schema 以0006為準。實體 ID 為程式提供 UUIDv7 TEXT NOT NULL PK，關聯表使用複合 PK，時間為 Unix ms。
+配對投影、邀請、房間與占用採固定 prepared SQL；現行 schema 以0007為準。實體 ID 為程式提供 UUIDv7 TEXT NOT NULL PK，關聯表使用複合 PK，時間為 Unix ms。
 
 | 表（欄數） | 依序欄位／主要約束 |
 |---|---|
@@ -81,21 +81,26 @@ invitation 狀態為 pending／accepted／declined／cancelled／expired／inval
 
 占用表為 `game_active_round_claims`（4欄、account UNIQUE），Round 含 `last_event_seq` 與 `story_offer_category_ids_json` 共9欄。凍結 JSON 只代表第一場；後續候選由 `story.episode.offers.frozen` 保存。推薦先排除沒有適用主線的類別，再依共同命中、較少方命中、總命中、priority、code 排序，取最多三個 Category。
 
-劇情既有四表為 `content_story_catalog`13欄、`game_story_sessions`10欄、`game_round_events`8欄、`game_interaction_instances`10欄。Catalog 新增 scene_catalog_id、sequence_group_id、sequence_order、prerequisites_json；主線適用類別保存在有 SHA 的 Narrative Manifest。Session 新增 selected_category_id，保留 UNIQUE(round_id,episode_seq) 與 partial UNIQUE round where playing；EventBinding 的答案只存 EventInstance，不複製到舊互動表。Catalog 每穩定 ID 最多一個 published，retired 仍供已釘選場次讀取。事件 Round 序號唯一，actor／requestId 冪等，票及同意以 episode／actor 最大已提交 sequence 重建；不另建 Offers／Votes／Episode 表。
+劇情目錄 `content_story_catalog`13欄、`game_story_sessions`10欄、`game_round_events`8欄。Catalog 的 scene_catalog_id／sequence_group_id／sequence_order／prerequisites_json 與 SHA Narrative 一致；每穩定 ID 最多一個 published，retired 仍供已釘選場次讀取。Session 保存 selected_category_id、shared_revision 與≤16384字元 JSON object 的 world_state_json，不再有共享 current_node_id 或 progress_revision。保留 UNIQUE(round_id,episode_seq) 及 playing partial UNIQUE。`game_interaction_instances` 已移除，歷史 migration 不倒改。
 
-場景事件新增五表共35欄：
+場景內容與執行六表共43欄：
 
 | 表 | 欄數與邊界 |
 |---|---|
-| content_story_categories | 8；category_id、穩定 code、version、title、興趣 tags、priority、status、published_at；每 code 最多一個 published |
-| content_scene_catalog | 8；scene_catalog_id、穩定 scene_id、version、title、manifest key／SHA、status、published_at |
+| content_story_categories | 8；category_id、code、version、title、興趣 tags、priority、status、published_at；每 code 最多一個 published |
+| content_scene_catalog | 8；scene_catalog_id、scene_id、version、title、manifest key／SHA、status、published_at |
 | content_scene_category_links | 2；Scene Catalog／Category FK 複合 PK |
-| game_scene_visits | 6；UUID、Session FK、visit_seq=1、Scene FK、entered_at、left_at；UNIQUE(session,visit_seq) |
-| game_event_instances | 11；UUID、Session FK、完整 scope:sourceId:bindingId、event_id／version、repeat_group、status、state_json、revision、created_at、completed_at；UNIQUE(session,binding) |
+| game_scene_visits | 6；UUID、Session FK、visit_seq=1、Scene FK、entered_at、left_at；UNIQUE(session,visit_seq)；Area 移動不新增 Visit |
+| game_event_instances | 12；UUID、Session FK、scope:sourceId:bindingId、event_id／version、repeat_group、status、state_json、revision、created_at、completed_at、track_scope；UNIQUE(session,binding,track_scope) |
+| game_story_participant_progress | 7；Session FK、account_id、role、current_node_id、current_area_id、revision、updated_at；PK(session,account)、UNIQUE(session,role)，恰兩個原始角色 |
 
-EventInstance status 為 active／completed／cancelled，JSON object≤16384字元，revision≥1；取消或完成須有 completed_at。Session／EventInstance CAS、receipt、事件序號及 SceneVisit 關閉在同一 D1 batch。隨機未觸發保存 cancelled，安全 `story.state.updated` 僅帶 episode／session／revision，不洩漏隱藏 binding。自然收尾不終止 Round；雙方對同一 completed episode 的有效同意才建立下一場。終止 Round 同批封存事件、關閉訪問並釋放 claims。
+EventInstance track_scope 為 inviter／acceptor／shared，status 為 active／completed／cancelled，JSON object≤16384字元、revision≥1；完成／取消含 completed_at。個人 Progress、共享 World、EventInstance、receipt 及事件序號同 D1 batch CAS；共同行為只在已釘選合法轉移時更新另一方進度，不代他提交答案。隨機正／負決策只保存一次；同 role/repeatGroup 的負決策也阻擋本局其他 random／fixed alias，必要主線保留該群組。起始效果與 cue 在第一筆真人提交時生效；私有抽選不修改 shared_revision、World 或兩人 Progress，共享抽選才增加共享 revision。repeatGroup 依 track_scope 隔離，round 範圍參考同 Round 已完成歷史，playthrough 範圍可在新 Session 重玩。Round 序號唯一，actor／requestId 同 payload 回 receipt、改 payload 409。票及同意以 episode／actor 最大已提交序號重建，不新增票表或 job。
 
-內容入口固定 `entry`，圖至少兩節點、完整可達、無環、有至少一個可達 ending；互動只允許 inspect-object／cooperative-choice，tag 取現有 ProfileCatalog。Scene、Narrative、EventDefinition、GlobalPool 各有版本／key／SHA，單物件≤512KiB、四層合計≤4MiB、受限參照數；素材≤8MiB，只允許 PNG／JPEG／WebP／WAV，key 為 `story-content/assets/<sha256>` 且逐位元驗證。DSL 限深度8／總節點64／每組32項，拒腳本、SQL、外部 URL 與私有 Profile 條件。獨立 STORY_CONTENT 不得接私人 FILES。Client 不持久化票、聊天、ticket 或 presence；僅存在授權畫面 RAM，離開／ended 即清空。
+EventInstance JSON 的 `submissions` 保存各真人最新步驟事實；可選 `enteredNodeIndexes` 保存各 role 已實際到過節點在釘選 Narrative nodes 中的索引，索引0～255、每角色最多256個不重複值。後續提交不可刪除歷史，不更新對方 Progress 時也不可修改對方索引；和Progress／receipt同批保存，重複觀察覆寫最新步驟仍不遺失 `track_node_entered` 事實。舊實例沒有此鍵時仍可從既有submission／目前節點／Entry判斷；索引只供Server內部使用，不向另一人公開。
+
+內容為 `scene-event.v2`：Narrative 含 inviter／acceptor 各自 Entry／Node、個人及 Shared Binding、Ending predicate；Scene 含合法 Area 鄰接、物件狀態與轉移、slot、NPC、共享 flags、能力與演出。六種 Module 為 move-area／inspect-object／manipulate-object／talk-to-npc／cooperative-action／cooperative-choice。DSL 限深度8、總節點64、每組32項，僅查已提交角色／區域／事件／世界／前置主線事實；拒腳本、SQL、外部 URL、私人 Profile 條件與未知 operator。Publisher 以雙角色有限狀態驗可達 Ending／必經死鎖，unlock 不等於 entered，合法可選回訪可保留。
+
+Scene／Narrative／EventDefinition／GlobalPool 各有 version／key／SHA；單物件≤512KiB、四層合計≤4MiB、受限參照數。素材≤8MiB，只允許 PNG／JPEG／WebP／WAV，key 為 `story-content/assets/<sha256>` 且逐位元驗證；STORY_CONTENT 與私人 FILES 分離。Client 只接 actor-scoped 投影，不取得 raw Manifest、隱藏條件／答案或私人 R2 key。自然收尾同批完成 Session、取消未完事件及關閉 Visit，Round 仍 active；真人雙同意才建下一場。Client 的票、聊天、ticket、presence 只留授權畫面 RAM，離開／ended 即清空。
 
 ## 版本化場景與免費素材
 
@@ -161,7 +166,7 @@ storage-policy 只允許上述 key／欄位、JSON object，單值≤4096字元�
 
 私人 key 為 `private/{accountId}/foundation-test/{objectId}`，owner 必須由已驗證 CurrentUser 取得；objectId 為 UUIDv7，操作前重驗 family。Foundation測試物件路徑只支援 foundation-test 用途，內容最大8192 bytes、內部 JSON Base64字串上限12000，Content-Type固定 application/octet-stream；不借用作業務圖片路徑；AvatarAndPreferences使用前述獨立媒體通道，無公開私人圖片URL。
 
-ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄；0006 驗21表欄位順序／PK／NOT NULL、零 Trigger、未撤銷 session UNIQUE、故事 published／playing／vote 及新增 Scene／序列／事件／候選唯一索引，拒舊 published Catalog 缺 Scene。另驗 STORY_CONTENT／GAME_ROOMS／ticket secret 與 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。保留0005相容檢查供明確舊環境及測試使用；它不是完整資料稽核，UNIQUE／FK／rollback 行為仍由真 D1 測試證明。
+ready 檢查 EXPECTED_MIGRATION 的 `d1_migrations` 記錄；0007 驗21表欄位順序／PK／NOT NULL、零 Trigger、未撤銷 session UNIQUE、故事 published／playing、Scene／序列／事件／候選及雙 Track 角色唯一約束；0007 已移除舊 episode vote 索引，拒舊 published Catalog 缺 Scene。另驗 STORY_CONTENT／GAME_ROOMS／ticket secret 與 R2 `_system/foundation/probe.txt` 內容 `datinghigh-foundation-v1`。歷史 Foundation readiness 檢查保留於明確舊基線測試；舊0006不能冒充0007就緒；它不是完整資料稽核，UNIQUE／FK／rollback 行為仍由真 D1 測試證明。
 
 每小時清理過期 rate bucket、challenge（以 absolute expiry 的保留窗）、session／refresh（absolute expiry後7天）。refresh 自參照先分批解除再刪除，最後刪無 token 的 session；不刪帳號／identity，也不將清理當授權機制。
 

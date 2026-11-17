@@ -8,10 +8,10 @@ import {readReadyAvatarPack} from './avatar-expression-store';
 import {avatarProjection,avatarReadMedia,currentAvatarReadiness,AvatarReadError} from './round-avatar';
 import {notifyAvatarSelection} from './avatar-notification';
 import {mintRealtimeTicket,type RoomEnv} from './realtime-ticket';
-import {readStoryContent} from './story-content';
 import {readAuthorizedSceneEventContent} from './scene-event-read';
 import {assertFrameworkMember,frameworkMemberSchema} from './scene-event-authorization';
-import {executeFrameworkNext,executeFrameworkVote,executeFrameworkAcceptance,executeFrameworkActivation,executeFrameworkAction,executeFrameworkMessage,readFrameworkSnapshot,executeFrameworkEnd,SceneEventFrameworkError} from './scene-event-commands';
+import {executeFrameworkNext,executeFrameworkVote,executeFrameworkAcceptance,executeFrameworkMessage,readFrameworkSnapshot,executeFrameworkEnd,SceneEventFrameworkError} from './scene-event-commands';
+import {executeTrackAction,executeTrackActivation} from './scene-event-track-commands';
 export interface PlatformEnv {
  DB:D1Database;FILES:R2Bucket;APP_ENV:string;EmailDeliveryMode:string;EXPECTED_MIGRATION:string;
  STORY_CONTENT?:R2Bucket;GAME_ROOMS?:DurableObjectNamespace;ROUND_TICKET_HMAC_KEY?:string;WEB_ORIGIN?:string;ASSETS?:Fetcher;
@@ -25,6 +25,7 @@ const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{
 const auth={accountId:id,sessionId:id,cv:z.number().int().positive(),accessExpiresAt:z.number().int()};
 const privateInput=z.strictObject({...auth,purpose:z.literal('foundation-test'),objectId:id,content:z.string().max(12000).optional()});
 export async function ready(env:PlatformEnv){
+ if(env.EXPECTED_MIGRATION==='0006_scene_event_framework.sql')throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
  if(!['local','staging','production'].includes(env.APP_ENV) || (env.APP_ENV==='local'?env.EmailDeliveryMode!=='Log':env.EmailDeliveryMode!=='Cloudflare'||!env.EMAIL||!env.EMAIL_FROM)) throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
  const migration=await env.DB.prepare('SELECT name FROM d1_migrations WHERE name=?').bind(env.EXPECTED_MIGRATION).first();
  if(!migration) throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
@@ -36,7 +37,7 @@ export async function ready(env:PlatformEnv){
   auth_email_challenges:'challenge_id,purpose,email_normalized,client_platform,flow_token_hash,code_mac,generation,failed_attempts,account_id,bound_credential_version,state,created_at,expires_at,absolute_expires_at,resend_after,consumed_at',
   common_rate_limit_buckets:'bucket_id,policy_key,subject_type,subject_hash,window_start,attempt_count,expires_at',
  };
- const framework=env.EXPECTED_MIGRATION==='0006_scene_event_framework.sql';
+ const framework=env.EXPECTED_MIGRATION==='0007_scene_event_tracks.sql';
  if(framework||['0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql'].includes(env.EXPECTED_MIGRATION)){
   expected.user_profiles='profile_id,account_id,nickname,bio,occupation,birth_date,region_code,traits_json,interests_json,preferences_json,selected_avatar_type,selected_avatar_ref,revision,created_at,updated_at';
   expected.user_media_assets='asset_id,account_id,kind,object_key,mime_type,display_order,status,created_at,deleted_at';
@@ -63,27 +64,28 @@ export async function ready(env:PlatformEnv){
   expected.content_story_catalog='catalog_id,story_id,version,interest_tag_ids_json,recommendation_priority,manifest_key,manifest_sha256,status,published_at';
   expected.game_story_sessions='story_session_id,round_id,episode_seq,catalog_id,current_node_id,chapter_status,progress_revision,created_at,updated_at';
   expected.game_round_events='event_id,round_id,sequence,actor_account_id,client_request_id,kind,payload_json,created_at';
-  expected.game_interaction_instances='interaction_instance_id,story_session_id,node_id,definition_id,definition_version,status,state_json,revision,created_at,completed_at';
+  if(!framework)expected.game_interaction_instances='interaction_instance_id,story_session_id,node_id,definition_id,definition_version,status,state_json,revision,created_at,completed_at';
   for(const [name,clause] of [['idx_content_story_published',"CREATE UNIQUE INDEX idx_content_story_published ON content_story_catalog(story_id) WHERE status='published'"],['idx_game_story_playing',"CREATE UNIQUE INDEX idx_game_story_playing ON game_story_sessions(round_id) WHERE chapter_status='playing'"],['idx_game_vote_episode',"CREATE INDEX idx_game_vote_episode ON game_round_events(round_id,json_extract(payload_json,'$.episodeSeq'),actor_account_id,sequence DESC) WHERE kind='story.vote.submitted'"]]){
-   const index=await env.DB.prepare("SELECT sql FROM sqlite_master WHERE name=? AND type='index'").bind(name).first<{sql:string}>();if(index?.sql.replace(/\s+/g,' ').trim()!==clause)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
+   const index=await env.DB.prepare("SELECT sql FROM sqlite_master WHERE name=? AND type='index'").bind(name).first<{sql:string}>();if(!(framework&&name==='idx_game_vote_episode')&&index?.sql.replace(/\s+/g,' ').trim()!==clause)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
   }
   if(!env.STORY_CONTENT||!env.GAME_ROOMS||!env.ROUND_TICKET_HMAC_KEY||env.ROUND_TICKET_HMAC_KEY.length<32)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
  }
  if(framework){
-  expected.content_story_catalog+=',scene_catalog_id,sequence_group_id,sequence_order,prerequisites_json';expected.game_story_sessions+=',selected_category_id';
+  expected.content_story_catalog+=',scene_catalog_id,sequence_group_id,sequence_order,prerequisites_json';expected.game_story_sessions='story_session_id,round_id,episode_seq,catalog_id,chapter_status,shared_revision,created_at,updated_at,selected_category_id,world_state_json';
+  expected.game_story_participant_progress='story_session_id,account_id,role,current_node_id,current_area_id,revision,updated_at';
   expected.content_story_categories='category_id,code,version,title,interest_tag_ids_json,recommendation_priority,status,published_at';
   expected.content_scene_catalog='scene_catalog_id,scene_id,version,title,manifest_key,manifest_sha256,status,published_at';
   expected.content_scene_category_links='scene_catalog_id,category_id';
   expected.game_scene_visits='scene_visit_id,story_session_id,visit_seq,scene_catalog_id,entered_at,left_at';
-  expected.game_event_instances='event_instance_id,story_session_id,binding_id,event_id,event_version,repeat_group,status,state_json,revision,created_at,completed_at';
-  const indices={idx_content_category_published:"CREATE UNIQUE INDEX idx_content_category_published ON content_story_categories(code) WHERE status='published'",idx_content_scene_published:"CREATE UNIQUE INDEX idx_content_scene_published ON content_scene_catalog(scene_id) WHERE status='published'",idx_game_event_repeat:'CREATE INDEX idx_game_event_repeat ON game_event_instances(repeat_group,status,story_session_id)',idx_game_event_session_status:'CREATE INDEX idx_game_event_session_status ON game_event_instances(story_session_id,status)',idx_content_story_scene_status:'CREATE INDEX idx_content_story_scene_status ON content_story_catalog(scene_catalog_id,status)',idx_content_story_sequence:'CREATE INDEX idx_content_story_sequence ON content_story_catalog(sequence_group_id,sequence_order)',idx_scene_category_reverse:'CREATE INDEX idx_scene_category_reverse ON content_scene_category_links(category_id,scene_catalog_id)',idx_game_episode_offers:"CREATE UNIQUE INDEX idx_game_episode_offers ON game_round_events(round_id,json_extract(payload_json,'$.episodeSeq')) WHERE kind='story.episode.offers.frozen'"};
+  expected.game_event_instances='event_instance_id,story_session_id,binding_id,event_id,event_version,repeat_group,status,state_json,revision,created_at,completed_at,track_scope';
+  const indices={idx_content_category_published:"CREATE UNIQUE INDEX idx_content_category_published ON content_story_categories(code) WHERE status='published'",idx_content_scene_published:"CREATE UNIQUE INDEX idx_content_scene_published ON content_scene_catalog(scene_id) WHERE status='published'",idx_game_event_repeat:'CREATE INDEX idx_game_event_repeat ON game_event_instances(repeat_group,track_scope,status,story_session_id)',idx_game_event_session_status:'CREATE INDEX idx_game_event_session_status ON game_event_instances(story_session_id,status)',idx_content_story_scene_status:'CREATE INDEX idx_content_story_scene_status ON content_story_catalog(scene_catalog_id,status)',idx_content_story_sequence:'CREATE INDEX idx_content_story_sequence ON content_story_catalog(sequence_group_id,sequence_order)',idx_scene_category_reverse:'CREATE INDEX idx_scene_category_reverse ON content_scene_category_links(category_id,scene_catalog_id)',idx_game_episode_offers:"CREATE UNIQUE INDEX idx_game_episode_offers ON game_round_events(round_id,json_extract(payload_json,'$.episodeSeq')) WHERE kind='story.episode.offers.frozen'"};
   for(const [name,sql]of Object.entries(indices)){const index=await env.DB.prepare("SELECT sql FROM sqlite_master WHERE type='index' AND name=?").bind(name).first<{sql:string}>();if(index?.sql.replace(/\s+/g,' ').trim()!==sql)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);}
-  for(const [table,columns]of [['game_event_instances',['story_session_id','binding_id']],['game_scene_visits',['story_session_id','visit_seq']]]as const){
+  for(const [table,columns]of [['game_event_instances',['story_session_id','binding_id','track_scope']],['game_story_participant_progress',['story_session_id','account_id']],['game_story_participant_progress',['story_session_id','role']],['game_scene_visits',['story_session_id','visit_seq']]]as const){
    const list=await env.DB.prepare(`PRAGMA index_list(${table})`).all();let found=false;
    for(const index of list.results.filter(i=>i.unique===1)){const fields=await env.DB.prepare('SELECT name FROM pragma_index_info(?)').bind(index.name).all();if(fields.results.map(c=>c.name).join(',')===columns.join(','))found=true;}
    if(!found)throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
   }
-  if(await env.DB.prepare("SELECT 1 FROM sqlite_master WHERE type='trigger' LIMIT 1").first()||await env.DB.prepare("SELECT 1 FROM content_story_catalog WHERE status='published' AND scene_catalog_id IS NULL LIMIT 1").first())throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
+  if(await env.DB.prepare("SELECT 1 FROM sqlite_master WHERE name='game_interaction_instances' LIMIT 1").first()||await env.DB.prepare("SELECT 1 FROM sqlite_master WHERE type='trigger' LIMIT 1").first()||await env.DB.prepare("SELECT 1 FROM content_story_catalog WHERE status='published' AND scene_catalog_id IS NULL LIMIT 1").first())throw new PlatformError('DEPENDENCY_UNAVAILABLE',503);
  }
  for(const [table,names] of Object.entries(expected)){
   const columns=await env.DB.prepare(`PRAGMA table_info(${table})`).all();
@@ -233,21 +235,20 @@ export async function dispatch(request:Request,env:PlatformEnv,injectedNow?:numb
   const url=new URL(request.url);if(url.hostname!=='platform.internal')return problem('NOT_FOUND',404);
   if(url.pathname.startsWith('/v1/avatar/candidates/'))return await avatarMedia(request,env,now);
   if(url.pathname.startsWith('/v1/avatar/expressions/'))return await avatarExpressionMedia(request,env,now);
-  if(url.pathname.startsWith('/v1/avatar/rounds/')||url.pathname.startsWith('/v1/avatar/assets/'))return await avatarReadMedia(request,env,now);
+  if(url.pathname.startsWith('/v1/avatar/round-self/')||url.pathname.startsWith('/v1/avatar/rounds/')||url.pathname.startsWith('/v1/avatar/assets/'))return await avatarReadMedia(request,env,now);
   if(url.pathname.startsWith('/v1/media/'))return await privatePhotoMedia(request,env,now);
   if(request.method!=='POST'||!url.pathname.startsWith('/v1/commands/'))return problem('NOT_FOUND',404);
   const raw=await request.text();if(new TextEncoder().encode(raw).length>16384)return problem('REQUEST_TOO_LARGE',413);
   const command=url.pathname.slice('/v1/commands/'.length),p=parseStrictJson(raw) as Record<string,unknown>;
   if(command==='avatar.current.readiness')return Response.json(await currentAvatarReadiness(p,env,now),{headers:{'Cache-Control':'no-store'}});
-  if(command==='avatar.round.projection'||command==='avatar.expression.projection')return Response.json(await avatarProjection(command,p,env,now),{headers:{'Cache-Control':'no-store'}});
-  if(command==='story.content.read')return Response.json(await readStoryContent(p,env,now),{headers:{'Cache-Control':'no-store'}});
+  if(command==='avatar.round.self-projection'||command==='avatar.round.projection'||command==='avatar.expression.projection')return Response.json(await avatarProjection(command,p,env,now),{headers:{'Cache-Control':'no-store'}});
   if(command==='story.framework.content.read')return Response.json(await readAuthorizedSceneEventContent(p,env,now),{headers:{'Cache-Control':'no-store'}});
   if(command==='story.framework.authorize'){await assertFrameworkMember(env.DB,frameworkMemberSchema.parse(p),now);return Response.json({rows:[],changes:[]},{headers:{'Cache-Control':'no-store'}});}
   if(command==='story.framework.next')return Response.json(await executeFrameworkNext(env,p,now),{headers:{'Cache-Control':'no-store'}});
   if(command==='story.framework.vote')return Response.json(await executeFrameworkVote(env,p,now),{headers:{'Cache-Control':'no-store'}});
-  if(command==='story.framework.events.activate')return Response.json(await executeFrameworkActivation(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
-  if(command==='story.framework.action.commit')return Response.json(await executeFrameworkAction(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
-  if(env.EXPECTED_MIGRATION==='0006_scene_event_framework.sql'){
+  if(command==='story.framework.events.activate')return Response.json(await executeTrackActivation(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
+  if(command==='story.framework.action.commit')return Response.json(await executeTrackAction(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
+  if(env.EXPECTED_MIGRATION==='0007_scene_event_tracks.sql'){
    if(command==='story.message.send')return Response.json(await executeFrameworkMessage(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
    if(command==='story.snapshot')return Response.json(await readFrameworkSnapshot(env.DB,p,now),{headers:{'Cache-Control':'no-store'}});
    if(command==='match.invite.resolve')return Response.json(await executeFrameworkAcceptance(env,p,now),{headers:{'Cache-Control':'no-store'}});
@@ -331,6 +332,7 @@ export async function dispatch(request:Request,env:PlatformEnv,injectedNow?:numb
   return Response.json(result);
  }catch(e){
   if(e instanceof PlatformError||e instanceof AvatarError||e instanceof AvatarAdoptionError||e instanceof AvatarReadError||e instanceof SceneEventFrameworkError)return problem(e.code,e.status);
+  if(e instanceof Error&&e.message==='INVALID_STORY_CONTENT'&&requestedCommand.startsWith('story.'))return problem('INVALID_STORY_CONTENT',503);
   if(e instanceof z.ZodError||e instanceof SyntaxError||e instanceof Error&&['UNKNOWN_COMMAND','INVALID_POLICY'].includes(e.message))return problem('INVALID_REQUEST');
   if(e instanceof Error&&/malformed JSON|UNIQUE constraint failed|FOREIGN KEY constraint|CHECK constraint/.test(e.message)&&requestedCommand.startsWith('story.'))return problem('EVENT_STATE_CONFLICT',409);
   if(e instanceof Error&&/malformed JSON/.test(e.message)&&requestedCommand==='match.invite.resolve'){

@@ -256,6 +256,12 @@ api.MapPost("/me/avatar/expressions/{action}",async(string action,HttpContext c,
 api.MapGet("/me/avatar/expressions",async(HttpContext c,AvatarExpressionService service,CancellationToken ct)=>{
     c.Payload().Only();return Results.Ok(await service.ExecuteAsync(c.CurrentPlatformUser(),"status",new JsonObject(),ct));
 }).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/my-avatar",async(string roundId,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();return Results.Ok(await service.ProjectionAsync(c.CurrentPlatformUser(),AvatarReadScope.RoundSelf,roundId,ct));
+}).RequireAuthorization("PlatformAccess");
+api.MapGet("/game-rounds/{roundId}/my-avatar/{version}/{expression}",async(string roundId,string version,string expression,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
+    c.Payload().Only();var image=await service.ReadAsync(c.CurrentPlatformUser(),AvatarReadScope.RoundSelf,roundId,version,expression,ct);c.Response.Headers["X-Content-Type-Options"]="nosniff";return Results.Bytes(image.Bytes.ToArray(),image.MimeType);
+}).RequireAuthorization("PlatformAccess");
 api.MapGet("/game-rounds/{roundId}/partner-avatar",async(string roundId,HttpContext c,AvatarReadService service,CancellationToken ct)=>{
     c.Payload().Only();return Results.Ok(await service.ProjectionAsync(c.CurrentPlatformUser(),AvatarReadScope.RoundPartner,roundId,ct));
 }).RequireAuthorization("PlatformAccess");

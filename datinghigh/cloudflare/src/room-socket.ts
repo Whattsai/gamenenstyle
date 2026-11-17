@@ -54,7 +54,7 @@ export class GameRoomSocket extends DurableObject<RoomEnv>{
    if(a.expiresAt<=Date.now()){ws.close(1008,'Reauthorize');return;}
    const now=Date.now();if(now-a.window>=1000){a.window=now;a.frames=0;}if(++a.frames>12){ws.close(1008,'Rate limit');return;}ws.serializeAttachment(a);
    await authorized(this.env,a);
-   const frame=z.strictObject({version:z.literal(1),type:z.enum(['presence.ping','story.vote.submit','story.next.requested','story.event.submit','message.send','story.choice.submit','interaction.submit']),roundId:id,clientRequestId:id.optional(),payload:z.record(z.string(),z.unknown())}).parse(parseStrictJson(message));
+   const frame=z.strictObject({version:z.literal(1),type:z.enum(['presence.ping','story.vote.submit','story.next.requested','story.event.submit','message.send']),roundId:id,clientRequestId:id.optional(),payload:z.record(z.string(),z.unknown())}).parse(parseStrictJson(message));
    if(frame.roundId!==a.roundId)throw new Error('INVALID_STORY_REQUEST');requestId=frame.clientRequestId;
    if(frame.type==='presence.ping'){
     const p=z.strictObject({typing:z.boolean()}).parse(frame.payload);await this.broadcast(a.roundId,'player.presence',{actorAccountId:a.auth.accountId,typing:p.typing,ttlMs:5000});return;

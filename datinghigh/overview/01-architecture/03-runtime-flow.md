@@ -41,7 +41,7 @@ Google Web 由 GIS popup、native 由 SDK 取得 proof；proof 僅在 RAM 傳至
 
 探索取得完整適格集合，由 Application 計分排序後分頁；列表只回安全資料，畫面按需讀人物卡並預載其後最多三張。個資命令只在配對輸入／資格改變時同步 conditions。
 
-邀請由伺服器時間懶惰到期，不靠背景 job。接受邀請先驗 R2 分層內容，再在同一 D1 batch 提交 accepted、round、兩筆 claims、其他 pending 失效及1～3個可玩 Category ID。N1 同批決議類別、Scene、Narrative，建立第一場 Session／SceneVisit；N2/3 等待兩位真人最新票，異票採原邀請者。mutation 未知結果先查 receipt，不重讀 R2 或重擲已提交選擇。
+邀請由伺服器時間懶惰到期，不靠背景 job。接受邀請先驗 R2 分層內容，再在同一 D1 batch 提交 accepted、round、兩筆 claims、其他 pending 失效及1～3個可玩 Category ID。N1 同批決議類別、Scene、Narrative，建立第一場 Session／SceneVisit、兩筆原始邀請角色 Progress 及共享 World；N2/3 等待兩位真人最新票，異票採原邀請者。mutation 未知結果先查 receipt，不重讀 R2 或重擲已提交選擇。
 
 ## 劇情、即時事件與演出
 
@@ -49,13 +49,13 @@ App 先讀受保護 experience，再取得30秒一次性 realtime-ticket，以�
 
 入口、恢復、事件讀取、票券及遊戲命令先驗本人當前採用化身的 ready 五表情。生成者重驗本人所有／未刪除／ready、R2 清單及五個物件；只驗目前採用者。未就緒清除私人畫面並引導個人檔案，end 與 ended 安全狀態仍可用。`avatar.updated` 同時刷新入口權威狀態與對方套組。若事件 cursor 比 snapshot 新，須再讀 snapshot 追上後才完成同步及清除 pending。
 
-SceneEventFrameworkService 組合已驗 SHA 的四層內容；Domain 以已提交事實、能力、條件及 repeatGroup 裁定候選，Worker 以 Session／EventInstance revision CAS 原子啟動或推進。隨機未觸發也保存取消裁定與安全 cursor 更新，重整不重擲；未觸發內容、條件、私人 key 不投影給 client。R2 等待前後重新驗 family 與 Round 成員。
+SceneEventFrameworkService 組合已驗 SHA 的四層內容；Domain 以已提交事實、能力、條件及 repeatGroup 裁定候選，Worker 以本人 Track／Shared World／EventInstance revision CAS 原子啟動或推進。隨機未觸發也保存取消裁定與安全 cursor 更新，重整不重擲；未觸發內容、條件、私人 key 不投影給 client。R2 等待前後重新驗 family 與 Round 成員。
 
 抵達 Ending 同批完成 Session、取消未完支線及關閉 SceneVisit，Round 仍 active 並可聊天。兩位真人對同一最新 completed episode 的最後同意皆有效，才同批以最新已儲存興趣凍結下一場候選；無可玩內容回 NO_PLAYABLE_STORY，不留空場。換 Session 重設逐字、鏡位、Modal 與事件演出，保留同 Round 聊天、草稿與對方角色。
 
-初載、回前景、重連與 `avatar.updated` 讀對方套組；五圖保持掛載，完整解碼且句尾才換套。授權移除或 ended 使在途回應失效。StoryStage 共用鏡頭矩陣呈現背景、角色、前景及熱區；聊天室與敘事使用各自捲動區。
+初載、回前景、重連與 `avatar.updated` 讀本人與對方套組；五圖保持掛載，完整解碼且句尾才換套。授權移除或 ended 使在途回應失效。同 Area 才顯示雙人角色；StoryStage 共用鏡頭矩陣呈現背景、角色、前景及熱區，場內移動不新增 SceneVisit。AmbientMotion 可關閉，提交後的必要 StoryMotion 獨立播放且可略過／背景取消，不重播舊 cue，也不寫權威狀態；聊天室與敘事使用各自捲動區。
 
-End 同批釋放兩筆 claims、取消未完互動／事件並關閉 SceneVisit；通知後清空私人畫面，只保留安全 ended 狀態。公開 `/story-content/assets/<sha256>` 由 STORY_CONTENT 供應，不能導向私人 FILES。
+End 同批釋放兩筆 claims、取消未完事件並關閉 SceneVisit；通知後清空私人畫面，只保留安全 ended 狀態。公開 `/story-content/assets/<sha256>` 由 STORY_CONTENT 供應，不能導向私人 FILES。
 
 ## 背景與本機服務
 

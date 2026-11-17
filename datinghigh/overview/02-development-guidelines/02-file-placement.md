@@ -2,7 +2,7 @@
 
 ## 共用契約與素材
 
-共用非秘密靜態契約放根 `contracts/`；profile-fields.json 由 Domain／Worker 共讀，前端透過 API 目錄取得。內容來源在 `contracts/story-scenes.json` 與 `contracts/story-assets/`，生成來源與完整 prompt 保存在對應 provenance.json。
+共用非秘密靜態契約放根 `contracts/`；profile-fields.json 由 Domain／Worker 共讀，前端透過 API 目錄取得。內容來源在 `contracts/rain-bookshop-last-order.json` 與 `contracts/story-assets/`，生成來源與完整 prompt 保存在對應 provenance.json。
 
 免費角色 metadata 在 `contracts/builtin-avatar-packs.json`，正式80張WebP唯一存放於 `frontend/client/public/avatars/full-body.v1/`；Web／原生選角直接匯入其中16張neutral，劇情透過授權通道讀同一份五表情。只保留正式runtime資產，不存舊JPG、來源PNG、製作JSON或重複圖片；真人照片及私人生成圖不得放入公開目錄。
 
@@ -28,7 +28,7 @@ Domain 放純規則，Application 放用例與介面，Infrastructure 放 provid
 | 圖片 adapter／共用介面 | `backend/src/DatingHigh.Infrastructure/Media/`、`backend/src/DatingHigh.Application/Media/` |
 | 圖片處理與真 provider probe | `backend/tools/DatingHigh.MediaProbe/`；真人來源不放版本庫 |
 | Worker／commands／strict JSON | `cloudflare/src/` |
-| D1 schema | `cloudflare/migrations/`；現行0006共21張自有表，Foundation六表54欄、本人資料／媒體兩表27欄保持，場景事件五表35欄，零 Trigger；欄位詳資料契約 |
+| D1 schema | `cloudflare/migrations/`；現行0007共21張自有表，Foundation六表54欄、本人資料／媒體兩表27欄保持，場景內容與執行六表43欄，零 Trigger；欄位詳資料契約 |
 | Worker 單元／真 D1 測試 | `cloudflare/tests/` |
 | Expo 路由畫面 | `frontend/client/app/`；layout 只組合全域 provider／Stack |
 | 前端共用 UI／API／session／storage | `frontend/client/src/`；Web 專用元件用 `.web.tsx` |

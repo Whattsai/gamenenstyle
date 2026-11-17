@@ -1,44 +1,23 @@
 {
-  "schemaVersion": "scene-event.authoring.v1",
+  "schemaVersion": "scene-event.authoring.v2",
   "stories": [
     {
-      "sourceStoryId": "scene-01",
-      "sceneCatalogId": "019a281e-0000-7000-8000-000000004001",
-      "narrativeCatalogId": "019a281e-0000-7000-8000-000000004002",
-      "sceneId": "rain-bookshop",
-      "sceneVersion": "v1",
-      "narrativeId": "rain-bookshop-lost-note",
-      "narrativeVersion": "v1",
-      "capabilities": ["bookshop"],
-      "eligibleCategoryCodes": ["romance"],
+      "sourceFile": "contracts/rain-bookshop-last-order.json",
+      "sceneCatalogId": "019a281e-0000-7000-8000-000000005001",
+      "narrativeCatalogId": "019a281e-0000-7000-8000-000000005002",
       "categories": [
         {
           "categoryId": "019a281e-0000-7000-8000-000000004003",
           "code": "romance",
           "version": "v1",
           "title": "浪漫",
-          "interestTagIds": ["reading", "coffee"],
+          "interestTagIds": [
+            "reading",
+            "coffee"
+          ],
           "recommendationPriority": 1
         }
-      ],
-      "bindingSources": {"bookmark": "scene"},
-      "bindingOverrides": {
-        "bookmark": {
-          "presentationEffects": {
-            "cameraId": "note-close",
-            "expressionId": "thoughtful",
-            "audioCueId": "pageTurn",
-            "hotspotVisibility": {"bookmark": true}
-          }
-        },
-        "reading-path": {
-          "presentationEffects": {
-            "cameraId": "table-medium",
-            "expressionId": "thoughtful",
-            "audioCueId": "pageTurn"
-          }
-        }
-      }
+      ]
     }
   ]
 }

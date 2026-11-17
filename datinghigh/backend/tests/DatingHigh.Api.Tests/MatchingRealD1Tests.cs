@@ -17,7 +17,7 @@ public sealed class MatchingRealD1Tests
 {
     private sealed class Context: IAsyncDisposable
     {
-        public readonly RealPlatform Platform=new();
+        public readonly RealPlatform Platform=new(tracks:true);
         public readonly ApiFixture Factory=new();
         public readonly List<CurrentUser> Users=[];
         public readonly List<string> Profiles=[];

@@ -1,15 +1,15 @@
 # SPEC-001-SceneEventFramework — TDD 測試清單
 
-> **來源 MVP**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)；**已確認 SDD**：[SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)；**BDD**：[79 場景](../bdd/SPEC-001-SceneEventFramework-BDD.md)
-> **生成日期**：2026-11-12；**規劃狀態**：**Ready for well-done（規劃交接）**；SDD／RiskAudit 全部人工確認、TDD 已補強；**依使用者要求暫停；首條主流程與本人化身入口已驗證，整份規格尚未結案**；實作與 runner 證據見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+> **來源 MVP**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～23）；**最新版 SDD**：[SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)；**BDD**：[121 場景](../bdd/SPEC-001-SceneEventFramework-BDD.md)
+> **原生成日期**：2026-11-12；**2026-11-16 Phase 5 最終規劃**：BDD 121 場景；TDD 原 383＋雙 Track／劇本 222＋RiskAudit 20＝**625 項**。V2-RQ-01=A 與 10 組 GAP 已正式回寫；**本輪交接 Ready for well-done（僅規劃 Gate）**，非程式實作、產品測試或人工 Gate B 通過。完整證據見 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ## 開發進度總覽
 
 ```text
 📦 SceneEventFramework / Red-Green-Refactor
-├─ 狀態：依使用者要求暫停；首條主流程及本人入口已驗證，整份規格未結案
-├─ BDD：1/79
-├─ TDD：56/383（14.6%；依完整斷言覆核，不以 runner 數量換算）
+├─ 狀態：2026-11-16 Perfect-plan Phase 5 完成，Ready for well-done；新引擎／首條正式故事尚待實作及 Gate B
+├─ BDD：舊版 1/79、新版 0/42，合計 1/121（逐 ID 完整覆核）
+├─ TDD：舊版 56/383，新版 0/242；合計 56/625（9.0%，只以完整斷言覆核計算）
 ├─ 前置 Gate：既有雨聲書店及全身化身仍有獨立未結案驗收
 └─ 開發次序：先 1 條完整主線→使用者試玩調校確認→其餘 9 條
 ```
@@ -18,18 +18,18 @@
 
 | 層級 | 已完成 | 待實作 | 指定測試入口 |
 |---|---:|---:|---|
-| Unit | 25/236 | 211 | Domain policy 與 UI 狀態隔離測試 |
-| Integration | 20/80 | 60 | Miniflare 真 D1 + R2 immutable content + 發布／migration |
-| API | 5/27 | 22 | .NET API／Worker 驗證、HTTP 與 WS 合約 |
-| E2E | 6/40 | 34 | Web／Android 雙真人帳號與恢復 |
-| **合計** | **56/383** | **327** | **完整 BDD 跨層結案尚待逐項覆核** |
+| Unit | 25/366 | 341 | Domain 雙 Track／World／Publisher／新增圖依賴及劇本驗證 |
+| Integration | 20/129 | 109 | Miniflare 真 D1、R2、CAS／rollback、本地清理與正式內容發布 |
+| API | 5/53 | 48 | Actor-scoped HTTP/WS、私有內容、嚴格 params、NPC 假冒拒絕 |
+| E2E | 6/77 | 71 | Web／Android 雙真人完整劇本、環境微動與 Ending A |
+| **合計** | **56/625** | **569** | **新增 242 項全部待實作，既有 56 項僅對舊版已覆核案例有效** |
 
 ### 里程碑
 
 - [x] M1：RiskAudit RA-Q1=A、RA-Q2=A 已由使用者明確確認，缺漏已增補至 BDD/TDD 並完成規劃回寫（**只代表規劃 Gate，不代表程式驗收**）。
-- [ ] M2：新五表及既有表最小改動，真 D1 rollback、唯一性與 R2 版本一致性測試。
-- [ ] M3：雙方類別票、場景／主線去重與事件引擎、收尾、雙方同意重玩。
-- [ ] M4：首條雨聲書店完整遷入，通過 Web／Android 事件鏡位／表情、安全熱區、五圖換角、跨 Episode、背景與恢復、已發布素材與原 B1／2.5D Gate；完整追溯 SEF-UX-GAP-01～08，不得代替本人 Gate B。
+- [ ] M2：在 `0006` 已存在的五表基礎上新增一筆個人 Track 進度表、重整 StorySession／EventInstance、在受控 local Clean Rebuild 後移除 `game_interaction_instances`；真 D1 rollback／唯一鍵／資料保護與 R2 v2 版本一致性測試全部具證據。
+- [ ] M3：Category／Scene／Narrative 決議與 3:1、雙 Track 及 Shared 世界原子事件、各自進度／角色可見性、互動／NPC／物件操作、自然收尾與兩人同意重玩。
+- [ ] M4：**重寫**唯一首條「被雨打亂的最後一單」正式 R2 v2 內容，按 SDD 21 Node／四 Area／三次交會／兩種 Ending／RB-01～14 實測；保留正式五表情、2.5D 素材、Web／Android 真雙人、B1／UX-P1～P5 安全與效能驗證。不以舊書籤劇本的測試代替新首條。
 - [ ] M5：**使用者實際試玩、調校、明確通過首條 Gate**，取得後才能開發其餘九條主線。
 - [ ] M6：最終至少十條完整可遊玩主線，實際內容非 fixtures，全部驗收。
 
@@ -2163,9 +2163,9 @@
 3. 開發首條劇情完整體驗交使用者實際驗收，**未取得明確核准不產生其餘九條完整主線**。
 4. 不提前實作 AI 動態劇情、跨場景沉浸模式或 History／Housekeeping。
 
-## 規劃交接紀錄
+## 歷史規劃交接紀錄（2026-11-12 舊框架，非本輪權威）
 
-**交接狀態：Ready for well-done（僅規劃文件可交開發，不代表程式已完成或測試通過）**  
+**歷史交接狀態（2026-11-12 舊框架）：Ready for well-done，已由 2026-11-15 新版 SDD／BDD／TDD 規劃取代；**本輪唯一權威狀態為本文末尾的 `Blocked`**。
 **最後確認日期：2026-11-12**  
 **本輪唯一目標**：`SPEC-001-SceneEventFramework`；未自動切換到其他 SPEC  
 **交接時基線**：BDD **0/78**、TDD **0/379**；當時僅規劃。**目前開發現況**以頂部分層統計與 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md) 為準。
@@ -2249,7 +2249,7 @@
 
 ### 不得進入開發的規劃阻斷項
 
-**無。** 所有需要使用者決定的規則已確認；12/12 項風險都有處置及落點，8/8 GAP 已補回 TDD。**Ready for well-done 只授權接手這份 SPEC 的開發，不代表本 MVP、首條人工試玩或任何程式測試已通過。**
+**歷史紀錄：**2026-11-12 舊框架當時無待決策項目；此處已被 2026-11-15 雙 Track／新劇本新增風險稽核取代，不表示新版可以直接 well-done。
 
 ---
 
@@ -2258,4 +2258,1268 @@
 - 風險：**12 項（高 7、中 4、低 1）**；RA-Q1=A、RA-Q2=A 已確認。
 - 增補：BDD **+3（63→66）**；TDD **+25（295→320）**，內含 Unit +10、Integration +10、API +2、E2E +3，八組 GAP 均已補入。
 - 2026-11-12 原文件鏈：新增 MVP AC **12/12**、SPEC AC **12/12**、BDD **66/66** 已追溯。2026-11-13 新增 SPEC AC-013～016、BDD-067～078 及其 TDD，現為 SPEC **16/16**、BDD **78/78** 有測試規劃對應，未執行產品測試。
-- 本輪沒有修改產品程式碼、資料表 Schema 或任何環境資料。
+- 本輪沒有修改產品程式碼、資料表 Schema 或任何環境資料。## 2026-11-15 新版雙 Track／雨聲書店 TDD 正式增量（Phase 3）
+
+**本節不修改歷史已通過證據**。對應新增 BDD-080～121，逐一規劃 **3 項 Unit＋1 項 Integration**，再於下節規劃 API 與 Web／Android E2E。全為 `- [ ]`／待先 Red 再 Green；不可因方法名稱被列入就標記已執行。新測試檔路徑均為**建議新增／延用位置**，以 well-done 實際引用稽核後決定，避免重複引擎。
+
+### 新版 Unit：SEF-UT-237～362（126 項，全部待實作）
+
+- [ ] **SEF-UT-237** `ParticipantTrack_Bdd080_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-080／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given 場次決議已成功且兩名真人身分有效；When Server 建立 StorySession；Then 同交易建立兩筆不同角色 Progress、單一 SceneVisit、共享世界
+
+- [ ] **SEF-UT-238** `ParticipantTrack_Bdd080_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-080／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：同交易建立兩筆不同角色 Progress、單一 SceneVisit、共享世界
+
+- [ ] **SEF-UT-239** `ParticipantTrack_Bdd080_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-080／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：任何一筆建立失敗都不能留下半場
+
+- [ ] **SEF-UT-240** `ParticipantTrack_Bdd081_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-081／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given I 和 A 各位於不同個人節點；When I 先完成本人可用的事件；Then 僅 I 的 node、Area、revision 進步，A 不變
+
+- [ ] **SEF-UT-241** `ParticipantTrack_Bdd081_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-081／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：僅 I 的 node、Area、revision 進步，A 不變
+
+- [ ] **SEF-UT-242** `ParticipantTrack_Bdd081_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-081／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 可稍後親自完成未玩節點
+
+- [ ] **SEF-UT-243** `ParticipantTrack_Bdd082_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-082／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given Round 已固定原邀請人及接受人；When 前端假造另一方 role、nodeId 或 accountId；Then Server 拒絕假冒且不修改進度
+
+- [ ] **SEF-UT-244** `ParticipantTrack_Bdd082_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-082／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：Server 拒絕假冒且不修改進度
+
+- [ ] **SEF-UT-245** `ParticipantTrack_Bdd082_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-082／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不可用帳號大小或先上線順序決定角色
+
+- [ ] **SEF-UT-246** `ParticipantTrack_Bdd083_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-083／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given I 前進而 A 還在 A02；When A 重新登入取授權 experience；Then A 恢復 A02、Area、可操作物件及個人 revision
+
+- [ ] **SEF-UT-247** `ParticipantTrack_Bdd083_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-083／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：A 恢復 A02、Area、可操作物件及個人 revision
+
+- [ ] **SEF-UT-248** `ParticipantTrack_Bdd083_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-083／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：全域 eventSeq 不能替 A 決策
+
+- [ ] **SEF-UT-249** `ParticipantTrack_Bdd084_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-084／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given I 的必要節點完成而 A08 未完成；When I 嘗試結束本場主線；Then chapter 仍是 playing 且 A 可繼續
+
+- [ ] **SEF-UT-250** `ParticipantTrack_Bdd084_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-084／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：chapter 仍是 playing 且 A 可繼續
+
+- [ ] **SEF-UT-251** `ParticipantTrack_Bdd084_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-084／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 完成及 Shared predicate 齊備才發出一次 chapter.completed
+
+- [ ] **SEF-UT-252** `SharedTransition_Bdd085_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-085／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given S01 兩人真人核對且 I04、A04、S02 都在合法圖中；When 雙方提交 S01 後分別移至不同區域；Then I04、A04 分別開啟並可進 S02 再交會
+
+- [ ] **SEF-UT-253** `SharedTransition_Bdd085_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-085／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：I04、A04 分別開啟並可進 S02 再交會
+
+- [ ] **SEF-UT-254** `SharedTransition_Bdd085_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-085／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不修改對方未完成的私人事件
+
+- [ ] **SEF-UT-255** `SharedTransition_Bdd086_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-086／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given S02 完成時 I 在 I08、A 尚未執行 A08；When 伺服器結算 S02 的合法雙人答案；Then 只開啟 A08 且 I 停留 I08
+
+- [ ] **SEF-UT-256** `SharedTransition_Bdd086_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-086／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只開啟 A08 且 I 停留 I08
+
+- [ ] **SEF-UT-257** `SharedTransition_Bdd086_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-086／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 驗證完才可進入 S03
+
+- [ ] **SEF-UT-258** `SharedTransition_Bdd087_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-087／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given I 必經事件等 A，A 必經事件又等不可達的 I；When Publisher 檢查兩條 Track 與 Shared 依賴圖；Then 拒絕不能到達共同 Ending 的內容
+
+- [ ] **SEF-UT-259** `SharedTransition_Bdd087_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-087／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：拒絕不能到達共同 Ending 的內容
+
+- [ ] **SEF-UT-260** `SharedTransition_Bdd087_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-087／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：合法可選回訪不被錯誤禁止
+
+- [ ] **SEF-UT-261** `SharedTransition_Bdd088_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-088／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given 條件採 role、Area、bindingKey 與共享世界事實；When 有人注入未知條件、過深布林或假 role；Then Schema 或 Domain 拒絕非法組合
+
+- [ ] **SEF-UT-262** `SharedTransition_Bdd088_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-088／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：Schema 或 Domain 拒絕非法組合
+
+- [ ] **SEF-UT-263** `SharedTransition_Bdd088_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-088／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：合法 all、any、not 僅查已提交事實
+
+- [ ] **SEF-UT-264** `SharedTransition_Bdd089_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-089／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given 玩家已在第一場 Scene 探索多個 Area；When 兩人完成後同意並進入第二場；Then 每個 StorySession 僅一筆 SceneVisit、各自有 Area
+
+- [ ] **SEF-UT-265** `SharedTransition_Bdd089_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-089／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：每個 StorySession 僅一筆 SceneVisit、各自有 Area
+
+- [ ] **SEF-UT-266** `SharedTransition_Bdd089_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-089／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：跨場次和跨角色同名節點不得互相污染
+
+- [ ] **SEF-UT-267** `WorldState_Bdd090_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-090／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given A 詢問店員得到書名但尚未分享；When I 查快照、WS、熱區及可讀 Manifest；Then I 不得看 A 私有節點或答案
+
+- [ ] **SEF-UT-268** `WorldState_Bdd090_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-090／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：I 不得看 A 私有節點或答案
+
+- [ ] **SEF-UT-269** `WorldState_Bdd090_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-090／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 主動分享後只公開允許的線索
+
+- [ ] **SEF-UT-270** `WorldState_Bdd091_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-091／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given 書袋由共享世界權威記錄在書架；When 兩名真人以相同 revision 同時 pick；Then 只一個合法 D1 CAS 成功、另一人 409 同步
+
+- [ ] **SEF-UT-271** `WorldState_Bdd091_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-091／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只一個合法 D1 CAS 成功、另一人 409 同步
+
+- [ ] **SEF-UT-272** `WorldState_Bdd091_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-091／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：物件不複製且不重複完成事件
+
+- [ ] **SEF-UT-273** `WorldState_Bdd092_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-092／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given S02 必須 I hold-bag 與 A retrieve-tag；When I 先提交、A 離線後才操作；Then 第一次提交只保留 I 事實且 EventInstance active
+
+- [ ] **SEF-UT-274** `WorldState_Bdd092_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-092／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：第一次提交只保留 I 事實且 EventInstance active
+
+- [ ] **SEF-UT-275** `WorldState_Bdd092_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-092／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 親提交後才完成一次 shared event
+
+- [ ] **SEF-UT-276** `WorldState_Bdd093_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-093／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given 同一 EventDefinition 在 I 與 A 各有一個 binding；When 兩人各自完成合法個人探索；Then 兩份不同 scope 的 EventInstance 均存在
+
+- [ ] **SEF-UT-277** `WorldState_Bdd093_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-093／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：兩份不同 scope 的 EventInstance 均存在
+
+- [ ] **SEF-UT-278** `WorldState_Bdd093_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-093／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：Shared binding 僅有一個共同 instance
+
+- [ ] **SEF-UT-279** `WorldState_Bdd094_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-094／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：Given A 有尚未觸發的隱藏事件；When I 請求 experience、events query 或公開 R2；Then 無 A 私人線索、未知 binding 與私人 R2 key
+
+- [ ] **SEF-UT-280** `WorldState_Bdd094_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-094／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：無 A 私人線索、未知 binding 與私人 R2 key
+
+- [ ] **SEF-UT-281** `WorldState_Bdd094_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-094／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：只顯示合作狀態的白名單摘要
+
+- [ ] **SEF-UT-282** `SceneInteraction_Bdd095_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-095／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given 一場 Scene 只有一筆 SceneVisit；When I 由 entrance 移到 counter 再到 shelves；Then 本人的 Area、鏡頭和可用熱區真實更新
+
+- [ ] **SEF-UT-283** `SceneInteraction_Bdd095_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-095／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：本人的 Area、鏡頭和可用熱區真實更新
+
+- [ ] **SEF-UT-284** `SceneInteraction_Bdd095_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-095／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不可移至未解鎖或不存在的 Area
+
+- [ ] **SEF-UT-285** `SceneInteraction_Bdd096_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-096／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given I 在 entrance 可見濕紙單；When I 親自點 flip 及查看特寫；Then 紙張可見翻面並得到 27 的個人線索
+
+- [ ] **SEF-UT-286** `SceneInteraction_Bdd096_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-096／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：紙張可見翻面並得到 27 的個人線索
+
+- [ ] **SEF-UT-287** `SceneInteraction_Bdd096_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-096／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：跳過動畫不能跳過 Server 的正式操作
+
+- [ ] **SEF-UT-288** `SceneInteraction_Bdd097_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-097／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given I 尚未得到分享線索或選中錯書；When 將 book-wednesday 拖到櫃檯；Then 出現可恢復的具體提示，orderStatus 不變
+
+- [ ] **SEF-UT-289** `SceneInteraction_Bdd097_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-097／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：出現可恢復的具體提示，orderStatus 不變
+
+- [ ] **SEF-UT-290** `SceneInteraction_Bdd097_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-097／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：依正確資訊重新選書仍可完成
+
+- [ ] **SEF-UT-291** `SceneInteraction_Bdd098_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-098／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given A 在櫃檯且店員可交談；When A 親自選擇 query-title；Then 只 A 先看到預訂資訊，分享後 I 才知道
+
+- [ ] **SEF-UT-292** `SceneInteraction_Bdd098_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-098／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只 A 先看到預訂資訊，分享後 I 才知道
+
+- [ ] **SEF-UT-293** `SceneInteraction_Bdd098_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-098／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：NPC 不能代另一位真人聊天或提交
+
+- [ ] **SEF-UT-294** `SceneInteraction_Bdd099_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-099／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given 場景及物件白名單已由 R2 釘選；When Client 提交未授權 objectId、targetSlotId 或 action；Then Server 409／明確拒絕且世界未變
+
+- [ ] **SEF-UT-295** `SceneInteraction_Bdd099_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-099／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：Server 409／明確拒絕且世界未變
+
+- [ ] **SEF-UT-296** `SceneInteraction_Bdd099_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-099／SEF-AC-021；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：合法 params 才能改 EventInstance 與進度
+
+- [ ] **SEF-UT-297** `ScenePresentation_Bdd100_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given S01、S02、S03 的角色素材與合法 Scene anchor 已釘選；When 兩人完成互動後播放可見演出；Then 鏡頭、物件、兩位真人化身及五表情符合 Cue
+
+- [ ] **SEF-UT-298** `ScenePresentation_Bdd100_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：鏡頭、物件、兩位真人化身及五表情符合 Cue
+
+- [ ] **SEF-UT-299** `ScenePresentation_Bdd100_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：缺正式動作姿勢時不冒充伸手或直接呼叫 Gemini
+
+- [ ] **SEF-UT-300** `ScenePresentation_Bdd101_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given Rain Scene 顯示 AmbientMotion；When 玩家檢視雨絲和玻璃水痕後關閉微動；Then 畫面先有真正移動且關閉後停止循環
+
+- [ ] **SEF-UT-301** `ScenePresentation_Bdd101_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：畫面先有真正移動且關閉後停止循環
+
+- [ ] **SEF-UT-302** `ScenePresentation_Bdd101_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：必要 StoryMotion 仍能播放並且有可讀替代狀態
+
+- [ ] **SEF-UT-303** `ScenePresentation_Bdd102_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-102／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given S02 風起已提交且標籤在窗台；When Android/Web 進背景再返回並恢復 Session；Then 根據權威狀態顯示標籤且不重觸發風事件
+
+- [ ] **SEF-UT-304** `ScenePresentation_Bdd102_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-102／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：根據權威狀態顯示標籤且不重觸發風事件
+
+- [ ] **SEF-UT-305** `ScenePresentation_Bdd102_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-102／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不 autoplay 音效、不重送指令、不再產生五表情
+
+- [ ] **SEF-UT-306** `ScenePresentation_Bdd103_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-103／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：Given Manifest 包含未知 anchor、表情、camera 或 motion；When Publisher 驗證並由 Web/Android 量測正式遊玩；Then 非法內容拒絕、合法內容保留可核對的 jank／記憶體／延遲證據
+
+- [ ] **SEF-UT-307** `ScenePresentation_Bdd103_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-103／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：非法內容拒絕、合法內容保留可核對的 jank／記憶體／延遲證據
+
+- [ ] **SEF-UT-308** `ScenePresentation_Bdd103_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-103／SEF-AC-022；**建議測試檔**：`frontend/client/tests/unit/scene-event-framework.test.tsx`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不能以缺動畫的純文字替代宣告 Gate B 成功
+
+- [ ] **SEF-UT-309** `RainBookshop_Bdd104_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given 雨聲書店 v2 的 I01 和 A01 已釘選；When I 先翻濕紙單、A 停在書架；Then I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立
+
+- [ ] **SEF-UT-310** `RainBookshop_Bdd104_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立
+
+- [ ] **SEF-UT-311** `RainBookshop_Bdd104_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：先行者不推進另一方未完成節點
+
+- [ ] **SEF-UT-312** `RainBookshop_Bdd105_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given I 看濕紙、A 查書袋外標籤；When 兩人各自 inspect 並讀取 experience；Then 僅本人看到已探索的資訊
+
+- [ ] **SEF-UT-313** `RainBookshop_Bdd105_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：僅本人看到已探索的資訊
+
+- [ ] **SEF-UT-314** `RainBookshop_Bdd105_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：未經分享不洩漏對方私有節點或觸發
+
+- [ ] **SEF-UT-315** `RainBookshop_Bdd106_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given I 紙單與 A 袋子已在 counter；When I 先按核對、A 離線重連後再按核對；Then S01 在兩次真實操作後完成並分流 I04／A04
+
+- [ ] **SEF-UT-316** `RainBookshop_Bdd106_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：S01 在兩次真實操作後完成並分流 I04／A04
+
+- [ ] **SEF-UT-317** `RainBookshop_Bdd106_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不由店員代另一方核對
+
+- [ ] **SEF-UT-318** `RainBookshop_Bdd107_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given I 看兩本海邊書、A 向店員查出正確書；When I 在 A 尚未分享前嘗試領走書；Then 不能完成；A 主動分享後 I 才能選中 book-rain
+
+- [ ] **SEF-UT-319** `RainBookshop_Bdd107_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：不能完成；A 主動分享後 I 才能選中 book-rain
+
+- [ ] **SEF-UT-320** `RainBookshop_Bdd107_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不把 A 私人店員台詞完整傳給 I
+
+- [ ] **SEF-UT-321** `RainBookshop_Bdd108_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given I 選到 book-wednesday；When I 嘗試放進 counter-slot；Then 提示錯書且 orderStatus 不變
+
+- [ ] **SEF-UT-322** `RainBookshop_Bdd108_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：提示錯書且 orderStatus 不變
+
+- [ ] **SEF-UT-323** `RainBookshop_Bdd108_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：可返回 shelves 重新選擇
+
+- [ ] **SEF-UT-324** `RainBookshop_Bdd109_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given A 知道封套位置且 I 仍在 I05；When A 從 window 取出並送到 counter；Then 只保存 A 的進度和 green-sleeve 位置、S02 不觸發
+
+- [ ] **SEF-UT-325** `RainBookshop_Bdd109_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只保存 A 的進度和 green-sleeve 位置、S02 不觸發
+
+- [ ] **SEF-UT-326** `RainBookshop_Bdd109_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：I 仍可完成自己的找書流程
+
+- [ ] **SEF-UT-327** `RainBookshop_Bdd110_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given 正確書及封套已抵達 counter；When S02 風起一次、I hold、A 下線後恢復並取回標籤；Then 標籤只移動一次且 I 的真人提交保留
+
+- [ ] **SEF-UT-328** `RainBookshop_Bdd110_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：標籤只移動一次且 I 的真人提交保留
+
+- [ ] **SEF-UT-329** `RainBookshop_Bdd110_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 取回並放好才完成 Shared
+
+- [ ] **SEF-UT-330** `RainBookshop_Bdd111_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given order-tag-27 位於窗台；When A 以舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得；Then 僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒
+
+- [ ] **SEF-UT-331** `RainBookshop_Bdd111_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒
+
+- [ ] **SEF-UT-332** `RainBookshop_Bdd111_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不產生第二張標籤或重播 S02，並顯示權威物件位置
+
+- [ ] **SEF-UT-333** `RainBookshop_Bdd112_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given S02 completed，I 在 I08；When A 到 counter 開始 verify-order；Then 僅 A 開啟 A08，I 保持 I08
+
+- [ ] **SEF-UT-334** `RainBookshop_Bdd112_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：僅 A 開啟 A08，I 保持 I08
+
+- [ ] **SEF-UT-335** `RainBookshop_Bdd112_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：A 真人確認後才啟動 S03
+
+- [ ] **SEF-UT-336** `RainBookshop_Bdd113_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given S03 已解鎖且兩人可選最終意向；When I 親按 look_back、A 親按 rest_chat；Then E02 自然 completed、未完 Side 同交易封存、Round active 且聊天可用
+
+- [ ] **SEF-UT-337** `RainBookshop_Bdd113_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：E02 自然 completed、未完 Side 同交易封存、Round active 且聊天可用
+
+- [ ] **SEF-UT-338** `RainBookshop_Bdd113_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：任一方 rest_chat 均不宣稱雙方同意回書架；不解鎖新探索
+
+- [ ] **SEF-UT-339** `RainBookshop_Bdd114_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given 雙人必經事實與 S03 都有效；When I 與 A 各親按 look_back（再看一眼書架，替今天畫個句點）；Then 第二位合法意向提交時 Server 即決定 E01，Chapter／Side 同 D1 交易完成且保存 receipt；Client 收到成功後只演短書架回望，Round active／聊天保留
+
+- [ ] **SEF-UT-340** `RainBookshop_Bdd114_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：E01 只演短書架回望後自然 completed、未完 Side 同交易封存、Round active／聊天保留
+
+- [ ] **SEF-UT-341** `RainBookshop_Bdd114_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：暖光演出不能解鎖新物件／Side 或多一個結束按鈕；跳動畫／重連仍維持完成結果
+
+- [ ] **SEF-UT-342** `RainBookshop_Bdd115_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given I/A 不同步且有已提交 requestId；When 重送原 payload、變造 payload、重連及退出；Then 冪等返回原 receipt、變造拒絕、退出後拒寫
+
+- [ ] **SEF-UT-343** `RainBookshop_Bdd115_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：冪等返回原 receipt、變造拒絕、退出後拒寫
+
+- [ ] **SEF-UT-344** `RainBookshop_Bdd115_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不重抽主線或重新呼叫五表情
+
+- [ ] **SEF-UT-345** `RainBookshop_Bdd116_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given 玩家已關閉 AmbientMotion 且 S02 可用；When 兩人完成按住書袋和取回標籤；Then 雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚
+
+- [ ] **SEF-UT-346** `RainBookshop_Bdd116_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚
+
+- [ ] **SEF-UT-347** `RainBookshop_Bdd116_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：可以略過表演不能略過操作
+
+- [ ] **SEF-UT-348** `RainBookshop_Bdd117_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：Given 只發布首條正式雨聲書店並準備兩名真人；When 兩端實玩 I01/A01 至 E01/E02 的所有必經流程；Then 21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據
+
+- [ ] **SEF-UT-349** `RainBookshop_Bdd117_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據
+
+- [ ] **SEF-UT-350** `RainBookshop_Bdd117_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Unit.Tests/Domain/RainBookshopPolicyTests.cs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：未取得使用者人工核准不得開始另外九條
+
+- [ ] **SEF-UT-351** `LocalCleanup_Bdd118_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-118／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：Given 僅識別 DatingHigh local DB 與 R2 並有保護資料清單；When 在開發 Gate 模擬清理及重建計畫；Then 只清舊遊戲測資與無用執行內容
+
+- [ ] **SEF-UT-352** `LocalCleanup_Bdd118_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-118／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只清舊遊戲測資與無用執行內容
+
+- [ ] **SEF-UT-353** `LocalCleanup_Bdd118_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-118／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：未知、遠端、正式環境直接拒絕
+
+- [ ] **SEF-UT-354** `LocalCleanup_Bdd119_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-119／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：Given scene-event.v2 新 runtime 已完整替換原路徑；When 從空 local DB 執行 migration 及引用稽核；Then game_interaction_instances 已無表與索引且雙方 Progress 正確
+
+- [ ] **SEF-UT-355** `LocalCleanup_Bdd119_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-119／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：game_interaction_instances 已無表與索引且雙方 Progress 正確
+
+- [ ] **SEF-UT-356** `LocalCleanup_Bdd119_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-119／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：保留 Round／聊天／EventReceipt／退出能力
+
+- [ ] **SEF-UT-357** `LocalCleanup_Bdd120_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-120／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：Given 16 款全身與五表情已正式提供且 R2 SHA 釘選；When 清除舊 story-scenes 與 bookmark 發布流程；Then 只有失效的舊入口被移除，正式來源與本劇本素材仍正常
+
+- [ ] **SEF-UT-358** `LocalCleanup_Bdd120_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-120／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：只有失效的舊入口被移除，正式來源與本劇本素材仍正常
+
+- [ ] **SEF-UT-359** `LocalCleanup_Bdd120_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-120／SEF-AC-024；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不能依檔案名稱相似就刪美術成品
+
+- [ ] **SEF-UT-360** `LocalCleanup_Bdd121_WithValidAction_ProducesExpectedFact`（高）
+  - **來源**：SEF-BDD-121／SEF-AC-023；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：Given 首條技術測試全通過但真人試玩尚未核准；When 開發準備製作另外九條正式主線；Then 維持九條擴充 Gate 阻斷並可調整首條
+
+- [ ] **SEF-UT-361** `LocalCleanup_Bdd121_WithMissingPrecondition_RejectsUnauthorizedMutation`（高）
+  - **來源**：SEF-BDD-121／SEF-AC-023；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：以該 Scenario 缺前置／非法 actor 或未解鎖狀態重測：不得跳節點、偽造真人操作、改共享世界或成功寫 receipt；原業務期望：維持九條擴充 Gate 阻斷並可調整首條
+
+- [ ] **SEF-UT-362** `LocalCleanup_Bdd121_WithReplayOrConcurrentAction_PreservesSecondaryInvariant`（高）
+  - **來源**：SEF-BDD-121／SEF-AC-023；**建議測試檔**：`tools/tests/story-content-policy.test.mjs`
+  - **具體驗證**：斷線恢復、事件重送、重複播放／二人不同步時檢查次要斷言：不以測試 fixture 或兩個 Ending 當成多條故事
+
+### 新版 Integration：SEF-IT-081～122（42 項，全部待實作）
+
+- [ ] **SEF-IT-081** `ParticipantTrack_Bdd080_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-080／SEF-AC-018；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：場次決議已成功且兩名真人身分有效；Server 建立 StorySession
+  - **真實邊界斷言**：同交易建立兩筆不同角色 Progress、單一 SceneVisit、共享世界；任何一筆建立失敗都不能留下半場；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-082** `ParticipantTrack_Bdd081_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-081／SEF-AC-018；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 和 A 各位於不同個人節點；I 先完成本人可用的事件
+  - **真實邊界斷言**：僅 I 的 node、Area、revision 進步，A 不變；A 可稍後親自完成未玩節點；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-083** `ParticipantTrack_Bdd082_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-082／SEF-AC-018；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：Round 已固定原邀請人及接受人；前端假造另一方 role、nodeId 或 accountId
+  - **真實邊界斷言**：Server 拒絕假冒且不修改進度；不可用帳號大小或先上線順序決定角色；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-084** `ParticipantTrack_Bdd083_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-083／SEF-AC-018；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 前進而 A 還在 A02；A 重新登入取授權 experience
+  - **真實邊界斷言**：A 恢復 A02、Area、可操作物件及個人 revision；全域 eventSeq 不能替 A 決策；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-085** `ParticipantTrack_Bdd084_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-084／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 的必要節點完成而 A08 未完成；I 嘗試結束本場主線
+  - **真實邊界斷言**：chapter 仍是 playing 且 A 可繼續；A 完成及 Shared predicate 齊備才發出一次 chapter.completed；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-086** `SharedTransition_Bdd085_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-085／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：S01 兩人真人核對且 I04、A04、S02 都在合法圖中；雙方提交 S01 後分別移至不同區域
+  - **真實邊界斷言**：I04、A04 分別開啟並可進 S02 再交會；不修改對方未完成的私人事件；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-087** `SharedTransition_Bdd086_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-086／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：S02 完成時 I 在 I08、A 尚未執行 A08；伺服器結算 S02 的合法雙人答案
+  - **真實邊界斷言**：只開啟 A08 且 I 停留 I08；A 驗證完才可進入 S03；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-088** `SharedTransition_Bdd087_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-087／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 必經事件等 A，A 必經事件又等不可達的 I；Publisher 檢查兩條 Track 與 Shared 依賴圖
+  - **真實邊界斷言**：拒絕不能到達共同 Ending 的內容；合法可選回訪不被錯誤禁止；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-089** `SharedTransition_Bdd088_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-088／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：條件採 role、Area、bindingKey 與共享世界事實；有人注入未知條件、過深布林或假 role
+  - **真實邊界斷言**：Schema 或 Domain 拒絕非法組合；合法 all、any、not 僅查已提交事實；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-090** `SharedTransition_Bdd089_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-089／SEF-AC-019；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：玩家已在第一場 Scene 探索多個 Area；兩人完成後同意並進入第二場
+  - **真實邊界斷言**：每個 StorySession 僅一筆 SceneVisit、各自有 Area；跨場次和跨角色同名節點不得互相污染；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-091** `WorldState_Bdd090_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-090／SEF-AC-020；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：A 詢問店員得到書名但尚未分享；I 查快照、WS、熱區及可讀 Manifest
+  - **真實邊界斷言**：I 不得看 A 私有節點或答案；A 主動分享後只公開允許的線索；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-092** `WorldState_Bdd091_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-091／SEF-AC-020；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：書袋由共享世界權威記錄在書架；兩名真人以相同 revision 同時 pick
+  - **真實邊界斷言**：只一個合法 D1 CAS 成功、另一人 409 同步；物件不複製且不重複完成事件；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-093** `WorldState_Bdd092_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-092／SEF-AC-020；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：S02 必須 I hold-bag 與 A retrieve-tag；I 先提交、A 離線後才操作
+  - **真實邊界斷言**：第一次提交只保留 I 事實且 EventInstance active；A 親提交後才完成一次 shared event；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-094** `WorldState_Bdd093_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-093／SEF-AC-020；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：同一 EventDefinition 在 I 與 A 各有一個 binding；兩人各自完成合法個人探索
+  - **真實邊界斷言**：兩份不同 scope 的 EventInstance 均存在；Shared binding 僅有一個共同 instance；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-095** `WorldState_Bdd094_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-094／SEF-AC-020；**建議測試檔**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：A 有尚未觸發的隱藏事件；I 請求 experience、events query 或公開 R2
+  - **真實邊界斷言**：無 A 私人線索、未知 binding 與私人 R2 key；只顯示合作狀態的白名單摘要；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-096** `SceneInteraction_Bdd095_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-095／SEF-AC-021；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：一場 Scene 只有一筆 SceneVisit；I 由 entrance 移到 counter 再到 shelves
+  - **真實邊界斷言**：本人的 Area、鏡頭和可用熱區真實更新；不可移至未解鎖或不存在的 Area；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-097** `SceneInteraction_Bdd096_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-096／SEF-AC-021；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：I 在 entrance 可見濕紙單；I 親自點 flip 及查看特寫
+  - **真實邊界斷言**：紙張可見翻面並得到 27 的個人線索；跳過動畫不能跳過 Server 的正式操作；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-098** `SceneInteraction_Bdd097_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-097／SEF-AC-021；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：I 尚未得到分享線索或選中錯書；將 book-wednesday 拖到櫃檯
+  - **真實邊界斷言**：出現可恢復的具體提示，orderStatus 不變；依正確資訊重新選書仍可完成；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-099** `SceneInteraction_Bdd098_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-098／SEF-AC-021；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：A 在櫃檯且店員可交談；A 親自選擇 query-title
+  - **真實邊界斷言**：只 A 先看到預訂資訊，分享後 I 才知道；NPC 不能代另一位真人聊天或提交；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-100** `SceneInteraction_Bdd099_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-099／SEF-AC-021；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：場景及物件白名單已由 R2 釘選；Client 提交未授權 objectId、targetSlotId 或 action
+  - **真實邊界斷言**：Server 409／明確拒絕且世界未變；合法 params 才能改 EventInstance 與進度；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-101** `ScenePresentation_Bdd100_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：S01、S02、S03 的角色素材與合法 Scene anchor 已釘選；兩人完成互動後播放可見演出
+  - **真實邊界斷言**：鏡頭、物件、兩位真人化身及五表情符合 Cue；缺正式動作姿勢時不冒充伸手或直接呼叫 Gemini；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-102** `ScenePresentation_Bdd101_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：Rain Scene 顯示 AmbientMotion；玩家檢視雨絲和玻璃水痕後關閉微動
+  - **真實邊界斷言**：畫面先有真正移動且關閉後停止循環；必要 StoryMotion 仍能播放並且有可讀替代狀態；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-103** `ScenePresentation_Bdd102_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-102／SEF-AC-022；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：S02 風起已提交且標籤在窗台；Android/Web 進背景再返回並恢復 Session
+  - **真實邊界斷言**：根據權威狀態顯示標籤且不重觸發風事件；不 autoplay 音效、不重送指令、不再產生五表情；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-104** `ScenePresentation_Bdd103_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-103／SEF-AC-022；**建議測試檔**：`tests/integration/scene-stage-interactions.test.mjs`
+  - **前置／操作**：Manifest 包含未知 anchor、表情、camera 或 motion；Publisher 驗證並由 Web/Android 量測正式遊玩
+  - **真實邊界斷言**：非法內容拒絕、合法內容保留可核對的 jank／記憶體／延遲證據；不能以缺動畫的純文字替代宣告 Gate B 成功；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-105** `RainBookshop_Bdd104_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：雨聲書店 v2 的 I01 和 A01 已釘選；I 先翻濕紙單、A 停在書架
+  - **真實邊界斷言**：I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立；先行者不推進另一方未完成節點；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-106** `RainBookshop_Bdd105_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：I 看濕紙、A 查書袋外標籤；兩人各自 inspect 並讀取 experience
+  - **真實邊界斷言**：僅本人看到已探索的資訊；未經分享不洩漏對方私有節點或觸發；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-107** `RainBookshop_Bdd106_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：I 紙單與 A 袋子已在 counter；I 先按核對、A 離線重連後再按核對
+  - **真實邊界斷言**：S01 在兩次真實操作後完成並分流 I04／A04；不由店員代另一方核對；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-108** `RainBookshop_Bdd107_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：I 看兩本海邊書、A 向店員查出正確書；I 在 A 尚未分享前嘗試領走書
+  - **真實邊界斷言**：不能完成；A 主動分享後 I 才能選中 book-rain；不把 A 私人店員台詞完整傳給 I；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-109** `RainBookshop_Bdd108_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：I 選到 book-wednesday；I 嘗試放進 counter-slot
+  - **真實邊界斷言**：提示錯書且 orderStatus 不變；可返回 shelves 重新選擇；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-110** `RainBookshop_Bdd109_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：A 知道封套位置且 I 仍在 I05；A 從 window 取出並送到 counter
+  - **真實邊界斷言**：只保存 A 的進度和 green-sleeve 位置、S02 不觸發；I 仍可完成自己的找書流程；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-111** `RainBookshop_Bdd110_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：正確書及封套已抵達 counter；S02 風起一次、I hold、A 下線後恢復並取回標籤
+  - **真實邊界斷言**：標籤只移動一次且 I 的真人提交保留；A 取回並放好才完成 Shared；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-112** `RainBookshop_Bdd111_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：order-tag-27 位於窗台；A 以舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得
+  - **真實邊界斷言**：僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒；不產生第二張標籤或重播 S02，並顯示權威物件位置；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-113** `RainBookshop_Bdd112_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：S02 completed，I 在 I08；A 到 counter 開始 verify-order
+  - **真實邊界斷言**：僅 A 開啟 A08，I 保持 I08；A 真人確認後才啟動 S03；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-114** `RainBookshop_Bdd113_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：S03 已解鎖且兩人可選最終意向；I 親按 look_back、A 親按 rest_chat
+  - **真實邊界斷言**：E02 自然 completed、未完 Side 同交易封存、Round active 且聊天可用；任一方 rest_chat 均不宣稱雙方同意回書架；不解鎖新探索；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-115** `RainBookshop_Bdd114_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：雙人必經事實與 S03 都有效；I 與 A 各親按 look_back（再看一眼書架，替今天畫個句點）
+  - **真實邊界斷言**：第二位合法意向提交即同 D1 交易完成 E01／Side 封存／receipt；成功回應後才播一次暖光鏡頭，缺 receipt 不得假播成功；沒有可操作新物件／支線或第二個結束命令；跳動畫／重連不再提交；Round active／聊天保留，需使用真 Miniflare D1／R2 而非 fixture 斷言
+
+- [ ] **SEF-IT-116** `RainBookshop_Bdd115_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：I/A 不同步且有已提交 requestId；重送原 payload、變造 payload、重連及退出
+  - **真實邊界斷言**：冪等返回原 receipt、變造拒絕、退出後拒寫；不重抽主線或重新呼叫五表情；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-117** `RainBookshop_Bdd116_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：玩家已關閉 AmbientMotion 且 S02 可用；兩人完成按住書袋和取回標籤
+  - **真實邊界斷言**：雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚；可以略過表演不能略過操作；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-118** `RainBookshop_Bdd117_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`cloudflare/tests/rain-bookshop-d1.integration.test.ts`
+  - **前置／操作**：只發布首條正式雨聲書店並準備兩名真人；兩端實玩 I01/A01 至 E01/E02 的所有必經流程
+  - **真實邊界斷言**：21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據；未取得使用者人工核准不得開始另外九條；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-119** `LocalCleanup_Bdd118_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-118／SEF-AC-024；**建議測試檔**：`tests/integration/local-game-maintenance.test.mjs`
+  - **前置／操作**：僅識別 DatingHigh local DB 與 R2 並有保護資料清單；在開發 Gate 模擬清理及重建計畫
+  - **真實邊界斷言**：只清舊遊戲測資與無用執行內容；未知、遠端、正式環境直接拒絕；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-120** `LocalCleanup_Bdd119_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-119／SEF-AC-024；**建議測試檔**：`tests/integration/local-game-maintenance.test.mjs`
+  - **前置／操作**：scene-event.v2 新 runtime 已完整替換原路徑；從空 local DB 執行 migration 及引用稽核
+  - **真實邊界斷言**：game_interaction_instances 已無表與索引且雙方 Progress 正確；保留 Round／聊天／EventReceipt／退出能力；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-121** `LocalCleanup_Bdd120_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-120／SEF-AC-024；**建議測試檔**：`tests/integration/local-game-maintenance.test.mjs`
+  - **前置／操作**：16 款全身與五表情已正式提供且 R2 SHA 釘選；清除舊 story-scenes 與 bookmark 發布流程
+  - **真實邊界斷言**：只有失效的舊入口被移除，正式來源與本劇本素材仍正常；不能依檔案名稱相似就刪美術成品；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+- [ ] **SEF-IT-122** `LocalCleanup_Bdd121_WithRealBoundary_PersistsExpectedBehavior`（高）
+  - **來源**：SEF-BDD-121／SEF-AC-023；**建議測試檔**：`tests/integration/local-game-maintenance.test.mjs`
+  - **前置／操作**：首條技術測試全通過但真人試玩尚未核准；開發準備製作另外九條正式主線
+  - **真實邊界斷言**：維持九條擴充 Gate 阻斷並可調整首條；不以測試 fixture 或兩個 Ending 當成多條故事；需依案例使用真 Miniflare D1／版本化 R2／受控 Worker、場景／內容發布或 local wrapper，不能用 HTTP fixture 冒充 DB 原子驗證。
+
+## 2026-11-15 新版 API／E2E 測試與追溯
+
+### API／HTTP／WS：SEF-API-028～049（22 項，全部待實作）
+
+- [ ] **SEF-API-028** `StoryEventEndpoint_Bdd080_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-080／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：場次決議已成功且兩名真人身分有效；Server 建立 StorySession
+  - **HTTP／WS 結果**：同交易建立兩筆不同角色 Progress、單一 SceneVisit、共享世界；任何一筆建立失敗都不能留下半場。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-029** `StoryEventEndpoint_Bdd081_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-081／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 和 A 各位於不同個人節點；I 先完成本人可用的事件
+  - **HTTP／WS 結果**：僅 I 的 node、Area、revision 進步，A 不變；A 可稍後親自完成未玩節點。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-030** `StoryEventEndpoint_Bdd082_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-082／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：Round 已固定原邀請人及接受人；前端假造另一方 role、nodeId 或 accountId
+  - **HTTP／WS 結果**：Server 拒絕假冒且不修改進度；不可用帳號大小或先上線順序決定角色。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-031** `StoryEventEndpoint_Bdd083_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-083／SEF-AC-018；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 前進而 A 還在 A02；A 重新登入取授權 experience
+  - **HTTP／WS 結果**：A 恢復 A02、Area、可操作物件及個人 revision；全域 eventSeq 不能替 A 決策。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-032** `StoryEventEndpoint_Bdd084_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-084／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 的必要節點完成而 A08 未完成；I 嘗試結束本場主線
+  - **HTTP／WS 結果**：chapter 仍是 playing 且 A 可繼續；A 完成及 Shared predicate 齊備才發出一次 chapter.completed。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-033** `StoryEventEndpoint_Bdd085_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-085／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：S01 兩人真人核對且 I04、A04、S02 都在合法圖中；雙方提交 S01 後分別移至不同區域
+  - **HTTP／WS 結果**：I04、A04 分別開啟並可進 S02 再交會；不修改對方未完成的私人事件。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-034** `StoryEventEndpoint_Bdd086_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-086／SEF-AC-019；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：S02 完成時 I 在 I08、A 尚未執行 A08；伺服器結算 S02 的合法雙人答案
+  - **HTTP／WS 結果**：只開啟 A08 且 I 停留 I08；A 驗證完才可進入 S03。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-035** `StoryEventEndpoint_Bdd090_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-090／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：A 詢問店員得到書名但尚未分享；I 查快照、WS、熱區及可讀 Manifest
+  - **HTTP／WS 結果**：I 不得看 A 私有節點或答案；A 主動分享後只公開允許的線索。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-036** `StoryEventEndpoint_Bdd091_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-091／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：書袋由共享世界權威記錄在書架；兩名真人以相同 revision 同時 pick
+  - **HTTP／WS 結果**：只一個合法 D1 CAS 成功、另一人 409 同步；物件不複製且不重複完成事件。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-037** `StoryEventEndpoint_Bdd092_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-092／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：S02 必須 I hold-bag 與 A retrieve-tag；I 先提交、A 離線後才操作
+  - **HTTP／WS 結果**：第一次提交只保留 I 事實且 EventInstance active；A 親提交後才完成一次 shared event。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-038** `StoryEventEndpoint_Bdd093_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-093／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：同一 EventDefinition 在 I 與 A 各有一個 binding；兩人各自完成合法個人探索
+  - **HTTP／WS 結果**：兩份不同 scope 的 EventInstance 均存在；Shared binding 僅有一個共同 instance。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-039** `StoryEventEndpoint_Bdd094_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-094／SEF-AC-020；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：A 有尚未觸發的隱藏事件；I 請求 experience、events query 或公開 R2
+  - **HTTP／WS 結果**：無 A 私人線索、未知 binding 與私人 R2 key；只顯示合作狀態的白名單摘要。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-040** `StoryEventEndpoint_Bdd095_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-095／SEF-AC-021；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：一場 Scene 只有一筆 SceneVisit；I 由 entrance 移到 counter 再到 shelves
+  - **HTTP／WS 結果**：本人的 Area、鏡頭和可用熱區真實更新；不可移至未解鎖或不存在的 Area。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-041** `StoryEventEndpoint_Bdd096_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-096／SEF-AC-021；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 在 entrance 可見濕紙單；I 親自點 flip 及查看特寫
+  - **HTTP／WS 結果**：紙張可見翻面並得到 27 的個人線索；跳過動畫不能跳過 Server 的正式操作。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-042** `StoryEventEndpoint_Bdd097_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-097／SEF-AC-021；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 尚未得到分享線索或選中錯書；將 book-wednesday 拖到櫃檯
+  - **HTTP／WS 結果**：出現可恢復的具體提示，orderStatus 不變；依正確資訊重新選書仍可完成。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-043** `StoryEventEndpoint_Bdd098_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-098／SEF-AC-021；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：A 在櫃檯且店員可交談；A 親自選擇 query-title
+  - **HTTP／WS 結果**：只 A 先看到預訂資訊，分享後 I 才知道；NPC 不能代另一位真人聊天或提交。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-044** `StoryEventEndpoint_Bdd099_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-099／SEF-AC-021；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：場景及物件白名單已由 R2 釘選；Client 提交未授權 objectId、targetSlotId 或 action
+  - **HTTP／WS 結果**：Server 409／明確拒絕且世界未變；合法 params 才能改 EventInstance 與進度。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-045** `StoryEventEndpoint_Bdd106_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I 紙單與 A 袋子已在 counter；I 先按核對、A 離線重連後再按核對
+  - **HTTP／WS 結果**：S01 在兩次真實操作後完成並分流 I04／A04；不由店員代另一方核對。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-046** `StoryEventEndpoint_Bdd110_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：正確書及封套已抵達 counter；S02 風起一次、I hold、A 下線後恢復並取回標籤
+  - **HTTP／WS 結果**：標籤只移動一次且 I 的真人提交保留；A 取回並放好才完成 Shared。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-047** `StoryEventEndpoint_Bdd111_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：order-tag-27 位於窗台；A 以舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得
+  - **HTTP／WS 結果**：僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒；不產生第二張標籤或重播 S02，並顯示權威物件位置。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-048** `StoryEventEndpoint_Bdd115_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：I/A 不同步且有已提交 requestId；重送原 payload、變造 payload、重連及退出
+  - **HTTP／WS 結果**：冪等返回原 receipt、變造拒絕、退出後拒寫；不重抽主線或重新呼叫五表情。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+- [ ] **SEF-API-049** `StoryEventEndpoint_Bdd116_WithAuthorizedActor_EnforcesStateAndReceipt`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **Given／When**：玩家已關閉 AmbientMotion 且 S02 可用；兩人完成按住書袋和取回標籤
+  - **HTTP／WS 結果**：雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚；可以略過表演不能略過操作。實際路徑按場景使用 `/experience`、`/story/event`、`/events/query` 與 Room WS；驗 200/401/403/409、嚴格 params、expectedTrackRevision／expectedSharedRevision／expectedEventRevision、clientRequestId 冪等與 actor-scoped 安全投影。不存在的 API 不可用假回應冒充通過。
+
+### Web／Android E2E：SEF-ET-041～072（32 項，全部待實作）
+
+- [ ] **SEF-ET-041** `StoryExperienceWeb_Bdd100_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：S01、S02、S03 的角色素材與合法 Scene anchor 已釘選；兩人完成互動後播放可見演出
+  - **必須觀察的實際結果**：鏡頭、物件、兩位真人化身及五表情符合 Cue；缺正式動作姿勢時不冒充伸手或直接呼叫 Gemini。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-042** `StoryExperienceAndroid_Bdd100_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-100／SEF-AC-022；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：S01、S02、S03 的角色素材與合法 Scene anchor 已釘選；兩人完成互動後播放可見演出
+  - **必須觀察的實際結果**：鏡頭、物件、兩位真人化身及五表情符合 Cue；缺正式動作姿勢時不冒充伸手或直接呼叫 Gemini。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-043** `StoryExperienceWeb_Bdd101_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：Rain Scene 顯示 AmbientMotion；玩家檢視雨絲和玻璃水痕後關閉微動
+  - **必須觀察的實際結果**：畫面先有真正移動且關閉後停止循環；必要 StoryMotion 仍能播放並且有可讀替代狀態。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-044** `StoryExperienceAndroid_Bdd101_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-101／SEF-AC-022；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：Rain Scene 顯示 AmbientMotion；玩家檢視雨絲和玻璃水痕後關閉微動
+  - **必須觀察的實際結果**：畫面先有真正移動且關閉後停止循環；必要 StoryMotion 仍能播放並且有可讀替代狀態。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-045** `StoryExperienceWeb_Bdd104_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：雨聲書店 v2 的 I01 和 A01 已釘選；I 先翻濕紙單、A 停在書架
+  - **必須觀察的實際結果**：I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立；先行者不推進另一方未完成節點。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-046** `StoryExperienceAndroid_Bdd104_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-104／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：雨聲書店 v2 的 I01 和 A01 已釘選；I 先翻濕紙單、A 停在書架
+  - **必須觀察的實際結果**：I 在 entrance、A 在 shelves，兩份台詞與鏡位獨立；先行者不推進另一方未完成節點。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-047** `StoryExperienceWeb_Bdd105_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：I 看濕紙、A 查書袋外標籤；兩人各自 inspect 並讀取 experience
+  - **必須觀察的實際結果**：僅本人看到已探索的資訊；未經分享不洩漏對方私有節點或觸發。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-048** `StoryExperienceAndroid_Bdd105_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-105／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：I 看濕紙、A 查書袋外標籤；兩人各自 inspect 並讀取 experience
+  - **必須觀察的實際結果**：僅本人看到已探索的資訊；未經分享不洩漏對方私有節點或觸發。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-049** `StoryExperienceWeb_Bdd106_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：I 紙單與 A 袋子已在 counter；I 先按核對、A 離線重連後再按核對
+  - **必須觀察的實際結果**：S01 在兩次真實操作後完成並分流 I04／A04；不由店員代另一方核對。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-050** `StoryExperienceAndroid_Bdd106_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-106／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：I 紙單與 A 袋子已在 counter；I 先按核對、A 離線重連後再按核對
+  - **必須觀察的實際結果**：S01 在兩次真實操作後完成並分流 I04／A04；不由店員代另一方核對。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-051** `StoryExperienceWeb_Bdd107_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：I 看兩本海邊書、A 向店員查出正確書；I 在 A 尚未分享前嘗試領走書
+  - **必須觀察的實際結果**：不能完成；A 主動分享後 I 才能選中 book-rain；不把 A 私人店員台詞完整傳給 I。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-052** `StoryExperienceAndroid_Bdd107_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-107／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：I 看兩本海邊書、A 向店員查出正確書；I 在 A 尚未分享前嘗試領走書
+  - **必須觀察的實際結果**：不能完成；A 主動分享後 I 才能選中 book-rain；不把 A 私人店員台詞完整傳給 I。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-053** `StoryExperienceWeb_Bdd108_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：I 選到 book-wednesday；I 嘗試放進 counter-slot
+  - **必須觀察的實際結果**：提示錯書且 orderStatus 不變；可返回 shelves 重新選擇。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-054** `StoryExperienceAndroid_Bdd108_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-108／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：I 選到 book-wednesday；I 嘗試放進 counter-slot
+  - **必須觀察的實際結果**：提示錯書且 orderStatus 不變；可返回 shelves 重新選擇。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-055** `StoryExperienceWeb_Bdd109_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：A 知道封套位置且 I 仍在 I05；A 從 window 取出並送到 counter
+  - **必須觀察的實際結果**：只保存 A 的進度和 green-sleeve 位置、S02 不觸發；I 仍可完成自己的找書流程。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-056** `StoryExperienceAndroid_Bdd109_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-109／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：A 知道封套位置且 I 仍在 I05；A 從 window 取出並送到 counter
+  - **必須觀察的實際結果**：只保存 A 的進度和 green-sleeve 位置、S02 不觸發；I 仍可完成自己的找書流程。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-057** `StoryExperienceWeb_Bdd110_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：正確書及封套已抵達 counter；S02 風起一次、I hold、A 下線後恢復並取回標籤
+  - **必須觀察的實際結果**：標籤只移動一次且 I 的真人提交保留；A 取回並放好才完成 Shared。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-058** `StoryExperienceAndroid_Bdd110_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-110／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：正確書及封套已抵達 counter；S02 風起一次、I hold、A 下線後恢復並取回標籤
+  - **必須觀察的實際結果**：標籤只移動一次且 I 的真人提交保留；A 取回並放好才完成 Shared。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-059** `StoryExperienceWeb_Bdd111_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：order-tag-27 位於窗台；A 以舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得
+  - **必須觀察的實際結果**：僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒；不產生第二張標籤或重播 S02，並顯示權威物件位置。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-060** `StoryExperienceAndroid_Bdd111_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-111／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：order-tag-27 位於窗台；A 以舊 revision 在兩裝置同時取標籤且 I 越權嘗試取得
+  - **必須觀察的實際結果**：僅 A 一份合法 D1 CAS 成功，其餘舊版次衝突／越權請求被拒；不產生第二張標籤或重播 S02，並顯示權威物件位置。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-061** `StoryExperienceWeb_Bdd112_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：S02 completed，I 在 I08；A 到 counter 開始 verify-order
+  - **必須觀察的實際結果**：僅 A 開啟 A08，I 保持 I08；A 真人確認後才啟動 S03。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-062** `StoryExperienceAndroid_Bdd112_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-112／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：S02 completed，I 在 I08；A 到 counter 開始 verify-order
+  - **必須觀察的實際結果**：僅 A 開啟 A08，I 保持 I08；A 真人確認後才啟動 S03。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-063** `StoryExperienceWeb_Bdd113_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：S03 已解鎖且兩人可選最終意向；I 親按 look_back、A 親按 rest_chat
+  - **必須觀察的實際結果**：E02 自然 completed、未完 Side 同交易封存、Round active 且聊天可用；任一方 rest_chat 均不宣稱雙方同意回書架；不解鎖新探索。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-064** `StoryExperienceAndroid_Bdd113_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-113／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：S03 已解鎖且兩人可選最終意向；I 親按 look_back、A 親按 rest_chat
+  - **必須觀察的實際結果**：E02 自然 completed、未完 Side 同交易封存、Round active 且聊天可用；任一方 rest_chat 均不宣稱雙方同意回書架；不解鎖新探索。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-065** `StoryExperienceWeb_Bdd114_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：雙人必經事實與 S03 都有效；I 與 A 各親按 look_back（再看一眼書架，替今天畫個句點）
+  - **必須觀察的實際結果**：E01 只演短書架回望後自然 completed、未完 Side 同交易封存、Round active／聊天保留；暖光演出不能解鎖新物件／Side 或多一個結束按鈕；跳動畫／重連仍維持完成結果。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-066** `StoryExperienceAndroid_Bdd114_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-114／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：雙人必經事實與 S03 都有效；I 與 A 各親按 look_back（再看一眼書架，替今天畫個句點）
+  - **必須觀察的實際結果**：E01 只演短書架回望後自然 completed、未完 Side 同交易封存、Round active／聊天保留；暖光演出不能解鎖新物件／Side 或多一個結束按鈕；跳動畫／重連仍維持完成結果。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-067** `StoryExperienceWeb_Bdd115_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：I/A 不同步且有已提交 requestId；重送原 payload、變造 payload、重連及退出
+  - **必須觀察的實際結果**：冪等返回原 receipt、變造拒絕、退出後拒寫；不重抽主線或重新呼叫五表情。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-068** `StoryExperienceAndroid_Bdd115_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-115／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：I/A 不同步且有已提交 requestId；重送原 payload、變造 payload、重連及退出
+  - **必須觀察的實際結果**：冪等返回原 receipt、變造拒絕、退出後拒寫；不重抽主線或重新呼叫五表情。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-069** `StoryExperienceWeb_Bdd116_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：玩家已關閉 AmbientMotion 且 S02 可用；兩人完成按住書袋和取回標籤
+  - **必須觀察的實際結果**：雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚；可以略過表演不能略過操作。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-070** `StoryExperienceAndroid_Bdd116_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-116／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：玩家已關閉 AmbientMotion 且 S02 可用；兩人完成按住書袋和取回標籤
+  - **必須觀察的實際結果**：雨絲循環停止但必要 StoryMotion 與物件狀態仍清楚；可以略過表演不能略過操作。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-071** `StoryExperienceWeb_Bdd117_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`tests/e2e/web/scene-event-framework.spec.ts`
+  - **Given／When**：只發布首條正式雨聲書店並準備兩名真人；兩端實玩 I01/A01 至 E01/E02 的所有必經流程
+  - **必須觀察的實際結果**：21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據；未取得使用者人工核准不得開始另外九條。Web 需驗 Canvas/DOM 層實際物件、角色站位、雨景位移及主動點擊，不以 API-only 判斷 UI 通過。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+- [ ] **SEF-ET-072** `StoryExperienceAndroid_Bdd117_WithRealDualActors_PresentsExpectedScene`（高）
+  - **來源**：SEF-BDD-117／SEF-AC-023；**建議測試檔**：`tests/e2e/android/scene-event-framework.mjs`
+  - **Given／When**：只發布首條正式雨聲書店並準備兩名真人；兩端實玩 I01/A01 至 E01/E02 的所有必經流程
+  - **必須觀察的實際結果**：21 節點、四 Area、三次交會與五表情／鏡頭／音效都有可驗證證據；未取得使用者人工核准不得開始另外九條。模擬器需驗實際畫面／點擊、返回／前景恢復及 UiAutomator，不以 Web 測試代簽。 Stage／R2／本地 D1 需是可重建真流程，RB-14 並需使用者人工 Gate B。
+
+### 新版 BDD → TDD 完整追溯（42/42）
+
+| BDD / SPEC AC | Unit（3 項） | Integration | API | Web / Android E2E |
+|---|---|---|---|---|
+| BDD-080／AC-018 | UT-237～239 | IT-081 | API-028 | — |
+| BDD-081／AC-018 | UT-240～242 | IT-082 | API-029 | — |
+| BDD-082／AC-018 | UT-243～245 | IT-083 | API-030 | — |
+| BDD-083／AC-018 | UT-246～248 | IT-084 | API-031 | — |
+| BDD-084／AC-019 | UT-249～251 | IT-085 | API-032 | — |
+| BDD-085／AC-019 | UT-252～254 | IT-086 | API-033 | — |
+| BDD-086／AC-019 | UT-255～257 | IT-087 | API-034 | — |
+| BDD-087／AC-019 | UT-258～260 | IT-088 | — | — |
+| BDD-088／AC-019 | UT-261～263 | IT-089 | — | — |
+| BDD-089／AC-019 | UT-264～266 | IT-090 | — | — |
+| BDD-090／AC-020 | UT-267～269 | IT-091 | API-035 | — |
+| BDD-091／AC-020 | UT-270～272 | IT-092 | API-036 | — |
+| BDD-092／AC-020 | UT-273～275 | IT-093 | API-037 | — |
+| BDD-093／AC-020 | UT-276～278 | IT-094 | API-038 | — |
+| BDD-094／AC-020 | UT-279～281 | IT-095 | API-039 | — |
+| BDD-095／AC-021 | UT-282～284 | IT-096 | API-040 | — |
+| BDD-096／AC-021 | UT-285～287 | IT-097 | API-041 | — |
+| BDD-097／AC-021 | UT-288～290 | IT-098 | API-042 | — |
+| BDD-098／AC-021 | UT-291～293 | IT-099 | API-043 | — |
+| BDD-099／AC-021 | UT-294～296 | IT-100 | API-044 | — |
+| BDD-100／AC-022 | UT-297～299 | IT-101 | — | ET-041、ET-042 |
+| BDD-101／AC-022 | UT-300～302 | IT-102 | — | ET-043、ET-044 |
+| BDD-102／AC-022 | UT-303～305 | IT-103 | — | — |
+| BDD-103／AC-022 | UT-306～308 | IT-104 | — | — |
+| BDD-104／AC-023 | UT-309～311 | IT-105 | — | ET-045、ET-046 |
+| BDD-105／AC-023 | UT-312～314 | IT-106 | — | ET-047、ET-048 |
+| BDD-106／AC-023 | UT-315～317 | IT-107 | API-045 | ET-049、ET-050 |
+| BDD-107／AC-023 | UT-318～320 | IT-108 | — | ET-051、ET-052 |
+| BDD-108／AC-023 | UT-321～323 | IT-109 | — | ET-053、ET-054 |
+| BDD-109／AC-023 | UT-324～326 | IT-110 | — | ET-055、ET-056 |
+| BDD-110／AC-023 | UT-327～329 | IT-111 | API-046 | ET-057、ET-058 |
+| BDD-111／AC-023 | UT-330～332 | IT-112 | API-047 | ET-059、ET-060 |
+| BDD-112／AC-023 | UT-333～335 | IT-113 | — | ET-061、ET-062 |
+| BDD-113／AC-023 | UT-336～338 | IT-114 | — | ET-063、ET-064 |
+| BDD-114／AC-023 | UT-339～341 | IT-115 | — | ET-065、ET-066 |
+| BDD-115／AC-023 | UT-342～344 | IT-116 | API-048 | ET-067、ET-068 |
+| BDD-116／AC-023 | UT-345～347 | IT-117 | API-049 | ET-069、ET-070 |
+| BDD-117／AC-023 | UT-348～350 | IT-118 | — | ET-071、ET-072 |
+| BDD-118／AC-024 | UT-351～353 | IT-119 | — | — |
+| BDD-119／AC-024 | UT-354～356 | IT-120 | — | — |
+| BDD-120／AC-024 | UT-357～359 | IT-121 | — | — |
+| BDD-121／AC-023 | UT-360～362 | IT-122 | — | — |
+
+## 2026-11-16 RiskAudit 十組缺漏正式補強測試（20 項）
+
+**決策基線**：使用者明確確認 `V2-RQ-01=A`；每組 `SEF-V2-GAP-01～10` 各補兩項可獨立驗證的測試，全部維持未實作 `- [ ]`。此 20 項原本**沒有**計入 605，現正式加入後為 **625**；這是新增規劃，並非已通過證據。
+
+| GAP | 正式 TDD 測試 | 對應 BDD | 狀態 |
+|---|---|---|---|
+| SEF-V2-GAP-01 | SEF-IT-123、SEF-IT-124 | BDD-092/110、BDD-080/092 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-02 | SEF-IT-125、SEF-IT-126 | BDD-091/111、BDD-082/111 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-03 | SEF-API-050、SEF-API-051 | BDD-090/094/105、BDD-094/107 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-04 | SEF-UT-363、SEF-UT-364 | BDD-085/087/089、BDD-087/088 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-05 | SEF-UT-365、SEF-API-052 | BDD-095/099/103、BDD-096/099/103 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-06 | SEF-IT-127、SEF-IT-128 | BDD-118、BDD-118/119/120 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-07 | SEF-UT-366、SEF-IT-129 | BDD-104/117、BDD-104/117 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-08 | SEF-API-053、SEF-ET-073 | BDD-098/113/114、BDD-098/113 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-09 | SEF-ET-074、SEF-ET-075 | BDD-100/116、BDD-101/102/116 | 已補入文件；待 well-done 驗證 |
+| SEF-V2-GAP-10 | SEF-ET-076、SEF-ET-077 | BDD-114/117、BDD-113/114/121 | 已補入文件；待 well-done 驗證 |
+
+### Unit／Domain 與 Publisher（4 項）
+
+- [ ] **SEF-UT-363** `TrackGraph_WhenThreeCrossingsAndOptionalCycle_ValidatesEndings`（高）
+  - **來源**：`SEF-V2-GAP-04`；`SEF-BDD-085／SEF-BDD-087／SEF-BDD-089`；**建議測試入口**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **前置／操作**：I/A 交替三次交會、Shared→A-only，另有有界可選回訪
+  - **預期斷言**：Publisher 接受合法圖且所有必經角色可到達 Ending，不錯誤重置對方 Node
+  - **證據要求**：Red→Green Unit／合法 Manifest 驗證
+
+- [ ] **SEF-UT-364** `TrackGraph_WhenRequiredCrossTrackCycle_RejectsDeadlock`（高）
+  - **來源**：`SEF-V2-GAP-04`；`SEF-BDD-087／SEF-BDD-088`；**建議測試入口**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **前置／操作**：I 必經事件等待 A，而 A 也只可由不可達的 I 後續事件解鎖
+  - **預期斷言**：Publisher 拒絕必經死鎖與不可達 Ending，不誤判有界可選回訪
+  - **證據要求**：Red→Green Unit／合法 Manifest 驗證
+
+- [ ] **SEF-UT-365** `SceneEventPolicy_WhenUnknownAreaObjectSlotOrAction_FailsClosed`（高）
+  - **來源**：`SEF-V2-GAP-05`；`SEF-BDD-095／SEF-BDD-099／SEF-BDD-103`；**建議測試入口**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **前置／操作**：move-area／manipulate-object／NPC 傳入未知 Area、objectId、slot、module 或 params
+  - **預期斷言**：嚴格 Schema／Domain 拒絕、無受控物件的偽造效果，缺 Cue 或素材不得發布
+  - **證據要求**：Red→Green Unit／合法 Manifest 驗證
+
+- [ ] **SEF-UT-366** `RainBookshopPublisher_WhenNodeOrCueMissing_RejectsManifest`（高）
+  - **來源**：`SEF-V2-GAP-07`；`SEF-BDD-104／SEF-BDD-117`；**建議測試入口**：`backend/tests/DatingHigh.Unit.Tests/Domain/SceneEventTrackTests.cs`
+  - **前置／操作**：21 Node、四 Area、三次交會、兩 Ending 及正式 Cue 中缺任何必經台詞、物件或素材 hash
+  - **預期斷言**：版本化 Publisher 逐項檢查 RB-01～14 與 SDD，缺必經內容一律拒絕，不用 fixture 湊內容
+  - **證據要求**：Red→Green Unit／合法 Manifest 驗證
+
+### 真 D1／R2／local Integration（7 項）
+
+- [ ] **SEF-IT-123** `SharedEvent_WhenSecondActorRevisionStale_KeepsFirstSubmission`（高）
+  - **來源**：`SEF-V2-GAP-01`；`SEF-BDD-092／SEF-BDD-110`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 已提交 hold-bag，A 以過時 sharedRevision 交 retrieve-tag
+  - **預期斷言**：A 得 409；S02 未完成；I 已提交且有效的真人答案與 receipt 保留；雙 Track 及 WorldState 無半套狀態
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-124** `StorySession_WhenAtomicD1BatchFails_RollsBackAllFacts`（高）
+  - **來源**：`SEF-V2-GAP-01`；`SEF-BDD-080／SEF-BDD-092`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：真 D1 故障注入第二個真人合法操作的 EventInstance、Progress、WorldState 或 game_round_events 寫入
+  - **預期斷言**：同一交易完全 rollback，無 shared completed、無額外 eventSeq/receipt、未誤推進兩人
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-125** `OrderTag_WhenSameActorTwoDevicesRace_HasSingleWinner`（高）
+  - **來源**：`SEF-V2-GAP-02`；`SEF-BDD-091／SEF-BDD-111`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：A 同帳號兩裝置以同一 sharedRevision 同時 pick order-tag-27
+  - **預期斷言**：只能一個合法 CAS 成功；敗者讀回權威狀態，標籤唯一、不二次完成 S02
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-126** `OrderTag_WhenInviterSpoofsAcceptorAction_RejectsWrite`（高）
+  - **來源**：`SEF-V2-GAP-02`；`SEF-BDD-082／SEF-BDD-111`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：I 猜到 A 專用 Binding／action 並帶偽造 role／accountId
+  - **預期斷言**：拒絕操作且 EventInstance／WorldState／兩個 Progress 均不變
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-127** `LocalCleanup_WhenUnknownOrRemoteEnvironment_RefusesMutation`（高）
+  - **來源**：`SEF-V2-GAP-06`；`SEF-BDD-118`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：未知 DB／R2 bucket、remote/SIT/prod 路徑、未完成停寫與備份
+  - **預期斷言**：Local wrapper 必須停止，不執行 DROP／DELETE，不破壞帳號、角色與資料
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-128** `LocalCleanup_WhenLocalRebuilt_PreservesIdentityAndDropsLegacy`（高）
+  - **來源**：`SEF-V2-GAP-06`；`SEF-BDD-118／SEF-BDD-119／SEF-BDD-120`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：確定 local、先停寫備份再 clean rebuild，保留帳號／個資／正式角色 hash
+  - **預期斷言**：game_interaction_instances 和所有正式 Legacy 引用消失；真 D1 FK／索引與聊天、退出仍可運作
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+- [ ] **SEF-IT-129** `RainBookshopR2_WhenHashTampered_RejectsAndKeepsPinnedScene`（高）
+  - **來源**：`SEF-V2-GAP-07`；`SEF-BDD-104／SEF-BDD-117`；**建議測試入口**：`cloudflare/tests/scene-event-framework-d1.integration.test.ts`
+  - **前置／操作**：釘選已發布 v2 Scene/Narrative/Event，R2 缺檔、被篡改或 SHA 不符
+  - **預期斷言**：Worker fail closed，不重抽主線或退回 bookmark 舊內容；重連仍讀原合法釘選版本
+  - **證據要求**：真 Miniflare D1／R2 與 rollback/CAS 證據，不能用 HTTP fixture 代簽
+
+### API／HTTP／WS（4 項）
+
+- [ ] **SEF-API-050** `Experience_WhenPartnerCluePrivate_OmitsSecretProjection`（高）
+  - **來源**：`SEF-V2-GAP-03`；`SEF-BDD-090／SEF-BDD-094／SEF-BDD-105`；**建議測試入口**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **前置／操作**：A 已問到正確書名但未分享，I 讀 /experience／events query／WS
+  - **預期斷言**：I 無 A 私有節點／未解鎖 binding／書名／私人 R2 key；僅 A 親分享後公開有限摘要
+  - **證據要求**：HTTP／WS 正式授權與事件結果，不以 mock 單獨代簽
+
+- [ ] **SEF-API-051** `PublishedContent_WhenHiddenTrackRequested_NeverExposesRawManifest`（高）
+  - **來源**：`SEF-V2-GAP-03`；`SEF-BDD-094／SEF-BDD-107`；**建議測試入口**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **前置／操作**：I 嘗試由公開 R2、cache 與內容 URL 取得 A 私人分支與 R2 物件
+  - **預期斷言**：禁止未授權的 raw private Manifest／隱藏資料；僅 actor-scoped 精簡投影可讀
+  - **證據要求**：HTTP／WS 正式授權與事件結果，不以 mock 單獨代簽
+
+- [ ] **SEF-API-052** `StoryEvent_WhenInvalidParamsOrVersion_RejectsWithoutReceipt`（高）
+  - **來源**：`SEF-V2-GAP-05`；`SEF-BDD-096／SEF-BDD-099／SEF-BDD-103`；**建議測試入口**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **前置／操作**：HTTP/WS 帶未知 actionId/slot、額外參數、過期 Track/Shared/Event revision
+  - **預期斷言**：回正確拒絕／409，不寫 D1 receipt/eventSeq/WorldState，不廣播成功 WS
+  - **證據要求**：HTTP／WS 正式授權與事件結果，不以 mock 單獨代簽
+
+- [ ] **SEF-API-053** `NpcDialogue_WhenActorSpoofed_NeverProducesPartnerMessage`（高）
+  - **來源**：`SEF-V2-GAP-08`；`SEF-BDD-098／SEF-BDD-113／SEF-BDD-114`；**建議測試入口**：`backend/tests/DatingHigh.Api.Tests/SceneEventFrameworkEndpointTests.cs`
+  - **前置／操作**：Client 在 NPC 對話或意向提交時造假另一人 accountId/chat author
+  - **預期斷言**：只記合法 caller 的操作，NPC 台詞不能變成另一真人 message.committed
+  - **證據要求**：HTTP／WS 正式授權與事件結果，不以 mock 單獨代簽
+
+### Web／Android E2E（5 項）
+
+- [ ] **SEF-ET-073** `StoryStage_WhenNpcAndPartnerSpeak_DisplaysCorrectAttribution`（高）
+  - **來源**：`SEF-V2-GAP-08`；`SEF-BDD-098／SEF-BDD-113`；**建議測試入口**：`tests/e2e/web/scene-event-framework.spec.ts / tests/e2e/android/scene-event-framework.mjs`
+  - **前置／操作**：店員／旁白／兩名真人在 Web／Android 同場，兩人各有私有選項
+  - **預期斷言**：畫面標明 NPC，不替另一真人發聊天或選意向；每位真人需自行按下操作
+  - **證據要求**：真 Web／Android 畫面／操作／效能證據；仍須本人人工 Gate B
+
+- [ ] **SEF-ET-074** `AmbientMotionWeb_WhenDisabled_PreservesStoryMotion`（高）
+  - **來源**：`SEF-V2-GAP-09`；`SEF-BDD-100／SEF-BDD-116`；**建議測試入口**：`tests/e2e/web/scene-event-framework.spec.ts / tests/e2e/android/scene-event-framework.mjs`
+  - **前置／操作**：Web 關閉 AmbientMotion，S02 仍可觸發
+  - **預期斷言**：雨滴循環停止但必要標籤飛出／取回可看見或安全略過，保留真實互動延遲記錄
+  - **證據要求**：真 Web／Android 畫面／操作／效能證據；仍須本人人工 Gate B
+
+- [ ] **SEF-ET-075** `AmbientMotionAndroid_WhenResumed_DoesNotReplayStoryCue`（高）
+  - **來源**：`SEF-V2-GAP-09`；`SEF-BDD-101／SEF-BDD-102／SEF-BDD-116`；**建議測試入口**：`tests/e2e/web/scene-event-framework.spec.ts / tests/e2e/android/scene-event-framework.mjs`
+  - **前置／操作**：Android S02 完成後退背景再恢復並切換化身
+  - **預期斷言**：不重移動標籤、重播音效或 Gemini 產圖；以快照恢復，留 jank／記憶體／延遲證據
+  - **證據要求**：真 Web／Android 畫面／操作／效能證據；仍須本人人工 Gate B
+
+- [ ] **SEF-ET-076** `RainBookshopWeb_WhenBothLookBack_CompletesWithoutEpilogue`（高）
+  - **來源**：`SEF-V2-GAP-10`；`SEF-BDD-114／SEF-BDD-117`；**建議測試入口**：`tests/e2e/web/scene-event-framework.spec.ts / tests/e2e/android/scene-event-framework.mjs`
+  - **前置／操作**：Web 兩人各自選 look_back（再看一眼書架，替今天畫個句點）
+  - **預期斷言**：Server 收到第二份合法 look_back 即同 D1 交易 completed／封存 Side／保存 receipt；Client 確認成功後只播一次短鏡頭，沒有新熱區／支線／結束按鈕；失敗不先顯示成功，Round 聊天保留
+  - **證據要求**：真 Web／Android 畫面／操作／效能證據；仍須本人人工 Gate B
+
+- [ ] **SEF-ET-077** `RainBookshopAndroid_WhenChoicesDiffer_UsesE02AndKeepsGate`（高）
+  - **來源**：`SEF-V2-GAP-10`；`SEF-BDD-113／SEF-BDD-114／SEF-BDD-121`；**建議測試入口**：`tests/e2e/web/scene-event-framework.spec.ts / tests/e2e/android/scene-event-framework.mjs`
+  - **前置／操作**：Android/Web 真人分選 look_back／rest_chat，亦驗雙 look_back
+  - **預期斷言**：第二份合法意向提交時 Server 同交易選定 Ending／封存未完 Side／保存 receipt；不同意向必 E02、雙 look_back 才 E01；Client 不需再送完成命令，兩者自然收尾且聊天保留；人工 Gate B 未核准不製作其餘九條
+  - **證據要求**：真 Web／Android 畫面／操作／效能證據；仍須本人人工 Gate B
+
+### 新版分層計數與最終追溯
+
+- Phase 3：Unit **126**、Integration **42**、API **22**、E2E **32**，共 **222** 項。
+- Phase 4 稽核補強：Unit **4**（UT-363～366）、Integration **7**（IT-123～129）、API **4**（API-050～053）、E2E **5**（ET-073～077），共 **20** 項，十組 SEF-V2-GAP 各兩項。
+- 舊版 **383** 項保留、新版新增 **242** 項；總計 **625** 項，原有 **56/383** 完整覆核通過、新版 **0/242**，故目前整體 **56/625**（9.0%）。不可用測試函式執行數代替完整案例覆核。
+- **121/121 BDD** 均有明確 SPEC AC 追溯：舊版 79、新版 42；新增 BDD-080～121 對應 TDD 原 Phase 3 的 222 項，稽核 GAP 的 20 項亦標示對應 BDD；**RB-01～14** 均有至少一個 BDD、Unit、Integration 與 Web／Android 雙平台 E2E，最終仍須真人 Gate B。
+
+## 規劃交接紀錄
+
+**交接狀態：Ready for well-done（只代表本 SPEC 的規劃可交開發）**
+
+**最後確認日期：2026-11-16**
+**唯一工作範圍**：`SPEC-001-SceneEventFramework` — 最新雙 Track／共享世界／雨聲書店「被雨打亂的最後一單」首條正式遊戲及舊引擎清理。
+**決策**：`V2-RQ-01=A`（使用者明確確認）。E01 選項＝「再看一眼書架，替今天畫個句點」，只有短暫書架鏡頭／暖光，隨即自然 completed 且封存未完 Side；保留 Round 聊天，不開新探索、不加結束按鈕。E02 是不同意向的自然完成。
+
+### 文件包與實作順序
+
+| 類型 | 文件路徑 | 階段狀態 |
+|---|---|---|
+| MVP | `docs/requirements/MVP-001-LoveGameDatingApp.md` | AC-005-04～23 已確認，原業務決策保留 |
+| SPEC / SDD | `docs/specs/SPEC-001-SceneEventFramework.md` | SEF-AC-001～024；兩人不同 Track／共享世界／21 Node 雨聲書店／E01 A 已確認 |
+| BDD | `docs/bdd/SPEC-001-SceneEventFramework-BDD.md` | 121 場景已追溯，新增 BDD-080～121 尚未實作 |
+| TDD | `docs/tdd/SPEC-001-SceneEventFramework-TDD.md` | 625 項規劃，新增 V2-GAP 的 20 項未實作 |
+| RiskAudit | `docs/specs/SPEC-001-SceneEventFramework-RiskAudit.md` | 新 12 風險、10 GAP 均有定案／測試落點，無待確認決策 |
+| Verification | `docs/verification/SPEC-001-SceneEventFramework-Verification.md` | 規劃與 runner 實際結果分開，首條人工 Gate B 待實測 |
+
+**Gate 1**：先完成 SceneContent `scene-event.v2` Publisher、雙人 Progress／WorldState D1、統一 EventInstance 與 authorizer、嚴格 CAS／receipt，從**已確認的 DatingHigh local** 清測試資料並建最終 Schema；必須移除舊 `game_interaction_instances` 及已無正式依賴的單線命令，不遷移未上線的舊故事狀態，保護帳號、照片、正式角色及非本次資料。
+
+**Gate 2**：唯一先做「被雨打亂的最後一單」完整 21 Node（I01～I08、A01～A08、S01～S03、E01～E02）、四 Area、三次交會、回單方 A08、真物件／NPC 操作、正式全身五表情／2.5D／音效／可辨微動，依 `RB-01～14` 與 Web／Android 真雙人雙平台完整驗證 E01／E02。使用者親自試玩調校、**明確通過 Gate B 才能製作另外九條**，不以 fixture／自動化代簽。
+
+### 已確認風險與處置（新版 12 項）
+
+| 風險 ID | 處置依據／使用者決策 | 已補回的落點與 well-done 必驗要求 |
+|---|---|---|
+| `SEF-V2-RA-01` | 兩人獨立 Track、D1 同交易建立，無第三條玩家進度（既定 SDD） | SDD §3.5/4/6；BDD-080～084；IT-123/124，真 D1 rollback |
+| `SEF-V2-RA-02` | Shared 真人分開提交、CAS 僅結算一次（既定 SDD） | SDD §6；BDD-092/110；IT-123～126，雙人競態與冪等 |
+| `SEF-V2-RA-03` | 只下發登入 actor 可看資訊、私人線索未分享不得見（既定 SDD） | SDD §3.3/6；BDD-090/094；API-050/051，R2/WS 洩漏負例 |
+| `SEF-V2-RA-04` | unlock 不代另一人的 currentNode，必經圖不得互等死鎖（既定 SDD） | SDD §3.3/3.5；BDD-085～089；UT-363/364 |
+| `SEF-V2-RA-05` | 未上線故事測資可在已確認 local 重建，無用資料表/程式移除（既定 SDD） | SDD §7.1；BDD-118～120；IT-127/128，未知／遠端拒清 |
+| `SEF-V2-RA-06` | 全部正式內容只用受控 v2 Publisher 和 module registry | SDD §3.7/4.3；BDD-095～103；UT-365、API-052 |
+| `SEF-V2-RA-07` | 雨聲書店 21 Node、四 Area、3 次交會、兩 Ending 對照實際發布內容 | SDD §3.8；RB-01～14；UT-366、IT-129，內容 SHA 與素材 |
+| `SEF-V2-RA-08` | A 專屬取標籤、I 越權拒絕的衝突已修正 | SDD RB-08／BDD-111／TDD UT-330～332、IT-125/126 |
+| `SEF-V2-RA-09` | **使用者 V2-RQ-01=A**：回望書架只有短鏡頭且直接 completed | SDD E01/S03/RB-10/11、BDD-113/114、ET-076/077 |
+| `SEF-V2-RA-10` | NPC 不代人發訊息、真人選項須本人提交（既定 SDD） | SDD §3.8、BDD-098；API-053、ET-073 |
+| `SEF-V2-RA-11` | AmbientMotion 與 StoryMotion 分離，正式素材／五表情不退化 | SDD §3.7/3.8.5；BDD-100～103；ET-074/075 |
+| `SEF-V2-RA-12` | 第一條正式雙人試玩為不可代簽的 Gate，其他九條延後 | SDD §7、BDD-117/121；ET-076/077，使用者人工核准 |
+
+以上風險在**規劃層**均已以使用者決策或已確認設計防護與明確測試處置，**不是**宣稱風險在實際程式已消除；先前 `SEF-RQ-01～03`、`RA-Q1/Q2` 及原 12 項 SEF-RA／8 項 UX-RA 均保留原有效決策，重點核證照舊。
+
+### 已補回風險缺漏（10/10 組，新增 20 個 TDD）
+
+| 缺漏 | 來源風險 | 測試落點 | 規劃狀態 |
+|---|---|---|---|
+| `SEF-V2-GAP-01` | RA-01/02 | IT-123、IT-124 | 已補回 TDD |
+| `SEF-V2-GAP-02` | RA-02/08 | IT-125、IT-126 | 已補回 TDD |
+| `SEF-V2-GAP-03` | RA-03 | API-050、API-051 | 已補回 TDD |
+| `SEF-V2-GAP-04` | RA-04 | UT-363、UT-364 | 已補回 TDD |
+| `SEF-V2-GAP-05` | RA-06 | UT-365、API-052 | 已補回 TDD |
+| `SEF-V2-GAP-06` | RA-05 | IT-127、IT-128 | 已補回 TDD |
+| `SEF-V2-GAP-07` | RA-07 | UT-366、IT-129 | 已補回 TDD |
+| `SEF-V2-GAP-08` | RA-10 | API-053、ET-073 | 已補回 TDD |
+| `SEF-V2-GAP-09` | RA-11 | ET-074、ET-075 | 已補回 TDD |
+| `SEF-V2-GAP-10` | RA-09/12 | ET-076、ET-077 | 已補回 TDD |
+
+### 實作注意事項與安全界線
+
+- 必須由 `well-done` 先接手 Red→Green→Refactor；正式授權、資料競態與端點需真 Miniflare D1／R2／HTTP／WS runner 證據，真 Web／Android 遊玩與人物／動畫／效能不可用 API fixture 假稱通過。
+- 不降低原 StoryDialogueAndExit、AvatarAndPreferences 的 B1、UX-P1～P5、16 款全身免費角色／80 張五表情、原人物畫風／素材來源、真化身採用授權及 Gate B，不再生成已有完整版本的五表情。
+- 同場保持單一 Scene、多 Area／每人獨立 Track；故事內容必須以 **`scene-event.v2` 已審核 Publisher** 發布，且實作與 TDD／BDD 指定的 Node、台詞、Cue、Binding、物件及兩 Ending 全部吻合。不得保留另一套舊 runtime。
+- 未知 local 位置、非本需求資料、SIT／production 等未獲授權環境，停止清理；不改其他專案、不引入 SQL Trigger、不得把測試通過率與規劃覆蓋率混算。
+- MVP-002 AI 動態主線、跨 Scene 自由移動、History／Housekeeping、好感／約會／告白及其資料表都不屬於本輪範圍。
+
+### 不得進入開發的阻斷項
+
+**無（規劃層）**。V2-RQ-01=A 已由使用者明確確認，新增 12 項風險均有處置、10 組 GAP 均已補回正式 TDD；**Ready for well-done** 僅表示可開始按本 SPEC 的 Gate 1／2 進行程式實作。任何真實 runner 失敗、未授權 DB、素材缺失或人工 Gate B 尚未核准，都必須依實作 Gate 保留相應阻斷，不能自行降低標準。

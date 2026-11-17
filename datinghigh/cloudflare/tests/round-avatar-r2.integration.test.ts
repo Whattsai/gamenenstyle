@@ -41,6 +41,14 @@ beforeEach(async()=>{
 });
 afterAll(async()=>{await mf?.dispose();});
 const current=(who=2,target=env)=>dispatch(new Request('http://platform.internal/v1/commands/avatar.current.readiness',{method:'POST',body:JSON.stringify(auth(who))}),target,now);
+it('SEF two-avatar stage: same-round own pack uses current caller adoption and rechecks membership and version for binary reads',async()=>{
+ const own=(who=2)=>dispatch(new Request('http://platform.internal/v1/commands/avatar.round.self-projection',{method:'POST',body:JSON.stringify({...auth(who),roundId:round})}),env,now);
+ const response=await own();expect(response.status).toBe(200);const p=await response.json()as any;expect(p.avatarAssetId).toBe(asset);for(const e of expressionIds)expect(p.expressions[e].url).toBe(`/api/v1/game-rounds/${round}/my-avatar/${p.avatarVersion}/${e}`);
+ const read=(who=2)=>dispatch(new Request(`http://platform.internal/v1/avatar/round-self/${round}/${p.avatarVersion}/neutral`,{headers:headers(who)}),env,now);
+ expect((await read()).status).toBe(200);expect((await own(3)).status).toBe(403);expect((await read(3)).status).toBe(403);
+ await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='builtin',selected_avatar_ref='male-01' WHERE account_id=?").bind(id(2)).run();expect((await read()).status).toBe(409);
+ await executeCommand(env.DB,'game.round.end',{...auth(),roundId:round},now);expect((await own()).status).toBe(403);expect((await read()).status).toBe(403);
+});
 it('current own avatar requires the adopted complete pack; an unrelated pending asset cannot block a ready selection',async()=>{
  expect((await current()).status).toBe(200);
  await env.DB.prepare("INSERT INTO user_media_assets VALUES(?,?,'generated_avatar',?,'image/jpeg',NULL,'pending',?,NULL)").bind(id(23),id(2),`private/${id(2)}/avatar/${id(23)}`,now).run();

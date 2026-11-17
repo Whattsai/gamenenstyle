@@ -28,9 +28,9 @@ DatingHigh（心動迴路）是戀愛養成交友平台，以個人資料與化�
 
 ## 儲存與內容
 
-D1 migration 基線為 `0006_scene_event_framework.sql`，共21張自有表、零 Trigger。Foundation 六表54欄、AvatarAndPreferences 兩表27欄的邊界保持；新增五張場景事件表共35欄，欄位與索引見 [資料契約](../03-contracts/02-data-contracts.md)。環境實際採用版本依各自 EXPECTED_MIGRATION，不能由本地升級推定雲端已部署。
+D1 migration 基線為 `0007_scene_event_tracks.sql`，共21張自有表、零 Trigger。Foundation 六表54欄、AvatarAndPreferences 兩表27欄的邊界保持；場景內容與執行六表共43欄，欄位與索引見 [資料契約](../03-contracts/02-data-contracts.md)。環境實際採用版本依各自 EXPECTED_MIGRATION，不能由本地升級推定雲端已部署。
 
-正式首條內容以 `contracts/scene-event-content.json` 組合 `contracts/story-scenes.json`，素材在 `contracts/story-assets/`；發布為 Scene、Narrative、EventDefinition、GlobalPool 四層 immutable R2。免費角色 metadata 在 `contracts/builtin-avatar-packs.json`。發布前驗證 DSL、相依、SHA、版本與核准紀錄，已發布版本不可覆寫；首條人工 Gate 通過前不得製作其餘九條。
+正式首條內容以 `contracts/scene-event-content.json` 組合 `contracts/rain-bookshop-last-order.json`，素材在 `contracts/story-assets/`；發布為 Scene、Narrative、EventDefinition、GlobalPool 四層 immutable R2。免費角色 metadata 在 `contracts/builtin-avatar-packs.json`。發布前驗證 DSL、相依、SHA、版本與核准紀錄，已發布版本不可覆寫；首條人工 Gate 通過前不得製作其餘九條。
 
 ## 啟動點
 
