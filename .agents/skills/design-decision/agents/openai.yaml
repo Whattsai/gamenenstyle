@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Decision"
+  short_description: "逐項比較多份 SD 候選並整合完整 final，交付後等待版本核准"
+  default_prompt: "使用 $design-decision 比較同一 SPEC 的 SD 候選並產出完整 final 設計。"

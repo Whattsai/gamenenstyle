@@ -1,11 +1,11 @@
 # SPEC-001-SceneEventFramework：場景、主線與可重用事件框架
 
 **功能 ID**：SPEC-001-SceneEventFramework
-**來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)（US-005／AC-005-04～23；本輪新增 AC-005-17～23）
+**來源 MVP**：[MVP-001-LoveGameDatingApp.md](../requirements/MVP-001-LoveGameDatingApp.md)（US-005／AC-005-04～35；V3 新增 AC-005-24～35）
 **順序**：第 5 份，共 9 份 SPEC；依賴 `SPEC-001-MatchingSessions`、`SPEC-001-StoryDialogueAndExit`，提供 `SPEC-001-AffectionAndFeedback`、`SPEC-001-OnlineGamesAndQuests` 可重用基礎
 **優先級**：高
-**日期**：2026-11-15（本輪雙軌 SDD 修訂；原 SDD 業務決策：2026-11-12／13）
-**階段**：新版雙 Track／共享世界／雨聲書店已完成 SDD、BDD／TDD 設計與新版 RiskAudit 人工確認；**V2-RQ-01=A 已確認**，收尾僅播放書架短鏡頭後自然完成，不新增互動尾聲。本次依 perfect-plan Phase 5 交付 well-done 可開發規劃，**不代表產品已實作或 Gate B 人工驗收通過**，詳見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+**日期**：2026-11-17（雨聲書店 V3 故事全面重製 SDD；通用雙軌底座沿用先前設計）
+**階段**：**2026-11-17 V3 SDD（RQ-01～05=A、06=A＋C）與容量 SEF-V3-RQ-01=B 均已確認，BDD／TDD／RiskAudit 完成規劃、Phase 5 Ready for well-done（僅文件交接）**。新版新增 BDD 70 場、TDD 250 項（含 10 項 RiskAudit 補強），歷史基線與最新合計為 BDD 191、TDD 875；V3 仍 **0/70 場、0/250 項**實際驗收。舊 V2 正式內容和既有 56 個完整覆核測試僅是歷史，不代表 V3 新人物、互動或 Web／Android 人工 Gate B 已通過。交接詳見 [最新 TDD Phase 5](../tdd/SPEC-001-SceneEventFramework-TDD.md)。
 **負責角色**：DatingHigh 應用開發；業務及人工驗收由使用者確認
 
 ## 1. 功能概述、範圍與非目標
@@ -24,11 +24,11 @@
 - **已落地的內容來源**：正式可玩路徑為 `contracts/scene-event-content.json` 發布的版本化 Category→Scene→Narrative→Event 定義，R2 使用 immutable SHA；`contracts/story-scenes.json` 的 `scene-01/v2` 是**遺留格式**，含 bookmark／reading-path 舊文本，並非新版首條需要保真的玩法。保留可共用的書店場景／素材；新故事與操作契約應取代舊文案、模組及不再使用的轉換器。
 - **已落地的程式現況**：`SceneEventFrameworkService`、`scene-event-commands.ts` 已使用新 Category 投票、R2 分層內容與事件實例；其動作提交仍依賴 `game_story_sessions.current_node_id/progress_revision`。`story-commands.ts` 與 `StoryGraphPolicy` 尚有 `episodeSeq=1`、舊節點及 `game_interaction_instances` 路徑。新的雙 Track 及多場次契約須移除這些殘留限制，但不能只放寬 Client 輸入而不保留 D1 交易內授權。
 - 即時通訊沿用 `GameRoomSocket` DO、`IRoundRealtimeNotifier`、`game_round_events` 全域遞增序號／冪等 `clientRequestId`、授權 HTTPS snapshot／事件補漏；保留雙人真實投票、聊天室和「結束本輪互動」二次確認。
-- 現有全身化身、B1 五表情、R2 ready Manifest、2.5D 分鏡、Web／Android Gate B 還有未完成驗收，**不移出、重做或降低 `SPEC-001-StoryDialogueAndExit` 的既有 Gate**。
+- **沿用既有驗收品質，不沿用過時實作手段**：V2 現行全身角色＋五張整圖、R2 ready Manifest、B1 表情與 2.5D Gate B 仍屬產品現況和舊版驗收；**V3-RQ-06 已確認改採 2D Puppet＋少量預製姿態**，保留五種表情的**語意／品質驗收**，但新版正式角色就緒資格改由 Rig Package 的完整性與實際表情／動作測試決定，**不再強制同一角色產出五張完整全身圖**。新流程尚未實作前仍執行既有伺服器 ready Gate；驗收不得空窗、降級或假稱已生效。
 
 ### 1.2 本人目前採用化身的遊戲入口條件
 
-遊戲入口、恢復、即時連線票券及遊戲操作須由伺服器核對本人目前正式採用的化身。內建化身須屬正式完整五表情目錄；生成化身須為本人所有、未刪除且 ready 的正式資產，具有有效 ready Manifest 及五張完整表情物件。缺少選用、製作未完成、清單或任一表情缺失時回 `409 OWN_AVATAR_PACK_NOT_READY`，不提供劇情內容、不核發票券、不寫入遊戲操作。
+遊戲入口、恢復、即時連線票券及遊戲操作須由伺服器核對本人目前正式採用的化身。**既有 V2 現況**：內建角色完整五表情目錄，生成化身須為本人所有、未刪除且 ready，具有有效 R2 Manifest 及五張完整表情物件；不符回 `409 OWN_AVATAR_PACK_NOT_READY`，不提供劇情內容／票券／操作。**V3 正式目標（V3-RQ-06 已確認）**：改驗 `ActorRigPackage`（來源身份／owner／asset+rig 版本／完整分層／骨架／必要動作／五種語意表情／遮擋／hash／可解碼測試）是否 `ready`，不再以有五張整圖為必要條件；免費角色查正式資產目錄、AI 角色讀私人 R2 經授權的不可變 Rig Manifest。新 Gate 完整實作與雙平台驗證以前，舊 Gate **不得關閉**。
 
 只核對目前採用者；另一組尚在製作的化身不得阻擋已就緒的選用。讀取私人儲存前後須重驗登入與目前選用。畫面清除既有場景、角色、聊天室及草稿，顯示原因及「前往個人檔案」；選用已就緒化身後可回同一輪，不重新抽劇情。第三人／撤銷授權仍優先回 403／401；結束本輪及 ended 安全狀態不受此條件阻擋。此規則不啟動或自動續產 B1。
 
@@ -118,139 +118,168 @@
 - **角色與資產**：既有已確認全身化身＋五表情、句尾安全換角保留。站位、位移、鏡頭與遮擋先用現有圖；真實伸手拿書、坐姿、行走等若現有五圖不足，必須具備同角色已審核的動作資產才能正式發布，不即時呼叫生成服務湊畫面。
 - **環境微動**：`AmbientMotion` 必須有肉眼可辨的雨滴實際位移、玻璃水痕／反光、書頁或光影細微變化，不再只有靜止雨線的透明度改變；`StoryMotion` 負責紙張飛落、物件操作及角色／鏡頭劇情演出。原開關只關 AmbientMotion，必要 StoryMotion 仍能播放或安全略過；背景／失焦暫停循環，Web／Android 實測真畫面流暢度、jank 與記憶體。
 
-### 3.8 首條「雨聲書店」新故事垂直切片
+### 3.8 首條「雨聲書店」V3 互動故事 SDD（本版取代 V2 首條敘事）
 
-保留雨夜獨立書店氛圍、可重用背景及正式化身，但**取代**抽象的書籤／推薦卡／同一本書抒情主線。建議新劇本「被雨打亂的最後一單」：兩人各自帶著不同線索進入同一書店，發生至少兩次合理交會，中間可返回單方或雙方不同任務。台詞以台灣日常口語、具體目標、小意外、幽默及自然認識對方為主，不硬逼玩家表白。
+**本節狀態：SDD 六項決策及容量 B 已確認；BDD／TDD／RiskAudit 已完成規劃與 Phase 5 交接。新 V3 尚未實作、發布或通過人工 Gate B。** 2026-11-17 使用者要求**完全重新設計**雨聲書店，並明確接受先整理新 SDD 的方向。舊 §3.8「被雨打亂的最後一單」第 27 號取書單、I01～I08／A01～A08／S01～S03／E01～E02 **不再是目標劇情與未來人工驗收基線**；已發佈的 V2 及其技術回歸證據只屬現有產品歷史事實，不可宣稱 V3 已完成。其餘 Scene／Narrative 抽選、雙 Track、同意下一場、聊天與退出等通用契約繼續有效；既有 SDD 的 V2 特定節點、結局與演出引述，均以本節為新內容設計的優先依據。
 
-| 段落 | 邀請方 Track | 接受方 Track | 實際畫面／共享互動 |
-|---|---|---|---|
-| 進場 | 檢查被雨水糊掉的取書單 | 在書架發現錯放的書袋 | 門鈴、雨滴、取書單翻面、書袋熱區 |
-| 第一次交會 | 到櫃檯提供殘存編號 | 帶書袋到櫃檯 | 真正看到兩份線索並列及合理的角色站位 |
-| 再分流 | 回書架找對應的書 | 向店員核對日期 | 各有個人事件，完成後可解鎖另一方進展但不代做 |
-| 第二次交會 | 帶回書 | 帶回日期線索 | 風吹散桌面卡片，兩人分工操作物件 |
-| 收尾 | 選擇是否推薦一本書 | 選擇是否交換或聊天 | 根據真實操作形成合理後果，保留自由聊天 |
+#### 3.8.1 故事定位、固定角色與公開／私有資訊
 
-首條可有兩種有意義的收尾作為實玩示例，但所有 Narrative 的通用發布規則仍只要求至少一個可達 Ending。Gate B 需由使用者實玩確認劇情清楚、有趣、互動可見、角色／微動自然，核准前不製作其餘九條。
+- **工作劇名**：《雨聲書店・雨停之前》；Scene 保持 `rain-bookshop`（新版本須單獨發佈），新 Narrative 建議 `rain-bookshop-before-rain-stops`（`v1`）。舊 `rain-bookshop-last-order/v2` 不得原位覆寫；已進行中的舊 Session 只使用其原 SHA 釘選，更新發佈只影響新場。
+- **時間線**：同一個傍晚；I 難得準時下班來熟悉的書店、A 下午放假出門逛街到傍晚遇雨避入書店；不是兩人同時進店或彼此已認識。外部大雨、室內輕音樂、木質與咖啡香由文字加場景及音效共同交代。
+- **角色**：`inviter`=原邀請方 I；`acceptor`=接受方 A；雙方使用已採用正式全身化身且不固定性別；**店員 NPC 是有獨立可見人物身份、服裝、站位、表情、動作與對白的非真人角色**。不以 NPC 代玩家傳訊，不由系統代玩家搭話、回答、告白、同意或承諾見面。
+- **體驗主題**：各自閒逛／選書 → I 看見 A 坐在角落被書感動、可選擇是否靠近 → A 可分享心情／只聊書／婉拒 → 大雨使低窪門口進水 → 店員先維持安全再請兩人協助保護乾燥書架的預留書 → 雨漸小、店員請兩杯咖啡、雙方自然聊天。無「丟失第 27 號訂單」的舊任務。
+- **玩家隱私**：A 的書籍偏好、虛構角色感受／背景選項，僅在 A 主動分享之前保留 A 私有事實；I 只能看見故事明確的可見行為（讀書、流淚）及本人實際收到的回覆。問的是角色心境，**不蒐集或宣稱玩家真實失戀、壓力或人生經歷**；提供「單純被書感動、不設定經歷」中性選項。
+- **真人聊天**可全程開啟，但公開分享建議按下才送出，選項及旁白不隱性發出本人訊息；玩家對話無須符合特定腳本才能推進。
 
+#### 3.8.2 單 Scene 多 Area、視覺狀態與素材統一性
 
-#### 3.8.1 首條可玩劇本：背景、角色及主題
+本故事同一 `SceneVisit` 中使用 `street-view`（只作開場／結局短分鏡）、`entrance`、`shelves`、`reading-corner`、`counter`、`window`、`safe-storage` 等 Area。**每個 Area 都使用符合其視角的獨立背景／前景／可互動物件素材**，但固定同一書店平面動線、入口／窗戶／書架／櫃檯相對方位、材質與照明、同一店員造型；不同區域不能只裁同一張圖，也不能各自生成互相矛盾的店面。物件／人物嵌入背景原位，鏡位與點擊座標同步，依 §3.8.7A 演出。
 
-**劇本工作名稱**：「被雨打亂的最後一單」；`narrativeId=rain-bookshop-last-order`、`sceneId=rain-bookshop`。使用者已確認以完整劇本進入 perfect-plan，**V2-RQ-01=A**：E01 是最後回望書架的鏡頭而非開放新探索，兩人各自表態後自然 `chapter.completed`、未完 Side 封存，聊天保留；不新增結束按鈕。**逐字台詞與真實趣味性仍以未來本人 Gate B 試玩為準**。本版不是既有 `rain-bookshop-lost-note/v1` 已發佈內容；Category 及 3:1 不改。
-
-**一句話目標**：雨天的獨立書店只剩一張被淋糊的第 27 號取書單；店員把預訂袋放錯地方，客人快來了。兩名玩家各有不同線索，必須先認出同一筆訂單、再分工找對的書和封套，最後一起處理突來的風雨，才還原整份訂單。這是一個低壓、帶一點幽默的共同小事件，而非靠故弄玄虛的抒情文字推進關係。
-
-**人物**：玩家 I＝原邀請方、玩家 A＝接受方（實際化身使用已採用的任意角色，不固定性別／外型）；「店員」是唯一必經 NPC；顧客只由結尾門鈴暗示，不出現假扮第三人的聊天室。所有對玩家的劇情文字使用「你」，角色沒有預設姓名、情史、職業或系統冒充的真人語音。玩家真人之間的台詞僅由本人選擇明確「說出／分享」或自行發送聊天後出現；NPC 和旁白不能代玩家回答、告白或承諾相約現實見面。
-
-**可玩節奏**：初次進場個人探索 → `S01` 第一次交會核對「27」 → 雙方分流各找書／問店員 → `S02` 第二次交會處理突來風雨 → **只回 A 方**再確認封套與標籤，I 方停留可聊天／自由探索 → `S03` 再次交會雙方各自決定如何收尾 → 兩種符合當下選擇的自然 Ending。主要目標、必要台詞及每個必需操作可由首場完整玩到結局；可選支線不阻擋。
-
-#### 3.8.2 場內位置、可見素材及物件事實
-
-四個 `Area` 都屬同一筆 `game_scene_visits`；區域切換應有鏡頭／景深／角色 anchor 的**可視**變化，不是只替換一段文字，也不另建 Scene。
-
-| Area ID | 場內位置與可見元素 | 互動／舞台規則 |
+| 分鏡群／Shot ID 建議 | 必有可見素材及動作 | 聲音／切換要求 |
 |---|---|---|
-| `entrance` | 玻璃門、門鈴、濕雨傘架、地上的第 27 號濕紙單 | I 初始所在；點濕紙單並翻面，完成後可移動到 counter |
-| `shelves` | 兩本近似書名的展示書、預訂布袋及標籤 | A 初始所在；可檢視袋外標籤，不擅自打開顧客私人物；I 後續找書 |
-| `counter` | 店員、收據托盤、封袋位置、可貼共享線索的便條板 | 首次與末次交會、書本／布袋／封套放置；玩家間資訊僅在真正分享後共同可見 |
-| `window` | 雨痕玻璃、窗台、綠色書封套與可能飛來的第 27 號標籤 | A 後續取封套；`S02` 風起後標籤飛到此處，需本人取回 |
+| `sh-street-rain`、`sh-street-approach` | 下班／逛街視角、街道與招牌、雨勢增強；不可直接假裝有完整跨場景移動 | 戶外雨聲到門鈴，轉室內時雨聲變遠 |
+| `sh-entrance-welcome` | 真書店入口、店員迎賓立繪／表情／站位；I/A 各自獨立開場 | 開門、門鈴、輕音樂淡入 |
+| `sh-shelves-wide`、`sh-book-closeup` | 書架各類型原創封面、可讀簡介、可點試讀頁、翻書動畫 | 選取特寫／翻頁音；回到原書架構圖 |
+| `sh-corner-observe`、`sh-corner-tear` | 閱讀角椅子、A 坐著看書、眼眶濕潤與眼淚層；I 視角只顯可見行為 | 鏡頭進近景、音樂輕微降低；不得自動顯露 A 的私密內心 |
+| `sh-corner-approach`、`sh-corner-chat` | I 靠近／退開、A 抬頭、雙人合理站位、必要表情 | 隨選擇對應位置、表情與對話；沒有同步快進另一人 |
+| `sh-npc-pass` | 店員拿書經過、問候、離開，至少起止兩個可見站位 | NPC 說話時人物可見、語句與動作順序對齊 |
+| `sh-window-downpour`、`sh-entrance-seep` | 雨變大、街道積水、門縫滲水、地板水痕逐步擴展 | 輕音樂退後，雨／水聲增強，先提示安全動線 |
+| `sh-npc-safety`、`sh-safe-shelves` | 店員指引往安全區，危險入口不可進入，乾燥書架與高處放置區 | 店員擔心／指引表情及位置，不做玩家角色替身 |
+| `sh-rescue-books`、`sh-storage-ready` | 書單、封面比對、乾燥書籍、收納箱、放置高處的物件狀態改變 | 取書／放書／完成音效，物件狀態必須對應 D1 權威 |
+| `sh-rain-eases`、`sh-coffee-serve`、`sh-window-coffee` | 雨勢減弱、店員微笑端兩杯咖啡、桌上兩杯咖啡熱氣、溫暖窗景收尾 | 水聲淡出、原輕音樂回來、咖啡杯輕觸桌面 |
 
-| 物件鍵 | 初始位置／狀態 | 合法動作與狀態演進 |
+**素材規格**：每個必經節點至少綁定一個有效 `shotId` 或具體的「前一有效 Shot + 有效增量演出」，且可確認玩家視角確有可見畫面變更；每個 NPC 出場節點必須有 NPC 人物素材、合法動作和站位；書籍／咖啡／收納箱／水位不可以通用文字框取代。支援同一實體場景可重用基底、攝影機與圖層，禁止以「每個節點都換一張不一致的全畫面圖」冒充連貫畫面。正式資產用內容版本、SHA／MIME／合法引用釘選。缺必要素材、未知 NPC／Cue／Renderer／動作時 Publisher **拒絕 V3 發布**，不能只在執行時退化為文字。
+
+#### 3.8.3 第一段：I/A 各自獨立開場與情緒分支
+
+| 節點 ID／角色 | 玩家看到的劇情與**本人**互動 | 畫面／NPC／轉移 |
 |---|---|---|
-| `pickup-slip-27` | entrance／濕紙正面可見 | I `inspect/flip`→得知私有「27、海邊的…、19:30」；I `place` 到 counter 才讓共享事件可核對，不公開其他未解鎖資訊 |
-| `reserve-bag-27` | shelves／掛起、袋外 27 | A `inspect` 得知袋外 27；A `pick/place` 帶至 counter；不須解開袋內的私人留言 |
-| `book-rain` | shelves／《海邊的雨天》深藍封面 | I 檢視後可以暫存候選；必須獲合法分享的書名才允許 `pick` 並放到 counter；錯書不能以硬猜永久推進 |
-| `book-wednesday` | shelves／《海邊的星期三》淺綠封面 | 可觀察、比較；試放錯書顯示可恢復的提示，不能直接 completed 或卡死 |
-| `green-sleeve` | window／乾燥綠色封套 | A 詢問店員後移到 window `pick`、帶回 counter `place`；不把封套外觀誤當書本真封面 |
-| `order-tag-27` | reserve-bag-27／外附標籤 | `S02` 第一次有效觸發才從袋外移至 window；A 後續取回、帶到 counter 核對；同時操作不得生成第二張 |
-| `counter-slot` | counter／空 | 合法接收濕紙單、袋、選定書、封套、標籤；每件物品有獨立 occupancy，不用一個布林遮蔽多件 |
-| `window` | 關閉、雨痕可見 | 風起演出屬一次性 StoryMotion；`AmbientMotion` 可隨開關停止，不能因此取消已發生的標籤移動事實 |
+| `iv3-01` I | 難得準時下班，走向最喜歡的獨立書店，享受不被趕時間打擾的傍晚 | `sh-street-approach` → `sh-entrance-welcome`；門鈴，店員微笑迎接 |
+| `iv3-02` I | 店內音樂、香氣與戶外濕熱形成對比；可環視店內 | 入口慢鏡頭、可見店員返回櫃檯，音樂漸入 |
+| `iv3-03` I | 書架展示愛情／成長／親友／人生等類型；可自由點封面、閱讀原創摘要／試讀，提醒可用聊天室分享閱讀經驗 | `sh-shelves-wide` ↔ `sh-book-closeup`；書架探索事件可重複且不阻塞 |
+| `iv3-04` I | 走至閱讀角，注意 A 坐著翻書、眼眶有淚；旁白僅推測「被書打動了嗎？」 | 必須以 A 已完成 `av3-05` 的**可見狀態**才演出 `sh-corner-observe`／`sh-corner-tear`；否則 I 可先逛書架 |
+| `iv3-05` I | 選「試著靠近」或「先繼續自己的小世界」；後者可回書架探索，保留再次選擇及後續外部雨情事件 | `sh-corner-approach` 或回 `sh-shelves-wide`；不強制搭話，不無限空等 |
+| `iv3-06` I | 若靠近，三選一：溫柔關心／體貼提供面紙／從手上的書聊起 | 播放對應的 I 站位／道具／書封特寫；**選擇提交前不顯示 A 回應** |
+| `av3-01` A | 下午放假逛街、傍晚遇雨避進書店，店員讓人慢慢逛 | `sh-street-rain` → `sh-entrance-welcome`，店員表情與迎賓動作 |
+| `av3-02` A | 想起自己已許久沒認真看書，四處逛書架，點選封面與類別、可分享書籍但不強迫聊天 | `sh-shelves-wide`／`sh-book-closeup` |
+| `av3-03` A | 選容易被哪類故事感動：愛情／成長療癒／親情友情／人生故事 | 四組原創封面與文本範例，所選屬**本人的私有劇情事實** |
+| `av3-04` A | 可選角色共鳴原因：錯過的人／剛失去的感情、工作或人生壓力、親友回憶、未來迷惘，或「純粹因為故事而感動」；不得推定真人真實遭遇 | 書頁近景，對應短獨白與表情；選項與主題適配，不能把錯配的經歷套到所有書 |
+| `av3-05` A | 在閱讀角坐下，閱讀到動容，角色眼眶泛淚／擦眼角；不向 I 自動揭露原因 | `sh-corner-tear`、坐姿和眼淚圖層、音樂輕化；可見狀態解鎖 I 觀察 |
+| `av3-06` A | A 可繼續讀書；若 I 尚未搭話可逛書／聊天；若 I 真提交搭話方式，A 才看到該方式並自行回應 | `sh-corner-chat` 僅在合法邀請事件出現；沒有由 NPC 代替邀請 |
 
-**共享狀態**只存物件位置、被誰持有、書／袋／封套／標籤是否完成組合、`orderStatus=missing|searching|packing|verified` 與必要 `shared_revision`；I／A 的已閱線索、已按過的選項存於該角色的不可偽造 EventInstance／進度事實。若一件物件在對方持有中，另一方不可再取得；UI 以實際權威 snapshot 顯示「已被取走」，沒有幽靈副本。沒有任意玩家自填 JSON 世界旗標。
+**書籍分支資料**：類別與各自 `bookId`、封面、原創摘要／試讀、適用 `emotionTheme`、可選 `resonanceId`（含中性選項）必須版本化且相容；書架類型選擇不得透露另一方 Profile／私人興趣。聊天建議只供按下後由真人發送。此處的「香氣」僅能藉文字／環境物件暗示，不宣稱裝置有嗅覺輸出。
 
-#### 3.8.3 逐節點雙人劇情與正式文案草稿
+#### 3.8.4 第二段：接觸、接受方回應與自然認識
 
-表中「旁白／店員」是**確定可由內容引擎播出的文字草稿**，非玩家真人代言；「你的動作」須由該玩家親自點擊／拖放／選取才 commit。`Ixx`／`Axx` 是各自 Track node；`Sxx` 為共享 EventBinding／互動流程，並**不**是第三筆玩家 `current_node_id`。本表是演出內容的 SDD 規格，發布時還須轉成嚴格的 `scene-event.v2` Node／EventDefinition／Binding Manifest。
-
-| ID 與視角 | 逐節點文案（依序呈現） | 玩家實際操作、演出與進度 |
+| Shared／節點 | 前提與雙方實際選擇 | 成功後呈現與流向 |
 |---|---|---|
-| **I01** entrance | 旁白：「雨一下大，這間書店的玻璃門看起來像裝了水族箱。」店員：「歡迎！不過今天進門會附贈一個小任務。最後一筆取書單被雨淋糊了。」 | 門鈴響、鏡頭由雨窗移到地板；顯示濕紙單熱區，不自動代玩家回答 |
-| **I02** entrance | 旁白：「紙角還看得到『27』、『海邊的……』和『19:30』，剩下的字被雨洗到休假了。」 | I 點 `pickup-slip-27`，親自翻面，提交 `slip-inspected`；紙張鏡頭特寫與濕痕，不暴露 A 的袋標 |
-| **I03** counter | 店員：「第 27 號？太好了，我記得預訂袋也有個 27。你先把紙放櫃檯，我們等另一份線索。」 | I 經 Area 移動、拖紙到 `counter-slot`；解鎖 I 的首次交會等待，未完成 A 仍可留在櫃檯聊天 |
-| **A01** shelves | 旁白：「這裡書好多。最醒目的不是小說，是書架邊一個一直快掉下來的布袋。」店員（遠處）：「我明明把預訂袋收好了啊……」 | A 初始 camera 看向書架，書袋輕晃，玩家點開袋外熱區 |
-| **A02** shelves | 旁白：「袋子外面掛著『27』。裡面好像還沒放書，先不要亂翻別人的預訂品。」 | A `inspect` 袋外編號並 `pick` 布袋，得私有 `bag-label-inspected`，不預設已知取書單 |
-| **A03** counter | 店員：「欸，找到袋子了！麻煩先放這裡。對了，別替我打開別人要送的卡片。」 | A 移動至 counter，拖袋到空位，提交 `bag-at-counter`；若 I 未到可等待或聊天 |
-| **S01** counter／第一次交會 | 店員：「一張單是 27，一個袋也是 27。至少今天還有一件事沒被雨沖走。」店員：「一個人幫我找書，另一個幫我核對預訂紀錄，好嗎？」 | 條件 I 紙單已放、A 袋已放、雙方在 counter；**I 親按核對紙單、A 親按核對袋標**，兩份真提交完成後 `orderStatus=searching`、解鎖 I04＋A04（雙向分流），同框顯示雙方已採用化身 |
-| **I04** shelves | 旁白：「《海邊的雨天》，深藍色；《海邊的星期三》，淺綠色。單子只剩『海邊的』，選哪一本都有點像在猜雨量。」 | I 移至 shelves，可自由檢視兩本封面；書本與標籤具可點熱區，尚不能靠猜錯書直接完成 |
-| **I05** shelves | 旁白：「書名很接近，顏色也會騙人。先看看櫃檯有沒有傳來真正的訂單線索。」 | I 可以 `inspect` 兩書、查看自己探索紀錄、聊天；若 A 尚未分享，明示「等待另一份書名資訊」，不強迫切另一人的進度 |
-| **A04** counter | 店員：「我記得有本藍色的，但客人特別說要包綠封套。等等，我翻一下預訂簿。」 | A 親選 `talk-to-npc/query-title`，鏡頭聚焦預訂簿；NPC 不能自己在未操作時主動完成 |
-| **A05** counter | 店員：「找到了！第 27 號是《海邊的雨天》，七點半來拿。綠色封套我放窗邊，差點把兩本『海邊的』搞混。」 | A `inspect` 預訂簿得私有書名與封套線索；**A 親按「分享線索」**貼到共享便條板，觸發 `order-clue-shared`，才讓 I 得知正確書名 |
-| **I06** shelves | 旁白：「櫃檯的便條板多了一行：第 27 號，《海邊的雨天》，深藍封面，另包綠封套。這次終於不是猜謎。」 | 僅 `order-clue-shared` 後出現可提交的正確 `book-rain` 熱區；I 選書、錯書只提示重新比對，不修改終局 |
-| **I07** counter | 店員：「對，就是這本。還好你沒有被綠封面的那本騙走。」 | I `pick` 正確書、移到 counter `place`，更新世界 `book-rain=on-counter`；A 的進度不因此自動前進 |
-| **A06** window | 旁白：「窗邊的綠封套還是乾的，店員至少成功保護了其中一樣東西。」 | A 移至 window、`pick` 封套；雨滴持續移動，移動鏡頭而非切成新 Scene |
-| **A07** counter | 店員：「綠封套也到了。你們這速度，我可能該把店名改成『失物招領書店』。」 | A 將封套放 counter；只有正確書和封套都到位後才解鎖 `S02`，先來者不被假完成 |
-| **S02** counter→window→counter／第二次交會 | 店員：「好，書放進去就——欸，窗邊！標籤飛走了！」旁白：「一陣風從窗縫灌進來，第 27 號標籤滑到窗台。」店員：「一個先幫我按住書袋，另一個把標籤拿回來！」 | `S02` 首次合法觸發**一次**將 `order-tag-27` 從袋外移至 window；I 在 counter 親提交 `hold-bag`，A 親移到 window `retrieve-tag` 再返回 counter `place-tag`，全部角色提交與真物件狀態滿足才標記共享事件 completed；角色、紙張動效可見，不能 NPC 幫 B 完成 |
-| **I08** counter | 旁白：「書袋總算沒再逃跑。你壓著袋角，櫃檯那頭正在做最後確認。」 | I 留在 counter、可聊天／看書／檢視本人已知線索；`S02` 後**不推進 I 的 node**，待 A 核對完成再解鎖最終共同事件 |
-| **A08** counter／只回接受方 | 店員：「最後再看一下，這張標籤是 27，書名和綠封套也對。可以幫我確認一下嗎？」 | `S02` 完成後**只解鎖 A08**；A 親檢查標籤號碼、書本與封套 `verify-order`，提交 `order-verified`；I 保持 I08，兩人不被強制同步到相同節點 |
-| **S03** counter／第三次交會 | 店員：「太好了！第 27 號總算完整，客人來時我可以裝得很從容。」（門鈴響）店員：「這回真的有人來了。謝謝你們，想不想再各挑一張書籤當謝禮？」 | I／A 各自**親自**選擇 `look_back`（「再看一眼書架，替今天畫個句點」）或 `rest_chat`（「先休息，接著自由聊天」）；選項不會自行發送真人對話。雙方完成必要事件與意向提交後**立即判定** E01/E02，不額外開啟可互動尾聲 |
-| **E01** 再翻一頁 | 店員：「想再看一眼書架？好啊。今天真的多虧你們了！」旁白：「兩人回望書架，暖光落在一排書脊。這場雨天的小任務，正好在這裡畫上句點。」 | **兩人都選 `look_back`** 才進入 E01；短暫切到 shelves 暖光及雙人同框鏡頭，**沒有熱區、物件操作、自由探索或其他 Side**。隨後自然 `chapter.completed`，未完支線同交易封存；Round 仍 active、聊天可繼續，沒有額外「完成」按鈕 |
-| **E02** 雨聲裡的五分鐘 | 店員：「今天多虧你們。不急，坐著等雨小一點也好。」旁白：「書袋送好了，窗上的雨聲還在。接下來要說什麼，由你們自己決定。」 | 任一方選「先休息／今天先到這」則此 Ending；鏡頭靠窗、保留聊天但不自動送任何真人回覆，`chapter.completed`；不暗示已約好下一次見面 |
+| `sv3-01-approach` | I 在 `iv3-06` 親選 `concern`「你還好嗎？」、`tissue`「需要面紙嗎？」、或 `book`「這本好看嗎？」；A 已進入可接觸的閱讀角狀態 | A 才收到確切那一個選項的視覺分鏡；I 顯示「等待對方回應」，不偽造答案或重播搭話 |
+| `av3-07` A | 本人選 `open-up` 願分享一點**角色**心情、`books-only` 只聊書、或 `decline` 想獨處；若 I 選面紙，允許先道謝但仍獨立選是否聊天 | A 抬頭／擦眼淚／微笑／禮貌保持距離的視覺動作各有對應 Cue；未發送前 I 不可見 |
+| `sv3-02-response` | 系統只投影已提交 A 回應；I 必須自己選擇合理接話（理解／聊書／尊重獨處），不能自動代言 | `open-up` → `sv3-03-books`；`books-only` → `sv3-03-books`；`decline` → 兩人各自探索，保留外部雨情必達路線 |
+| `sv3-03-books` | 雙方各自可分享選過的書或類型；共同喜好導向共鳴、不同類型導向交換推薦，不需要互相輸入真實個資 | `sh-book-closeup` 雙封面與 `sh-corner-chat`；對方只看本人主動分享的書籍資訊 |
+| `sv3-04-smalltalk` | A 可說「我原本只是進來躲雨」；I 可選擇分享「今天難得準時下班」或不說；自由聊天全程可用 | 二人站位逐漸自然，表情依**實際已選回應**變化，沒有預設已相愛 |
+| `sv3-05-clerk` | 店員 NPC 拿書經過問候，兩人可各自回應或只點頭；若尚未認識，店員同樣自然路過，但不強制互動 | `sh-npc-pass`：NPC 有入場／表情／站位／離場的可見演出 |
+| `sv3-06-weather` | 兩人可繼續閱讀或聊天；當必要開場個人節點完成後，雨勢事件**獨立於是否搭話**可合法觸發，且每場僅一次 | 已認識者看到共同轉場；尚未認識者各自看到相應視角，但進入同一個雨情事件，避免「不搭話就卡關」 |
 
-**玩家意向的實際 UI 文案**（不以選項自動代另一方說話）：S01 選「我來核對紙單／我來核對袋標」按本人角色顯示；A05「分享：書名和綠封套」，I06「拿《海邊的雨天》」，S02 依 I／A 顯示「按住書袋／去窗台取回標籤」，A08「確認第 27 號訂單」，S03 雙方皆提供 `look_back`＝「再看一眼書架，替今天畫個句點」及 `rest_chat`＝「先休息，接著自由聊天」。前者是**純演出後直接 Ending**，不是繼續探索承諾；選項不是代玩家發出聊天。仍須顯示待辦／對方合作等待原因。
+**選擇語意**：搭話方式是 I 的已提交私有選擇，A 合法觸發後僅看到該方案；回應是 A 的選擇；只有回應已提交才揭露給 I。`decline` 不可被後續 NPC／事件偷偷改成「已同意聊天」，玩家可以之後主動再次接觸，但不重播同一搭話請求騷擾；開場等待可讀書／聊天／中性提示，不把另一人離線當作同意或拒絕。
 
-#### 3.8.4 交會、分流及條件契約（應轉成 EventBinding）
+#### 3.8.5 第三段：雨勢、低窪入口進水與安全合作救書
 
-| Binding／事件 | 可觸發條件與行為人 | 成功後轉移及必須保持的事實 |
+| Shared／節點 | 業務事件與必要動作 | 受控畫面、NPC、世界狀態 |
 |---|---|---|
-| `inspect-slip`（I） | I 在 entrance，`pickup-slip-27` 可見，親自 flip | 記錄 I `slip-inspected`，只解鎖 I03 |
-| `inspect-bag`（A） | A 在 shelves，`reserve-bag-27` 未被他人持有 | 記錄 A `bag-label-inspected`，只解鎖 A03 |
-| `S01/counter-meet`（Shared） | I／A 都在 counter，`slip=on-counter`、`bag=on-counter`，雙方各自核對提交 | `orderStatus=searching`；**雙方各自**解鎖 I04／A04，不冒名推進任何人的未完成操作 |
-| `share-order-clue`（A→I） | A 在 counter，已經過 NPC 正式驗證書名 | A 主動分享後形成共享線索 `order-clue-shared`；I06 才可拿正確書，不把 A 的所有私有 NPC 對話暴露 |
-| `deliver-book`（I） | I 在 shelves 選 `book-rain` 且共享書名已解鎖，移到 counter 正確槽 | `book-rain=on-counter`；不修改 A 的進度 |
-| `deliver-sleeve`（A） | A 已詢問店員、在 window 取得 `green-sleeve` 並移到 counter | `green-sleeve=on-counter`；不修改 I 的進度 |
-| `S02/wind-rescue`（Shared） | 正確書、袋、封套在 counter，雙方已完成 S01；I/A 可在各自 Area 操作 | 第一次啟動才移動一次標籤；I `hold-bag`，A `retrieve-tag`＋`place-tag` 都完成後才結算；`S02` 完成**只解鎖 A08**，I 保持 I08 |
-| `verify-order`（A） | `S02` completed、A 在 counter，書／封套／標籤 27 均已就位 | A 親自 `verify`，設定 `orderStatus=verified`；解鎖 S03，不假裝 I 親手核對 |
-| `S03/final-exchange`（Shared） | `S01`＋`S02`＋`verify-order` 均完成、雙方可以在 counter 觀看已驗證訂單 | 雙方獨立提交 `finalPreference=look_back|rest_chat`；**都選 `look_back` 才 E01，其他組合 E02**。兩結局均在雙方實際操作與必要 predicate 全滿足後自然完成 Chapter／同交易封存未完 Side；E01 僅是鏡頭回望書架，不解鎖新互動、也不需要追加結束提交 |
-| 可選探索（Side） | I／A 可各自檢視不同書腰、收銀台提示、窗外雨痕 | 可增台詞／鏡頭／表情但不能搶占 `repeatGroup`、改主要 Ending 必要事實或阻塞 S01～S03 |
+| `sv3-07-downpour` | 大雨再度增強、窗外路面積水，玩家可查看窗景 | `sh-window-downpour`，雨勢層級 `heavy`；兩視角一致，音效漸強 |
+| `sv3-08-seep` | 因書店入口地勢較低，水從門縫滲入；店員察覺異常，提醒先避開門口 | `sh-entrance-seep`、店員走向門口／擔憂、地板水層從 `dry` → `seeping` |
+| `sv3-09-safe` | 店員先確認出口／電器危害，要求兩人移到乾燥安全區，並通知有能力處理進水的人；危險區域停止一般探索 | `sh-npc-safety`、`sh-safe-shelves`；角色移位由真人完成或經已發佈的安全導覽，不讓玩家涉水靠電 |
+| `sv3-10-help` | 店員說：「明天讀書會要用的預留書還在乾燥書架，能不能幫忙找出來，先放到高處？」玩家可各自接受安全的書籍整理任務 | 店員面向兩人求助的立繪與手持清單；兩位玩家的承接動作不能被互相代提交 |
+| `iv3-07` I | 查看乾燥書架中多本原創封面，與 A 分享自己看到的書名／分類 | `sh-safe-shelves`，點書放大特寫；正確書實物狀態可被權威拿取 |
+| `av3-08` A | 查看店員的讀書會預留清單，取得與 I 互補的分類、封面或識別線索；按分享才提供另一方 | NPC 傳遞清單的可見短演出；清單特寫，A 私有線索 → 主動共享 |
+| `sv3-11-find` | I/A 分享必要線索後，兩人核對清單與書封；錯誤書可恢復、提示重比對，不永久鎖死、不洩漏未分享私有答案 | 兩本對照 UI／書封特寫；正確書被合法選中且可見 |
+| `sv3-12-pack` | I 親自把書放進乾燥收納箱；A 親自核對數量／標籤並把物品放到高處；店員 NPC 也在安全區整理自己的書，但**不代兩位真人完成必須的操作** | `sh-rescue-books` → `sh-storage-ready`，物件 `at-shelf→held→in-box→on-high-shelf` 與唯一持有人／CAS 同交易 |
+| `sv3-13-relief` | 書已安全收好，雨勢與滲水停止增加，外部協助到場；店員確認危險解除後道謝 | `sh-rain-eases`、水位 `stable`、NPC 放鬆／微笑；不可憑動畫播放完成進度 |
 
-**轉移語意再確認**：`S01` 結算時兩人回自己的不同 Node；`S02` 結算時 **I 保持 I08、只釋出 A08**；`S03` 再次匯合並以兩個真選擇決定收尾。`unlockNodes` 不是直接寫入對方 `current_node_id`，不得把「看見提示」當成「完成節點」。同一個 StorySession 內可有數次交會且沒有第三位玩家進度；即使 A 先完成所有可用單方節點，I 尚未完成時仍能恢復到本人最後位置與待辦。
+**安全邊界**：淹水只發生在低窪入口，任務目標必須仍在**乾燥、安全、遠離電源與積水**的區域；若水位超過安全門檻，必須改撤離／中止整理而不是要求玩家救書；不得教授玩家冒險涉水操作電器。地板水、書籍、箱子、水位狀態由受控共享世界保存，不能兩端各自假定。重要：曾選擇不搭話／婉拒的角色仍可因共同安全任務建立工作上的互動，**不能將此解讀為接受私下交友邀請**。任一方暫離時，已提交的個人／共享進度持久保留，允許安全的個人探索但不冒名完成合作。
 
-**E01／E02 的權威結算時序**：S03 第二位玩家的合法最終意向提交當下，Server 在同一次 D1 交易決定 Ending、設定 `chapter.completed`、封存未完成 Side 並保存 receipt／eventSeq；**Client 收到成功權威結果後**才播放 E01 書架回望或 E02 靠窗的短鏡頭。動畫可略過／失焦不重播，也不另送「完成」命令。畫面在動畫完畢後呈現已完成狀態、保留 Round 聊天；若提交失敗則不得先播出成功結局。
+#### 3.8.6 收尾：三種以雙方選擇決定的咖啡結局（V3-RQ-04=A，使用者已確認）
 
-#### 3.8.5 演出 Cue、對話節奏與素材限制
+危機解除後店員真實走到桌邊端兩杯咖啡致謝（`sv3-14-thanks`、`sv3-15-coffee`）；咖啡不代表兩人願意交往或必須喝。兩位玩家各自對 `sv3-16-final-wish` 提交三選一：`keep-talking`（想再聊聊）、`share-books`（聊書就好）、`quiet-rest`（想獨處）。本人的意願在提交前不向對方展示，不冒充真人回覆。
 
-| Cue ID／使用點 | 具體舞台表現 | 限制／降級規則 |
+| Ending | 雙方真人選擇 | 實際不同的劇情畫面／NPC／互動 |
 |---|---|---|
-| `amb-rain-window`：四個 Area | 雨絲隨時間落下、玻璃水痕緩慢往下滑、室外反光有幅度；非單純靜態雨線淡入淡出 | 環境微動開關可以完全停止，回前景先驗 Session；不因關閉而隱藏劇情關鍵物件 |
-| `fx-doorbell`：I01、S03 | 開門門鈴短音；門口→櫃檯有短鏡頭移動 | 失焦與重連不自動重播、音效不觸發 D1 |
-| `fx-paper-flip`：I02 | 玩家點後紙張在自身中心區域翻面、鏡頭放大可讀「27」；完成後原物件仍在該位置直到真提交 | 若翻面動畫略過仍可看到可讀資訊，不要求額外畫成角色伸手 |
-| `fx-character-meet`：S01、S02、S03 | 只有兩個已採用的全身化身在合理 counter anchor 同框；鏡位切換、先後靠近、五表情 neutral→surprised→smile | 只用已正式採用的五表情／anchor／裁切；沒有 approved 新姿勢素材時不能假裝伸手、接物、牽手 |
-| `fx-clue-board`：A05 | 貼出便條板、I 端「新共享線索」標記，書架中正確書的合法熱區才被啟用 | 未分享前不在 I 端預先顯示正解；失敗不顯示綠勾 |
-| `fx-gust`：S02 | 一次可見的風聲、窗邊雨聲增強、紙標籤沿明確路徑從袋外飛到窗台；鏡頭依 Area 看到其新位置 | 物件狀態移動由 D1 一次性提交，重播動畫不能重移物件、不得複製標籤 |
-| `fx-hold-and-retrieve`：S02 | I 端袋子被固定、A 端窗台標籤可拖回櫃檯；各自呈現等待另一人的提交 | 不需兩名真人同秒操作，A 斷線／回來仍保留已提交的 I hold，不以 NPC 代完成 |
-| `fx-ending-shelf/window`：E01/E02 | E01 只有一次短暫書架暖光回望／同框，E02 靠窗雨景與店員收尾；五表情／既有 anchor 演出 | 播放可跳過、失焦重連不重播已完成 Cue；**兩種 Ending 都立即完成**且未完 Side 封存、聊天仍可用；E01 不回到可操作的 shelves Area，不顯示新熱區 |
+| `ev3-01-more-talk`《雨停之前，再聊一會》 | 雙方都是 `keep-talking` | 同桌靠近、鏡頭拉近、互動對話提示；沒有自動告白、約見或聊天訊息 |
+| `ev3-02-book-recommendation`《留下一本書的名字》 | 雙方都不是 `quiet-rest`，且至少一方選 `share-books` | 已選兩本書真正出現在桌上、可互相推薦，鏡頭轉向書籍；沒有強制私人話題 |
+| `ev3-03-gentle-distance`《剛剛好的距離》 | 任一方選 `quiet-rest` | 雙方分坐舒適位置、窗雨／舒緩音樂、保持自主聊天；NPC 不強迫交談 |
 
-**文本節奏**：單段對話以一至兩句短句為主；NPC 每次不連續念長段規則，動作提示顯示在可互動物件附近；重要線索採有圖的物件特寫、已知線索卡或共享便條板呈現，不能只藏在已過去的旁白。玩家若切離再回，應看得見「目前要做什麼、由誰完成、在哪個 Area」的簡短摘要。視覺演出不是每次點擊都跳 modal；合法結果由 WorldState 決定，等待可暫停、聊天或檢視已有事實。只在有正式素材及 renderer 的情況發布；缺關鍵物件動畫的版本不得以純文字替代後標記 Gate B 通過。
+三種版本的對白、分鏡、座位、表情、書本互動與 NPC 動作都要不同，不能只替換末段文字。都以「雨漸小、未來還有下一頁」的意境自然 `chapter.completed`，聊天室／下一場雙方同意／退出維持原有規則。單方先選時不結算，不強迫等待中的玩家停用聊天；第二人提交時 D1 原子決定唯一 Ending。若水災超過安全條件，先走 `safety-exit` 撤離版本而**不得端咖啡留在危險書店**，此為安全後備，須獨立驗證可達收尾、不使雙人死鎖。
 
-#### 3.8.6 逐劇情驗收案例：必須從實際故事而非只測引擎
+#### 3.8.7 嚴格內容／API／DDD／資料／渲染器變更契約
 
-| 劇情案例 ID | 具體輸入／場景 | 必須看見的結果 |
+1. **內容優先**：`contracts/scene-event-content.json` 改指向新的 V3 Scene／Narrative 來源；原 V2 仍為已釘選 Session 的歷史版本，未重新發佈的新遊玩不再選中舊 Narrative。新故事每個節點寫明 `nodeId/role/areaId/lines/shotId/actorCues/hotspotIds/transition`；需要同一節點多 Shot 時用有序 `presentationSteps`，有權威前置／成功後可見性。把每個 `sceneBeat` 的素材需求記在 Manifest 而不是程式硬編碼。
+2. **擴展共用 2.5D 契約**：現有 `scenePresentation.backgroundAsset`、`cameras`、`hotspots` 和 `presentationSteps` 只有單背景／有限角色／物件／音效能力，V3 建議新增嚴格型別的 `shot`（背景／前景／圖層／camera／lighting／weather）、`npc`（可見 NPC ID、站位、表情、有限動作）及 `stageTransition`（鏡頭切換／淡入淡出／疊層切換），每一動作都必須是已發布白名單。新 `book-browser`／`weather-layer`／`coffee-service` 優先做**可重用 renderer**，不為書店直接寫特殊 UI；發布工具及 Client 共同以 Manifest 驗必要素材和狀態。
+3. **NPC 實體表現**：目前 `npcs[]` 僅是互動目標，`trackPresentationStepSchema` 的 `character` 只支援真人兩個 role，V3 需要 NPC 專用 actor 及固定映射，不得以一張站立圖冒充端咖啡／走路；若無已核准的動作資產，改採合法鏡頭／遮擋／物件切換的有限演出，畫面仍需真能看見 NPC 與動作因果。NPC 不持有真人 Progress，不另建第三個玩家 Track。
+4. **角色情緒與姿態（V3-RQ-06 已確認）**：使用本人已選的全身 Master 及版本化 `ActorRigPackage`，透過通用骨架／局部臉部參數表達五種情緒、坐著閱讀、抬頭、持書與淚光。原來五張整圖是 V2 歷史路徑，新 V3 不要求每個動作重新生圖；Rig 不足的大幅坐姿僅首次補必要合法 pose，仍須保留角色身份及正確桌椅遮擋。運行期 **Gemini 0 次**，不因外表性別設定表情。
+5. **安全、隱私與同步**：`StorySession` 保留兩筆 `StoryParticipantProgress`；角色個人選書／情緒／搭話／回應存在受控 EventInstance／角色事實，已分享的書與公共水位／物件放在既有 `world_state_json` 可驗證的有限 flag／object state。每次本人動作走原有 `story.event.submit`、`expectedRevision`／`clientRequestId`／D1 CAS、`game_round_events`／HTTP snapshot／WS hint；投影只回本人可見 Shot／Cue／NPC 狀態、已公開世界與確實被分享的資訊。**目前沒有證據必須新增 D1 資料表**；先列零新表方案，若現有 JSON 尺寸／交易模型不夠再提出具體差異與回歸。
+6. **API 提案**：優先沿用既有 `GET /api/v1/game-rounds/{roundId}/experience` 與 `POST /api/v1/game-rounds/{roundId}/story/event` 的身份驗證／回覆，擴充已發布內容與 actor-scoped snapshot 的 `stageShot`／`npcStates`／`environmentState`／`availableBookInteractions`；不設任意 asset URL、任意 client cue 或另一套 NPC API。請求仍是 `bindingId/actionId/params/expectedEventRevision/expectedTrackRevision/expectedSharedRevision/clientRequestId` 的現有受控欄位；精確 DTO 名稱需實作前由既有契約校正，不盲目宣告新增路由。
+7. **失敗處理**：非法分支、未同意的搭話代答、尚未公開的私有選書、無效角色姿態、缺圖／音效／NPC 或跨視角素材矛盾，發布端拒絕。提交失敗／競態／斷線先恢復權威 Track／World／NPC 狀態，撤銷本地成功動畫，不自行改 request ID 重送；背景／失焦不自動重播音效或劇情動作。音效保留獨立環境與事件生命週期。
+8. **素材存放與成本**：R2 使用新版本 immutable SHA，仍採共用的正式素材一份與必要 Manifest；書封／試讀全部採原創或有授權文字／圖像，避免未授權複製既有書籍。素材預製，劇情運行不生成圖片或 NPC。iOS 依既定 MVP 暫緩；Web／Android 均要以實際畫面與真操作驗收。
+
+#### 3.8.7A 多區域場景內嵌式互動（V3-RQ-05=A，使用者已確認）
+
+**最新使用者設計要求**：書店各區域要有專用背景、保持同一書店的空間與畫風；書籍、桌面、NPC、箱子、咖啡杯等物件必須**在場景中的原位出現，點選物件本體才啟動抽出／展開／打開／收起等動畫**。禁止目前漂浮感強的通用圖形卡片、發光 `✧` 熱區與前景貼圖。
+
+- **分區專屬素材**：入口、書架、閱讀角、櫃檯、乾燥儲藏、窗邊咖啡分別有環境基底圖、近／遠景、可互動物件分離圖層、前景遮擋、接觸陰影、鏡頭、雨與光源。統一店內地圖／書架位置／家具／NPC 外觀，不是同一張全景硬裁切，也不能不同 AI 生圖導致場景穿幫。
+- **物件嵌入與點擊**：在 JSON 配置 `areaVisual` 與 `embeddedInteractable` 的 `objectId/assetId/depth/anchor/hitShape/occlusion/visibleConditions/interactionPreset`；讓書脊嵌在書架，NPC 腳底貼地，杯子貼桌面，位置隨相機、裁切和不同螢幕精準轉換。隱形觸控範圍代替常駐大按鈕；首次教學、hover／長按才可顯低干擾引導。
+- **場景內轉場動畫**：點書脊→書本從原位抽出→鏡頭放大→打開封面／原創試讀→關閉／放回；點 NPC→轉頭／表情→對話框；拿書→真實離架→拿在手中→放箱→放高處。動作進度與權威 D1 狀態綁定，失敗不得先播放成功動畫。
+- **避免穿幫**：移走物件後背景有正確空位／遮罩底圖；人物在椅背、桌面後方要被遮擋，腳底與接地陰影、透視比例／色溫一致；雙人視角讀相同世界狀態，不可 A 拿走書後 B 仍在書架看到。
+- **可重用 Renderer 與 Gate**：以通用 Area Stage、Embedded Interactable、Animation Preset 配置，未知圖層／動作／資產拒發；真 Web/Android 驗每區點擊精準、開闔回位、角色遮擋、背景無殘影、素材與鏡頭一致，不寫雨聲書店專屬 React 分支。
+
+#### 3.8.7B 玩家與 NPC 姿勢／表情可重用化（V3-RQ-06=A＋C，使用者已確認）
+
+目前 `StoryPortrait` 主要切換五張完整角色圖片、`StoryStage` 以平移角色呈現動作；缺少真坐姿／閱讀／端杯／持書。建議抽象 `ActorMotionRenderer`，玩家及 NPC 都透過 `actorId + rigVersion` 和可宣告 `pose/expression/gesture/lookAt/propAttachment/position` 的 Cue 演出；劇本無需按劇情反覆生圖。
+
+| 技術方案 | 可行做法 | 風險／取捨 |
 |---|---|---|
-| `RB-01` | I 與 A 首次進場，兩人不同速度 | I 在 entrance、A 在 shelves，兩端有各自台詞、Area 與獨立 revision；I 先到 counter 不能將 A 跳至 S01 |
-| `RB-02` | I 只看濕紙、A 只看袋 | I 只知殘存的「27／海邊的」、A 只知袋外 27；未提交分享前不能看對方的私有資訊 |
-| `RB-03` | S01 只有 I 確認、A 離線後再回來 | S01 不完成、I 的真人提交保留；A 回線親確認後才解鎖 I04＋A04，沒有自動投票／代按 |
-| `RB-04` | A 尚未分享書名，I 點兩本書 | 只能查看不能直接硬猜使主線完成；A 分享後 I 才能合法選取 `book-rain` |
-| `RB-05` | I 將錯書 `book-wednesday` 試放櫃檯 | 可還原的錯誤提示，錯誤操作無永久 WorldState／Ending 副作用，可重新選擇 |
-| `RB-06` | A 先到 window 取得封套，I 還在找書 | 只有 A 物件、進度更新；S02 仍不啟動，I 後續可繼續玩自己的節點 |
-| `RB-07` | 兩人到 counter 觸發 S02、A 突然離線 | 風只吹一次、標籤真實位置持久；I 的 hold 持久，A 重連後可去 window 取回；不能假裝另一人完成 |
-| `RB-08` | 接受方 A 同一帳號兩裝置／重送同時取回唯一標籤，或邀請方 I 越權試圖取回 | 只有 A 的一次合法操作可成功；I 的越權請求拒絕，舊版次返回 409 重新同步；標籤不複製、S02 不重演 |
-| `RB-09` | S02 completed，I／A 進度不一致 | **只 A** 取得 A08 核對事件；I 留 I08 可聊天，A 核對後 S03 才解鎖 |
-| `RB-10` | S03 I 選 `look_back`、A 選 `rest_chat`（或反向） | 一律 E02，兩人真選擇各記一次；章節自然 completed、未完成 Side 封存、Round active／聊天保留；不能偽造雙方同意回書架 |
-| `RB-11` | S03 雙方都選 `look_back`（「再看一眼書架，替今天畫個句點」） | E01 播放一次書架暖光／同框短鏡頭，**不可操作新物件或支線、不要求結束按鈕**；主線自然 completed、未完 Side 依 `SEF-RQ-02=A` 封存、Round active 且可聊天 |
-| `RB-12` | 重送同 requestId、不同 payload、切後台、重新開啟、退出 | 冪等、409、授權、進度與世界狀態一致；不重播已完成動作、不漏個人線索、不重新生成表情、不讓結束 Round 再操作 |
-| `RB-13` | 關閉環境微動後執行 S02 | 雨絲循環停止，必要的「標籤飛走／取回」劇情演出及物件狀態仍可正確感知與操作 |
-| `RB-14` | 真 Web／Android 由雙方不同人操作整個劇本 | 從 I01/A01 到 S01→分流→S02→僅 A08→S03→E01/E02 的所有必經操作、台詞、音效、鏡頭、五表情／Area 都與本文一致；使用者人工 Gate B 確認「有趣、自然、確實可玩」才放行其餘九條 |
+| A：**2D Puppet 分層／骨架** | 從正式全身 master **一次性**分離頭、臉、軀幹、手、腿、髮與眼／嘴局部貼圖，套用通用骨架、網格、微動與表情參數 | 最能保原本 2.5D 視覺，但原圖被遮住的身體結構不會自動出現，需一次性補圖及 rig 品質驗證 |
+| B：**標準化 3D humanoid** | 共用骨架、動畫與 BlendShape，每角色另做 3D 外觀 | 連續站、坐、走較自由，但從個人照片或免費插畫保真建立 3D 外觀成本高，與目前畫風差異大 |
+| C：**少量離線專用姿態＋局部動作** | 每角色有站立／坐著／看書／持書少量姿態，臉部與呼吸／眨眼用局部動畫、鏡頭補間 | 較容易控制品質，但姿勢增加會隨角色增添素材，動作自由度有限 |
+| D：**Live2D／Spine 專業逐角 rig** | 將每角色圖像正式分層與網格綁定，再重用動作模板 | 視覺品質高但逐個使用者 AI 化身 rig 成本可觀，單張 PNG 無法自動生成自然全姿態 |
 
-**首條故事的交付門檻**：故事內容版本、每個 Node/Binding 的 ID、台詞、熱區、操作參數、共享狀態、演出 Cue、雙人等待、兩種 Ending 和上述 `RB-01～RB-14` 必須互相對得起來；新增／調整台詞或事件必須同步更新實際發布的版本化 Manifest 和 BDD／TDD 的案例追溯。本文是審稿用 SDD；技術測試通過不等於台詞與趣味由使用者人工認可。Gate B 未通過不能製作其他九條正式主線。
+**正式選型：V3-RQ-06=A＋C（2026-11-17 已確認）**。以全身 Master 為身份基礎，只在新角色建立／首次採用流程做一次性可重試的分層、遮擋補圖、骨架綁定、局部眼口表情製作和必要的 `sit/read/hold` 姿態，建立已驗證的不可變 Rig Manifest。保留 `neutral/smile/surprised/thoughtful/concerned` 五種**表情語意**，透過臉部局部參數／貼圖和骨架狀態實現，**不要求各五張完整全身圖，也不在劇情每段產新圖**。`idle/blink/read/sit/tear/turn/hold/smile` 使用預製曲線／rig／姿態資產；書籍道具掛載到合法手部錨點，角色與椅子／桌面互相遮擋。正式編輯素材後先由使用者真機／Web 驗一款原免費角色及一款 AI 角色，再完成其他角色；免費 16 款原上半身與 ID 保留。高角度轉身、深坐姿等單張平面 Master 不足處，允許於初次建檔一次性補姿態，不假稱骨架可憑空生成看不到的部位。
+
+**Rig 完成判斷與失敗策略**：`ActorRigPackage` 以 `(avatarAssetId, sourceHash, rigSpecVersion, expressionSpecVersion)` 為唯一建檔版本，宣告 `layers[]`（素材 ID、SHA、尺寸、alpha）、`skeleton`（joint／mesh／binding）、`posePresets[]`、`expressions[]`（五語意狀態及可驗 face cues）、`propAnchors`、`stageAnchors`、`validation` 與 `ready`。正式 AI 資源放本人私人 R2、免費角色版控公用索引；後端依原有登入／角色採用授權傳可讀投影，不洩漏他人私人 R2 key。首次建檔容許受控重試失敗分層／動作；**ready 後的選角、切表情、進場、聊天、斷線、切回角色都只讀不可變包，Gemini 呼叫數須為 0**。Rig 缺層、hash 不符、角色身份漂移、動作／表情品質未通過都不得 `ready`。版本變更與原 ready 角色不混包；測試前不自動清除既有正式或未知環境資料。原 `AvatarAndPreferences`／`StoryDialogueAndExit` 五張整圖式 ready 契約須在 V3 BDD/TDD 一併改成新 Rig 完成條件，**仍保留相同或更嚴格的防缺圖、防混角、防重產、五情緒與 Web／Android Gate**；本 SDD 不是已實作。
+
+**SEF-V3-RQ-01=B（2026-11-17 使用者已確認）：Rig 儲存容量採品質優先、受控增加**。個別 AI Rig 的正式私人 R2 bytes（Master、必要 layers／遮罩／Pose／Manifest、不可回收的合法衍生資產）**允許超過同一角色原本五張完整全身表情圖**，不可再以「必須不高於五圖」作為 ready 或內容發布的阻擋條件。**仍必須**以每個角色的舊五圖 bytes 當比較基線，量測新版總 bytes、圖層及短效素材去向、生成／重試次數、完成等待、共用素材去重、R2 成本與異常警戒，禁止無限制增加圖檔／為每個表情或劇本產整張人物圖；不存在合法 owner/reference 的孤兒資產才可依受控流程清理，不能清除已 ready 資產或跨帳號檔案。人臉相似度／解析度／五情緒／自然動作／Web 與 Android 品質 Gate 不得因成本降低；遇容量增加但品質達標，可受控採用並保留容量成本紀錄，不自動卡在舊基準。警戒值需要實際觀測後訂定，**未授權設定具體比例或金額上限**。此為製作與交接契約，並非已量測或實作。
+
+**與 MVP-005 相容界線（2026-11-17 核對）**：本期 V3 角色可從已核准的完整全身 AI Master 建立 Rig，但未來 `MVP-005-AvatarWithDating.md` 要改成「AI 只生臉、身體／衣服共用拼裝」，應讓 `ActorMotionRenderer` 接受不同版本的身份來源（本期 `ai-full-body`，未來 `ai-face-only`）與統一動作 Cue；不能在故事內容寫死每位玩家一套全身圖／五套表情。共同骨架與動作／服裝素材應可跨玩家共用、個人只存身份相關素材和選件設定；原畫畫風／臉部辨識／五情緒語意／正式就緒 Gate 不降級。**這是未來擴充接縫，不宣告本期已實作捏臉、換裝、AI face-only，也不能保證拆層後一定比原五張圖省容量**。實際相容性、資產 byte 數與臉／衣服接縫品質依 [AvatarAndPreferences](SPEC-001-AvatarAndPreferences.md) 首輪 Gate 實測。
+
+#### 3.8.8 V3 驗收門檻、風險決策與 SDD 人工確認
+
+| V3 驗收標記 | 明確可測結果 |
+|---|---|
+| `V3-AC-01` | 兩人各自獨立進店，I 下班和 A 避雨的時間線一致；各有街景→入口 Shot／店員迎賓／雨聲門鈴音樂，合法 Area 導覽與本人投影；各自進度不可互推；缺開場素材拒絕發布 |
+| `V3-AC-02` | 各種類原創書籍可從書架**原位書脊**點擊、抽出、翻封面／摘要／試讀、關閉復位；已選書籍先私有、本人分享才公開；書種與情緒主題要相容，反覆預覽不構成事件提交 |
+| `V3-AC-03` | A 可以選已發布原創書籍的**虛構角色情緒共鳴**或中性「純粹感動」，不可推定玩家真實經歷或更新 Profile；閱讀角坐姿、眼淚和 I 所能看到的可見行為符合先後順序，私有原因不得外洩 |
+| `V3-AC-04` | I 可自選靠近／不搭話，靠近時有關心、面紙、聊書三種**不同場景演出**；A 由本人選願談心／只聊書／拒絕，婉拒後不強迫私人聊天；送面紙與道謝不等於同意交往 |
+| `V3-AC-05` | 已搭話／未搭話／婉拒的雙 Track 都可前進到共同雨情，任一方快慢、離線、重連與換機保持獨立進度、Area 與 Revision；不得代選、互等死鎖、假訊息或越權提交 |
+| `V3-AC-06` | 店員 NPC 有固定可見人物、立足位置和一致外觀；迎賓／路過／玩家點人物本體交談／察覺進水／安全指引／整理書及端咖啡都要有合法姿態與道具演出，不冒充真人訊息 |
+| `V3-AC-07` | 大雨到積水、門口滲水、救書後雨勢漸小均有合法音畫與兩端共同世界狀態；危險區停用探索與整理，超過安全門檻強制走撤離路線；僅安全乾燥區能操作書籍，不能靠近積水電源 |
+| `V3-AC-08` | 店員預留書單和書架原創封面提供互補私人線索，真人主動分享後才公開；錯書可重選；I 找書入乾箱、A 核對與移到高處皆本人實際操作，物件位置和 D1 CAS 原子一致，NPC 不代通關 |
+| `V3-AC-09` | 救書完成後雙方真人各選最終意願；都想再聊→同桌；至少一人聊書且均不想獨處→雙書推薦；任一方想獨處→保持舒服距離；三結局有**不同鏡頭／NPC／道具／人物距離**，危險時優先 safety-exit，completed 不結束 Round（V3-RQ-04 已確認） |
+| `V3-AC-10` | 每個必經 V3 節點與過場均有可發布合法 Shot、NPC、音效、書籍／物件／角色 Cue，Publisher 拒絕缺素材或未知動作；新 V3 內容 SHA 與舊 V2 Session immutable 分離；必經首條 Web／Android 人工 Gate B 達標之前不做其餘九篇 |
+| `V3-AC-11` | 同一書店各區有專屬但一致的背景與圖層；書籍／NPC／道具在原位可點並實際抽出／開啟／交談／拿放／復位，鏡位、遮擋、陰影與多人世界狀態正確；不顯示漂浮熱區；必經素材不齊拒發（V3-RQ-05 已確認） |
+| `V3-AC-12` | V3-RQ-06 已確認 2D Puppet Rig＋少量預製姿態：一款免費與一款 AI 可自然從站立→坐下閱讀→抬頭／流淚→持書；五語意表情由局部 Cue／rig 呈現且身份不漂移；首次建檔／ready Rig Package 驗證素材 SHA、遮擋、動作、跨裝置授權；ready 後切換、重連、進場及動作不呼叫 Gemini，原 Gate 防缺包／混包不退化 |
+
+**跨規格責任**：SceneEventFramework 負責 Shot／NPC／World／事件、Publisher 與安全投影；StoryDialogueAndExit 負責 ADV 舞台／`ActorMotionRenderer`／五種表情語意／對話框／聊天與收尾 UI；AvatarAndPreferences 依 V3-RQ-06 提供正式 `ready ActorRigPackage` 及首次建檔流程。新 V3 驗收須同時通過角色一致性、分鏡視覺與 Web／Android 真雙人操作。舊 `rain-bookshop-last-order` 測試可保留作版本回歸，但**不能拿既有 v2 的綠燈取代本版 V3 測試**。
+
+**雨聲書店 V3 SDD 決策記錄（2026-11-17）**：使用者明確確認 V3-RQ-01／02／03 全部採 A；V3-RQ-04／05 採 A、V3-RQ-06 採 A＋C。**六項均已正式確認**，不是只把建議寫入。
+- **V3-RQ-01=A（已確認）接觸與拒絕**：採接受方選擇獨處後停止私聊推進；即使因淹水共同協助，也只推進安全合作，除非雙方之後主動開始聊天。
+- **V3-RQ-02=A（已確認）感動原因**：採用**虛構角色情緒**與中性選項，無需玩家真實隱私；書籍類型改變演出和可選共鳴，不要求把「選了失戀」寫進玩家 Profile。
+- **V3-RQ-03=A（已確認）書店進水安全**：採只在門口積水，救書限乾燥安全區；危險狀況優先撤離，絕不以玩家身體涉險作任務。
+- **V3-RQ-04=A（已確認）多結局**：正式採用三種以雙人意願決定的咖啡結局：同桌深入聊天／交流選過的書／保持舒服距離；每種實際分鏡、道具、人物與 NPC 不同，危險進水時優先撤離，見 §3.8.6。
+- **V3-RQ-05=A（已確認）場景與物件融合互動**：分區專屬且一致的書店環境，所有書／NPC／箱子／咖啡融入背景原位，點擊本體才播放抽出／閱讀／交談／拿放／返回動畫，不能漂浮在背景前。詳見 §3.8.7A。
+
+- **V3-RQ-06=A＋C（已確認）角色動畫架構**：正式採「2D Puppet 分層骨架＋少量一次性預製姿態」，保留五語意表情，但改由臉部局部動畫／表情狀態呈現；一次性 rig 建檔且品質檢核通過後保存不可變套組，不再按表情／劇情即時生成全身圖片。玩家與 NPC 共用可控動作介面；免費 16 款原畫保真。`AvatarAndPreferences` 與 `StoryDialogueAndExit` 的舊五圖式 `ready` Gate 需同步修改，不能忽略跨規格契約與測試。詳見 §3.8.7B。
+
+本節已將 V3-RQ-01～06 與 `SEF-V3-RQ-01=B`（Rig 容量可在品質優先前提下受控增幅）正式回寫，**未修改程式／R2／D1／角色資產**；最新 BDD 191 場／TDD 875 項（新 V3 70 場／250 項）、12 風險與 10 GAP 已追溯並完成 Phase 5 規劃交接。既有 V2 技術驗證及 Gate B 不能代替新 V3 真實驗收。
 
 ## 4. 資料結構（D1 + Immutable R2）
 
@@ -322,30 +351,30 @@
 
 實際發布需要完整 EventDefinition、Scene 物件、合法 state 轉移、所有節點台詞與資產釘選；上述縮寫不能繞過 Publisher 驗證，更不能由 Client 指定 actor 或任意下一節點。
 
-### 4.4 與全身角色／五表情／2.5D 舞台的整合契約（2026-11-13 影響稽核）
+### 4.4 與全身角色／五表情語意／2D Puppet／2.5D 舞台的整合契約（2026-11-17 V3 修訂）
 
-本節承接原已確認的全身角色／五表情／2.5D 基線；本輪新增場景移動、人物站位、可見物件操作與兩種動效；原 B1 和人工 Gate B 不降低，也不再把「只能演出固定五張表情」誤當能自然做伸手／行走等動作。
+本節將原已確認的全身身份、五種表情**語意**、2.5D、B1 安全與人工 Gate B 品質保留，但**V3-RQ-06 已正式取代「一定需五張完整全身表情圖」的實作手段**：由首次建檔的 `ready ActorRigPackage`（分層骨架＋少量預製姿態）驅動新版人物演出，場景原位點擊／遮擋則依 V3-RQ-05；此為設計，現有 V2 程式需在 Well-Done 與 BDD/TDD 更新後受控遷改。
 
 | 來源 | 權威與擁有者 | SceneEventFramework 使用規則 |
 |---|---|---|
-| Scene 2.5D 背景／透明前景／鏡位／光色／熱區／音效 | Published Scene Manifest（`scenePresentation.version=2.5d.v1`）；呈現由 `StoryStage`／`story-stage-geometry` 負責 | 原 `scene-01/v2` 清空桌面背景、透明桌面前景與共用 cameraFrame、`cameras/hotspots/audioCues` 不得退化；場景空間資產不可被移至只屬單一主線的資料 |
+| Scene 分區背景／圖層／鏡位／內嵌點擊區／音效 | Published Scene Manifest（V3 `areaVisual/embeddedInteractable/interactionPreset`），由 `StoryStage` 與共用 Scene Renderer 處理 | 不同 Area 使用一致空間設定下的各自環境圖、可移除物件、前景遮擋與光影；不常駐顯示 `✧` 浮動熱區，點物件本體才有對應書本／NPC 動畫；V2 舊背景只是歷史資產 |
 | Narrative 節點表演 | 已發布的 `Narrative Manifest.tracks.<role>.nodes[].presentation`；role 由 Round 真實參與身分決定 | 以 `(storySessionId,role,nodeId)` 限定節點 ID，僅投影本人可見的 camera、表情、hotspot，不能繼續從全域 `nodes[]` 找雙人唯一 Node。 |
-| Event 演出 | 已發布 EventBinding 的 `presentationSteps`（保留輕量 `presentationEffects` 可在新版本轉成同一 Renderer 的標準 Step），配合已提交 EventInstance／eventSeq | 僅接受合法 camera／五表情／角色 anchor／場景物件動畫／已發佈音訊；演出可中斷、略過，但不能直接造成 D1 故事推進或重複操作。 |
-| 對方角色與五表情 | AvatarAndPreferences 已正式採用的 `full-body.v1`、`standing`、`avatarVersion`＋私人 partner-avatar API | `neutral/smile/surprised/thoughtful/concerned` 五圖及 `stageAnchors.head/feet` 由 `StoryPortrait` 顯示；Scene/Narrative/Event Manifest **不能存私人 R2 key、角色圖 URL、Gemini job 或表情生成結果** |
+| Event 演出 | 已發布 EventBinding 的 `presentationSteps`（保留輕量 `presentationEffects` 可在新版本轉成同一 Renderer 的標準 Step），配合已提交 EventInstance／eventSeq | 僅接受合法 camera／Rig 五表情語意／pose／角色 anchor／原位物件動畫／已發佈音訊；演出可中斷、略過，但不能直接造成 D1 故事推進或重複操作。 |
+| 對方角色與五語意表情／姿勢 | AvatarAndPreferences 正式採用的 `ready ActorRigPackage`，來源 `avatarAssetId + rigSpecVersion + expressionSpecVersion`、授權的本人／partner-avatar 投影 | `neutral/smile/surprised/thoughtful/concerned` 以 Rig 局部臉部參數與合法姿態顯示，站坐／拿書有對應骨架及道具 anchor；Client 不直接收到他人私人 R2 key，Narrative/Event 不保存玩家角色圖 URL、Gemini job 或生成結果 |
 | Round／聊天／授權 | `game_rounds`、`game_round_events`、Room DO、授權快照 | 新 Episode 不產生另一間聊天室或另建房間；舊 Round ended／401／403 必須清私有角色投影 |
-| B1 產圖／續做 | AvatarAndPreferences B1 流程 | 本 SPEC 只能使用已採用 ready 的人物套組；**不可呼叫 Gemini、下一張表情、正式採用 API 或因前景恢復自動續產** |
+| 初次生成／Rig 建檔 | AvatarAndPreferences 的首次採用 B1＋一次性 Rig 編譯／品質驗證流程 | 本 SPEC 只使用經授權且已採用的 `ready` 套組，不能在劇情／換姿勢時呼叫 Gemini、重建 Rig、另發候選或背景續做 |
 
 **規則與失敗保護**：
 
-1. **發布校驗**：Scene 必須宣告 Area／物件狀態及有效鏡位、前後景、音效、熱區；Narrative 的雙 Track 節點與跨線／共享綁定目標皆存在；`presentationSteps` 只能引用合法 camera、五表情、熱區、角色站位、物件動畫與已發布音訊。未知動作 module、不可達 Ending、互等死鎖、任意 URL／JS／未審核動作資產均拒絕發布；本輪 D1 異動依 `4`，不受原「不得增加第六張表」舊語意限制。
+1. **發布校驗**：Scene 必須宣告 Area／物件狀態及有效鏡位、前後景、音效、內嵌物件與合法 `hitShape`；Narrative 的雙 Track 節點與跨線／共享綁定目標皆存在；`presentationSteps` 只能引用合法 camera、五表情語意、Rig pose、嵌入原位點擊、角色站位、物件動畫與已發布音訊。未知動作 module、不可達 Ending、互等死鎖、任意 URL／JS／未審核動作資產均拒絕發布；本輪 D1 異動依 `4`，不受原「不得增加第六張表」舊語意限制。
 2. **事件驅動的演出不改故事權威**：Domain 先驗 role、所在 Area、物件與事件前置條件；熱區本身不等於操作資格。點擊／拖動時可預覽本地動畫，但只有已提交的 D1 EventInstance／WorldState 形成業務效果；失敗同步回權威畫面。尚未解鎖的隱藏事件、個人線索不下發對方。
 3. **效果的起訖**：`presentationSteps` 依本人 Track／Scene 基底鏡位播放，當事件完成、取消、改 Node 或 Chapter completed 時清除疊加；動作是否成功完全由 D1 的 EventInstance／WorldState／Progress 驗證，不因 animation finish／WS 重播改變故事權威。`presentationEffects` 是演出語法糖，不是另一套可修改進度的系統。
-4. **角色與內容雙版本互不污染**：Scene／Narrative／Event R2 Manifest 依場次固定 SHA；`avatar.updated` 不能修改 `shared_revision` 或玩家個人進度，也不重抽主線。五表情先完整解碼＋句尾安全換角；新套組載入失敗保留仍授權的完整舊套組或安全佔位，失權即清除私人圖片；不因事件切表情而再次呼叫 Gemini。
+4. **角色與內容雙版本互不污染**：Scene／Narrative／Event R2 Manifest 依場次固定 SHA；`avatar.updated` 不能修改 `shared_revision` 或玩家個人進度，也不重抽主線。整份 Rig Package（含必要分層／五語意表情／動作）先驗證與解碼，再按句尾或安全點換角；新套組載入失敗保留仍授權的完整舊套組或安全佔位，失權即清除私人圖片；不因事件切表情而再次呼叫 Gemini。
 5. **跨場次 UI 狀態**：新 `storySessionId` 要重設各自 Track 的文字逐句／事件 overlay／鏡頭與物件動畫、pending action、cue；畫面識別至少採 `storySessionId + actorRole + nodeId`，非單用 node ID。相同 Round 保留聊天、授權化身及 WS；reconnect 取得本人最新 track/world snapshot，不跳過本人仍未做的節點。
-6. **背景與恢復**：Android Home／Web 失焦暫停 Scene 微動／音訊，回前景以授權 `/experience` 和增量事件游標恢復場次、Event 與角色；不重擲場景、不重送未知操作、不 autoplay 音效、不觸發表情生成／B1 續產。現有手動「關閉場景微動」必須維持。角色五圖同版本重用已解碼素材，Event 只按需載入自己的資產；Web／Android 應量測實際切換延遲、jank、記憶體，而非宣稱虛構 FPS。
-7. **首條重寫與 Gate**：保留已經使用者核准的 16 款免費全身角色／80 張五表情與可重用書店素材，**不保留舊書籤／閱讀選項與抒情文案為必經故事**。改為 `3.8` 新敘事、兩次以上交會／分流、動作事件及可見微動；已確認角色畫風／身份不得退化，原 StoryDialogueAndExit UX-P1～P5、B1、Gate B 各自保留人工驗證。舊技術回放不能冒充新劇情試玩通過。
+6. **背景與恢復**：Android Home／Web 失焦暫停 Scene 微動／音訊，回前景以授權 `/experience` 和增量事件游標恢復場次、Event 與角色；不重擲場景、不重送未知操作、不 autoplay 音效、不觸發表情生成／B1 續產。現有手動「關閉場景微動」必須維持。角色 Rig 同版本重用已解碼分層／骨架／預製姿態，Event 只按需載入自己的資產；Web／Android 應量測實際切換延遲、jank、記憶體，而非宣稱虛構 FPS。
+7. **首條重寫與 Gate**：保留已使用者核准的 16 款免費全身角色身份／畫風／ID；既有 80 張完整表情 WebP 視為歷史實作資產，新 Rig 成品通過驗收後受控取代其動畫角色，不任意刪原畫或正式資產，**不保留舊書籤／閱讀選項與抒情文案為必經故事**。改為 `3.8` 新敘事、兩次以上交會／分流、動作事件及可見微動；已確認角色畫風／身份不得退化，原 StoryDialogueAndExit UX-P1～P5、B1、Gate B 各自保留人工驗證。舊技術回放不能冒充新劇情試玩通過。
 
-**接口邊界**：沿用 `/experience` 快照、Room 事件游標與 `avatar.updated` 授權投影；角色圖片仍由正式 Avatar 套組提供，不另建生成任務。**本輪只新增一張必要的個人 Track 進度表、整併一張舊互動表**，不是因為增加 Area／角色動畫就新增多張 D1 表；不提前實作 AI 沉浸模式。
+**接口邊界**：沿用 `/experience` 快照、Room 事件游標與 `avatar.updated` 授權投影；正式角色由已 ready 的 Rig Package 提供，不另建遊戲中生成任務；新首次 Rig 建檔屬 Avatar 層，入口檢驗與現有 D1 資料重用。**本輪只新增一張必要的個人 Track 進度表、整併一張舊互動表**，不是因為增加 Area／角色動畫就新增多張 D1 表；不提前實作 AI 沉浸模式。
 
 ## 5. HTTP／WebSocket API 設計（建議契約）
 
@@ -424,7 +453,7 @@ Content-Type: application/json
 |---|---|---|
 | **SDD／BDD／TDD（本輪規劃）** | 使用者核准 Schema／API／事件條件，補完整案例與 RiskAudit | 此階段直接修改程式／DB |
 | **Gate 1：雙軌底座／清理** | 先以 TDD 失敗測試驗兩人不同進度、角色授權與 World CAS；重構 Progress／Session／EventInstance、移除 `game_interaction_instances` 與舊平行命令、Publisher＋動作白名單；只在確認過的本地 DatingHigh 測試環境執行 Clean Rebuild，無舊資料相容／搬移 | 不碰未知／production／其他專案，不刪已核准角色來源與無關資產，不降低真 D1／授權 Gate |
-| **Gate 2：雨聲書店新劇情／真實人工 Gate B** | 重寫故事與生活化台詞、至少兩次交會／再分流、角色站位與五表情、物件操作、Area 移動、可辨微動、環境／事件音效；Web／Android 雙人快慢不同、等待、斷線恢復、跨場次聊天／退出、效能及 UX-P1～P5/B1 逐項核對；使用者親自試玩核准 | 不將舊書籤／合作閱讀技術測試冒稱新劇本通過；**未核准不做其餘九條** |
+| **Gate 2：雨聲書店 V3 完整故事／真實人工 Gate B** | 實作 §3.8 的雙開場、搭話與拒絕、多視角接續、安全淹水合作、NPC、每節點 Shot／背景／書籍／物件／音效及三種已確認咖啡 Ending（以及安全撤離例外）；Web／Android 真雙人快慢不同、斷線恢復、新角色 Rig＋五情緒語意／NPC／分鏡品質、效能及 UX-P1～P5/B1 逐段試玩；使用者本人明確核准 | 不將 V2 第27號訂單、文字框、舊技術測試或缺素材預覽冒充 V3 完整體驗；**未核准不做其餘九條** |
 | **Gate 3：餘下九條** | 僅在 Gate 2 通過後，按共同框架逐條補齊至至少十條完整可玩主線；測試有序、無序、混合、多場景／類別關聯、事件重用與有無分支主線 | 不能用十張場景圖或測試 fixture 充數 |
 
 本輪新決策允許**已知 DatingHigh 本地測試資料**在實作 Gate 受控清除、重新建立新 Schema／內容，不需要遷移舊 StorySession／舊節點、保留過時的轉換器或雙表狀態。清除前必須驗實際 DB／R2 bucket、只屬本地、列出目標與備份／恢復路徑；資料清理和美術素材／程序碼清理分別驗證，其他專案、未知／正式環境絕不動。已套用的 `0005/0006` 不直接當作執行中資料偷偷改義；以清楚的本地 schema 重建與可重跑 migration 鏈收斂最終結構，**最終 DB 不應殘留無用表**。
@@ -460,17 +489,17 @@ Content-Type: application/json
 
 **測試策略**：Domain Unit（雙 Track 圖可達、反覆交會／回單方、無必經死鎖、共享物件白名單、個人可見性、只在必要節點等真人）；Publisher（JSON Schema、Area／hotspot／renderer、動作資產、跨線相容性、內容 SHA）；**真 Miniflare D1**（兩筆 Progress 建立／同一物件雙人競態／CAS／冪等／雙人不同步／退出與完成競態／清理 schema）；API／Worker（actor-scoped 投影、未分享線索不洩漏、R2／WS／snapshot 復原）；Web／Android 實際點擊／拖放／Area 移動／人物／微動／兩次交會及人工 Gate B。舊驗證案例須按新業務意義改寫，而非直接刪測試或將 HTTP fixture 當 SQL 原子證據。
 
-**文件追溯與本輪停止點**：`MVP-001` AC-005-04～23 → 本 SPEC `SEF-AC-001～024` → [BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) **121 場景** → [TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md) **625 項（含 10 組 RiskAudit GAP 共 20 項測試）** → [RiskAudit](SPEC-001-SceneEventFramework-RiskAudit.md)。舊 RQ-01～03／RA-Q1/Q2 均保留；**V2-RQ-01=A 已確認**，新版 12 項風險及 10 項 GAP 各有文件處置／TDD 落點。Phase 5 交接只代表可以由 well-done 開始開發，絕不冒稱 E01／Gate B 已在產品實測通過。
+**文件追溯與本輪停止點（2026-11-17 最新）**：[BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) 保留舊 121 場、增 V3 原 60＋RiskAudit 10＝**191 場**；[TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md) 保留舊 625 項、增 V3 原 240＋稽核 10＝**875 項**。[RiskAudit](SPEC-001-SceneEventFramework-RiskAudit.md) **12 項風險／10 GAP 已閉環到文件**；容量 `SEF-V3-RQ-01=B` 已取得使用者決策，Phase 5 **Ready for well-done（規劃層）**。V3 仍 0/70 BDD、0/250 TDD 實作驗證；舊 RA-Q1／RA-Q2、SEF-RQ-01～03 與歷史 V2 里程碑不因新版本改寫而失效。請由 Well-Done 按最新 TDD 交接實作，不能把本 SPEC 的 Ready 當成 Gate B 已過。
 
 ### 8.1 跨 SPEC 人物／舞台整合驗收（不取代原 Gate B）
 
 | 驗收 ID | 必須驗證的結果 | 追溯 |
 |---|---|---|
 | SEF-AC-013 | Scene／Narrative 拆分後 2.5D 鏡位、背景／前景、熱區、音效完整；Event 演出以安全的鏡位／表情／音效效果疊加並能還原，非法 ID 不得發布 | MVP AC-005-08/13；StoryDialogueAndExit 2.5D |
-| SEF-AC-014 | 已採用五表情與 Scene 各自維持版本；新套組完整解碼＋句尾安全換角；失敗不顯示混包、失權即清除；Event 不啟動 Gemini | MVP AC-005-13；AvatarAndPreferences B1 |
-| SEF-AC-015 | 動態熱區依權威事件資格顯示、預覽不提交；新 Episode 重設舞台但保留 Round 聊天／當前 Avatar；背景／重連不重抽、重送、autoplay、續產 | MVP AC-005-09～11/13 |
-| SEF-AC-016 | 首條雨聲書店 Web／Android UX-P1～P5、免費／AI 全身人物、兩結局、微動與場景素材實證；使用者人工 Gate B 核准後才擴充其餘九條 | MVP AC-005-14；StoryDialogueAndExit Gate B |
-| SEF-AC-017 | 本人目前採用化身的五表情未就緒時禁止遊戲入口、恢復、票券及操作；清除私人畫面並提供個人檔案入口；不受另一組 pending 化身影響 | MVP AC-005-16；§1.2；BDD-079 |
+| SEF-AC-014 | V3 已採用 `ActorRigPackage`（五語意表情）與 Scene 各自維持版本；新 Rig 套組完整解碼／姿態與動作驗證＋句尾安全換角；失敗不顯示混包、失權即清除；Event 不啟動 Gemini | MVP AC-005-13；AvatarAndPreferences B1 |
+| SEF-AC-015 | V3 原位隱形可點物件／NPC 依權威事件資格啟用、預覽不提交；新 Episode 重設舞台但保留 Round 聊天／當前 Avatar；背景／重連不重抽、重送、autoplay、續產 | MVP AC-005-09～11/13 |
+| SEF-AC-016 | 首條雨聲書店 Web／Android UX-P1～P5、免費／AI 全身人物、三種咖啡結局＋安全後備、微動與場景素材實證；使用者人工 Gate B 核准後才擴充其餘九條 | MVP AC-005-14；StoryDialogueAndExit Gate B |
+| SEF-AC-017 | 本人目前採用化身的V3 角色 Rig（含五語意表情）未就緒時禁止遊戲入口、恢復、票券及操作；清除私人畫面並提供個人檔案入口；不受另一組 pending 化身影響 | MVP AC-005-16；§1.2；BDD-079 |
 
 ### 8.2 本次雙 Track／共享世界／場景體驗新增驗收
 
@@ -481,8 +510,31 @@ Content-Type: application/json
 | SEF-AC-020 | 私有線索不先向對方洩漏、分享後共享；物件被拿取後另一端視圖一致，雙人競態和冪等安全 | AC-005-19 |
 | SEF-AC-021 | Scene Area 移動、物件點選／翻面／拖放、NPC 對話、角色位置／表情／鏡頭與音效由可驗合法操作驅動 | AC-005-20 |
 | SEF-AC-022 | AmbientMotion 雨滴／反光／物件持續位移肉眼可辨且可關；StoryMotion／必要動畫不因關微動而消失，雙平台畫質與效能量測 | AC-005-21 |
-| SEF-AC-023 | 首條雨聲書店以新劇情至少兩次交會／再分流、口語且具目標、自然共同收尾；人工 Gate B 明確核准才製作其餘九條 | AC-005-22 |
+| SEF-AC-023 | 首條雨聲書店 V3 依 §3.8 完全取代第27號取書單，雙人各有開場、搭話／婉拒、書籍閱讀、淹水合作與咖啡自然收尾；每一必經環節都有可見素材切換及 NPC；人工 Gate B 明確核准才製作其餘九條 | AC-005-22（V3 修訂）；§3.8 V3-AC-01～12 |
 | SEF-AC-024 | 本地乾淨 Schema 重建、已知測資清除、舊互動表／重複程式及內容依賴已移除；聊天／退出／授權／Avatar／多場次及真 D1 回歸不退化 | AC-005-23 |
+
+### 8.3 雨聲書店 V3 專屬驗收追溯（六項 SDD＋容量 B 均已確認；BDD／TDD／RiskAudit 已補回）
+
+本版新增需求 `AC-005-24～35` 與 §3.8.8 `V3-AC-01～12` 逐一對應；原每項 5 個 BDD 情境（`SEF-BDD-122～181` 共60）再補 RiskAudit 10 場（`SEF-BDD-182～191`），對應 Phase3 TDD240＋稽核10＝**新 V3 70 BDD／250 TDD**，總數191 BDD／875 TDD。原有 `SEF-AC-023` 與共用 `SEF-AC-001～024` 仍是基線回歸，**不得以 V2 任何綠燈取代 V3**。每個必要 `nodeId / bindingId` → 角色與本人視角 → 條件與互動 → 唯一 Shot、NPC／演出／資產 SHA → D1 權威結果 → 可達 Ending 的發布矩陣，由 SDD §3.8.3～3.8.7B 提供內容契約、BDD Publisher／雙人案例與 TDD 單元／整合／真機測試共同約束；**逐節點真素材、Web／Android 畫面與使用者 Gate B 證據仍須在 Well-Done 實作時驗證**，不因規劃追溯已覆蓋 AC 12/12 就宣稱角色或遊戲已完成。
+
+#### 8.3.1 V3 MVP→SPEC→BDD→TDD 逐項追溯（使用者 B 決策後的最終規劃）
+
+| MVP 新增驗收 | 本 SPEC 專屬驗收 | 原 V3 BDD | RiskAudit BDD（有增補者） | TDD 對應落點／狀態 |
+|---|---|---|---|---|
+| `AC-005-24` | `V3-AC-01` | `SEF-BDD-122～126` | 無新增 | `SEF-UT-367～381`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-25` | `V3-AC-02` | `SEF-BDD-127～131` | 無新增 | `SEF-UT-382～396`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-26` | `V3-AC-03` | `SEF-BDD-132～136` | `SEF-BDD-184` | `SEF-UT-397～411`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-27` | `V3-AC-04` | `SEF-BDD-137～141` | 無新增 | `SEF-UT-412～426`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-28` | `V3-AC-05` | `SEF-BDD-142～146` | 無新增 | `SEF-UT-427～441`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-29` | `V3-AC-06` | `SEF-BDD-147～151` | 無新增 | `SEF-UT-442～456`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-30` | `V3-AC-07` | `SEF-BDD-152～156` | `SEF-BDD-185` | `SEF-UT-457～471`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-31` | `V3-AC-08` | `SEF-BDD-157～161` | 無新增 | `SEF-UT-472～486`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-32` | `V3-AC-09` | `SEF-BDD-162～166` | `SEF-BDD-186` | `SEF-UT-487～501`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-33` | `V3-AC-10` | `SEF-BDD-167～171` | `SEF-BDD-188` | `SEF-UT-502～516`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-34` | `V3-AC-11` | `SEF-BDD-172～176` | `SEF-BDD-187` | `SEF-UT-517～531`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-35` | `V3-AC-12` | `SEF-BDD-177～181` | `SEF-BDD-182、183、189～191` | `SEF-UT-532～546`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+
+補強 ID：`GAP-01～10` → `SEF-BDD-182～191` → `SEF-IT-149～151`、`SEF-API-070～071`、`SEF-UT-547～548`、`SEF-ET-103～105`，完整一對一細節以 [RiskAudit](SPEC-001-SceneEventFramework-RiskAudit.md) 與 [TDD Phase 5](../tdd/SPEC-001-SceneEventFramework-TDD.md) 為準。**本表是規劃追溯 12/12，不是 12 項實際驗收通過**。
 
 ## 9. 已確認的 SDD 取捨（SEF-RQ-01～03=A）及 RiskAudit 後續關卡
 

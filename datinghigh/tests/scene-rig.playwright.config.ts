@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./component-layout',testMatch:'scene-rig.spec.ts',workers:1,timeout:45000,use:{baseURL:'http://127.0.0.1:8092',channel:'chrome',headless:true,trace:'off',video:'off',screenshot:'off'},webServer:{command:'node tests/component-layout/server.mjs',cwd:'..',url:'http://127.0.0.1:8092',reuseExistingServer:true,timeout:90000},reporter:'list',outputDir:'../.local/rig-pilot/test-output'});

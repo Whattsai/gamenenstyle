@@ -4,8 +4,9 @@ import {Animated,AppState,Image,Platform,Pressable,Text,View,useWindowDimensions
 import {StoryPortrait,type StagePortrait} from './StoryPortrait';
 import {SceneWorldObjects} from './SceneWorldObjects';
 import {SceneStoryMotion} from './SceneStoryMotion';
+import {EmbeddedSceneStage} from './EmbeddedSceneStage';
 import type {ActorRole,PresentationStep,TrackSnapshot} from './scene-event-track';
-export type TrackStagePresentation={actorRole:ActorRole;areaId:string;world:TrackSnapshot['world'];own?:StagePortrait;steps?:PresentationStep[];onDrop:(objectId:string)=>void;selectedObject?:string|null;disabled?:boolean;showSlot?:boolean};
+export type TrackStagePresentation={actorRole:ActorRole;areaId:string;world:TrackSnapshot['world'];stage?:TrackSnapshot['stage'];asset?:(id:string)=>string|undefined;own?:StagePortrait;steps?:PresentationStep[];onDrop:(objectId:string)=>void;selectedObject?:string|null;disabled?:boolean;showSlot?:boolean;onStageMediaUnavailable?:()=>void};
 
 import {cameraFrame,portraitFrame,hotspotFrame,type ScenePresentation} from './story-stage-geometry';
 
@@ -21,9 +22,11 @@ export function StoryStage({presentation,cameraId,hotspotIds,background,foregrou
  const [size,setSize]=useState(()=>({width:targetWidth,height:targetHeight}));
  useEffect(()=>{setSize({width:targetWidth,height:targetHeight});},[targetWidth,targetHeight]);
  const [motion,setMotion]=useState(true),[pan,setPan]=useState(0),dragStart=useRef<{x:number;pan:number}|null>(null);
- useEffect(()=>{setPan(0);},[cameraId,storySessionId]);
+ useEffect(()=>{setPan(0);},[cameraId,storySessionId,track?.areaId]);
  const [eventCamera,setEventCamera]=useState<string>(),[eventExpressions,setEventExpressions]=useState<Partial<Record<ActorRole,StagePortrait['expression']>>>({});
  const [movingObject,setMovingObject]=useState<string>();
+ const [eventShot,setEventShot]=useState<string>();
+ useEffect(()=>{setPan(0);},[eventShot]);
  const rawCamera=presentation?.cameras.find(c=>c.id===(eventCamera??cameraId))??fallback,isLandscapeStage=size.width>=size.height*1.25;
  const scale=isLandscapeStage?1:1+(rawCamera.scale-1)*.15,focusY=isLandscapeStage?.5:.5+(rawCamera.focus.y-.5)*.2;
  const minHeadY=isFullScreen?(isLandscapeStage?.09:.15):.09;
@@ -45,11 +48,35 @@ export function StoryStage({presentation,cameraId,hotspotIds,background,foregrou
  const ownFrame=track?.own?portraitFrame(size.width,size.height,{...camera.portrait,x:track.actorRole==='inviter' ? .34 : .66},track.own.anchors??anchors):undefined;
  const rolesMotion=useRef({inviter:{x:new Animated.Value(.34),opacity:new Animated.Value(1)},acceptor:{x:new Animated.Value(.66),opacity:new Animated.Value(1)}}).current;
  const resetCharacters=()=>{for(const role of ['inviter','acceptor'] as const){rolesMotion[role].x.stopAnimation();rolesMotion[role].opacity.stopAnimation();rolesMotion[role].x.setValue(role==='inviter' ? .34 : .66);rolesMotion[role].opacity.setValue(1);}};
- useLayoutEffect(()=>{setEventCamera(undefined);setEventExpressions({});setMovingObject(undefined);resetCharacters();},[cameraId,storySessionId,track?.actorRole,track?.steps]);
+ useLayoutEffect(()=>{setEventShot(undefined);setEventCamera(undefined);setEventExpressions({});setMovingObject(undefined);resetCharacters();},[cameraId,storySessionId,track?.actorRole,track?.steps]);
  const characterTransform=(role:ActorRole)=>({opacity:rolesMotion[role].opacity,transform:[{translateX:rolesMotion[role].x.interpolate({inputRange:[0,1],outputRange:[-(role==='inviter' ? .34 : .66)*size.width,(1-(role==='inviter' ? .34 : .66))*size.width]})}]});
  const sharedPartner=track?.own?{...person,left:size.width*(track.actorRole==='inviter' ? .66 : .34)-person.width*.5+panOffsetX}:person;
  const partnerRole=track?.actorRole==='inviter'?'acceptor':'inviter';
  const controlsPosition=isFullScreen?{top:isLandscapeStage?58:112}:{bottom:10};
+ if(track?.stage&&track.asset){
+  const shot=track.stage.shots.find(s=>s.id===(eventShot??track.stage?.currentShotId));
+  const stageRawCamera=presentation?.cameras.find(c=>c.id===shot?.cameraId);
+  if(!stageRawCamera)return <Text>場景鏡位尚未就緒，請重新同步。</Text>;
+  const stageCamera={...stageRawCamera,focus:{...stageRawCamera.focus,x:Math.max(0,Math.min(1,stageRawCamera.focus.x+pan))}};
+  const stageFrame=cameraFrame(size.width,size.height,stageCamera),stageCanPan=stageFrame.width>size.width+48;
+  return <View style={{width:'100%',height:resolvedHeight,position:'relative',overflow:'hidden'}} onLayout={e=>{const {width,height}=e.nativeEvent.layout;if(width>0&&height>0)setSize({width,height});}} onTouchStart={e=>{if(stageCanPan)dragStart.current={x:e.nativeEvent.pageX,pan};}} onTouchMove={e=>{if(!stageCanPan||!dragStart.current)return;const delta=(dragStart.current.x-e.nativeEvent.pageX)/Math.max(180,stageFrame.width-size.width);setPan(Math.max(-stageRawCamera.focus.x,Math.min(1-stageRawCamera.focus.x,dragStart.current.pan+delta)));}} onTouchEnd={()=>{dragStart.current=null;}}>
+   <EmbeddedSceneStage stage={track.stage} areaId={track.areaId} world={track.world} camera={stageCamera} width={size.width} height={size.height} asset={track.asset} onInspect={onInspect} disabled={!!track.disabled} shotId={eventShot} onMediaUnavailable={track.onStageMediaUnavailable}/>
+   {motion&&<Animated.View testID="scene-atmosphere" pointerEvents="none" style={{position:'absolute',left:0,top:0,width:'100%',height:'100%',opacity:glow}}>
+    <Animated.View testID="scene-rain-displacement" pointerEvents="none" style={{position:'absolute',left:0,right:0,top:-100,bottom:-100,transform:[{translateY:rain.interpolate({inputRange:[0,1],outputRange:[-70,130]})}]}}>
+     {primaryRain.map((x,i)=><View key={i} style={{position:'absolute',left:`${x*100}%`,top:`${4+(i%5)*11}%`,width:1.5,height:'34%',backgroundColor:'#c9d8f8',opacity:.24,transform:[{rotate:'12deg'}]}}/>)}
+    </Animated.View>
+   </Animated.View>}
+   <Pressable accessibilityRole="button" accessibilityLabel={motion?'關閉場景微動':'開啟場景微動'} onPress={()=>setMotion(value=>!value)} style={{position:'absolute',left:12,...controlsPosition,paddingHorizontal:11,paddingVertical:5,borderRadius:999,borderWidth:1,borderColor:'rgba(255,218,235,.32)',backgroundColor:'rgba(20,8,32,.82)'}}>
+    <Text style={{color:'#ffe3ed',fontSize:11,fontWeight:'700'}}>{motion?'關閉場景微動':'開啟場景微動'}</Text>
+   </Pressable>
+   {!!track.steps?.length&&<SceneStoryMotion viewport={size} steps={track.steps} objects={track.world.objects} asset={track.asset} frame={stageFrame} onStep={step=>{if(step.type==='shot')setEventShot(step.shotId);}} onFinish={()=>setEventShot(undefined)}/>}
+   {stageCanPan&&<View style={{position:'absolute',right:10,...controlsPosition,flexDirection:'row',alignItems:'center',gap:3,paddingHorizontal:6,paddingVertical:3,borderRadius:999,borderWidth:1,borderColor:'rgba(255,210,122,.42)',backgroundColor:'rgba(20,8,32,.84)'}}>
+    <Pressable accessibilityRole="button" accessibilityLabel="環視左側場景" onPress={()=>setPan(-stageRawCamera.focus.x)} style={{paddingHorizontal:8,paddingVertical:3}}><Text style={{color:'#ffe3ed',fontSize:11}}>◀ 左景</Text></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel="重設場景視角" onPress={()=>setPan(0)} style={{paddingHorizontal:8,paddingVertical:3}}><Text style={{color:'#ffd27a',fontSize:11}}>全景</Text></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel="環視右側場景" onPress={()=>setPan(1-stageRawCamera.focus.x)} style={{paddingHorizontal:8,paddingVertical:3}}><Text style={{color:'#ffe3ed',fontSize:11}}>右景 ▶</Text></Pressable>
+   </View>}
+  </View>;
+ }
  return <View style={{width:'100%',height:resolvedHeight,backgroundColor:'#14081e',overflow:'hidden',position:'relative'}}>
   {background&&<Image source={{uri:background}} resizeMode="cover" blurRadius={14} style={{position:'absolute',left:0,top:0,width:'100%',height:'100%',opacity:.45}}/>}
   <View testID={`scene-camera-${rawCamera.id}`} onLayout={e=>{const {width,height}=e.nativeEvent.layout;if(width>0&&height>0)setSize({width,height});}} onTouchStart={e=>{if(!canPan)return;dragStart.current={x:e.nativeEvent.pageX,pan};}} onTouchMove={e=>{if(!canPan||!dragStart.current)return;const delta=(dragStart.current.x-e.nativeEvent.pageX)/Math.max(180,frame.width-size.width);setPan(Math.max(-rawCamera.focus.x,Math.min(1-rawCamera.focus.x,dragStart.current.pan+delta)));}} onTouchEnd={()=>{dragStart.current=null;}} style={{width:'100%',maxWidth:stageMaxWidth,height:'100%',alignSelf:'center',overflow:'hidden',position:'relative',backgroundColor:'#291e31'}}>

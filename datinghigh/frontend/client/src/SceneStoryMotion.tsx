@@ -1,11 +1,11 @@
 import {listenSceneBrowserLifecycle} from './scene-browser-lifecycle';
 import React,{useEffect,useRef,useState} from 'react';
-import {Animated,AppState,Platform,Pressable,Text,View} from 'react-native';
+import {Animated,AppState,Image,Platform,Pressable,Text,View} from 'react-native';
 import {ObjectArt} from './SceneWorldObjects';
 import type {PresentationStep,SceneWorldObject} from './scene-event-track';
 
 /** 已提交 Cue 的有限本地演出；略過與失焦都只停止呈現，不送任何故事完成命令。 */
-export function SceneStoryMotion({steps,objects,frame,viewport,onStep,onFinish}:{steps:PresentationStep[];objects:SceneWorldObject[];frame:{left:number;top:number;width:number;height:number};viewport?:{width:number;height:number};onStep:(step:PresentationStep)=>void;onFinish:()=>void}){
+export function SceneStoryMotion({steps,objects,frame,viewport,asset,onStep,onFinish}:{steps:PresentationStep[];objects:SceneWorldObject[];frame:{left:number;top:number;width:number;height:number};viewport?:{width:number;height:number};asset?:(id:string)=>string|undefined;onStep:(step:PresentationStep)=>void;onFinish:()=>void}){
  const [current,setCurrent]=useState<PresentationStep>(),[playing,setPlaying]=useState(false),progress=useRef(new Animated.Value(0)).current;
  const callbacks=useRef({onStep,onFinish});callbacks.current={onStep,onFinish};const cancel=useRef<()=>void>(()=>{});
  useEffect(()=>{
@@ -23,12 +23,14 @@ export function SceneStoryMotion({steps,objects,frame,viewport,onStep,onFinish}:
  },[steps,progress]);
  if(!playing)return null;const object=current?.type==='object'?objects.find(o=>o.id===current.objectId):undefined;
  const motion=current?.type==='object'?current.motion:undefined;
+ const imageUri=object?.assetId&&asset?.(object.assetId),missingPhysicalArt=!!(asset&&object?.assetId&&!imageUri);
  const rawLeft=object?frame.left+frame.width*object.x-30:0,rawTop=object?frame.top+frame.height*object.y-35:0;
  // A finite local close-up stays visible even when the authoritative object is outside a narrow camera crop.
  const minX=viewport?Math.min(96,Math.max(0,viewport.width/2-33)):0,minY=viewport?Math.min(200,viewport.height*.3):0;
  const left=viewport?Math.max(minX,Math.min(Math.max(minX,viewport.width-176),rawLeft)):rawLeft,top=viewport?Math.max(minY,Math.min(Math.max(minY,viewport.height*.5-80),rawTop)):rawTop;
  return <View pointerEvents="box-none" testID="scene-story-motion" style={{position:'absolute',left:0,right:0,top:0,bottom:0,zIndex:14}}>
-  {object&&<Animated.View pointerEvents="none" style={{position:'absolute',left,top,transform:motion==='flip'?[{perspective:500},{rotateY:progress.interpolate({inputRange:[0,1],outputRange:['0deg','180deg']})}]:[{translateX:progress.interpolate({inputRange:[0,1],outputRange:motion==='gust'?[-90,110]:[-35,0]})},{translateY:progress.interpolate({inputRange:[0,.5,1],outputRange:motion==='gust'?[0,-90,-45]:[-20,-30,0]})},{rotate:progress.interpolate({inputRange:[0,1],outputRange:motion==='gust'?['-20deg','35deg']:['-8deg','0deg']})}]}}><ObjectArt object={object}/></Animated.View>}
+  {missingPhysicalArt&&<Text testID="scene-motion-missing-art">場景演出素材尚未就緒</Text>}
+  {object&&!missingPhysicalArt&&<Animated.View pointerEvents="none" style={{position:'absolute',left,top,transform:motion==='flip'?[{perspective:500},{rotateY:progress.interpolate({inputRange:[0,1],outputRange:['0deg','180deg']})}]:[{translateX:progress.interpolate({inputRange:[0,1],outputRange:motion==='gust'?[-90,110]:[-35,0]})},{translateY:progress.interpolate({inputRange:[0,.5,1],outputRange:motion==='gust'?[0,-90,-45]:[-20,-30,0]})},{rotate:progress.interpolate({inputRange:[0,1],outputRange:motion==='gust'?['-20deg','35deg']:['-8deg','0deg']})}]}}>{imageUri?<Image testID="scene-motion-image" source={{uri:imageUri}} resizeMode="contain" style={{width:76,height:80}}/>:<ObjectArt object={object}/>}</Animated.View>}
   <Pressable accessibilityRole="button" accessibilityLabel="略過演出" onPress={()=>cancel.current()} style={{position:'absolute',right:14,top:100,padding:9,borderRadius:16,backgroundColor:'rgba(20,8,32,.85)'}}><Text style={{fontSize:11,color:'#ffe0b5'}}>略過演出</Text></Pressable>
  </View>;
 }

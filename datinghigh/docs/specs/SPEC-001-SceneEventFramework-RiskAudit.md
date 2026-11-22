@@ -1,10 +1,102 @@
 # SPEC-001-SceneEventFramework — 實作前風險與缺漏稽核（RiskAudit）
 
-**日期**：2026-11-16（新版 V2-RQ-01=A 已確認；2026-11-12～13 歷史風險稽核保留於下方）
-**規劃狀態**：**Ready for well-done（Phase 5 規劃交接）**；V2-RQ-01=A 已由使用者確認，新版 12 項風險均有決策／測試落點、10 組 GAP 均已寫入 TDD。原 RA-Q1=A／RA-Q2=A 保留有效；未開始產品測試或人工 Gate B。
-**來源**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md) → [最新版 SDD](SPEC-001-SceneEventFramework.md) → [121 個 BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) → [625 項 TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md)
+**日期**：2026-11-17（V3 RQ 容量選 B、風險 12 項／GAP 10 項閉環；歷史 2026-11-12～16 稽核保留於下方）
+**規劃狀態**：**2026-11-17 V3 Ready for well-done（僅規劃 Phase 5；未實作）**；`SEF-V3-RQ-01=B` 已由使用者確認、12 項風險均有緩解、10 項 GAP 已補入正式 BDD/TDD。V3 70 個 BDD／250 項 TDD 均未實際驗證；舊 V2 測試完成率與 Gate B 不代表 V3 合格。
+**來源**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md) → [V3 SDD](SPEC-001-SceneEventFramework.md) → [191 BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) → [875 TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md)；跨 MVP 相容性：[MVP-005](../requirements/MVP-005-AvatarWithDating.md)
 
-## 2026-11-16 新版雙 Track／雨聲書店 RiskAudit 定案（Phase 4 結束）
+## 2026-11-17 雨聲書店 V3：RiskAudit 定案（使用者選 B；10 項 GAP 已正式回寫）
+
+**範圍與狀態**：V3-RQ-01～06 已確認（01～05=A、06=A＋C），容量 `SEF-V3-RQ-01=B` 已確認；新 MVP `AC-005-24～35`／SPEC `V3-AC-01～12` 對應原 V3 `SEF-BDD-122～181`（60）與新稽核 `SEF-BDD-182～191`（10），V3 共 **70 個 BDD／250 個 TDD**。既有通用／V2 121 場 BDD、625 項 TDD 原樣保留；**總數 191 BDD／875 TDD**，V3 真實實作仍 **0/70／0/250**。Phase 4 風險閉環已寫回文件，本版 Phase 5 僅為可交程式開發的規劃狀態，不能拿 V2 Ready 或本次規劃覆蓋冒充新 V3 真實產品驗收。
+
+### 一、逐項需求追溯（V3 新 12 項＝12/12 規劃連結）
+
+| MVP AC | SPEC AC | 新 BDD | 新 TDD Unit（另有真 IT／API／E2E） | 覆蓋與待驗 |
+|---|---|---|---|---|
+| AC-005-24 | V3-AC-01 | 122～126 | UT-367～381 | 入店／場景／NPC／雙角色投影；0/5 實作 |
+| AC-005-25 | V3-AC-02 | 127～131 | UT-382～396 | 原創書封／書脊互動／私有分享；0/5 |
+| AC-005-26 | V3-AC-03 | 132～136 | UT-397～411 | 虛構情緒／中性選項／閱讀角淚光；0/5 |
+| AC-005-27 | V3-AC-04 | 137～141 | UT-412～426 | 搭話 3 法／真人拒絕與安全合作；0/5 |
+| AC-005-28 | V3-AC-05 | 142～146 | UT-427～441 | 雙 Track 快慢／斷線／競態／越權；0/5 |
+| AC-005-29 | V3-AC-06 | 147～151 | UT-442～456 | NPC 實體／點擊／動作／不可冒充；0/5 |
+| AC-005-30 | V3-AC-07 | 152～156 | UT-457～471 | 重雨進水／安全撤離／禁入／同步；0/5 |
+| AC-005-31 | V3-AC-08 | 157～161 | UT-472～486 | 書籍互補線索／分享／真人裝箱／CAS；0/5 |
+| AC-005-32 | V3-AC-09 | 162～166 | UT-487～501 | 真雙人三結局／撤離／唯一結算；0/5 |
+| AC-005-33 | V3-AC-10 | 167～171 | UT-502～516 | 必要 Shot Publisher／舊新版本／Gate B；0/5 |
+| AC-005-34 | V3-AC-11 | 172～176 | UT-517～531 | 各區背景／嵌入點擊／遮擋與雙人世界；0/5 |
+| AC-005-35 | V3-AC-12 | 177～181 | UT-532～546 | 2D Rig 五表情／預製姿態／AI 品質／容量／未來擴充；0/5 |
+
+**追溯判定**：12/12 AC、60/60 新 BDD 均有明確來源，且每個 BDD 有 3 Unit＋1 個真 IT／API／E2E 測試（240/240）。此為**規劃追溯覆蓋率 100%**，絕不是產品可用率；通用引擎原有 SEF-AC-001～024 的回歸仍需執行。`MVP-005-AvatarWithDating.md` 的未來捏臉／face-only／換裝／物品權益不屬本期交付，不可將 V3 的 100% 追溯誤報為 MVP-005 開發完成。
+
+### 二、V3 技術與業務風險（12 項，不與歷史 V2 風險互相註銷）
+
+| 風險 ID | 嚴重度 | 具體失敗模式與使用者影響 | 緩解方案／現有追溯／目前判定 |
+|---|---|---|---|
+| `SEF-V3-RA-01` | **高** | AI 全身 Master 切成頭／眼／嘴等圖層，轉頭或微笑時臉像別人、牙齒破圖，破壞已核准品質 | 1 免費＋1 AI 鎖版視覺基線逐項人審五官、表情和關節；必要時只在初次建檔補局部差分。BDD-177～179／181、ET-100～102；**不及格拒絕新 Rig ready**，不降低品質 |
+| `SEF-V3-RA-02` | **高** | 全身 2D 圖看不到坐下後的腹部、袖內／衣背，只有平移卻當成坐姿，玩家看到假動作 | 聯合表情、骨架、透視與經審核少量 `sit/read/hold` Pose；缺必要動作素材 Publisher 拒發。BDD-133～134、149、174、178；人工 Web／Android Gate |
+| `SEF-V3-RA-03` | **高** | 分層／Pose／遮罩、暫存或半成品導致每個 AI 角色 R2 bytes 比原五整圖更大，玩家越多成本越高 | 實測**正式個人資產總 bytes**、圖層與衍生副本、快取回收；優先共用骨架／姿態及只存個人差異；不能直接斷言 Puppet 一定較省。BDD-180～181、ET-102；**SEF-V3-RQ-01=B 已確認：允許超過舊五圖 bytes，必須量測增幅／成本、排除同版重複生成與無引用孤兒；不降低品質 Gate** |
+| `SEF-V3-RA-04` | **高** | AI 首次 Rig 分層／上傳中斷、切換角色或雙裝置重試導致半套 ready、重複生圖、角色身份混包 | Rig Source SHA＋specVersion 唯一化、每步冪等完成檢查、ready 僅原子切換、舊已授權角色維持；新包失敗不能授權入場。BDD-177、179；尚缺強化重試／孤兒清理測試 GAP-01/02 |
+| `SEF-V3-RA-05` | **高** | 未分享的 A 書籍或情緒原因從 raw Manifest、WS 或對方可見 NPC Cue 洩漏 | actor-scoped 私有事實投影、分享前後權限驗證、私有 R2 URL 最小化；BDD-129、132、136、158、API-相關項；補混合分享撤回／快取投影 GAP-03 |
+| `SEF-V3-RA-06` | **高** | 拒絕搭話卻被 NPC 帶成私人聊天、或兩人快慢不一致造成雨情死鎖 | 拒絕語意、人格與進度分離，雨情觸發獨立於私聊，雙 Track 不互推；BDD-137～146，真 D1／WS 回歸；補拒絕→安全撤離路徑 GAP-04 |
+| `SEF-V3-RA-07` | **高** | 一方選安靜、一方選親密；或結局中下暴雨，伺服器競態出兩個 Ending／強迫親密 | 雙方 final-wish 真人獨立提交，第二份同 D1 CAS 一次判定，任一 quiet-rest 優先距離，danger 優先 safety-exit；BDD-162～166；補安全／退出／重送交錯 GAP-05 |
+| `SEF-V3-RA-08` | **高** | 畫面有漂浮星號、假書本或背景不同步；A 已拿書，I 仍看到書在架上 | 六 Area 專用一致圖層、可點原位 hitShape 隨 camera transform、移物補空位、真正 WorldState 的人／物遮擋；BDD-172～176，Web／Android；補極端比例和快速連點 GAP-06 |
+| `SEF-V3-RA-09` | **高** | Publisher 只檢查文字 Node 合法，缺 NPC 端杯、書封、Rig 動作；仍冒充「一篇完整故事」 | Manifest 對 node/binding/shot/actor/cue、資產 SHA/授權與可達路徑全展開 fail closed；BDD-126、151、167～171；補多分支缺資產 GAP-07 |
+| `SEF-V3-RA-10` | **高** | 未來 MVP-005 換裝與 AI face-only 覆寫現在已選 full-body，舊遊玩時角色突然變臉或穿不存在服飾 | 用版本化 `IdentitySource(ai-full-body/ai-face-only)`＋`ActorRigPackage`＋可釘選 Appearance，Story Renderer 不硬編 AI 來源；**MVP-005 自身才做捏臉／權益／換裝**；BDD-180～181；補跨版快照安全 GAP-08 |
+| `SEF-V3-RA-11` | **中** | Expo／React Native Web/Android 的動畫技術支援、記憶體與點擊座標不同，Web 成功但 Android 掉格或裝置崩潰 | 僅先做一免費＋一 AI Web／Android POC，再擇優可跨端 Runtime；實測畫面、memory、時間與 fail-closed；BDD-178、181；補低階 Android／背景恢復 GAP-09 |
+| `SEF-V3-RA-12` | **中** | 16 免費角色重分層時重新畫臉與上身、改 ID 或刪除已核准素材；NPC、服飾圖層授權不清 | 免費16款原身份與色彩不可更動，免費 Rig 只做已批准來源的延伸與綁定；舊資產不因規劃被清除；來源／權限／素材 hash 驗收。BDD-177～181；補免費全角色素材 hash 與來源追溯 GAP-10 |
+
+### 三、10 項已確認 RiskAudit GAP（已補正式 BDD／TDD，真實執行仍待 Well-Done）
+
+| GAP | 來源 | 必補新測試名稱（建議） | 級別 | 具體未覆蓋的邊界 |
+|---|---|---|---|---|
+| `SEF-V3-GAP-01` | RA-04、AC-005-35 | `RigAdoption_ConcurrentFirstBuild_CreatesOneManifestAndOneGeneration` | Integration 高 | 同一 AI 角色兩裝置同時第一次 rig，唯一 ready，Gemini 不重複呼叫、無混版 |
+| `SEF-V3-GAP-02` | RA-03/04、AC-005-35 | `RigBuild_PartialUploadThenRetry_ReusesCompletedLayersAndCollectsOrphans` | Integration 高 | 上傳一半斷線、重試成功、垃圾 R2 僅依已確認私人 keys 清理，不刪本人已 ready 圖 |
+| `SEF-V3-GAP-03` | RA-05、AC-005-25～27 | `Experience_PrivateResonanceAcrossCacheReconnect_NeverLeaksToPartner` | API 高 | I 的舊快取／WS／復原投影不可包含 A 未分享的情緒原因／讀書答案 |
+| `SEF-V3-GAP-04` | RA-06、AC-005-27～30 | `Narrative_DeclineAndDangerFallback_ReachesSafeEndingWithoutForcedConversation` | Unit 高 | A decline／兩人原本未搭話→淹水超標→仍合法 safety-exit、無偽造私人回覆 |
+| `SEF-V3-GAP-05` | RA-07、AC-005-30/32 | `FinalWish_WhenSafetyChangesAndRoomEnds_WritesAtMostOneOutcome` | Integration 高 | 雙方最終意願、danger、退出與重送穿插，無咖啡／撤離雙結局、Room ended 優先 |
+| `SEF-V3-GAP-06` | RA-08、AC-005-34 | `EmbeddedHitShape_ViewportChangesAndRapidTap_UpdatesOneAuthoritativeObject` | E2E 高 | Android 不同螢幕比例、相機縮放及連點後不觸發錯物件或將書架空位覆蓋掉 |
+| `SEF-V3-GAP-07` | RA-09、AC-005-33 | `Publisher_AllReachableEndingShots_WithMissingAsset_RejectsPublish` | Unit 高 | 缺只會出現在第三結局或 safety-exit 的 NPC pose／分區背景也必須拒發 |
+| `SEF-V3-GAP-08` | RA-10、AC-005-35 | `AvatarRig_SourceVersionSwitch_DoesNotChangePinnedAppearance` | API 高 | 日後 ai-face-only 來源版本不合法時不會悄悄更換目前 full-body 的已釘選角色 |
+| `SEF-V3-GAP-09` | RA-11、AC-005-35 | `ActorMotionRenderer_AndroidResumeLowMemory_ReloadsSameRigWithoutGeneration` | E2E 高 | Android 回前景、記憶體壓力時 rig 重新載入合法同版，無 Gemini／錯臉／假表情通過 |
+| `SEF-V3-GAP-10` | RA-12、AC-005-35 | `BuiltinRig_All16PreserveApprovedVisualIdentityAndStableIds` | E2E 高 | 16 款免費角色全部保真（臉／衣裝／畫風／ID），不可只驗證一款 POC 就全部宣稱 ready |
+
+**補強結果**：原 V3 Phase 3 TDD 240 項之外，依上表 10 個 GAP 新增正式 `SEF-BDD-182～191`，及 TDD 的 `SEF-UT-547～548`（2）、`SEF-IT-149～151`（3）、`SEF-API-070～071`（2）、`SEF-ET-103～105`（3），**10/10 已補回，V3 250 項、總數 875 項**；全部仍為未實作狀態。歷史 625 項未重編或重寫。
+
+### 四、已確認的唯一新業務決策：`SEF-V3-RQ-01=B`
+
+**2026-11-17 使用者正式選 B：品質及可動演出優先，允許 Rig 的個人持久化 R2 總量高於舊五張全身圖**。不得以舊五整圖的 bytes 設硬性 ready 上限，不能只因層／遮罩／Pose 使容量增加就判定品質已驗證的新 Rig 失敗。這不是授權無限增長：每名 AI 玩家必須有可重現的**舊版五圖與新 Rig bytes／圖層、有效 Gemini 呼叫／失敗重試、共用素材、孤兒、R2 成本與異常警戒**紀錄；嚴格限制同一版本重複產圖和不必要的永久整圖副本。警戒門檻或預算應由實際測量與上線部署策略決定，不編造固定百分比或金額。
+
+**雙方案共同硬 Gate 保留**：五官相似度、畫風與既有全身人物識別、五種語意表情、自然站坐／閱讀／拿書、私人 R2 授權、既有免費 16 款身份、Web／Android 性能與使用者人工 Gate B **不得因成本或時間折衷降低**。Rig 未 ready 時原正式角色仍可使用；已 ready 後進場、微笑、重連及回選的 Gemini 次數必須是 0。MVP-005 未來的換裝與 face-only 來源不在本輪實作。
+
+**人工確認判定**：上輪已要求將上述 12 風險及 10 GAP 都納入規劃，並說明「只剩容量一項需決定」；本輪選 B 消除該唯一選型未決。其他風險按照已確認的品質、安全、使用者選擇及無重生方向**以具體測試緩解**，不能把文件完成誤寫成真實風險已消除。
+
+### 五、Phase 4 風險閉環與 Phase 5 交接判定（2026-11-17 最新）
+
+- **追溯**：已確認新 V3 12 項 AC（AC-005-24～35）及 SDD V3-AC-01～12；Phase 3 BDD-122～181（60 場）加 GAP 新增 BDD-182～191（10 場）＝ **70 個 V3 場景**；Phase 3 TDD 240 加正式稽核補強 10＝**250 個 V3 測試**。含舊引擎基線總 BDD **191**、總 TDD **875**。
+- **12 項風險**：RA-01～RA-10 高風險 10 項與 RA-11～RA-12 中風險 2 項，均有可執行緩解與 BDD／TDD 位置；RA-03 容量選 **B**（接受可受控高於舊圖的增幅並嚴格量測），其他品質／身份／安全／進度／授權的硬 Gate 不放寬。
+- **10 項 GAP**：已透過 `SEF-BDD-182～191` 與正式 TDD `SEF-UT-547～548`、`SEF-IT-149～151`、`SEF-API-070～071`、`SEF-ET-103～105` 完整回寫並保留歷史 625 項測試；**所有新測試仍未執行**，不偽稱完成。
+- **實作前阻斷**：**無新待使用者確認事項**；後續真 D1、R2、AI 生成、Web／Android、素材／出版流程若實際失敗，必須停在實作 Gate，不可任意降級。首場真人雙端 Gate B 在完美通過前不得量產其餘九篇。
+- **交接狀態**：**Ready for well-done（只代表規劃文件已可由 Well-Done 開發）**，並非本次改了程式、資料庫、角色素材或測試已通過。最新持久化交接見 [TDD 末尾 Phase 5](../tdd/SPEC-001-SceneEventFramework-TDD.md)。
+
+#### V3 12 項風險處置與正式補強測試（可開發但未實作）
+
+| 風險 | 規劃處置 | 最新 BDD/TDD 落點 |
+|---|---|---|
+| `SEF-V3-RA-01` | 畫質相似度不達標不 ready | BDD-177～181／ET-100～102、104～105 |
+| `SEF-V3-RA-02` | 實際坐姿／閱讀／持書等少量經審核姿態與遮擋 | BDD-133～134、174、178／ET-100、105 |
+| `SEF-V3-RA-03` | **B：受控接受容量增幅**，總 bytes、共用、孤兒、成本量測 | BDD-181、183／ET-102、IT-150 |
+| `SEF-V3-RA-04` | 來源 SHA、同版建檔冪等、完成才 ready | BDD-182～183／IT-149～150 |
+| `SEF-V3-RA-05` | 私有線索／情緒不洩漏，重連與快取仍隔離 | BDD-184／API-070 |
+| `SEF-V3-RA-06` | 被拒絕不強制親密，雨情危險可獨立撤離 | BDD-185／UT-547 |
+| `SEF-V3-RA-07` | 真人雙意願、danger／Round end 競態僅唯一結果 | BDD-186／IT-151 |
+| `SEF-V3-RA-08` | 原位點擊、視角矩陣與共享世界 CAS 一致 | BDD-187／ET-103 |
+| `SEF-V3-RA-09` | 所有可達結局／撤離的 Shot/NPC/Cue 缺一拒發 | BDD-188／UT-548 |
+| `SEF-V3-RA-10` | ai-full-body／未來 ai-face-only 來源版控及舊外觀快照不混 | BDD-189／API-071 |
+| `SEF-V3-RA-11` | 真 Android 低記憶體恢復與效能驗收 | BDD-190／ET-104 |
+| `SEF-V3-RA-12` | 全部免費16款逐一視覺與穩定 ID 驗收 | BDD-191／ET-105 |
+
+---
+
+## 2026-11-16 新版雙 Track／雨聲書店 RiskAudit 定案（Phase 4 結束；**歷史 V2**）
 
 **適用範圍**：MVP-001 AC-005-17～23、SDD §3.3～3.8.6／§4～§8、BDD-080～121、TDD Unit-237～366／Integration-081～129／API-028～053／E2E-041～077（舊 Phase 3 計畫外新增稽核測試見下文）。**本節是 2026-11-16 最新決策；下方 2026-11-12～13 的舊版 Ready／測試數字均為歷史快照，不取代本次 625 項規劃與 Gate B 規則。**
 

@@ -1,5 +1,499 @@
 # SceneEventFramework 驗證紀錄
 
+## V3 開發與角色逐款審查
+
+### 全17款外觀確認與後續執行順序：2026-11-22
+
+使用者於AI本款交付後回覆「沒問題 接下來做什麼」，接受下節AI四份固定SHA成品；female-01～08、male-01～08及AI共17款的本機完整圖格外觀均已逐款確認。此決策不代表正式Puppet動作、ActorRigPackage ready、私人R2授權或劇情Gate B通過；749/1102的完整斷言覆核比例不變。
+
+後續依已確認SPEC §3.8.7B先完成一款免費角色與AI的正式動作試作及Web／Android品質核對：站立→坐姿閱讀→抬頭／流淚→持書，補齊眨眼、呼吸、局部表情、書本錨點及桌椅遮擋；保留已確認身份／衣裝，品質通過後再推廣其餘免費角色。另須接正式不可變Rig套組的SHA／完整性／版本／ready校驗、免費公用索引與AI私人授權／採用／跨裝置恢復，最後整合首場V3劇情與雙人平台驗證，交使用者試玩Gate B；其餘九場仍受Gate B限制。下一個可供使用者檢視的成果應為這兩款的實際動作流程，而非再宣稱靜態圖格已完成正式動畫。
+
+### male-08 外觀確認與 AI 單款審查：2026-11-22
+
+使用者於 male-08 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 male-08 外觀；免費16款已逐款接受本機外觀，依逐款確認方式繼續 AI 首輪角色修正。已確認female-01～08及male-01～08（含male-02持書微笑單格修正）圖檔與metadata維持不變。AI本款仍待人工確認，外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+AI 以已確認首輪 `ai-atlas.png`（SHA `7568c4b085d1b16791dd4baa335a6fe5c6e8c6a7459b0deee1daf7ec78ebb468`）為身份與衣裝來源，保留棕色瀏海及過肩直髮、榛棕眼、深色圓框眼鏡、淺膚色與柔和成年女性五官、淺藍麻花圓領毛衣／羅紋領口袖口衣襬、白T恤露出衣襬、深藍反摺長褲與米色綁帶休閒鞋。完整五官與頭頸一體繪製，站立保留一手叉腰／另一手自然下垂，坐姿保留微側身／併腿／雙手交疊放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求鏡框／眼睛對位、雙側平衡閉唇微笑、下巴與頸部方向自然，沒有獨立五官貼片。未讀取或持久化真人來源／秘密；沿用本機虛構AI素材，沒有真Gemini呼叫、私人R2發布或採用寫入。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `ai-stand-expressions.png` | `c979a5ede36cd082e1a8ba6d35da880c5971520e0cc53b85c0f31bfe97a4e356` |
+| 坐姿 | `ai-sit-expressions.png` | `7294ca6f21bb1af1177a7f710a48f86c2ad90476efc8493ff33cb04a9347d3be` |
+| 閱讀 | `ai-read-expressions.png` | `dce97e1c4f69d0b3a2839a23d36836fe6b7299deb179866a4387d2e20db90a6f` |
+| 持書 | `ai-hold-expressions.png` | `10eb63780e9db86a0c868d0b43f627c420c54e6ffe4a9ce717febe71a06df617` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative approved AI female avatar atlas; straight chestnut hair below shoulders with bangs, hazel-brown eyes behind aligned dark round glasses, light skin, gentle young adult feminine face; exact pale sky-blue cable-knit crewneck sweater / white tee hem / navy rolled-cuff trousers / beige lace-up sneakers; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and lens alignment; no crooked smirk or twisted jaw; seamless anatomical head-neck-shoulders; genuine alpha gutters`。站立指定原叉腰姿態，坐姿指定原微側身／併腿及雙手交疊；閱讀只改雙手持開書且保留原臉／鏡框／微笑／坐姿，持書只改雙手持合書且保留原臉／鏡框／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；逐格設定寬330的裁切範圍，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=ai&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/ai-neck-review/integrity-result.json`；Client TypeScript通過。catalog全17款現在均使用完整圖格，審查頁移除無使用的舊頭身拼接分支，正式Renderer與Puppet契約未改。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 AI 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 10:59:27（臺灣11/22）exit 0。結果 `.local/rig-pilot/ai-neck-review/android-result.json`，sourceFingerprint `bcfef97bb2035427aa6a46311fcec7992f423b0e54bcb53824a05bf9e0386d5b`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑AI本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **20/20通過**：female-01～08、male-01～08及AI全部17款各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款切換／解碼與總覽回歸。已檢視AI站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對AI本款外觀的確認。免費16款已逐款確認，AI仍待人工確認；全17款本機完整圖格回歸不代表正式Puppet動作、Rig ready或劇情Gate B通過。
+
+Overview同步矩陣核對：本機catalog第十七款素材／既有測試參數與審查頁舊分支清理，已在工作流說明完整圖格審查範圍；不新增正式模組、API、schema、DI、套件或部署契約，其他overview無新增影響。V3完整核證及其他九場Gate限制不變。
+
+### male-07 外觀確認與 male-08 單款審查：2026-11-22
+
+使用者於 male-07 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 male-07 外觀，依逐款確認方式繼續 male-08。已確認female-01～08及male-01～07（含male-02持書微笑單格修正）圖檔與metadata維持不變；本輪不處理AI。外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-08 依正式原圖保留灰棕蓬鬆側分短髮、藍綠眼、暖淺膚色與柔和男性五官、低彩度藍綠麻花圓領毛衣／羅紋領口袖口衣襬、米色長褲、棕腰帶／銀扣及棕色麂皮綁帶鞋／淺鞋底。完整五官與頭頸一體繪製，站立保留一手放後頸／另一手插褲袋，坐姿雙手自然放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求雙側平衡閉唇微笑、自然下巴／頸部方向與圓領處連接，沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID與舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-08-stand-expressions.png` | `f3f52e1770bc9cbcc25dbfbb1f5f76c662475e734a556314769b979158b0ff5d` |
+| 坐姿 | `male-08-sit-expressions.png` | `9ed3c051b3d07b6fba2c7d79593a71c60c2b56f4a946a2c6af7dc9df1a9a6273` |
+| 閱讀 | `male-08-read-expressions.png` | `7aa031f34fe61421542a374835bf22e52f6cc4bb52c1ca42f26d86f157db9fc8` |
+| 持書 | `male-08-hold-expressions.png` | `18232500ef439f404ba0b7fda437a7397d6006fe971e03ca65bae64355e9fa85` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-08 original; soft swept tousled ash-brown short hair, teal-green eyes, warm light skin, gentle clean-shaven masculine face; exact muted teal cable-knit crewneck sweater with ribbed collar/cuffs/hem / cream beige trousers / brown belt silver buckle / brown suede lace-up shoes with pale soles; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; no crooked smirk or twisted jaw; continuous anatomical head-neck-shoulders at ribbed crewneck; genuine alpha gutters`。站立指定原手放後頸／插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／微笑／坐姿，持書只改雙手持合書且保留原臉／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；逐格設定寬340的裁切範圍，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-08&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/male-08-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-08 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 05:55:38（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-08-neck-review/android-result.json`，sourceFingerprint `142545b6832f3ed08b5982ee521286c191946d1929e94c7995dd8afe0062d78b`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **19/19通過**：female-01～08及male-01～08各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對本款外觀的確認。male-08仍待人工確認，AI尚未進行本輪完整圖格修正，不以免費16款技術回歸代表全17款品質通過。
+
+Overview同步矩陣核對：只新增既有本機catalog第十六款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-06 外觀確認與 male-07 單款審查：2026-11-22
+
+使用者於 male-06 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 male-06 外觀，依逐款確認方式繼續 male-07。已確認female-01～08及male-01～06（含male-02持書微笑單格修正）圖檔與metadata維持不變；本輪不處理male-08或AI。外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-07 依正式原圖保留深紫黑蓬鬆側分短髮、棕眼、暖淺棕膚色與自然男性五官、淡紫開領捲袖襯衫、合身深灰紫鈕西裝背心／嵌袋、同色長褲及黑色亮面綁帶皮鞋。完整五官與頭頸一體繪製，站立保留一手輕扶領口／另一手插褲袋，坐姿雙手自然放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求雙側平衡閉唇微笑、下巴與頸部方向自然，沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID與舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-07-stand-expressions.png` | `2933d2be0a28b187b2e8221aa18220cad4a62fb6dd8d08846f759a936594532d` |
+| 坐姿 | `male-07-sit-expressions.png` | `9ccdf13b8aee96f0ef4d49e3c1de45f572ae4c51125a4ab27df5a25b5a3724dd` |
+| 閱讀 | `male-07-read-expressions.png` | `d9feecca531fef8744c1e87557669cd3aa697f759e7a7dcc1dcd47de6655f6a9` |
+| 持書 | `male-07-hold-expressions.png` | `dc332d89939149859d40f927f517cdb889a47c1892d0dfc97ba39a8889c6cb2d` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-07 original; voluminous swept dark purple-black short hair, warm brown eyes, clean-shaven masculine adult face, warm light tan skin; exact pale lavender open-collar rolled-sleeve shirt / fitted dark charcoal-purple button waistcoat with welt pockets / matching trousers / polished black lace-up dress shoes; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; no crooked smirk or twisted jaw; natural continuous head-neck-shoulders around open collar; genuine alpha gutters`。站立指定原扶領口／插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／微笑／坐姿，持書只改雙手持合書且保留原臉／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；逐格設定寬340的裁切範圍，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-07&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/male-07-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-07 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 05:44:12（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-07-neck-review/android-result.json`，sourceFingerprint `2f83235769f4972140e1b6c6be239626df9670711cd3b1bfb8c6e81fa1a72852`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **18/18通過**：female-01～08及male-01～07各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對本款外觀的確認。
+
+Overview同步矩陣核對：只新增既有本機catalog第十五款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-05 外觀確認與 male-06 單款審查：2026-11-22
+
+使用者於 male-05 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 male-05 外觀，依逐款確認方式繼續 male-06。已確認female-01～08及male-01～05（含male-02持書微笑單格修正）圖檔與metadata維持不變；本輪不處理male-07以後或AI。外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-06 依正式原圖保留栗棕蓬鬆捲髮、藍眼、細深色圓框眼鏡、暖淺膚色與柔和男性五官、藍色牛仔襯衫／雙胸袋／淺色車線／捲袖、白色圓領T恤、棕腰帶／銀扣、卡其長褲及米色帆布鞋／白鞋頭鞋底。完整五官與頭頸一體繪製，站立保留一手放後頸／另一手插褲袋，坐姿雙手自然放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求鏡框與眼睛對位、雙側平衡閉唇微笑、下巴與頸部方向自然，沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID與舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-06-stand-expressions.png` | `002e95dec7f3f0130b1a8d5d9aff9abb6262e245096f3224a3fa947fd3e76437` |
+| 坐姿 | `male-06-sit-expressions.png` | `c9bc6ca6b1ce2e01bacbb53f5e77b46311078ed4598e13fb028a7468480e5f3b` |
+| 閱讀 | `male-06-read-expressions.png` | `32f266b9b3b615d58912530afc5b516d4cea013c2252fc21c3a2731823758209` |
+| 持書 | `male-06-hold-expressions.png` | `d95a066a998a94df1109d0d09ea10d3e38e123ff8dbb54b6cddb6a787913ae8f` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-06 original; curly chestnut brown hair, blue eyes behind aligned thin dark round glasses, warm light skin, soft clean-shaven masculine face; exact blue denim shirt / two flap chest pockets / pale stitching / rolled sleeves / white tee / brown belt / khaki trousers / beige canvas sneakers with white toecaps and soles; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and lens alignment; no crooked smirk, shifted glasses or twisted chin; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原手放後頸／插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／鏡框／微笑／坐姿，持書只改雙手持合書且保留原臉／鏡框／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；逐格設定寬340的裁切範圍，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-06&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/male-06-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-06 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 05:00:49（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-06-neck-review/android-result.json`，sourceFingerprint `4666c0df61f55168af7312ebda5042fc75c40a566d221a346d8b2e8acdc43e17`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **17/17通過**：female-01～08及male-01～06各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對本款外觀的確認。
+
+Overview同步矩陣核對：只新增既有本機catalog第十四款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-04 外觀確認與 male-05 單款審查：2026-11-22
+
+使用者於 male-04 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 male-04 外觀，依逐款確認方式繼續 male-05。已確認female-01～08及male-01～04（含male-02持書微笑單格修正）圖檔與metadata維持不變；本輪不處理male-06以後或AI。外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-05 依正式原圖保留銀灰蓬鬆側分短髮、綠眼、銀色耳釘、淺膚色與自然男性五官、黑綠頸掛耳機、深灰拉鍊外套／胸袋／袖袋／羅紋袖口、灰色圓領T恤、黑腰帶／銀扣、深灰長褲及黑色綁帶高筒鞋。完整五官與頭頸一體繪製，站立保留一手輕扶耳機／另一手插褲袋，坐姿雙手自然放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求雙側平衡閉唇微笑、自然下巴／頸部方向及耳機落在肩上，沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID與舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-05-stand-expressions.png` | `cab5189d5ddce1ee3dc7996ded8f4db0edf068727a0c1ee4aa7130eb83b68046` |
+| 坐姿 | `male-05-sit-expressions.png` | `e4bc1c77a6f4238af049171a82e43c6024caeb46922c4a77415db78f054370ce` |
+| 閱讀 | `male-05-read-expressions.png` | `a7dbd1c504c456e4ba61dacc33aba62f40ee098e8ee5273f0c23f3775785d17f` |
+| 持書 | `male-05-hold-expressions.png` | `aa3823810541b5c43bf0fb9ac50ed294e1f0fd756c3ba71cca69325897c1e161` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-05 original; silver-gray swept tousled short hair, emerald green eyes, silver ear stud, light skin, clean-shaven masculine face; exact black/green neck headphones / charcoal zip jacket with chest flap and sleeve pockets / gray crewneck tee / black belt / charcoal trousers / black high-top lace-up shoes; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; no crooked smirk or twisted chin; seamless head-neck-shoulders; headphones rest naturally on shoulders; genuine alpha gutters`。站立指定原扶耳機／插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／微笑／坐姿，持書只改雙手持合書且保留原臉／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；逐格設定寬330的裁切範圍，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-05&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/male-05-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-05 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 04:43:03（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-05-neck-review/android-result.json`，sourceFingerprint `444aff48acb84c3a51e74348d687824c7cc92ad74a4ee0d6514c263100abc99c`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **16/16通過**：female-01～08及male-01～05各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對本款外觀的確認。
+
+Overview同步矩陣核對：只新增既有本機catalog第十三款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-03 外觀確認與 male-04 單款審查：2026-11-22
+
+使用者於 male-03 交付後回覆「沒問題 繼續」，接受前節4份固定SHA的 male-03 外觀，依逐款確認方式繼續 male-04。已確認female-01～08及male-01～03（含male-02持書微笑單格修正）圖檔與metadata維持不變；本輪不處理male-05以後或AI。外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-04 依正式原圖保留紅棕色中長捲髮、榛色眼睛、銀色耳釘、暖淺膚色與自然男性五官、磚紅開領捲袖襯衫／胸袋、棕腰帶、米色長褲及棕色綁帶鞋／淺鞋底。完整五官與頭頸一體繪製，站立保留原畫一手持畫筆近肩／另一手插褲袋；坐姿雙手自然放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞明確要求雙側平衡閉唇微笑、下巴與頸部方向自然，沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID與舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-04-stand-expressions.png` | `bd2262230b87b3827192d30c7abc7d7f2dc67bc50b0b17e42d18f7d350ec5d42` |
+| 坐姿 | `male-04-sit-expressions.png` | `5f7a9c2a93133a4a9def8b25a7c1d62ced60c8665f089ad852993fa7b66c09bf` |
+| 閱讀 | `male-04-read-expressions.png` | `e081d805fe0764e2e908f9f0f968db5c5506bcfed537a0efa6d0841b8d79069c` |
+| 持書 | `male-04-hold-expressions.png` | `726b93d0c6a69bfaee4c01fb311896346ff0a4e9a7cd8c6dd748417e6622d5e6` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-04 original; auburn-red wavy medium-length hair, hazel eyes, silver stud earring, warm light skin, refined masculine face; exact brick red open-collar rolled-sleeve shirt / chest pocket / brown belt / cream beige trousers / brown lace-up shoes; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; no one-sided smirk, slanted chin or pasted facial features; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原畫筆／插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／微笑／坐姿，持書只改雙手持合書且保留原臉／微笑／站姿並移除畫筆。4份選定成品已複製工作區，兩平台共用同來源；裁切寬340，保留肩線／手肘／鞋底且不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-04&single=1&pose=hold&expression=smile`。四來源SHA／尺寸／20格範圍／透明角落與裁切邊界檢查通過，其他16款catalog及male-02單格修正維持不變，證據 `.local/rig-pilot/male-04-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-04 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 04:15:21（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-04-neck-review/android-result.json`，sourceFingerprint `115d489c8d2a210c78ce98ba219987c02d56629676c9a588dd327eef59db7695`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Chrome 審查套件同輪 **15/15通過**：female-01～08及male-01～04各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線／手肘／鞋底裁切完整；自動化與本次自查不代替使用者對本款外觀的確認。
+
+Overview同步矩陣核對：只新增既有本機catalog第十二款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-02 修正版確認與 male-03 單款審查：2026-11-22
+
+使用者於 male-02 持書微笑修正後回覆「好 繼續」，接受SHA `ea70e9284cf364d339464f874594e450fa9bf2cdb7f5119a1f1652a2bded3736` 的完整單格修正版，保留其餘19格原來源，依逐款確認方式繼續male-03。已確認female-01～08、male-01及male-02（含單格修正）素材／metadata未改；本輪不處理male-04以後或AI，外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-03 依正式原圖保留深灰黑蓬鬆短髮、金棕眼睛、暖膚色與自然運動體格、綠色連帽戶外外套／深色肩片／灰帽裡／拉鍊胸袋／捲袖、米白T恤、棕褐戶外長褲及棕綠登山鞋。完整五官與頭頸一體繪製，站立雙手插褲袋、坐姿雙手在膝上，再由對應姿態只改手臂／書本製作閱讀與持書。提示詞額外強調雙側平衡閉唇微笑、禁止歪嘴／扭下巴與頭頸錯位；沒有獨立五官貼片。正式Puppet／局部表情目標、80張WebP、角色ID、舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-03-stand-expressions.png` | `7465740c95b4697f7ed8785cc3fb0ad916846914e04c8e94efa2682356cf5e8d` |
+| 坐姿 | `male-03-sit-expressions.png` | `255c38f44d09e52eaed4b14fd4491ccebded0af0c63badf3f0b3d0a96c8e6c6b` |
+| 閱讀 | `male-03-read-expressions.png` | `7743ce5c3eeabcbf904955ac41e3096eb29b83efe6d4b73bfd13703b19caa3b1` |
+| 持書 | `male-03-hold-expressions.png` | `341b150fabab1e18d45977a308d25d41646e8af71dc919dda70b730f52b4bb95` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-03 original; charcoal-black tousled short hair, golden hazel eyes, tan skin, clean-shaven athletic adult man; exact green hooded outdoor jacket / dark shoulder panels / gray hood lining / ivory tee / brown hiking trousers and boots; five complete full-body sprites in one row; neutral / balanced closed-lip smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; no crooked smirk or twisted jaw; seamless head-neck-shoulders; genuine alpha gutters`。站立指定雙手插褲袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留原臉／微笑／坐姿，持書只改雙手持合書且保留原臉／微笑／站姿。4份選定成品已複製工作區，兩平台共用同來源；裁切寬360保留肩線和手肘，不截入鄰格人物。只分析像素定位runtime區域，沒有重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-03&single=1`。四來源SHA／尺寸／20格範圍／透明角落／鄰格邊界檢查通過，其他16款catalog與male-02單格修正維持不變，證據 `.local/rig-pilot/male-03-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+Chrome 審查套件同輪 **14/14通過**：female-01～08及male-01～03各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，male-02單格修正／其餘19格保留，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書微笑及持書思考放大圖，肩線與手肘裁切完整；不以自動化代簽本款外觀。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-03 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:59:53（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-03-neck-review/android-result.json`，sourceFingerprint `e52b00025498ef39d4b17ae32b0101900078b1818dbd92dada37886fd156e443`；已檢視原生閱讀自然及持書微笑畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第十一款素材與既有測試參數，沿用既有完整圖格／單格修正來源及可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### male-02 持書微笑退回與單格修正：2026-11-22
+
+使用者指出「持書的微笑歪掉了」，male-02 外觀仍未通過，暫不進入male-03。先前12/12 Web與QA31成功只證明解碼及控制操作，不代表這一格品質核准。
+
+本輪只修 `male-02 / hold / smile`。內建imagegen以既有持書atlas第二格與正式原圖鎖定身份，產生完整人物單格；初次嘴角仍略單邊，第二次針對完整頭臉調整為正面、鏡框水平、鼻唇下巴／頸部方向一致及雙側平衡閉唇微笑。選定成品 `.local/rig-pilot/male-02-hold-smile-v2.png`，1024×1536透明PNG，SHA256 `ea70e9284cf364d339464f874594e450fa9bf2cdb7f5119a1f1652a2bded3736`。未用程式移動五官／修圖，未使用CLI/API fallback；原始工具輸出留在Codex生成目錄，只複製選定成品入工作區。
+
+最終提示詞組：`identity-preserve; correct only male-02 standing closed-book smile; preserve original face identity, thin gold glasses, hair, costume, hands and book; upright forward head, level eyes/glasses, vertical nose-lips-chin-neck axis; very subtle balanced closed-lip smile with both corners at same height; no smirk, slanted chin or pasted facial patches; full-body sprite and genuine transparent background`。新版以完整單格覆寫該表情，沒有更換其餘19格來源；原四份atlas與其裁切metadata保持不變，其他16個角色catalog亦相同。此界限已由修改前後資料比較及 `.local/rig-pilot/male-02-neck-review/smile-fix-integrity.json` 檢查，並保留 `before-hold-smile.png` 及 `android-before-smile-fix.json` 作先前版本對照。
+
+本機catalog新增每姿態可選的完整圖格`corrections`，viewer仍沿用現有`ActorMotionRenderer`的asset／region override，只在hold/smile選新單格，按原比例裁切，不拼接嘴巴或頭部；其他19格保留原資產SHA。素材server固定白名單／啟動SHA驗證與原生fingerprint一併展開修正來源。Web支援有效的`pose`／`expression`初始參數，直接入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-02&single=1&pose=hold&expression=smile&review=smile-v2`。
+
+指定Web修正檢查1/1通過：入口直接定位持書微笑、實際解碼1024px新單格、其餘19狀態仍讀既有四份固定SHA；放大圖 `hold-smile-fixed.png` 已檢視。Client TypeScript、原生批次腳本語法檢查及`git diff --check`通過。此為本機品質修正，沒有更改正式80張WebP、角色ID、ready Gate、正式Rig契約、API／DB或R2發布。
+
+最終 Chrome 審查套件同輪 **13/13通過**：單格修正與其餘19狀態來源保留、10款各20格、17款既有切換／解碼與總覽。QA31／ADB5038、8086 development profile、8092 loopback 同版male-02的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:49:42（臺灣11/22）exit 0；結果 `android-result.json`，sourceFingerprint `f1d7c1a3eebc386d95338112f63bda02749e6f8d3c9d24a5ac584b89cbbc9903`。已檢視同目錄 `android-hold-smile.png` 的實際修正畫面，不以標題變更代替圖片顯示。原生只重跑male-02元件，不擴推全17款、真機性能或完整Rig；XML僅記憶體，影片／trace關閉。唯讀追溯仍749/1102 verified，沒有改V3完整核證；未重跑正式劇情或完整client單元。
+
+Overview矩陣已核對，工作流補上本機catalog單格修正來源與直達參數操作；正式模組／schema／套件／DI／部署無新增影響。使用者已回覆「好 繼續」接受本格修正版；V3完整核證與其他九場Gate限制不變。
+
+### male-01 外觀確認與 male-02 單款審查：2026-11-22
+
+使用者於 male-01 交付後回覆「繼續」，承接本款確認接受下節4份固定SHA的 male-01 外觀，依逐款確認方式繼續 male-02。本輪保留已確認female-01～08與male-01圖檔及metadata，不處理male-03以後或AI；外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-02 依正式原圖保留深紫黑短髮、紫藍眼睛、細金屬框眼鏡、面頰小痣、深藍金鈕西裝／同色長褲、白開領襯衫、淡紫口袋巾、黑腰帶／銀扣與黑皮鞋。完整五官與頭頸一體繪製，站立保留托頷／另一手插口袋，坐姿雙手放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。沒有獨立眼眉或嘴部貼片；正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-02-stand-expressions.png` | `8bfa831a0307e1d3d49df2d11811a44fa2434508cea3df4949926bcd301eb15b` |
+| 坐姿 | `male-02-sit-expressions.png` | `fea4256f933ab58f923e1373cdd494ceea4ae871e538de510b7c4dec0ed8d67b` |
+| 閱讀 | `male-02-read-expressions.png` | `a2d04a1711d7377a36f94424ff5cc32b81b2f3f817b1d5038e3fa0c97bfc64f4` |
+| 持書 | `male-02-hold-expressions.png` | `1fd7f46d366034a3c2a3410796ae9c84bde07e6c45d02b81c13f7955418d1f74` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-02 original; swept dark purple-black short hair, violet-blue eyes behind thin gold glasses, refined adult masculine face and cheek mark; exact navy suit / white open-collar shirt / lavender pocket square / black belt and dress shoes; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and glasses alignment; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原托頷／插口袋姿態，坐姿指定自然彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／鏡框／坐姿，持書只改雙手持合書且保留所有原臉／鏡框／站姿。4份選定成品已複製工作區，兩平台共用同來源；裁切寬340保留肩線／手肘並避免鄰格人物，依原長寬比呈現，只分析像素定位runtime區域，未重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-02&single=1`。四來源SHA／尺寸／20格範圍／透明角落與鄰格邊界檢查通過，記錄 `.local/rig-pilot/male-02-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀仍待使用者確認，平台操作不代替人工判斷。
+
+Chrome 審查套件同輪 **12/12通過**：female-01～08及male-01～02各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；肩線／手肘裁切完整，不以自動化代簽本款外觀，其他男性與AI仍未進行本輪修正。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-02 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:40:13（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-02-neck-review/android-result.json`，sourceFingerprint `e85b2708f17acba08d28edd62f98c54dc7b17d330a19411cbfb1f38256741fc7`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第十款素材與既有測試參數，沿用既有可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### female-08 外觀確認與 male-01 單款審查：2026-11-22
+
+使用者於 female-08 交付後回覆「繼續」，承接本款確認接受下節4份固定SHA的 female-08 外觀；女性8款已逐款接受本機外觀，現在依原順序處理 male-01。本輪保留已確認female-01～08圖檔與metadata，不處理male-02以後或AI。此同意僅限外觀，不代表正式Rig ready、完整動作或劇情Gate B。
+
+male-01 依正式原圖保留棕色蓬鬆短髮、暖棕眼睛、米色拉鍊連帽外套／抽繩、白T恤、深灰長褲與米白帆布鞋。完整五官與頭頸一體繪製，站立保留雙手插外套口袋、坐姿雙手放膝上，再由對應姿態只改手臂與書本製作閱讀／持書。沒有獨立眼眉或嘴部貼片；正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改，未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `male-01-stand-expressions.png` | `06745ca5efda54ca5ec9f26c7b97200b420f21f79532dafd1dc66cd1cdea1468` |
+| 坐姿 | `male-01-sit-expressions.png` | `1ef2cf4e224db777d8ba288997cfd1496deee00be2a1fdea5aa780d8b9e78014` |
+| 閱讀 | `male-01-read-expressions.png` | `09bd01ab3586992736ba288723e2c8dcfd8f9fa746d9fed913ff212a1d4c72f5` |
+| 持書 | `male-01-hold-expressions.png` | `097397d681d524d8966251dbc4fa7002272f5554f7d565005396939bc39e7768` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative male-01 original; youthful adult man, tousled chestnut short hair, amber-brown eyes, gentle masculine face; exact beige zip hoodie / white tee / charcoal trousers / cream canvas sneakers; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and head angle; seamless head-neck-shoulders and hoodie collar; genuine alpha gutters`。站立指定原雙手插口袋姿態，坐姿指定自然彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／坐姿，持書只將雙手移出口袋持合書且保留所有原臉／站姿。4份選定成品已複製工作區，兩平台共用同來源，裁切寬360保留較寬肩線與手肘且不截入鄰格人物；依原長寬比顯示，僅分析像素定位runtime區域，未重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=male-01&single=1`。四來源SHA／尺寸／20格範圍／透明角落與鄰格邊界檢查通過，記錄 `.local/rig-pilot/male-01-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀已由使用者「繼續」接受，僅限本節4份固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **11/11通過**：female-01～08及male-01各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖，手肘與肩線裁切完整；不以自動化代簽本款外觀，其他男性及AI仍未進行本輪修正。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 male-01 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:27:29（臺灣11/22）exit 0。結果 `.local/rig-pilot/male-01-neck-review/android-result.json`，sourceFingerprint `a632c262e5fe4e7fcb0c8118758fad3d68f019875c279a38af6b194a6e190de3`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第九款素材與既有測試參數，沿用既有可變裁切尺寸，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### female-07 外觀確認與 female-08 單款審查：2026-11-22
+
+使用者於 female-07 交付後回覆「繼續」，承接本款確認接受下節4份固定SHA的 female-07 外觀，依逐款確認方式繼續 female-08。本輪保留已確認female-01～07的圖檔與metadata，不處理男性或AI；外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+female-08 依正式原圖保留淺棕蓬鬆短髮、琥珀色眼睛、金色珍珠耳墜、藍綠麻花針織圓領上衣、米色百褶中長裙、棕腰帶／金扣及蝴蝶結平底鞋。完整五官與頭頸一體繪製，站立保留一手近下巴／另一手叉腰，坐姿雙手放膝上，再由對應姿態只改手臂／書本製作閱讀和持書。沒有獨立眼眉或嘴部貼片；正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改，沒有發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-08-stand-expressions.png` | `33dfef4b783fd60e1b9b66d79976d87b71d1b3cf2d658755bc58a022d6ad320f` |
+| 坐姿 | `female-08-sit-expressions.png` | `4177e03796786b60eb1497a04a758aa0d1bdbe450c651874b7b7c685c1359e12` |
+| 閱讀 | `female-08-read-expressions.png` | `ac61af42b63be7ed86cfdc01791460f4439a03067f6a009482e918c2047e7280` |
+| 持書 | `female-08-hold-expressions.png` | `f132cb575b727506ca623eb707c219461dc434d367b8ada731baf9c53d39dd1f` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-08 original; short tousled light-brown pixie haircut, hazel/amber eyes, gold-pearl drop earrings; exact teal cable-knit sweater / beige pleated midi skirt / brown belt / taupe bow flats; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and head angle; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原托頷／叉腰姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／坐姿，持書只改雙手持合書且保留所有原臉／站姿。4份選定成品已複製工作區，兩平台共用同來源；只分析人物位置並更新runtime裁切metadata，沒有改圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-08&single=1`。四來源SHA／尺寸／20格範圍／透明角落檢查通過，記錄 `.local/rig-pilot/female-08-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀已由使用者「繼續」接受，僅限本節4份固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **10/10通過**：female-01～08各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；不以自動化代簽本款外觀，男性與AI仍未進行此輪修正。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-08 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:11:26（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-08-neck-review/android-result.json`，sourceFingerprint `203a6f3b87bea5c1730e69bde617e883b119d6bae3a68a8d04e4c369c7a8368a`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第八款素材與既有測試參數，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其他九場Gate限制不變。
+
+### female-06 外觀確認與 female-07 單款審查：2026-11-22
+
+使用者於 female-06 交付後回覆「繼續」，承接本款確認接受下節4份固定SHA的 female-06 外觀，依逐款確認方式繼續 female-07。本輪保留已確認female-01～06的圖檔與metadata，不處理female-08、男性或AI；外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+female-07 依正式原圖保留深紫黑低側髮髻／側瀏海、紫眼、金色珍珠耳墜及項鍊、酒紅翻領襯衫／澎袖／金袖扣、米白翻領長背心／金鈕／口袋、米白長褲與棕色低跟鞋。完整五官與頭頸一體繪製，站立雙手交握、坐姿雙手放膝上，再由對應姿態只改手臂與書本製作閱讀／持書，沒有獨立眼眉或嘴部貼片。這是本機外觀審查，正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改；未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-07-stand-expressions.png` | `ff59420c5450fd34b90ba379db9cd2ca7d145dc95d2de73583de0eeaa0ccce40` |
+| 坐姿 | `female-07-sit-expressions.png` | `c75bffae9697a13f7136b3f0b1fd533c4ca909574b165c40e964f841b6ae8509` |
+| 閱讀 | `female-07-read-expressions.png` | `333a37366e3f341a098b6eca8b258dcbe9c60abeba5313af0d0b150f6b4f9a76` |
+| 持書 | `female-07-hold-expressions.png` | `85ed8ad37073246a3272034eeaebdd5b24fd57dec3b016563c67aca81f4d5d24` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-07 original; dark low side bun and fringe, violet eyes, pearl earrings/pendant; exact burgundy blouse / ivory tailored vest and trousers / brown heels; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and head angle; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原雙手交握姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／低側髮髻／坐姿，持書只改雙手持合書且保留所有原臉／低側髮髻／站姿。選定4份成品已複製工作區，兩平台共用同來源；只分析人物位置並更新runtime裁切metadata，沒有修改圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-07&single=1`。四來源SHA／尺寸／20格範圍／透明角落分析通過，記錄 `.local/rig-pilot/female-07-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀已由使用者「繼續」接受，僅限本節4份固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **9/9通過**：female-01～07各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；自動化不替代本款人工外觀確認，其他待修角色仍未核准。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-07 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 03:00:22（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-07-neck-review/android-result.json`，sourceFingerprint `da995137457fb1e9df72c8bef2cb0bbfe8cb6b22b6e94bb72d07278c3d598f82`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第七款素材與既有測試參數，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證與其他九場Gate限制維持不變。
+
+### female-05 外觀確認與 female-06 單款審查：2026-11-22
+
+使用者於 female-05 交付後回覆「繼續」，承接本款確認接受下節4份固定SHA的 female-05 外觀，依逐款確認方式繼續 female-06。本輪保留已確認female-01～05圖檔與metadata，不處理female-07以後或AI；外觀同意不代表正式Rig ready、完整動作或劇情Gate B。
+
+female-06 依正式原圖保留棕色捲髮、藍眼、黑色圓角框眼鏡、金耳圈／淡藍墜飾項鍊、牛仔外套／反摺袖、米白羅紋上衣、牛仔長褲、棕腰帶／金扣與白帆布鞋。完整五官與頭頸一體繪製，站立保留一手碰髮／另一手叉腰，坐姿雙手放膝上，再由對應姿態只改手臂／書本製作閱讀與持書。沒有獨立五官貼片，正式Puppet與局部表情目標、80張WebP、角色ID及舊ready Gate未改；未發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-06-stand-expressions.png` | `0c9ce5d973cbc0a642b13330722fe5843d155292f4409e7c6c601174bb2d75c3` |
+| 坐姿 | `female-06-sit-expressions.png` | `4638210d1da04d41977286655539abfa3c426ff0b0e3feb2584bb0102bea12ea` |
+| 閱讀 | `female-06-read-expressions.png` | `7d376d7cbb65c05714fd0ea8645f33b9732dbe0b13997a96352c11fc33155bcf` |
+| 持書 | `female-06-hold-expressions.png` | `97df5d9411404f50d51e027764b8bd9a66c477f06039e27806432688f17cf118` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-06 original; curly brown shoulder-length hair; blue eyes behind black rounded-rectangular glasses; gold hoops / pale-blue pendant; exact denim jacket and jeans / cream ribbed top / brown belt / white sneakers; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and glasses alignment; seamless head-neck-shoulders; genuine alpha gutters`。站立指定原碰髮／叉腰姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／鏡框／坐姿，持書只改雙手持合書且保留所有原臉／鏡框／站姿。選定4份成品已複製工作區，Web／Android共用，僅以像素分析定位runtime裁切，未改圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-06&single=1`。四來源SHA／尺寸／20格範圍／透明角落分析通過，記錄 `.local/rig-pilot/female-06-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀已由使用者「繼續」接受，僅限本節4份固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **8/8通過**：female-01～06各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；自動化不替代本款人工品質確認，其他待修角色不因此外觀通過。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-06 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 02:49:12（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-06-neck-review/android-result.json`，sourceFingerprint `3dbb9f49da8c14efacf224247507294535bae905e5f2e268f80f0774105673cf`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第六款素材與既有測試參數，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；V3完整核證及其餘九場Gate限制不變。
+
+### female-04 外觀確認與 female-05 單款審查：2026-11-22
+
+使用者於 female-04 交付後回覆「繼續」，承接本款確認問題接受下節4份固定SHA的 female-04 外觀，依逐款確認方式繼續 female-05。本輪保留已確認female-01～04的圖檔與metadata，不處理female-06以後或AI；外觀確認不代表正式Rig ready、完整動作或劇情Gate B。
+
+female-05 依正式原圖保留銀白短髮、綠色眼睛、耳釘、頸掛黑色耳罩式耳機、橄欖綠飛行外套／袖袋、深灰T恤、黑腰帶／銀扣、黑長褲與黑繫帶鞋。五官、頭頸及耳機完整繪製，站立保留雙手插外套口袋、坐姿雙手放膝上，再由對應姿態只改手臂與書本製作閱讀／持書，沒有獨立眼眉或嘴部貼片。這是本機外觀審查成品；正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改，沒有發布R2或製作後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-05-stand-expressions.png` | `6680bd98c54e6d16a26c6b330e7361688b8e9b9b54a78a1d7e0c0c4ad6381f1b` |
+| 坐姿 | `female-05-sit-expressions.png` | `b7478a9dbe53ba02edef1667c31d4b476bcc70b3a26f9dd2e7bb6db3b054a119` |
+| 閱讀 | `female-05-read-expressions.png` | `0b8dd7693229c926eb7d5cf5824c26bb13263f615bdbb544c0cbc6a82906281a` |
+| 持書 | `female-05-hold-expressions.png` | `21c1065e3df6ccf841107a660ea5759b3ac12ecf00d6f2c2cf4dd8c748804cf0` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-05 original; short silver-white bob, green eyes, fair skin, silver studs; same black headphones resting around neck; exact olive bomber / charcoal tee / black belt and trousers / lace-up shoes; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks; integrated neck and shoulders behind headphones; genuine alpha gutters`。站立指定原雙手插口袋姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改雙手持開書且保留所有原臉／耳機／坐姿，持書只將手移出口袋持合書且保留所有原臉／耳機／站姿。選定4份成品已複製工作區，兩平台共用同來源；僅分析人物位置並更新runtime裁切metadata，未修改圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-05&single=1`。四來源SHA／尺寸／20格範圍／透明角落檢查通過，記錄 `.local/rig-pilot/female-05-neck-review/integrity-result.json`；Client TypeScript通過。本款外觀已由使用者「繼續」接受，僅限本節固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **7/7通過**：female-01～05各20格實際解碼、20個不同完整圖格、沒有獨立face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖，沒有將控制項成功當作人工外觀通過；其他待修角色仍未核准。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-05 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 02:40:41（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-05-neck-review/android-result.json`，sourceFingerprint `25fa8375a3a64543b5fcabb8f905c8894d5f9d11335f0df7425a2f03c6befdf6`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只新增既有本機catalog第五款素材與既有測試參數，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響；正式V3核證及其他九場Gate限制不變。
+
+### female-03 外觀確認與 female-04 單款審查：2026-11-22
+
+使用者於 female-03 交付後回覆「沒問題 繼續」，接受下節4份固定SHA的 female-03 外觀，依逐款確認方式繼續 female-04。本輪保留已確認female-01～03的圖檔與metadata，不處理female-05以後或AI；外觀確認不等於正式Rig ready、完整動作或劇情Gate B。
+
+female-04 依正式原圖保留紅棕肩長捲髮、琥珀色眼睛、金色耳墜／手環、赭紅翻領金鈕襯衫、深棕細腰帶／金扣、米色百褶中長裙與棕鞋。完整五官與頭頸一體繪製，站立雙手交握、坐姿雙手在膝上，閱讀與持書各由對應姿態只改手臂／書本，沒有獨立眼眉或嘴部貼片。這是本機品質審查成品；正式Puppet／局部表情目標、80張WebP、角色ID及舊ready Gate未改，未發布R2或後續九場。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-04-stand-expressions.png` | `c3e27afbfcb4e62f1cb32e713ca4388f18f24bde47801d78b20fc8b53d1dbe87` |
+| 坐姿 | `female-04-sit-expressions.png` | `0556cf7211538b2e075d4383372b409d1e8a66ad022012cfc75db9ab6cf58350` |
+| 閱讀 | `female-04-read-expressions.png` | `25b8894278ab01cb68306cae31125777add54df0bdafc37c87e04ddf7e5d0018` |
+| 持書 | `female-04-hold-expressions.png` | `d4d284327566e521e9373ee7139f1a08bb71db92754efff3b675f08a206fa7ef` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-04 original; wavy copper-auburn shoulder-length hair, amber eyes, gold teardrop earrings and right-wrist bangle; exact terracotta collared blouse / cream pleated midi skirt / brown belt and pumps; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and head angle; integrated seamless head-neck-shoulders; genuine transparent gutters`。站立指定原雙手交握姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀只改手臂持開書並保留所有原臉與坐姿，持書只改雙手持合書並保留所有原臉與站姿。四份選定成品已複製工作區，兩平台共用單一來源；以像素分析確認人物區域，runtime依metadata裁切，未重寫圖像像素。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-04&single=1`。四來源SHA／尺寸／20格範圍／透明角落分析通過，證據 `.local/rig-pilot/female-04-neck-review/integrity-result.json`；Client TypeScript通過。本款人工外觀已由使用者「繼續」接受，僅限本節4份固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **6/6通過**：female-01～04各20格實際解碼、20種圖格裁切、完整單層且無獨立face／mouth、零頁面例外，以及17款既有切換／解碼和總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；自動化不代替本款人工品質確認，其他待修角色不因此外觀通過。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-04 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 02:33:09（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-04-neck-review/android-result.json`，sourceFingerprint `446e7a2ee458ba6219e7f60e1d9070a6735f157e3c96d40b158f02efe5ed5753`；已檢視原生閱讀自然及持書驚訝畫面。原生只重跑本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；未重跑正式劇情或完整client單元。
+
+Overview同步矩陣核對：只增加既有本機catalog第四款素材與既有測試參數，不新增正式API、schema、DI、套件、模組或部署契約，無新增overview影響；正式V3完整核證與其他九場Gate限制維持不變。
+
+### female-02 外觀確認與 female-03 單款審查：2026-11-22
+
+使用者於 female-02 交付後明確回覆「可以 繼續」，接受下節4份固定SHA的 female-02 外觀，依逐款確認方式繼續 female-03。female-01、female-02 已確認的素材與metadata未改；本輪不處理 female-04以後或AI。確認僅限外觀，不代表正式Rig ready、完整動作或劇情Gate B。
+
+female-03 依正式原圖保留高棕馬尾／淺綠髮束、綠眼、暖膚色、面頰小痣、銀色耳圈、橄欖綠雙條紋運動外套、白T恤、深灰束口褲與灰白球鞋。採已接受的完整五官與連續頭頸品質圖格；站立保留握衣領／另一手叉腰，坐姿雙手放膝上，再只改手臂／道具製作坐姿閱讀與站立持書。每姿態五表情，無分離眼眉／嘴部貼片。這仍是本機外觀審查，正式Puppet與局部表情規格不變；沒有修改正式80張WebP、角色ID、舊ready Gate或發布R2。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-03-stand-expressions.png` | `e0f456bc241fe1e9d75475d4daca844b36b64039d55241583f9e2ff7f1f110bd` |
+| 坐姿 | `female-03-sit-expressions.png` | `8f7faa806955ba4a66a790fb8d75797eee50cf633b775358c2f712ae214a5c8d` |
+| 閱讀 | `female-03-read-expressions.png` | `e103828b1c1225927ae7bc6709dc2627dba40ae0d767e7df2197720b9c2c9e4f` |
+| 持書 | `female-03-hold-expressions.png` | `8d7686eba5af5e08215b8783c6712af2dc127085209f1dd273fde2ff5102d5f6` |
+
+使用內建imagegen，未用CLI/API fallback或程式修圖。提示詞組：`identity-preserve; authoritative female-03 original; warm tan skin, green eyes, cheek beauty mark, high chestnut ponytail with pale green tie, silver hoops; exact olive track jacket / white tee / charcoal striped joggers / sneakers; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks, no detached eyes or mouth, seamless head-neck-shoulders, genuine alpha gutters`。站立指定原握衣領／叉腰姿態，坐姿指定彎曲髖膝／雙手放膝上；閱讀編輯只改手臂持開書且保留所有原臉與坐姿腿，持書編輯只改雙手持合書且保留所有原臉與站姿。選定4份成品已複製工作區，Web／Android共用，依原長寬比呈現，20個裁切區域保留完整馬尾與鞋。
+
+入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-03&single=1`。四來源SHA／尺寸／20格範圍／透明角落檢查通過，記錄 `.local/rig-pilot/female-03-neck-review/integrity-result.json`。Client TypeScript通過。平台測試與人工品質分開記錄；本款外觀已由使用者「沒問題 繼續」接受，僅限本節固定SHA；後續款見上節。
+
+Chrome 審查套件同輪 **5/5通過**：female-01／02／03各20格實際解碼、20個不同完整圖格、無分離face／mouth、零頁面例外，以及17款既有切換／解碼與總覽回歸。已檢視本款站立微笑、坐姿擔心、閱讀驚訝、持書思考放大截圖；其他未重製角色不因此外觀通過。`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified；本輪未重跑正式劇情或完整client單元。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-03 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-22 02:24:40（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-03-neck-review/android-result.json`，sourceFingerprint `6ede16d2cec3fcb497725dc65e585a57ced03ef675e2a615ad9bf578180e149a`；已檢視原生閱讀自然及持書驚訝截圖。原生僅驗本款，不擴推17款新批次、真機性能或完整Rig驗收；XML僅記憶體，影片／trace關閉。
+
+Overview矩陣核對：本輪只增加既有本機審查catalog的第三款成品與既有測試參數，不新增正式模組、API、schema、DI、套件或部署契約，無新增overview影響。V3完整核證與其他九場Gate限制維持不變。
+
+### female-01 外觀確認與 female-02 單款審查：2026-11-22
+
+使用者於 female-01 完整五官／頭頸新版交付後回覆「可以 請繼續」。已接受下節所列4份固定SHA的 female-01 外觀，依「一個一個調整並確認」繼續 female-02；此確認不代表正式 Rig ready、完整動作或劇情 Gate B。female-01 四份圖檔與metadata不變；female-03以後及AI均未進行這輪修正。
+
+本輪 female-02 以正式原圖保留短紫黑髮、紫色眼睛、細矩形眼鏡、耳環／項鍊、深藍西裝、條紋袖口、淺色上衣、灰褐長褲及深藍鞋。沿用已接受的完整五官與連續頭頸品質審查方式；站立保留托頷姿態，坐姿雙手放膝上，由坐姿版只改手臂與開書產生閱讀，由站立版只改手臂與合書產生持書。沒有分開貼眼眉／嘴部、改正式80張WebP、角色ID或舊ready Gate，也沒有生成後續角色。
+
+| 姿態 | 成品（`.local/rig-pilot/`，各1774×887透明PNG） | SHA256 |
+|---|---|---|
+| 站立 | `female-02-stand-expressions.png` | `df196cfb88976e549bdefa56734721a3bbef0d4ba585f0f3e802c4eb40b47819` |
+| 坐姿 | `female-02-sit-expressions.png` | `f665aaf57222b10ecb92220e4bc7f65b632b51f745b99a857abc42ec2152cfe8` |
+| 閱讀 | `female-02-read-expressions.png` | `e0a1f451debad95148578f43989e1813e9d893230f4b242e487c657a6f0775bd` |
+| 持書 | `female-02-hold-expressions.png` | `ae5806c6dc51963cddf2b06a0fcd52dfd049169e3777a2ff6e8811b8228ca47b` |
+
+製作使用內建 imagegen，未使用CLI/API fallback或程式修圖。最終提示詞組：`identity-preserve; authoritative female-02 original; chin-length charcoal-purple bob; violet eyes behind thin rectangular glasses; exact navy blazer / pale blouse / taupe-gray trousers and jewelry; five complete full-body sprites in one row; neutral / gentle smile / modest surprise / thoughtful / mildly concerned; lock facial landmarks and glasses; integrated head-neck-shoulders; transparent gutters`。站立指定原托頷姿態，坐姿指定彎曲髖膝與雙手放膝上；閱讀編輯限定 `change ONLY arms/hands to hold an OPEN brown book; preserve all five original faces, glasses and seated legs`，持書編輯限定 `lower chin hand and uncross arm to hold one CLOSED brown book; preserve original faces and standing body`。4份選定成品已複製工作區，兩平台共用同來源。
+
+單款入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-02&single=1`。已將單款標題／說明／圖格標籤由固定female-01改為實際選中角色，server素材白名單由固定檔名改為固定catalog列舉，仍啟動核對全部SHA；只供本機品質審查，不接正式採用或發布。已檢視 Web 站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖，未見舊版五官錯位／頸部拼接；人工品質已由使用者「可以 繼續」接受；本次只接受該節4份固定SHA，後續款見上節。
+
+female-02 四來源SHA／尺寸／20格範圍／透明角落分析通過，證據 `.local/rig-pilot/female-02-neck-review/integrity-result.json`。Chrome 指定本款20格實際解碼、獨立圖格、完整單層、無分離face／mouth、零頁面例外1/1通過。Client TypeScript通過。本輪本機fixture有通用化，已包含 female-01 的既有審查回歸，不能由此擴推其他角色外觀通過。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-02 的4姿態、5表情、素材載入及Home返回於 UTC 2026-11-22 02:16:58（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-02-neck-review/android-result.json`，sourceFingerprint `c3484ab84705f9018186b03a6c87312569773c4cc00d9eed282adec2ac4cebd3`；已抽檢原生閱讀自然、持書驚訝畫面。UI XML僅記憶體，影片／trace關閉；不代表真機性能、17款新原生批次或完整Rig驗收。
+
+最終 Chrome 審查套件同輪 **4/4通過**：female-01與female-02各20格、17款既有切換／解碼回歸與總覽；`git diff --check`與唯讀追溯稽核通過，仍749/1102 verified。未重跑正式劇情或完整client單元，不沿用舊結果代記本輪。
+
+Overview同步矩陣核對：本輪限本機審查素材／catalog／viewer／fixture測試，沒有正式API、schema、套件、DI、模組或部署契約新增影響；沿用既有本機審查工作流。正式Puppet／局部動作目標、V3核證與劇情Gate B不變，其餘九場未製作。
+
+### female-01 五官品質退回與完整圖格修正：2026-11-22
+
+使用者再次指出「五官跑掉了」，因此上一版局部眼眉／嘴部貼片仍屬品質不通過；其 Web／QA31 操作成功不能作為外觀確認。仍依使用者要求一次只修一款，未處理其他角色。本輪取消 female-01 的獨立眼眉、嘴部圖層和各自縮放定位，改為完整臉部與頭頸一體繪製的品質審查圖格。這是本機外觀審查方式，**不是把正式 V3 的 Puppet／局部表情規格改成五張整圖，也不代表完整 Rig 已完成**；正式 renderer、素材80張WebP、角色ID、舊ready Gate均未更動。
+
+內建 imagegen 以正式 female-01 原圖鎖定身份／服裝，製作每姿態五個完整表情。首版20格單圖放大過於模糊，未採用；最終分為4份1774×887透明PNG，共20格，Web／Android共用同一份來源，保留原始長寬比。閱讀版曾誤生為站姿，已由坐姿版定向編輯手臂／開書，保留坐姿及原臉；持書版移除半透明白底。沒有用程式修圖、拼接五官或發布正式R2。
+
+| 姿態 | 最終本機來源（`.local/rig-pilot/`） | SHA256 |
+|---|---|---|
+| 站立 | `female-01-stand-expressions.png` | `634a83701eff7ff83ca6c0710b41d0a3257cff6b0c94ef0049652d822095553e` |
+| 坐姿 | `female-01-sit-expressions.png` | `c21e0c7ba0ffbf1fefb91778b4b2c934548f5cfa8bb9ea5654b697f362829793` |
+| 閱讀 | `female-01-read-expressions.png` | `e8dce62273702f463d38c6e605cb5ef6c8730bfd2669890bb80ad1a58a242f30` |
+| 持書 | `female-01-hold-expressions.png` | `910754a10b782aab785268ea3743b1e408c3cfb6ba8841b597c5b69588a33d4e` |
+
+最終提示詞組要點：`identity-preserve; authoritative original female-01 identity, exact mature face and costume; five complete full-body sprites in one row; neutral / gentle closed-lip smile / modest surprise / thoughtful / mildly concerned; same head angle and facial landmarks; continuous head-neck-shoulders; no pasted or duplicated eyes/mouth; transparent gutters`。四姿態分別指定站立雙手交握、坐姿雙手在膝上、坐姿雙手持開書、站立雙手持合書；閱讀最終編輯限定 `change ONLY arms/hands to hold an OPEN brown book; preserve all five faces and seated legs`，持書最終編輯限定 `remove ONLY pale background and shadows; preserve all five complete characters and original facial positions`。使用內建工具，未使用CLI/API fallback；原始工具輸出保留於Codex生成目錄，選定成品已複製入工作區。
+
+單款入口仍為 `http://localhost:8092/?scene-rig=1&platform=web&character=female-01&single=1`，提供原角色及五官／頭頸放大對照。Chrome 本款20狀態實際解碼、20個不同圖格、只有一個完整圖層、沒有獨立face／mouth、零頁面例外，指定1/1通過。新增圖格唯一性檢查首次誤讀RN Web內層img的固定style而只得4種，已改讀同一img父層裁切style及來源，沒有改產品去符合錯誤斷言；重跑通過。已抽檢站立微笑、坐姿擔心、閱讀驚訝、持書思考放大圖；本款最終人工品質已由使用者「可以 請繼續」接受；範圍與後續款見上節。
+
+QA31／ADB5038、8086 development profile、8092 loopback 同版 female-01 的4姿態、5表情、素材載入與Home返回於 UTC 2026-11-21 22:45:40（臺灣11/22）exit 0。結果 `.local/rig-pilot/female-01-neck-review/android-result.json`，sourceFingerprint `578ebd254857fbb58be16a5994f7ad2a16755b43ea343f0afd69f71804cc1f08`；已抽檢原生持書驚訝畫面。4份來源SHA／尺寸／20格邊界／透明角落分析通過，記錄 `integrity-result.json`；截圖同目錄。Android僅重跑本款，不擴推17款新批次、實體手機或release性能。Client TypeScript與`git diff --check`通過。本輪沒有重跑完整client單元或正式劇情，不沿用舊304/304作為本輪新結果。
+
+最終 Chrome 審查套件同輪 **3/3通過**：本款20格、17款既有切換／解碼回歸與總覽均通過；其餘角色未重新製作，也未作人工品質核准。
+
+已同步本機catalog多張姿態來源的SHA啟動檢查、Web回歸斷言與Android批次fingerprint來源列舉。Overview矩陣核對：僅本機fixture審查表示法調整，未新增正式模組／API／schema／套件／DI／部署契約，無新增overview影響；V3規劃勾選及 Gate B 均不變，其他九場未製作。
+
+### 頭頸品質退回與 female-01 逐款修正：2026-11-22（歷史，後因五官退回）
+
+使用者明確指出「角色的脖子都會像斷掉一樣，連接也不自然」，並要求「一個一個調整並向我確認」。此決策取代先前整批完成後一次確認的方式；既有17款的技術解碼／操作成功不代表外觀通過，也不能沿用首輪同意核准換版素材。現在只修 female-01，必須取得本款外觀確認後才繼續下一款。
+
+female-01 本機審查改為四張完整連續的頭、頸、肩、領口與身體姿態；自然表情直接使用完整原姿態，其他表情只覆蓋眼眉與嘴部，兩者分別校準位置，不再拼接整顆頭或頸部。原角色 ID、正式80張 WebP 與正式 ready 判定均未變更。新單一來源 `.local/rig-pilot/female-01-continuous.png` 為1254×1254，SHA256 `b0eb63deb01d100bbdc82aca027c23e8a94e2577cb9210c04d1df0179e382b9d`；其他16份 atlas 未調整。初版局部表情曾出現膚色色塊與重疊嘴形，已重新生成局部眼眉／嘴部並校準，不以初版截圖交付。
+
+單款入口：`http://localhost:8092/?scene-rig=1&platform=web&character=female-01&single=1`。提供原角色、完整姿態及同一元件的頭頸放大對照；四姿態×五表情共20個狀態的 Chrome 指定測試1/1通過，截圖在 `.local/rig-pilot/female-01-neck-review/`。已實際檢視站立微笑、閱讀驚訝、坐姿擔心、持書思考的放大截圖；最終外觀仍待使用者本款確認。此版沒有獨立頭部轉動，單款入口隱藏該控制，不能當作完整 Rig 動作驗收。
+
+Android 同版 female-01 已在 QA31／ADB5038、8086 development profile、8092 loopback 完成4姿態、5表情、實際素材載入與 Home 返回，UTC 2026-11-21 21:37:10（臺灣11/22）exit 0；結果為 `.local/rig-pilot/female-01-neck-review/android-result.json`，sourceFingerprint `22784fc48960113ed27262799887df2cb56cc403e0303858b99e89f2e55106e0`。已抽檢原生持書驚訝截圖，未見原先頸部斷層。本輪只重跑本款，不能宣稱17款同版新批次通過，也不擴推真機性能或完整動作驗收。
+
+Client TypeScript 通過；唯讀追溯稽核仍為749/1102 verified，V3仍0/250 TDD、0/70 BDD完整核證。本輪修改限本機素材、審查metadata／viewer及測試，沒有改正式 renderer、API、資料庫、套件、DI或部署契約；Overview同步矩陣核對後無新增架構影響，沿用既有Rig本機審查操作。人工品質確認不代表正式ready或劇情 Gate B，其他九場仍未製作。
+
+### 角色整批審查：2026-11-22 歷史技術結果
+
+以下為使用者退回頭頸品質之前的批次技術結果；不代表目前 female-01 新SHA已執行17款整批回歸，人工審查方式以本節上方逐款決策為準。
+
+
+本次接續「依照首輪方式一次完成其他角色供確認」範圍。現有 `.local/rig-pilot/` 已是17份2048×1664成品，與工作樹原先1254×1254的catalog **17/17 SHA不一致**；較早UTC 11/21 12:07的本機成功報告不能直接用於目前工作樹。已保留現有成品與其他已暫存的Rig／NPC安全修改，只更新本機審查catalog的SHA、四身體／五頭部區域及各姿態接點，並依原角色對照調整縮放。更新後17/17 SHA、尺寸與全部區域完整性檢查通過；`atlas-integrity-result.json` 為目前版本。本輪沒有呼叫生圖、修改正式80張WebP或更改角色ID。
+
+Web目前完整2/2通過（逐17款實際解碼、四姿態五表情、身體圖層穩定、整批同步對照、零生成請求／頁面例外）；client完整 **30檔／304測試同輪通過**，TypeScript與正式Web export通過。這是本輪新結果，不是把先前303/304與獨立35項相加。正式Rig製作／R2 ready／V3劇情仍未完成，V3完整覆核維持0/250 TDD與0/70 BDD。
+
+Android診斷仍曾實際失敗：female-06的原圖與atlas為空，載入狀態正確回`review-error`；後續一次整批在female-01即拒絕，原圖錯誤為`unexpected end of stream`。不能把UI標題切換或11/21舊報告當成目前解碼成功。本機素材server另加回應關閉連線、啟動時驗catalog SHA，Android審查改由指定QA31的ADB reverse 8092讀loopback，沒有變更正式App的禁止mutation自動重送政策。最終新批次已在 **UTC 2026-11-21 21:09:12（臺灣11/22）exit 0通過：17/17款，每款4姿態／5表情及Home返回**；16款免費原圖與17款body＋face解碼完成事件均有驗證，sourceFingerprint為`ba1b7287b5794a8091aabcd72a231be5a6af197d22170d546437286a24cd6afd`。結果在`.local/rig-pilot/android-batch-result.json`，同輪截圖在`android-batch/`，先前截圖保存在`android-batch-before-catalog-alignment/`。結束後再次核對17份成品SHA仍一致；舊失敗不改記成功。
+
+本輪成品17份合計 **39,673,219 bytes**；PSS離散樣本為271490～315079 KiB，完整gfxinfo樣本留在同結果。這是QA31 development元件證據，不是峰值、release性能、實體低階機或低記憶體回收驗收。Web完整四姿態總覽已另以2200px視窗涵蓋全17款（`web-batch/overview-complete-*.png`），並抽檢Android female-06／female-08及男性／AI畫面，未以UI標題單獨認定圖片成功。
+
+本輪只調整本機審查metadata、fixture素材讀取與測試；Overview矩陣已核對並更新工作流的SHA啟動檢查／指定QA的ADB reverse及固定來源要求。正式API／資料庫schema／DI／套件／部署設定沒有新增影響。
+
+本輪審查頁標示整批待確認；首輪品質同意不自動核准已換SHA的本批成品。人工確認仍只針對角色身份、衣裝、表情及姿態，不代表正式ready、實體中低階性能或V3劇情Gate B。其他九場維持未製作。
+
+**2026-11-18 Well-Done 持續開發（V3 Rig 整包 Fail-Closed，非只補驗證）**：識別 `canRenderActorRig` 只檢查當前姿態／情緒，導致缺第五表情、未選中 pose/face atlas 損毀或骨架循環時，仍誤認 neutral 已可用。先增三個真正會失敗的案例（Job `6383522d-bea5-417c-8a75-555b0a0558cd`，3 個預期 Red），再將純校驗升級為檢查五個不同語意、所有姿態×表情及圖層 atlas 範圍、骨架 parent DAG、唯一 ID、錨點與各種 override；補足原舞台測試 fixture 的五表情宣告。單檔 **7/7 Green**（Job `50bc029d-9a89-4f8b-8ece-01b8123871f5`），TypeScript 檢查 **exit 0**（Job `6c4693f5-b771-43bb-af52-a35ca57cc0d7`）。[校驗實作](../../frontend/client/src/actor-rig-policy.ts:18)／[反例測試](../../frontend/client/tests/unit/actor-motion-renderer.test.tsx:9)。此次可阻擋半套 Rig 渲染，**不是**正式 R2 Manifest SHA／Owner Ready、角色全套產製或人工品質 Gate；SEF-UT-536 仍標 `partial`，V3 TDD 0/250、BDD 0/70 不變。全套最新客戶端回歸 Job `a7fedaf1-bcdc-4779-aa61-c7219547c9ed` 為 **30 檔中 29 通過、1 失敗；304 項中 303 通過、1 項 15 秒逾時**（既有 `story-dialogue-ui.test.tsx` 的 V2 場景操作）。隨後以原測試內容獨立重跑該檔 **35/35 通過**（Job `419bf2bc-8e77-4863-89b9-54fbda56ead2`），可確認本輪新 Rig 測試 7/7、嵌入舞台 14/14 與獨立 V2 場景操作均通過；**不可將跨兩輪測試視為單輪全套 304/304 Green**。已還原原 `npm test` 指令，未長期改為只跑單檔。
+
+**2026-11-18 深度稽核與 V3 局部防線追溯（本次續接）**：按 875 個 TDD ID、191 個 BDD ID 與 Verification 1102 行逐一比對，查出歷史已標記 `verified` 卻未勾 TDD／BDD checklist 的狀態落差；已將 610 筆有實作／測試來源的原 V2 TDD 項與 118 筆原 BDD Scenario 的核證狀態同步為 `[x]`，與本檔獨立 `verified` 索引一致，**這不是新增 V3 通過數**。V3 250 TDD／70 BDD 仍 **0 筆完整核證**；已完成的局部程式碼與單元證據更新為 `partial`，無法取得跨雙端／R2／正式首場／人工 Gate B 證據者一律不勾選。正式內容原 V2 610/625 TDD、118/121 BDD 已核證；全範圍仍為 610/875 TDD（69.7%）、118/191 BDD（61.8%）、749/1102 全索引（68.0%）。本輪 V3 修復重點：正式 NPC Rig 公開來源優先、私人覆寫拒絕、必要 Shot 與背景及全部表情圖檔預檢、腐損持書圖停止舞台、關閉雨光微動仍保留書與必要演出；不以畫面預覽取代真人決策、聊天仍可用。
+
+**本次測試證據**：React Native Web client 全套 **30檔／301測試通過**（Job `d0a4edfe-7603-4056-9a5a-3dd500ba9825`）；Vitest 採 `--maxWorkers=2 --testTimeout=15000` 避免 Windows 同時產生30個測試隔離程序導致無關測試隨機超時（先前高並行的失敗 Job `6ba3a82f-8a04-4590-b6bd-cf0ac4ed6292` 不列為 Green）；Client TypeScript Job `d32b6081-7c4f-4582-b0b6-49297d1bfa1f` 通過，正式 Web export Job `491687f3-0917-43ef-8d4f-d70870d63947` 通過，Worker 全套 **31檔／376測試** Job `f0de7eab-0e75-4d98-91e6-9ae8d1f35d7f` 通過，Worker TypeScript Job `80200bb8-0898-4501-8c95-6f784f40f8ee` 通過，Node 追溯／政策 **66/66** Job `008ac683-2d03-45f7-87d2-aaf1b85b9e3c` 通過；.NET Unit 364/364 在先前整套任務跑通，但 foundation check Job `39da2c68-79d6-426e-b10a-0a3708661a71` 發生 MSBuild MSB4166 背景節點失效並取消，**不可宣稱這輪 .NET／Web／Android 完整 E2E 已全部 Green**。上述 client 單元解碼錯誤由 jsdom 模擬，仍不是 Android 真截圖性能通過。未操作 production、正式 R2 發布或清理正式資料。
+
+**本次獨立 .NET API 測試異常（不列通過）**：以固定 .NET allowlist `backend-tests-datinghigh-api-tests-datinghigh-api-tests`、`no_build=true` 執行（Job `83d7e6d6-314e-451a-86e5-fea3769f7ef3`）；真 HTTP／D1 場景 `BranchAndDefinitionReuse_RealHttpPersistsOnlyChosenRouteAndRejoins` 在 `RealPlatform.ExecuteAsync` 種子操作逾時，`MatchingRealD1Tests` 邀請回 `503`。因 local platform 依賴失效且本輪無可靠完成證據已停止該次 job，不能聲稱 .NET API full regression Green。此結果與 Worker 376/376、Client 301/301 的成功結果分別記錄，不更動原系統 Gate；需修復本機平台可用性後再跑真 HTTP／雙人／D1 E2E。
+
+**2026-11-18 Well-Done V3 真實覆核與缺漏修正（本輪）**：對照 250 V3 TDD／70 V3 BDD，仍無任何案例完成所有正式內容／Web／Android／人工驗收斷言。已將已發布 NPC 的每款姿態、五種表情、可選手錨和書本圖像轉成相同 `ActorMotionRenderer` 的真實雙圖層 Rig，禁止未授權玩家私有 Rig 回退；Publisher 對未選中但仍必要的 NPC 姿態／表情素材及持物手錨亦 fail-closed。Worker 新 3 個負向 Red 以 Job `0a927ab2-159f-4a30-92f0-4dde216ab033` 確認（373 通過／3項預期失敗），修正後首次全套 Job `a1f60a90-f11d-412b-ac26-a6e3a5610d06` 有 375通過／1項非目標 D1 20秒逾時，已隔離重跑且 **Worker 全套 31檔／376測試全通過、exit 0**（Job `f0de7eab-0e75-4d98-91e6-9ae8d1f35d7f`）。前端 V3 已按權威快照呈現 NPC 圖層、原創書封作為正式物件演出、缺素材／圖片錯誤即封閉互動舞台、在同一 cameraFrame 控制背景／書本縮放及左右環視；本輪 Red 包含必需 NPC 資產、圖片錯誤、V3 平移缺口，Green 前端 30檔／297測試全通過（Job `8f16e2af-553c-4782-bd70-64e27d749e93`），client TypeScript 通過（Job `6d7614fd-8f7d-4165-a944-b8e7d43cde2b`），Node 工具 66/66（Job `18470abb-a7f8-42e7-ae72-b3fe57457c5d`）。jsdom 的圖片 onError 以 RN Image 邊界代理觸發，**不是** Android／Chrome 真失敗解碼覆核；沒有 Gemini、R2 採用、正式場景發布或人工 Gate B。
+
+**2026-11-18 Android 舊批次結果訂正（歷史範圍）**：實際重讀 `.local/rig-pilot/android-batch-result.json`（2026-11-17 13:54 UTC），狀態明確為 `failed-visual-review`，**不是「尚未回寫」或整批品質通過**。QA31 共 17 款 controlStatus=passed（每款4姿態／5表情），但影像抽檢存在切角後上一款 atlas 殘影或原圖空白；記憶體樣本 PSS 約 257–318 MiB，janky 比例與 p95 明顯未達流暢品質。為此已修正本機預覽完成判定：必須收到同一 identity 的 body＋face 兩圖層解碼事件，而非任一圖片先成功就標 `review-ready`（[審查 UI](../../tests/component-layout/scene-rig-preview.tsx:29)、[渲染載入事件](../../frontend/client/src/ActorMotionRenderer.tsx:23)）；**截至該次修正，Android 17款截圖／低記憶體重跑未取得新合格證據；後續QA31新批次結果見本節2026-11-22紀錄，人工品質與低記憶體驗收仍未完成**，維持缺漏與人工 Gate。
+
+**2026-11-18 V3 Publisher NPC 五表情／姿態完整性 Red→Green**：以最小正式 Schema 隔離 fixture 新增三項實測，具五種不同表情語意與合法姿態的 NPC 正向案例通過；原 `npcAppearanceSchema` 僅查五筆長度，重複 neutral 導致缺 concerned、重複 stand 導致 read 身份不明均未拒絕，真 Worker 全套 Red 371/373 通過、2 項預期失敗（Job `d9865972-04f4-4007-b111-7a20de058822`）。修正後 NPC appearance 的五語意表情 ID 必須各異，姿態 ID 不可重複；[Schema](../../cloudflare/src/scene-event-stage-content.ts:78)、[正反例](../../cloudflare/tests/scene-event-v3-content.test.ts:55)。修改後該 V3 檔 21/21 測試通過；Worker 全套 Green **31檔／373測試均通過、exit 0**（Job `63b5a99d-1799-4363-91d7-57bcd43361e6`）；Worker TypeScript 通過（Job `7416e091-eb56-4901-a5df-97a5117b2540`）。Node 工具與追溯測試 66/66 通過（Job `4aec5f16-bdc5-48b8-8d17-7eed513e6f9c`）。這是 Publisher 結構化內容的一部分，未等於五種不同外觀已實際解碼／核准，也不代表正式 V3 可發布。
+
+**2026-11-18 Well-Done 接續（V3 NPC Rig／持物素材 Fail-Closed）**：新增 3 項前端舞台元件案例，先以缺 NPC Rig、無指定 read 姿態／缺必要持物素材重現 2 項 Red 失敗（Job `8eb4c09c-b964-401d-9cd5-5567cacc499e`；有效 Rig 的正向案例已通過）。將 `ActorMotionRenderer` 的姿態、五表情語意、分層資產及錨點可用性抽為共用純函式 `canRenderActorRig`，`EmbeddedSceneStage` 在顯示互動場景前逐位校驗 Shot 所需 Rig／道具，任何缺項顯示明確素材未就緒而不繼續呈現可互動畫面。修正後前端 30檔／289測試全通過（Job `1c85be73-2084-4939-bfb4-2847eb647d20`），TypeScript 檢查通過（Job `35469109-3c10-4938-8ed6-28f04dc8ac88`）。[前置檢核](../../frontend/client/src/EmbeddedSceneStage.tsx:13)、[共用 Rig 驗證](../../frontend/client/src/actor-rig-policy.ts:15)、[Red→Green 測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:35)。只屬 V3 客戶端安全防線，未接正式 `ActorRigPackage`／R2 Ready，尚未通過 Publisher 缺素材拒發、真人授權、實際解碼、Web／Android 正式 V3 回合或 Gate B；不可將 SEF-UT-506/535/536 或 BDD-168 改為 verified。
+
+**2026-11-18 Well-Done 接續驗證（SEF-UT-530 局部補強）**：保留原有 V3 完整覆核 TDD 0/250、BDD 0/70；本輪先以既有未提交工作樹為基線，Worker 真 Miniflare／D1／R2 `datinghigh-platform-test` 31檔／370測試全通過（Job `93eb178b-f98d-4fab-9ab4-01a7d6093d85`），原前端 `datinghigh-client-test` 30檔／285測試全通過（Job `a45bce6c-e5d7-4b52-8367-c42e51a653e9`）。原位物件新增上層透明多邊形矩形攔截下層本體的失敗反例（Red：30檔，285通過／1失敗，Job `e58b0a57-7ca8-4b14-b495-4a6403fafe25`）；將 Pressable 相對座標轉回共同鏡頭空間、依權威可見物件的實際 hitShape 擇最上層本體再開檢視（不作事件提交），Green 前端 30檔／286測試全通過（Job `2a613387-b7f0-41ca-9061-e09b2726dfbc`），client `tsc --noEmit` 通過（Job `9b8bb8c8-4beb-47f5-92cc-3ee72c62ffda`）；文件及追溯 Node tests 66/66 通過（Job `5a36871f-5711-4f8a-b976-e0e02ac148d3`），正式 Web export 成功（Job `3925b316-e189-4ccc-88cd-5a8654f368ae`）。本項仍需正式 V3 場景、Web／Android 不同視窗尺寸與真正手指操作、權威 CAS／快速重按矩陣，不能將 SEF-UT-530 或 BDD-176 改記 verified，亦不代替 Gate B。
+
+
+以下為 2026-11-17 執行基線，最新結果以本節上方明確日期與範圍為準；下方原 V2 749/770 為原內容範圍的歷史證據，不能當成 V3 通過。最新規劃為 TDD 875、BDD 191、原 AC 24＋V3 AC 12；目前沒有任何新增 V3 規劃案例完成全部斷言與人工驗收，因此不新增 verified 或勾選 checkbox。原範圍完整覆核維持 TDD 610、BDD 118、AC 21；對最新完整文件包為 **749/1102（67.97%）**，這是斷言覆核比例，不是功能完成比例。V3 部分實作與精確缺項列於本節及「V3 逐 ID 覆核索引」。
+
+### 人工決策與本次交付範圍
+
+使用者已在首輪 Web／QA31 Rig 預覽後明確回覆：「很好 依照這個方式一次完成其他角色給我確認就好」。此決策接受 female-01 與 AI 首輪身份／衣裝／姿態，並授權以相同方式完成其餘15款免費角色；**不代表其餘15款已核准、正式 ready 或任何 V3 劇情 Gate B 通過**。後續使用者因頭頸品質退回，改為每款修正後逐一確認；現行方式見本節頂部。
+
+本機審查素材現有 female-01～08、male-01～08 共16款及 AI 首輪，共17款；現均以四姿態各五個完整圖格作外觀審查，male-02持書微笑另有一格修正來源。免費16款已逐款接受本機外觀，AI修正版待確認，固定SHA、平台證據與每款決策見本節頂部。未改原角色ID、正式80張WebP、原目錄SHA或五表情入口gate。成品單一來源在忽略的 `.local/rig-pilot/`，審查頁只以固定白名單SHA供Web／Android共用；免費原角色對照直接引用正式neutral，AI身份沿用先前確認的虛構atlas。未發布場景草稿在 `.local/scene-pilot/`，不留於正式素材目錄。
+
+審查入口：`http://localhost:8092/?scene-rig=1&platform=web&all=1`；可整批同步切四姿態／五表情，也可點選任一角色細看原圖對照。Android 使用 QA31（emulator-5556、ADB5038）development-only 8086 Rig profile；此入口沒有生成、採用或 ready 寫入。production／正式 export 拒絕載入此 profile。
+
+### 測試與可追溯界限
+
+- 新 Domain safety-exit 先有3個失敗反例，再實作合法效果後優先安全收尾，3/3通過；Application 舞台安全投影先因缺少實作失敗，新增1/1通過。最後對應4項指定回歸再次通過。
+- Worker 最小內容 fixture 的安全撤離／多 Area／鏡位／資產／NPC／命中幾何共18項通過。缺失舞台、零面積 polygon 與 NPC 無人物演出皆有先失敗再通過證據；它們不是正式 V3 劇本。
+- 真 Miniflare D1 安全收尾測試曾重現缺章節通知仍提交：剛建立的 receipt 被誤視為 replay，略過系統事件 guard。現 guard 綁原 receipt event ID；注入零列則整批 rollback，合法完成保留 active Round／claims並關 Visit、取消未完合作、原ID重送不加事件，D1該檔15/15通過。最終意願／危險／Room end 完整並發矩陣仍未覆核。
+- client 幾何、原位舞台及分層 renderer 共9個新增單元測試通過；涵蓋相機命中一致、權威物件移位立即移除舊位置、缺素材明示、五表情只換局部及缺姿態／手錨拒絕。不是所有 V3 UI 場景通過。
+- 本輪完整 `npm run check:foundation` 通過：tools65、.NET Unit364／Integration32／API218、Worker370、client284，兩端TypeScript通過。平台報告仍 `accepted:false`、`scopedAccepted:true`；真Google、實際收信及完整規劃矩陣不由此代簽。後續修改為省略不存在的 stage，而非回 null；對應4項單元回歸與 E2eHost build通過。新增追溯工具反例先失敗再通過3/3；最後tools完整66/66通過，不與先前65項相加冒稱131項。唯讀追溯工具已擴充獨立V3 AC及完整1102列來源／覆核一致性，不繼承舊AC核准。
+- Web 整批先因舊 viewer 不含整批入口失敗；另一回測試讀到RN Web img子節點而非帶裁切style的父節點，修正斷言後通過。最新 Chrome 2/2：17個角色可實際解碼，逐款4姿態／5表情，表情切換身體圖層不變，無生成請求或頁面例外；整批同步比較亦通過。結果 `.local/rig-pilot/web-batch-result.json`，圖像在 `web-batch/`；長總覽為內部ScrollView，單張頂部截圖不代表已涵蓋底部角色，另逐款截圖及向下檢視男性款。
+- 2026-11-17 Android舊固定批次QA31曾為 **failed-visual-review**（17款、各4姿態5表情 UI控制通過，但實際畫面發現前款 atlas 殘影與原圖空白）；請以本文件本輪頂部復核為準。既有表格或歷史『最終待回寫』說法失效。其後已完成雙圖層解碼Gate及本機素材讀取修正，11/22新的QA31元件批次見本節頂部；舊失敗仍保留，不擴推為實體手機或正式遊戲性能通過；UI XML 遵循只在記憶體、影片／trace 關閉。
+- client typecheck、正式 Web export、E2eHost build通過；17份本機atlas的SHA／1254×1254尺寸／四身體區域／五頭部區域及透明角落檢查通過（`.local/rig-pilot/atlas-integrity-result.json`），不等於人工品質。production profile拒絕與正式bundle未含審查入口亦已實測（`profile-boundary-result.json`）。正式匯出未帶Rig profile；沒有重啟／清理／重新發布default local內容，也沒有 remote 或 production操作。
+
+### 仍未完成的 V3 範圍
+
+頭頸外觀退回後，已改以完整人物圖格逐款修正；免費16款已確認，AI修正版待人工確認，詳見本節頂部。正式ActorRigPackage製作、R2不可變ready／跨裝置授權／採用與恢復管線尚未接通；正式renderer具既有分層、預製姿態與有限轉頭／呼吸能力，本機完整圖格審查不能代替正式Puppet／局部表情與動作驗收，不宣稱完整骨架、眨眼／眼淚／道具動作或低記憶體恢復已驗收。新多Area場景／NPC／書籍與完整V3三種意願及安全結局尚未製作發布；實際房間仍是原V2首條。新stage的NPC／玩家正式Rig mapping與結局恢復尚待補齊，私有快取／快速操作／完整雙人平台矩陣仍未驗。其餘九場受人工Gate B限制維持未製作；iOS與無障礙專項依既定決策不納目前驗收。
+
+Overview矩陣已檢查並整合模組入口、選擇性stage流程／資料／API、atlas責任與development profile及檔案放置規則；無新增套件／DI／D1 migration或公開API。分層邊界及一般coding rules未改，沿用既有純Domain、Application投影、Worker交易與client呈現責任。
+
+---
+
 ## Well-Done 首條雙 Track 技術驗證完成，人工 Gate B 待確認
 
 本節接手已確認的 V2-RQ-01=A 文件包；以下為新 `scene-event.v2` 的實際程式與隔離 runner 證據，不沿用舊版通過數、不代表全部 625 項覆核或使用者 Gate B 完成。default local 已經停寫備份、完成 0007 clean rebuild 與唯一首條 v2 發布；沒有發布 production。
@@ -994,7 +1488,7 @@ Android 最新離散 PSS 採樣峰值448014KiB，gfxinfo 累計9850 frames／140
 
 ## 已完整核對的 TDD Unit
 
-主要實作：[政策](../../backend/src/DatingHigh.Domain/SceneEventFrameworkPolicies.cs)、[圖驗證](../../backend/src/DatingHigh.Domain/StoryGraphPolicy.cs)、[Publisher](../../tools/story-content-policy.mjs)。
+主要實作：[政策](../../backend/src/DatingHigh.Domain/SceneEventFrameworkPolicies.cs)、原圖驗證 `StoryGraphPolicy`（歷史檔案已移除；[現行Track政策](../../backend/src/DatingHigh.Domain/SceneEventTrackPolicy.cs)僅供定位，不代表重跑歷史證據）、[Publisher](../../tools/story-content-policy.mjs)。
 
 | TDD ID | 已確認斷言 | 測試證據 |
 |---|---|---|
@@ -1078,3 +1572,343 @@ Android 僅操作本工作區 `.local/android-avd/DatingHighQA31.avd`、ADB5038�
 Overview 影響矩陣已檢查：架構、runtime、模組／依賴、檔案放置、API／資料及本地升級／發布契約均已按主題整合；本人入口再同步 runtime／API／角色模組及資料契約。入口不新增套件、表／欄、外部服務或設定，其他 overview 無新增影響。沒有發布 production。所有本地、模擬器及測試供應商證據都不能擴推雲端、實體低階手機或真人 Gate。
 
 收尾已關閉本工作區 QA31 模擬器及測試 Metro／隔離 Host；本機 Web8081 與 default Worker8787 保持可用且 health ready 200。GameNenStyle 工作階段結束回報因既有租約過期遭拒；重新查詢又回 `Invalid UUID at sessionId` 的外掛輸出驗證錯誤，未重新取得租約或恢復開發。程式、文件及驗證證據均已保留本機；後續若使用此外掛恢復工作，須先修復工作階段查詢，不影響本次產品測試結果。
+
+
+## V3 逐 ID 覆核索引
+
+新增250項TDD、70場BDD、12項V3 AC逐列保留；partial只表示相關實作，不代表完整通過。原V2索引與本表共同由唯讀追溯工具檢查。
+
+| ID | 覆核 | 來源 | 目前證據與精確界限 |
+|---|---|---|---|
+| SEF-UT-367 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3561) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-368 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3566) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-369 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3571) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-078 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3576) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-370 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3586) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-371 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3591) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-372 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3596) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-079 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3601) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-373 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3611) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-374 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3616) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-375 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3621) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-054 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3626) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-376 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3636) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-377 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3641) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-378 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3646) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-130 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3651) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-379 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3661) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-380 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3666) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-381 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3671) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-131 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3676) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-382 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3686) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-383 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3691) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-384 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3696) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-080 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3701) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-385 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3711) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-386 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3716) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-387 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3721) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-132 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3726) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-388 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3736) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-389 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3741) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-390 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3746) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-055 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3751) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-391 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3761) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-392 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3766) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-393 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3771) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-081 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3776) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-394 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3786) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-395 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3791) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-396 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3796) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-133 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3801) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-397 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3811) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-398 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3816) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-399 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3821) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-056 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3826) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-400 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3836) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-401 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3841) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-402 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3846) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-082 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-403 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3861) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-404 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3866) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-405 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3871) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-083 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3876) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-406 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3886) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-407 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3891) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-408 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3896) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-134 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3901) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-409 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3911) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-410 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3916) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-411 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3921) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-057 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3926) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-412 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3936) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-413 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3941) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-414 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3946) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-135 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3951) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-415 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3961) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-416 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3966) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-417 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3971) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-084 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3976) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-418 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3986) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-419 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3991) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-420 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3996) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-058 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4001) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-421 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4011) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-422 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4016) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-423 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4021) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-136 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4026) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-424 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4036) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-425 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4041) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-426 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4046) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-085 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4051) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-427 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4061) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-428 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4066) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-429 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4071) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-137 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4076) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-430 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4086) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-431 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4091) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-432 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4096) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-086 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4101) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-433 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4111) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-434 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4116) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-435 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4121) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-138 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4126) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-436 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4136) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-437 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4141) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-438 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4146) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-059 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4151) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-439 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4161) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-440 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4166) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-441 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4171) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-060 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4176) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-442 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4186) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-443 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4191) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-444 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4196) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-087 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4201) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-445 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4211) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-446 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4216) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-447 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4221) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-088 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4226) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-448 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4236) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-449 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4241) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-450 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4246) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-089 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4251) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-451 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4261) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-452 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4266) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-453 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4271) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-061 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4276) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-454 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4286) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-455 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4291) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-456 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4296) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-139 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4301) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-457 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4311) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-458 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4316) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-459 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4321) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-090 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4326) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-460 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4336) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-461 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4341) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-462 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4346) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-062 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4351) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-463 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4361) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-464 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4366) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-465 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4371) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-140 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4376) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-466 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4386) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-467 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4391) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-468 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4396) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-141 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4401) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-469 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4411) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-470 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4416) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-471 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4421) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-091 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4426) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-472 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4436) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-473 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4441) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-474 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4446) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-142 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4451) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-475 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4461) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-476 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4466) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-477 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4471) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-063 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4476) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-478 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4486) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-479 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4491) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-480 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4496) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-092 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4501) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-481 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4511) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-482 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4516) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-483 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4521) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-143 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4526) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-484 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4536) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-485 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4541) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-486 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4546) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-064 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4551) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-487 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4561) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-488 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4566) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-489 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4571) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-093 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4576) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-490 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4586) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-491 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4591) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-492 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4596) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-094 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4601) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-493 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4611) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-494 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4616) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-495 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4621) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-144 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4626) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-496 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4636) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-497 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4641) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-498 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4646) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-065 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4651) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-499 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4661) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-500 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4666) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-501 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4671) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-145 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4676) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-502 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4686) | [NPC 公開姿態／表情 Rig](../../frontend/client/src/scene-stage.ts:41)、[Worker 全資產檢核](../../cloudflare/src/scene-event-stage-content.ts:62)、[測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:72) 已補正最小 Shot／NPC／道具與五表情連結；未製作全部正式 Entry、共享事件、三咖啡結局 Shot 矩陣，維持 partial。 |
+| SEF-UT-503 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4691) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-504 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4696) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-146 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4701) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-505 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4711) | [Publisher](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向測試](../../cloudflare/tests/scene-event-v3-content.test.ts:64) 新增未選中 NPC 姿態／表情素材缺失、無手錨或非法手錨時拒發的 Red-Green；完整正式內容／未知 gesture／全 Ending／真 R2 無異動稽核未完成。 |
+| SEF-UT-506 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4716) | [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[缺材／錯誤測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:100)：未知圖片、NPC Rig、未選中表情仍阻斷互動畫面，不偷換文字成功；但正式 Publisher 全分支、真解碼和 Android／Web 授權尚未覆核。 |
+| SEF-UT-507 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4721) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-066 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4726) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-508 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4736) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-509 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4741) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-510 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4746) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-095 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4751) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-511 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4761) | [V3 微動與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：關閉雨光循環仍保留真實書脊、相機控制與 Stage；需補正式拿書、店員端杯之 Web／Android 真播放及略過序列，故 partial。 |
+| SEF-UT-512 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4766) | [V3 互動位置不變](../../frontend/client/tests/unit/story-stage.test.tsx:14)、[舞台權威預檢](../../frontend/client/src/scene-stage.ts:68)：關閉微動不自行改變書的權威位置、提交或權限。尚需真回合 CAS 失敗、跨裝置恢復與必要 StoryMotion 互斥操作證據，故 partial。 |
+| SEF-UT-513 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4771) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-096 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4776) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-514 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4786) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-515 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4791) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-516 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4796) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-067 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4801) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-517 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4811) | [V3 共鏡頭 Area 視野](../../frontend/client/src/StoryStage.tsx:58)、[測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 已驗縮放平移時背景與原位書同座標；六區獨立真背景、遮擋、光影及一致空間人工驗收未完成。 |
+| SEF-UT-518 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4816) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-519 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4821) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-097 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4826) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-520 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4836) | [正式實體圖像演出](../../frontend/client/src/SceneStoryMotion.tsx:33)、[角色與書本測試](../../frontend/client/tests/unit/scene-story-motion.test.tsx:18) 已用釘選圖像替代 V3 舊向量假書，演出無進度提交；未覆核完整開／關／返回以及 Web／Android 真實書冊動畫。 |
+| SEF-UT-521 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4841) | [缺書封禁止假圖](../../frontend/client/src/SceneStoryMotion.tsx:33)、[Red→Green](../../frontend/client/tests/unit/scene-story-motion.test.tsx:25)：V3 有 assetId 但無已解析圖源時，顯示素材未就緒而不回退不相關向量封面；完整業務連結、重複點擊與跨平台驗收仍未完成。 |
+| SEF-UT-522 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4846) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-098 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-523 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4861) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-524 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4866) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-525 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4871) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-099 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4876) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-526 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4886) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-UT-527 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4891) | [舞台解碼失敗即封閉](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[局部測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:127)：錯誤圖層不會讓舊書繼續可互動；真 Cache/雙端權威修訂、原生解碼與重新連線仍未驗。 |
+| SEF-UT-528 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4896) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-147 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4901) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-529 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4911) | [V3 鏡頭同步](../../frontend/client/src/StoryStage.tsx:58)、[平移測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 已檢查書與背景變換一致及復位；真 Web/Android 手勢、邊界 hitShape、快速連點和 API 授權矩陣未覆核。 |
+| SEF-UT-530 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4916) | [實作](../../frontend/client/src/scene-stage.ts:34)；[呼叫端](../../frontend/client/src/EmbeddedSceneStage.tsx:18)；[測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)：上層透明 Pressable 的矩形遮擋下層合法物件之反例先失敗；改用共同 viewport／hitShape 選擇實際最上層本體後，前端 286/286 及 TypeScript 通過。此為單元層局部補強，尚缺正式 V3 素材、雙平台真點擊與 CAS／快速重按完整覆核，仍維持 partial。 |
+| SEF-UT-531 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4921) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-API-068 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4926) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-532 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4936) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-533 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4941) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-534 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4946) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-069 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4951) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-535 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4961) | [共用 Rig 驗證](../../frontend/client/src/actor-rig-policy.ts:15)、[NPC 真姿勢組裝](../../frontend/client/src/scene-stage.ts:41) 和 [舞台測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:58) 局部通過；免費／AI 完整來源身份、視覺品質、自然動畫、獲准正式 Rig Ready 尚未完成。 |
+| SEF-UT-536 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4966) | [Rig 全套必要資料預檢](../../frontend/client/src/actor-rig-policy.ts:18)、[三項 Red→Green 反例](../../frontend/client/tests/unit/actor-motion-renderer.test.tsx:9)、[舞台 Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:16)：中性表情可用但缺第五表情、未選中 pose/face atlas 破損、骨架孤兒／循環，均拒絕呈現。真正式 ActorRigPackage ready／owner／R2 SHA、自然動作和 Web／Android 人工品質仍未完整驗收，故 partial。 |
+| SEF-UT-537 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4971) | [持書圖片解碼錯誤傳播](../../frontend/client/src/ActorMotionRenderer.tsx:26)、[Negative 測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:116)：有手錨且來源合法時可呈現，一旦道具圖解碼失敗立即關閉整個 Shot 並通知宿主；需真 Web／Android 導致的記憶體圖層卸載、手部自然姿態與成功開合完整驗證，故 partial。 |
+| SEF-ET-100 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4976) | 四姿態／五表情共用元件可審查；完整動作／正式ready管線未驗。 |
+| SEF-UT-538 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4986) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-539 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4991) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-540 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4996) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-101 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5001) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-541 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5011) | [已發布 NPC 優先共用身份](../../frontend/client/src/scene-stage.ts:68)、[拒絕私人覆寫](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:85) 已局部驗證公開 NPC Rig 不被同名私人 Rig 替換；跨玩家共用素材去重、私人 master/R2 owner 與兩部裝置協作仍待真測，故 partial。 |
+| SEF-UT-542 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5016) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-543 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5021) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-148 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5026) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-544 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5036) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-545 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5041) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-546 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5046) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-102 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5051) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-149 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5183) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-150 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5193) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-070 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5203) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-547 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5213) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-IT-151 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5223) | 真D1安全收尾／缺通知rollback已驗；最終意願、危險、Room end並發全矩陣未驗。 |
+| SEF-ET-103 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5233) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-548 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5243) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-API-071 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5253) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-104 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5263) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-105 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5273) | 16款免費角色及AI首輪的SHA／原圖對照已整合；11/22 Chrome2/2與QA31同版17款四姿態五表情／解碼／Home返回已通過，見本節最新結果及本機審查入口。整批本人品質核准、正式ready與實體裝置證據仍缺，不標verified。 |
+| SEF-BDD-122 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1814) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-123 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1829) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-124 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1844) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-125 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1859) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-126 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1874) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-127 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1889) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-128 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1904) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-129 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1919) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-130 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1934) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-131 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1949) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-132 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1964) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-133 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1979) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-134 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1994) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-135 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2009) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-136 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2024) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-137 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2039) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-138 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2054) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-139 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2069) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-140 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2084) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-141 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2099) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-142 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2114) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-143 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2129) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-144 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2144) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-145 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2159) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-146 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2174) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-147 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2189) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-148 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2204) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-149 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2219) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-150 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2234) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-151 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2249) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-152 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2264) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-153 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2279) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-154 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2294) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-155 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2309) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-156 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2324) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-157 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2339) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-158 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2354) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-159 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2369) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-160 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2384) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-161 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2399) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-162 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2414) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-163 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2429) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-164 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2444) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-165 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2459) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-166 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2474) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-167 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2489) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-168 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2504) | [Publisher 所有 NPC 引用檢查](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向回歸](../../cloudflare/tests/scene-event-v3-content.test.ts:64)、[Runtime 防半套舞台](../../frontend/client/src/EmbeddedSceneStage.tsx:12) 有局部證據；正式整個 V3／所有 Ending／未知 Cue／真 R2 原子拒發與雙平台仍未完成。 |
+| SEF-BDD-169 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2519) | [場景不可用時禁故事提交](../../frontend/client/src/StoryExperienceScreen.tsx:158)、[正式 Screen 回歸](../../frontend/client/tests/unit/story-dialogue-ui.test.tsx:47)：缺公開 Stage 素材禁提交而聊天室可用，新授權快照恢復後不自動重播；[圖片失敗邊界](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:92) 有單元證據；仍缺雙端真 CAS 敗回滾與權威事件進度，故 partial。 |
+| SEF-BDD-170 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2534) | [環境與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：環境雨光可獨立關閉、書本與鏡頭仍可用；完整 NPC 端杯、正式持書動作及 Web／Android E2E 未經驗，故 partial。 |
+| SEF-BDD-171 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2549) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-172 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2564) | [分區舞台](../../frontend/client/src/EmbeddedSceneStage.tsx:10)、[V3 一致 cameraFrame](../../frontend/client/src/StoryStage.tsx:58) 及 [幾何測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 局部通過；6區正式各異圖片、NPC遮擋、人工整體美術 Gate 尚未完成。 |
+| SEF-BDD-173 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2579) | [原位實體圖像演出](../../frontend/client/src/SceneStoryMotion.tsx:33)、[負向缺封面測試](../../frontend/client/tests/unit/scene-story-motion.test.tsx:25) 局部通過；書的原位觸控→開啟→翻頁→關閉→原位置返回及雙平台截圖仍未完成。 |
+| SEF-BDD-174 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2594) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-175 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2609) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-176 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2624) | [V3 Camera+物件共座標](../../frontend/client/src/StoryStage.tsx:58)、[按外框/真多邊形測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)、[狹長平移回歸](../../frontend/client/tests/unit/story-stage.test.tsx:14) 局部通過；API 拒越權、真 Web／Android 手勢/遮擋/尺寸矩陣仍未完成。 |
+| SEF-BDD-177 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2639) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-178 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2654) | [分層 Renderer](../../frontend/client/src/ActorMotionRenderer.tsx:10)、[五表情](../../frontend/client/tests/unit/actor-motion-renderer.test.tsx:7) 局部通過；Android 17款目前 failed-visual-review，正式5種表情自然品質、AI/免費坐姿、面部一致性與人工 Gate 尚未通過。 |
+| SEF-BDD-179 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2669) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-180 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2684) | [公開 NPC Rig 防私人覆蓋](../../frontend/client/src/scene-stage.ts:68)、[單元測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:85) 只證明前端舞台身份隔離；正式 R2 同源去重、私人 owner／sourceHash／跨玩家授權未做完，故 partial。 |
+| SEF-BDD-181 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2699) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-182 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2739) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-183 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2753) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-184 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2767) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-185 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2781) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| SEF-BDD-186 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2795) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-187 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2809) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-188 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2823) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| SEF-BDD-189 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2837) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-190 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-191 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2865) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-01 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:258) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-02 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:259) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-03 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:260) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-04 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:261) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-05 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:262) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-06 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:263) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-07 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:264) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-08 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:265) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| V3-AC-09 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:266) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-10 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:267) | [Worker 舞台驗證](../../cloudflare/src/scene-event-stage-content.ts:78)、[NPC Red→Green](../../cloudflare/tests/scene-event-v3-content.test.ts:55) 和 [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:13) 已有局部證據；正式 V3 全可達 Shot／Ending／素材與雙平台仍未完成。 |
+| V3-AC-11 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:268) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-12 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:269) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |

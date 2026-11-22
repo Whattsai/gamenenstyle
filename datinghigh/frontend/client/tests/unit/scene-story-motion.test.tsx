@@ -15,6 +15,20 @@ it('an off-screen object cue remains a visible local close-up on a narrow stage 
  expect(parseFloat(sprite.style.left)).toBeGreaterThanOrEqual(96);expect(parseFloat(sprite.style.left)+176).toBeLessThanOrEqual(360);expect(parseFloat(sprite.style.top)).toBeGreaterThanOrEqual(200);expect(parseFloat(sprite.style.top)+76).toBeLessThanOrEqual(370);
  expect(object).toMatchObject({x:.1,y:.43,state:'wet',areaId:'entrance'});
 });
+it('SEF-UT-520 partial: published V3 book movement uses the pinned physical image instead of the legacy vector book',()=>{
+ vi.spyOn(Animated,'timing').mockReturnValue({start:()=>{},stop:()=>{},reset:()=>{}} as any);
+ const book={id:'rain-book',label:'原創故事書',assetId:'cover-id',x:.2,y:.43,areaId:'shelves',state:'held',holderRole:null};
+ render(<SceneStoryMotion viewport={{width:800,height:450}} frame={frame} objects={[book]} asset={id=>id==='cover-id'?'/published-cover.png':undefined} steps={[{type:'object',objectId:'rain-book',fromAreaId:'shelves',toAreaId:'safe-storage',motion:'slide',durationMs:200}]} onStep={vi.fn()} onFinish={vi.fn()}/>);
+ expect(screen.getByTestId('scene-motion-image').querySelector('img')?.getAttribute('src')).toContain('published-cover.png');
+ expect(screen.queryByText('原創故事書')).toBeNull();
+});
+it('SEF-UT-521 partial: V3 does not silently substitute an unrelated vector book when the referenced source is missing',()=>{
+ vi.spyOn(Animated,'timing').mockReturnValue({start:()=>{},stop:()=>{},reset:()=>{}} as any);
+ const book={id:'rain-book',label:'原創故事書',assetId:'missing-cover',x:.2,y:.43,areaId:'shelves',state:'held',holderRole:null};
+ render(<SceneStoryMotion viewport={{width:800,height:450}} frame={frame} objects={[book]} asset={()=>undefined} steps={[{type:'object',objectId:'rain-book',fromAreaId:'shelves',toAreaId:'safe-storage',motion:'slide',durationMs:200}]} onStep={vi.fn()} onFinish={vi.fn()}/>);
+ expect(screen.queryByTestId('scene-motion-image')).toBeNull();
+ expect(screen.getByText('場景演出素材尚未就緒')).toBeTruthy();
+});
 it('plays bounded committed steps in order and finishes once without making a new story operation',()=>{
  vi.useFakeTimers();const step=vi.fn(),finish=vi.fn();
  render(<SceneStoryMotion frame={frame} objects={[]} steps={[{type:'pause',durationMs:100},{type:'expression',role:'acceptor',expression:'concerned'},{type:'character',role:'inviter',areaId:'counter',x:.34,visible:true,durationMs:200}]} onStep={step} onFinish={finish}/>);

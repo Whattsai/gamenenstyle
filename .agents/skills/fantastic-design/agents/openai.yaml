@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fantastic Design"
+  short_description: "從已確認需求建立系統與分項 SD 設計，完整追溯並等待人工確認"
+  default_prompt: "使用 $fantastic-design 將已確認的 SPEC 文件包設計成可逐項實作的 SD 候選。"

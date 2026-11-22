@@ -41,7 +41,9 @@ export function validateTrackReachability(c:TrackContent,all:TrackBinding[]){
  function connect(next:State,from:number){const value=signature(next);let index=indices.get(value);if(index===undefined){if(states.length>=50000)invalid('state-limit');index=states.length;indices.set(value,index);states.push(next);reverse.push([]);}reverse[index].push(from);}
  for(let cursor=0;cursor<states.length;cursor++){
   const st=states[cursor];for(const r of roles)for(const id of st.entered[r])seenNodes[r].add(id);
-  if(n.endingRequires.every(k=>st.instances[k]?.status==='completed')){const matches=n.endings.filter(e=>test(st,e.conditions));if(matches.length!==1)invalid();ends.push(cursor);seenEndings.add(matches[0].id);continue;}
+  // 撤離是共享危險事實導出的優先收尾，不依賴已無法安全完成的合作任務。
+  if(n.safetyExit&&test(st,n.safetyExit.conditions)){ends.push(cursor);seenEndings.add(n.safetyExit.endingId);continue;}
+  if(n.endingRequires.every(k=>st.instances[k]?.status==='completed')){const matches=n.endings.filter(e=>e.id!==n.safetyExit?.endingId&&test(st,e.conditions));if(matches.length!==1)invalid();ends.push(cursor);seenEndings.add(matches[0].id);continue;}
   for(const b of bindings){const k=key(b),prior=st.instances[k];if(prior?.status==='completed'||prior?.status==='cancelled'||!prior&&!eligible(st,b))continue;
    if(!prior&&b.selectionMode==='weighted_random'&&b.probability<1){const next=structuredClone(st);next.instances[k]={status:'cancelled',sub:{}};connect(next,cursor);if(b.probability===0)continue;}
    for(const a of b.actions){const r=a.role,step=a.stepId??a.actionId;if(b.completionMode!=='repeatable'&&prior?.sub[r]?.[step])continue;

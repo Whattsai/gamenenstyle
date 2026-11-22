@@ -20,3 +20,9 @@ test('scene audit cannot inherit historical approvals or approve incomplete, dup
  assert.throws(()=>auditSceneTraceability({...review,verification:review.verification.replace('partial','verified')}),/Missing implementation and test evidence/);
  assert.throws(()=>auditSceneTraceability({...review,tdd:source.tdd.replace('001','002')}),/Unknown review/);
 });
+
+test('V3 acceptance marks are indexed independently and cannot inherit an old AC approval',()=>{
+ const input={tdd:'',bdd:'',spec:'| SEF-AC-001 | old |\n| `V3-AC-01` | new Rig |',expected:{AC:1,V3AC:1},verification:'| SEF-AC-001 | gate | original human gate |\n| V3-AC-01 | pending | no V3 proof |'};
+ const result=auditSceneTraceability(input);assert.equal(result.indexed,2);assert.equal(result.counts.V3AC.pending,1);assert.equal(result.complete,false);
+ assert.throws(()=>auditSceneTraceability({...input,verification:input.verification.split('\n')[0]}),/Missing review: V3-AC-01/);
+});

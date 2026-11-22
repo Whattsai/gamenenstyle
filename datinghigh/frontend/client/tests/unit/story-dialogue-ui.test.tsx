@@ -44,6 +44,30 @@ it('v2 scene objects preview locally; a caller action sends exact params and ind
  fireEvent.click(await screen.findByRole('button',{name:'翻看取書單背面'}));await waitFor(()=>expect(state.send).toHaveBeenCalledWith('story.event.submit',expect.any(String),{storySessionId:'story',bindingId:'narrative:rain:inspect',actionId:'flip',params:{objectId:'paper'},expectedTrackRevision:7}));
  expect(screen.queryByTestId('scene-partner')).toBeNull();
 });
+it('SEF-UT-506 / BDD-169 partial: missing published Stage art disables story mutations while chat remains usable',async()=>{
+ const base=state.experience as any;
+ const stage={version:'scene-stage.v1',currentShotId:'entrance-wide',
+  shots:[{id:'entrance-wide',areaId:'entrance',cameraId:'entrance',actors:[],audioCueIds:[]}],
+  areaVisuals:[{areaId:'entrance',defaultShotId:'entrance-wide',backgroundAsset:'unready-stage',layers:[]}],
+  embeddedInteractables:[],npcs:[]};
+ state.experience={...base,stage};
+ render(<StoryExperienceScreen/>);
+ const action=await screen.findByLabelText('查看門口的取書單');
+ expect(action.getAttribute('aria-disabled')).toBe('true');
+ fireEvent.click(action);expect(state.send).not.toHaveBeenCalled();
+ expect(await openChatInput()).toBeTruthy();
+ const input=screen.getByLabelText('你的訊息');
+ fireEvent.change(input,{target:{value:'還是可以聊天'}});
+ expect((input as HTMLTextAreaElement).value).toBe('還是可以聊天');
+ // A new authoritative snapshot resolves the missing public image; it never replays the rejected event.
+ state.experience={...base,stage,eventSeq:2,assets:[{id:'unready-stage',url:'/stage.png'}]};
+ await act(async()=>state.sync());
+ expect(screen.getByLabelText('查看門口的取書單').getAttribute('aria-disabled')).not.toBe('true');
+ expect(state.send).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByLabelText('查看門口的取書單'));
+ await waitFor(()=>expect(state.send).toHaveBeenCalledTimes(1));
+ expect(state.send.mock.calls[0][0]).toBe('story.event.submit');
+});
 it('own unready avatar blocks direct entry and clears an already displayed scene with a profile return',async()=>{
  render(<StoryExperienceScreen/>);await screen.findByText('雨聲書店');fireEvent.change(await openChatInput(),{target:{value:'私人草稿'}});
  const request=state.request.getMockImplementation()!;state.request.mockImplementation((path:string,...args:unknown[])=>path.endsWith('/experience')?Promise.reject(new ApiFailure('OWN_AVATAR_PACK_NOT_READY',409)):request(path,...args));

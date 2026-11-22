@@ -10,6 +10,8 @@ Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控�
 
 表情製作用例位於 Application `AvatarExpressionService.cs`／`Media/AvatarExpressionStore.cs`（介面），Infrastructure `Media/AvatarExpressionStore.cs`／既有 Gemini adapter 表情方法；Worker `avatar-adoption.ts`、`avatar-expression-manifest.ts`、`avatar-expression-store.ts`、`transparent-webp.ts`；client `avatar-adoption.ts` 接 `DatingProfileScreen`，ADVStage 接收單一 partner 參數；測試留在對應模組與跨系統測試目錄。
 
+atlas 分層元件為 client `ActorMotionRenderer.tsx`，純 Rig 型別／姿態／表情與手錨校驗在 `actor-rig-policy.ts`（不依賴 React Native，供舞台預檢與 renderer 共用）；審查入口為 `tests/component-layout/scene-rig-preview.tsx` 與 `rig-review-catalog.ts`，Web 由 `server.mjs` 供應固定白名單素材，Android 由 development-only `tests/native/rig-entry.tsx` 掛載。此入口不寫正式角色目錄或 ready 狀態。
+
 ## 劇情與即時通訊
 
 | 責任 | 位置 |
@@ -24,6 +26,7 @@ Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控�
 | 共用場景／演出／互動／音訊／transport | `frontend/client/src/StoryExperienceScreen.tsx`、`ADVStage.tsx`、`SceneEventActions.tsx`、`SceneWorldObjects.tsx`、`SceneStoryMotion.tsx`、`StoryAudio.tsx`、`RealtimeRoomClient.ts`、`story.ts` |
 | 正式內容／發布／本地升級 | `contracts/scene-event-content.json`、`contracts/rain-bookshop-last-order.json`、`contracts/story-assets/`、`tools/scene-event-content-policy.mjs`、`scene-event-publish-policy.mjs`、`scene-event-local-policy.mjs`、`local.mjs` |
 | 事件演出安全覆寫 | `frontend/client/src/scene-event-track.ts`、`scene-browser-lifecycle.ts`、既有 `ADVStage.tsx`／`StoryAudio.tsx` |
+| 多 Area 舞台契約／安全投影／原位命中 | `cloudflare/src/scene-event-stage-content.ts`（所有 NPC 資產／持物手錨 fail-closed）、`backend/src/DatingHigh.Application/SceneEventStageProjection.cs`、`frontend/client/src/scene-stage.ts`（公開 NPC Rig 組裝）、`EmbeddedSceneStage.tsx`（錯誤圖片關閉互動）、`SceneStoryMotion.tsx`（釘選書本圖像演出） |
 | 真D1／DO／HTTP／UX證據 | `cloudflare/tests/story-dialogue-*.test.ts`、`backend/tests/DatingHigh.Api.Tests/StoryDialogueEndpointTests.cs`、`frontend/client/tests/unit/story-dialogue*`、`tests/e2e/{web,android}/scene-event-framework.*`、`tests/integration/story-dialogue-live.test.mjs` |
 
 ## 配對與邀請

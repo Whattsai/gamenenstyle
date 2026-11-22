@@ -81,6 +81,9 @@ public sealed class SceneEventFrameworkService(IPlatformClient platform,IRoundRe
         var endingSteps=state.Completed?c.Narrative["endings"]!.AsArray().Single(e=>e!.Text("id")==endingId)!["presentationSteps"]!.AsArray():null;
         var cue=Record(rows,"cue_event");if(cue is not null){var body=JsonNode.Parse(cue.Text("payload_json"))!;var steps=body["presentationSteps"]?.DeepClone().AsArray()??new JsonArray();if(endingSteps is not null)foreach(var step in endingSteps)steps.Add(step!.DeepClone());result["presentationCue"]=new JsonObject{["eventSeq"]=cue["sequence"]!.DeepClone(),["steps"]=steps};}
         if(endingSteps is not null)result["endingPresentationSteps"]=endingSteps.DeepClone();
+        var visibleSteps=result["presentationCue"]?["steps"]?.DeepClone().AsArray()??new JsonArray();
+        if(endingSteps is not null)foreach(var step in endingSteps)visibleSteps.Add(step!.DeepClone());
+        if(SceneEventStageProjection.Project(c,me,current,objects,visibleSteps) is { } stage)result["stage"]=stage;
         var consents=Records(rows,"consent").Select(c=>new{Actor=c.Text("actor_account_id"),Agree=JsonNode.Parse(c.Text("payload_json"))!["agree"]!.GetValue<bool>()}).ToArray();result["myAgreedNext"]=consents.Any(c=>c.Actor==u.AccountId&&c.Agree);result["partnerAgreedNext"]=consents.Any(c=>c.Actor!=u.AccountId&&c.Agree);
         return result;
     }

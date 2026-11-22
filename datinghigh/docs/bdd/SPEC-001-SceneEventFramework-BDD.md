@@ -1,8 +1,9 @@
 # SPEC-001-SceneEventFramework — BDD 場景規格
 
-> **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～23）
+> **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～35；新 V3 為 AC-005-24～35）
 > **已確認 SDD**：[SPEC-001-SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)（原 SEF-RQ-01～03=A；新版雙 Track、雨聲書店詳稿已由使用者指示繼續 perfect-plan）
 > **原規劃**：2026-11-12；**2026-11-16 最終計畫**：BDD-080～121 新增 42 項，合計 121 場景。V2-RQ-01=A 已確認，Phase 4 的 10 組 GAP 也已回寫 TDD，**新版 Phase 5 Ready for well-done（只代表規劃完成）**。舊版僅 1/79 完整覆核，新版仍 0/42，絕非產品已通過。
+> **2026-11-17 V3 最新完整規劃**：SDD 六項 RQ 已確認且 `SEF-V3-RQ-01=B` 容量策略採受控增幅；原 V3 60 場＋RiskAudit 新增 10 場＝V3 70 場，BDD 合計 **191 場**；V3 0/70 尚未實作。舊 2026-11-16 Ready 僅屬歷史 V2，最新 Phase 5 以文件末尾交接狀態為準。
 
 ## Feature 描述
 
@@ -10,14 +11,16 @@
 
 **目標**：保留 Category→Scene→Narrative→EventBinding、未玩 3:1、自然完成／聊天／真人同意下一場，新增雙軌獨立進度、反覆交會／單方分流、Scene Area、嚴格動作參數／CAS、Web／Android 實際品質和 RB-01～RB-14。MVP-002／Housekeeping 不在本期。
 
+> **目前執行權威**：[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。上方規劃快照中的「未實作」不取代現行局部實作與缺項紀錄；歷史V2綠燈不算V3通過。
+
 ## 前端 UX 實作進度
 
 ```text
 📦 SceneEventFramework
-├─ 目前階段：依使用者要求暫停；首條主要技術流程及本人化身入口已驗證
-├─ BDD：舊版完整覆核 1/79；新版規劃 0/42；合計 1/121（各版證據不得互代）
-├─ 新增視覺需求：需延用 StoryDialogueAndExit 原 Gate B
-└─ 首條雨聲書店：必須由使用者試玩調校確認後才開發其餘九條
+├─ 目前範圍：16款免費角色Rig整批審查，V3正式劇情仍未完成
+├─ BDD完整覆核：118/191；其中V3 0/70，相關局部實作見Verification
+├─ 首輪免費／AI品質已確認；其餘15款等待整批本人確認
+└─ 正式Rig ready與首條V3 Gate B未通過，不製作其餘9場
 ```
 
 實作子項、回歸與未完事項見 [驗證紀錄](../verification/SPEC-001-SceneEventFramework-Verification.md)。SEF-BDD-079 已完整覆核通過；其餘 Scenario 未完成逐項結案，不以既有劇情回歸數代替。
@@ -38,7 +41,7 @@ Feature: 場景與事件框架（SceneEventFramework）
 
 ### SEF-BDD-001：唯一可玩類別直接進場
 
-- [ ] **Scenario: 唯一可玩類別直接進場**
+- [x] **Scenario: 唯一可玩類別直接進場**
   - **來源**：`SEF-AC-001`；**標籤**：@happy-path @normal；**測試鍵**：`Recommend_OneCategory`
 
 ```gherkin
@@ -52,7 +55,7 @@ Scenario: 唯一可玩類別直接進場
 
 ### SEF-BDD-002：兩類別由真人各投一票
 
-- [ ] **Scenario: 兩類別由真人各投一票**
+- [x] **Scenario: 兩類別由真人各投一票**
   - **來源**：`SEF-AC-001`；**標籤**：@happy-path @normal；**測試鍵**：`Recommend_TwoCategories`
 
 ```gherkin
@@ -66,7 +69,7 @@ Scenario: 兩類別由真人各投一票
 
 ### SEF-BDD-003：三個以上類別依興趣取前三
 
-- [ ] **Scenario: 三個以上類別依興趣取前三**
+- [x] **Scenario: 三個以上類別依興趣取前三**
   - **來源**：`SEF-AC-001`；**標籤**：@happy-path @normal；**測試鍵**：`Recommend_ThreePlusCategories`
 
 ```gherkin
@@ -80,7 +83,7 @@ Scenario: 三個以上類別依興趣取前三
 
 ### SEF-BDD-008：同場景可屬多個類別
 
-- [ ] **Scenario: 同場景可屬多個類別**
+- [x] **Scenario: 同場景可屬多個類別**
   - **來源**：`SEF-AC-002`；**標籤**：@happy-path @normal；**測試鍵**：`Scene_MultiCategory`
 
 ```gherkin
@@ -94,7 +97,7 @@ Scenario: 同場景可屬多個類別
 
 ### SEF-BDD-009：同場景可有多條完整主線
 
-- [ ] **Scenario: 同場景可有多條完整主線**
+- [x] **Scenario: 同場景可有多條完整主線**
   - **來源**：`SEF-AC-002`；**標籤**：@happy-path @normal；**測試鍵**：`Narrative_MultiPerScene`
 
 ```gherkin
@@ -108,7 +111,7 @@ Scenario: 同場景可有多條完整主線
 
 ### SEF-BDD-011：新場景抽選權重為三比一
 
-- [ ] **Scenario: 新場景抽選權重為三比一**
+- [x] **Scenario: 新場景抽選權重為三比一**
   - **來源**：`SEF-AC-003`；**標籤**：@happy-path @normal；**測試鍵**：`Scene_WeightThreeToOne`
 
 ```gherkin
@@ -122,7 +125,7 @@ Scenario: 新場景抽選權重為三比一
 
 ### SEF-BDD-014：無序主線優先未玩三比一
 
-- [ ] **Scenario: 無序主線優先未玩三比一**
+- [x] **Scenario: 無序主線優先未玩三比一**
   - **來源**：`SEF-AC-003`；**標籤**：@happy-path @normal；**測試鍵**：`Narrative_UnorderedWeighted`
 
 ```gherkin
@@ -136,7 +139,7 @@ Scenario: 無序主線優先未玩三比一
 
 ### SEF-BDD-015：有序主線不可跳章
 
-- [ ] **Scenario: 有序主線不可跳章**
+- [x] **Scenario: 有序主線不可跳章**
   - **來源**：`SEF-AC-003`；**標籤**：@happy-path @normal；**測試鍵**：`Narrative_OrderedUnlock`
 
 ```gherkin
@@ -150,7 +153,7 @@ Scenario: 有序主線不可跳章
 
 ### SEF-BDD-019：線性主線一個結局即可發布
 
-- [ ] **Scenario: 線性主線一個結局即可發布**
+- [x] **Scenario: 線性主線一個結局即可發布**
   - **來源**：`SEF-AC-004`；**標籤**：@happy-path @critical；**測試鍵**：`Graph_OneEnding`
 
 ```gherkin
@@ -164,7 +167,7 @@ Scenario: 線性主線一個結局即可發布
 
 ### SEF-BDD-020：分支後可合流共同主線
 
-- [ ] **Scenario: 分支後可合流共同主線**
+- [x] **Scenario: 分支後可合流共同主線**
   - **來源**：`SEF-AC-004`；**標籤**：@happy-path @normal；**測試鍵**：`Graph_BranchRejoin`
 
 ```gherkin
@@ -178,7 +181,7 @@ Scenario: 分支後可合流共同主線
 
 ### SEF-BDD-023：同一事件在不同主線有不同用途
 
-- [ ] **Scenario: 同一事件在不同主線有不同用途**
+- [x] **Scenario: 同一事件在不同主線有不同用途**
   - **來源**：`SEF-AC-005`；**標籤**：@happy-path @normal；**測試鍵**：`Event_RoleByBinding`
 
 ```gherkin
@@ -192,7 +195,7 @@ Scenario: 同一事件在不同主線有不同用途
 
 ### SEF-BDD-024：隱藏與隨機與前置條件可同時存在
 
-- [ ] **Scenario: 隱藏與隨機與前置條件可同時存在**
+- [x] **Scenario: 隱藏與隨機與前置條件可同時存在**
   - **來源**：`SEF-AC-005`；**標籤**：@happy-path @normal；**測試鍵**：`Event_HiddenRandomConditional`
 
 ```gherkin
@@ -206,7 +209,7 @@ Scenario: 隱藏與隨機與前置條件可同時存在
 
 ### SEF-BDD-025：主線場景全域事件池可共存
 
-- [ ] **Scenario: 主線場景全域事件池可共存**
+- [x] **Scenario: 主線場景全域事件池可共存**
   - **來源**：`SEF-AC-005`；**標籤**：@happy-path @normal；**測試鍵**：`Event_ThreeSourcePools`
 
 ```gherkin
@@ -220,7 +223,7 @@ Scenario: 主線場景全域事件池可共存
 
 ### SEF-BDD-028：事件僅在本次遊玩不重複
 
-- [ ] **Scenario: 事件僅在本次遊玩不重複**
+- [x] **Scenario: 事件僅在本次遊玩不重複**
   - **來源**：`SEF-AC-006`；**標籤**：@happy-path @normal；**測試鍵**：`Event_PlaythroughScope`
 
 ```gherkin
@@ -234,7 +237,7 @@ Scenario: 事件僅在本次遊玩不重複
 
 ### SEF-BDD-029：整輪配對範圍限制事件重複
 
-- [ ] **Scenario: 整輪配對範圍限制事件重複**
+- [x] **Scenario: 整輪配對範圍限制事件重複**
   - **來源**：`SEF-AC-006`；**標籤**：@happy-path @normal；**測試鍵**：`Event_RoundScope`
 
 ```gherkin
@@ -248,7 +251,7 @@ Scenario: 整輪配對範圍限制事件重複
 
 ### SEF-BDD-031：事件結果能影響後續劇情
 
-- [ ] **Scenario: 事件結果能影響後續劇情**
+- [x] **Scenario: 事件結果能影響後續劇情**
   - **來源**：`SEF-AC-006`；**標籤**：@happy-path @normal；**測試鍵**：`Event_OutcomeChangesNarrative`
 
 ```gherkin
@@ -262,7 +265,7 @@ Scenario: 事件結果能影響後續劇情
 
 ### SEF-BDD-034：抵達主線收尾節點自然完成
 
-- [ ] **Scenario: 抵達主線收尾節點自然完成**
+- [x] **Scenario: 抵達主線收尾節點自然完成**
   - **來源**：`SEF-AC-007`；**標籤**：@happy-path @normal；**測試鍵**：`Chapter_AutoComplete`
 
 ```gherkin
@@ -276,7 +279,7 @@ Scenario: 抵達主線收尾節點自然完成
 
 ### SEF-BDD-038：雙方同意才開始下一場
 
-- [ ] **Scenario: 雙方同意才開始下一場**
+- [x] **Scenario: 雙方同意才開始下一場**
   - **來源**：`SEF-AC-008`；**標籤**：@happy-path @critical；**測試鍵**：`Next_BothAgree`
 
 ```gherkin
@@ -290,7 +293,7 @@ Scenario: 雙方同意才開始下一場
 
 ### SEF-BDD-046：更新內容不影響進行中的劇情
 
-- [ ] **Scenario: 更新內容不影響進行中的劇情**
+- [x] **Scenario: 更新內容不影響進行中的劇情**
   - **來源**：`SEF-AC-010`；**標籤**：@happy-path @normal；**測試鍵**：`Content_ImmutablePinned`
 
 ```gherkin
@@ -318,7 +321,7 @@ Scenario: 首條雨聲書店先通過人工 Gate
 
 ### SEF-BDD-051：MVP-001 不生成 AI 動態主線
 
-- [ ] **Scenario: MVP-001 不生成 AI 動態主線**
+- [x] **Scenario: MVP-001 不生成 AI 動態主線**
   - **來源**：`SEF-AC-012`；**標籤**：@happy-path @normal；**測試鍵**：`Boundary_MVP002NoAIGeneration`
 
 ```gherkin
@@ -334,7 +337,7 @@ Scenario: MVP-001 不生成 AI 動態主線
 
 ### SEF-BDD-004：兩人選不同類別由原邀請者決定
 
-- [ ] **Scenario: 兩人選不同類別由原邀請者決定**
+- [x] **Scenario: 兩人選不同類別由原邀請者決定**
   - **來源**：`SEF-AC-001`；**標籤**：@alternative-path @normal；**測試鍵**：`Vote_InviterTieBreak`
 
 ```gherkin
@@ -348,7 +351,7 @@ Scenario: 兩人選不同類別由原邀請者決定
 
 ### SEF-BDD-005：結算前允許改票
 
-- [ ] **Scenario: 結算前允許改票**
+- [x] **Scenario: 結算前允許改票**
   - **來源**：`SEF-AC-001`；**標籤**：@alternative-path @normal；**測試鍵**：`Vote_ModifyBeforeSettlement`
 
 ```gherkin
@@ -362,7 +365,7 @@ Scenario: 結算前允許改票
 
 ### SEF-BDD-013：換配對對象重新計算去重
 
-- [ ] **Scenario: 換配對對象重新計算去重**
+- [x] **Scenario: 換配對對象重新計算去重**
   - **來源**：`SEF-AC-003`；**標籤**：@alternative-path @normal；**測試鍵**：`Pair_NewPartnerReset`
 
 ```gherkin
@@ -376,7 +379,7 @@ Scenario: 換配對對象重新計算去重
 
 ### SEF-BDD-016：有序與無序主線混合隨機
 
-- [ ] **Scenario: 有序與無序主線混合隨機**
+- [x] **Scenario: 有序與無序主線混合隨機**
   - **來源**：`SEF-AC-003`；**標籤**：@alternative-path @normal；**測試鍵**：`Narrative_MixedEligible`
 
 ```gherkin
@@ -390,7 +393,7 @@ Scenario: 有序與無序主線混合隨機
 
 ### SEF-BDD-021：不同真人選擇得到不同收尾
 
-- [ ] **Scenario: 不同真人選擇得到不同收尾**
+- [x] **Scenario: 不同真人選擇得到不同收尾**
   - **來源**：`SEF-AC-004`；**標籤**：@alternative-path @critical；**測試鍵**：`Graph_MultipleEndings`
 
 ```gherkin
@@ -404,7 +407,7 @@ Scenario: 不同真人選擇得到不同收尾
 
 ### SEF-BDD-035：未做支線不阻塞主線完成
 
-- [ ] **Scenario: 未做支線不阻塞主線完成**
+- [x] **Scenario: 未做支線不阻塞主線完成**
   - **來源**：`SEF-AC-007`；**標籤**：@alternative-path @normal；**測試鍵**：`Chapter_OptionalNotRequired`
 
 ```gherkin
@@ -418,7 +421,7 @@ Scenario: 未做支線不阻塞主線完成
 
 ### SEF-BDD-039：只有一人同意不能偷偷開下一場
 
-- [ ] **Scenario: 只有一人同意不能偷偷開下一場**
+- [x] **Scenario: 只有一人同意不能偷偷開下一場**
   - **來源**：`SEF-AC-008`；**標籤**：@alternative-path @critical；**測試鍵**：`Next_OneOnly`
 
 ```gherkin
@@ -432,7 +435,7 @@ Scenario: 只有一人同意不能偷偷開下一場
 
 ### SEF-BDD-040：同意可以在結算前撤回
 
-- [ ] **Scenario: 同意可以在結算前撤回**
+- [x] **Scenario: 同意可以在結算前撤回**
   - **來源**：`SEF-AC-008`；**標籤**：@alternative-path @critical；**測試鍵**：`Next_Withdraw`
 
 ```gherkin
@@ -448,7 +451,7 @@ Scenario: 同意可以在結算前撤回
 
 ### SEF-BDD-012：場景都已玩過仍可再抽
 
-- [ ] **Scenario: 場景都已玩過仍可再抽**
+- [x] **Scenario: 場景都已玩過仍可再抽**
   - **來源**：`SEF-AC-003`；**標籤**：@edge-case @critical；**測試鍵**：`Scene_AllPlayedFallback`
 
 ```gherkin
@@ -462,7 +465,7 @@ Scenario: 場景都已玩過仍可再抽
 
 ### SEF-BDD-017：合格主線均玩過仍可重玩
 
-- [ ] **Scenario: 合格主線均玩過仍可重玩**
+- [x] **Scenario: 合格主線均玩過仍可重玩**
   - **來源**：`SEF-AC-003`；**標籤**：@edge-case @critical；**測試鍵**：`Narrative_AllCompletedFallback`
 
 ```gherkin
@@ -476,7 +479,7 @@ Scenario: 合格主線均玩過仍可重玩
 
 ### SEF-BDD-030：相同事件不同來源依語意去重
 
-- [ ] **Scenario: 相同事件不同來源依語意去重**
+- [x] **Scenario: 相同事件不同來源依語意去重**
   - **來源**：`SEF-AC-006`；**標籤**：@edge-case @critical；**測試鍵**：`Event_RepeatGroup`
 
 ```gherkin
@@ -490,7 +493,7 @@ Scenario: 相同事件不同來源依語意去重
 
 ### SEF-BDD-033：雙端同時完成同一事件只提交一次
 
-- [ ] **Scenario: 雙端同時完成同一事件只提交一次**
+- [x] **Scenario: 雙端同時完成同一事件只提交一次**
   - **來源**：`SEF-AC-006`；**標籤**：@edge-case @critical；**測試鍵**：`Event_ConcurrentSubmit`
 
 ```gherkin
@@ -504,7 +507,7 @@ Scenario: 雙端同時完成同一事件只提交一次
 
 ### SEF-BDD-037：完成與結束整輪競態不殘留半場
 
-- [ ] **Scenario: 完成與結束整輪競態不殘留半場**
+- [x] **Scenario: 完成與結束整輪競態不殘留半場**
   - **來源**：`SEF-AC-007`；**標籤**：@edge-case @critical；**測試鍵**：`Chapter_EndRace`
 
 ```gherkin
@@ -518,7 +521,7 @@ Scenario: 完成與結束整輪競態不殘留半場
 
 ### SEF-BDD-041：雙方同時同意恰好產生一場
 
-- [ ] **Scenario: 雙方同時同意恰好產生一場**
+- [x] **Scenario: 雙方同時同意恰好產生一場**
   - **來源**：`SEF-AC-008`；**標籤**：@edge-case @critical；**測試鍵**：`Next_DoubleAgreeRace`
 
 ```gherkin
@@ -532,7 +535,7 @@ Scenario: 雙方同時同意恰好產生一場
 
 ### SEF-BDD-043：全輪事件序號與冪等保存
 
-- [ ] **Scenario: 全輪事件序號與冪等保存**
+- [x] **Scenario: 全輪事件序號與冪等保存**
   - **來源**：`SEF-AC-009`；**標籤**：@edge-case @critical；**測試鍵**：`Sequence_Monotonic`
 
 ```gherkin
@@ -546,7 +549,7 @@ Scenario: 全輪事件序號與冪等保存
 
 ### SEF-BDD-045：重連與刷新不能重抽場景主線
 
-- [ ] **Scenario: 重連與刷新不能重抽場景主線**
+- [x] **Scenario: 重連與刷新不能重抽場景主線**
   - **來源**：`SEF-AC-009`；**標籤**：@edge-case @critical；**測試鍵**：`Recovery_ReconnectNoReroll`
 
 ```gherkin
@@ -560,7 +563,7 @@ Scenario: 重連與刷新不能重抽場景主線
 
 ### SEF-BDD-052：劇情模式單次只走一個場景
 
-- [ ] **Scenario: 劇情模式單次只走一個場景**
+- [x] **Scenario: 劇情模式單次只走一個場景**
   - **來源**：`SEF-AC-012`；**標籤**：@edge-case @critical；**測試鍵**：`Boundary_SingleSceneVisit`
 
 ```gherkin
@@ -576,7 +579,7 @@ Scenario: 劇情模式單次只走一個場景
 
 ### SEF-BDD-006：沒有完整內容不建立空遊戲
 
-- [ ] **Scenario: 沒有完整內容不建立空遊戲**
+- [x] **Scenario: 沒有完整內容不建立空遊戲**
   - **來源**：`SEF-AC-001`；**標籤**：@error-handling @critical；**測試鍵**：`Recommend_NoPlayableCategory`
 
 ```gherkin
@@ -590,7 +593,7 @@ Scenario: 沒有完整內容不建立空遊戲
 
 ### SEF-BDD-007：無效類別票和未決議投票隱私
 
-- [ ] **Scenario: 無效類別票和未決議投票隱私**
+- [x] **Scenario: 無效類別票和未決議投票隱私**
   - **來源**：`SEF-AC-001`；**標籤**：@error-handling @critical；**測試鍵**：`Vote_InvalidOrLeaked`
 
 ```gherkin
@@ -604,7 +607,7 @@ Scenario: 無效類別票和未決議投票隱私
 
 ### SEF-BDD-010：無效類別或場景關聯拒絕發布
 
-- [ ] **Scenario: 無效類別或場景關聯拒絕發布**
+- [x] **Scenario: 無效類別或場景關聯拒絕發布**
   - **來源**：`SEF-AC-002`；**標籤**：@error-handling @critical；**測試鍵**：`Scene_InvalidRelation`
 
 ```gherkin
@@ -618,7 +621,7 @@ Scenario: 無效類別或場景關聯拒絕發布
 
 ### SEF-BDD-018：客戶端無法指定尚未解鎖主線
 
-- [ ] **Scenario: 客戶端無法指定尚未解鎖主線**
+- [x] **Scenario: 客戶端無法指定尚未解鎖主線**
   - **來源**：`SEF-AC-003`；**標籤**：@error-handling @critical；**測試鍵**：`Narrative_PrerequisiteForgery`
 
 ```gherkin
@@ -632,7 +635,7 @@ Scenario: 客戶端無法指定尚未解鎖主線
 
 ### SEF-BDD-022：不可抵達結尾不能發布
 
-- [ ] **Scenario: 不可抵達結尾不能發布**
+- [x] **Scenario: 不可抵達結尾不能發布**
   - **來源**：`SEF-AC-004`；**標籤**：@error-handling @critical；**測試鍵**：`Graph_UnreachableEnding`
 
 ```gherkin
@@ -646,7 +649,7 @@ Scenario: 不可抵達結尾不能發布
 
 ### SEF-BDD-026：全域事件不得在不相容場景出現
 
-- [ ] **Scenario: 全域事件不得在不相容場景出現**
+- [x] **Scenario: 全域事件不得在不相容場景出現**
   - **來源**：`SEF-AC-005`；**標籤**：@error-handling @critical；**測試鍵**：`Event_SceneCapability`
 
 ```gherkin
@@ -660,7 +663,7 @@ Scenario: 全域事件不得在不相容場景出現
 
 ### SEF-BDD-027：未知事件玩法不能發布
 
-- [ ] **Scenario: 未知事件玩法不能發布**
+- [x] **Scenario: 未知事件玩法不能發布**
   - **來源**：`SEF-AC-005`；**標籤**：@error-handling @critical；**測試鍵**：`Event_UnsupportedRenderer`
 
 ```gherkin
@@ -674,7 +677,7 @@ Scenario: 未知事件玩法不能發布
 
 ### SEF-BDD-032：不符合前置或循環依賴不能觸發
 
-- [ ] **Scenario: 不符合前置或循環依賴不能觸發**
+- [x] **Scenario: 不符合前置或循環依賴不能觸發**
   - **來源**：`SEF-AC-006`；**標籤**：@error-handling @critical；**測試鍵**：`Event_InvalidDependency`
 
 ```gherkin
@@ -688,7 +691,7 @@ Scenario: 不符合前置或循環依賴不能觸發
 
 ### SEF-BDD-036：完成後禁止觸發舊支線
 
-- [ ] **Scenario: 完成後禁止觸發舊支線**
+- [x] **Scenario: 完成後禁止觸發舊支線**
   - **來源**：`SEF-AC-007`；**標籤**：@error-handling @critical；**測試鍵**：`Chapter_RejectOldOptional`
 
 ```gherkin
@@ -702,7 +705,7 @@ Scenario: 完成後禁止觸發舊支線
 
 ### SEF-BDD-042：舊場同意不能開啟新場
 
-- [ ] **Scenario: 舊場同意不能開啟新場**
+- [x] **Scenario: 舊場同意不能開啟新場**
   - **來源**：`SEF-AC-008`；**標籤**：@error-handling @critical；**測試鍵**：`Next_OldEpisodeReplay`
 
 ```gherkin
@@ -716,7 +719,7 @@ Scenario: 舊場同意不能開啟新場
 
 ### SEF-BDD-044：第三人及撤銷登入不得操作
 
-- [ ] **Scenario: 第三人及撤銷登入不得操作**
+- [x] **Scenario: 第三人及撤銷登入不得操作**
   - **來源**：`SEF-AC-009`；**標籤**：@error-handling @critical；**測試鍵**：`Auth_ThirdPartyAndRevoked`
 
 ```gherkin
@@ -730,7 +733,7 @@ Scenario: 第三人及撤銷登入不得操作
 
 ### SEF-BDD-047：R2 缺檔或 SHA 錯誤不得啟動
 
-- [ ] **Scenario: R2 缺檔或 SHA 錯誤不得啟動**
+- [x] **Scenario: R2 缺檔或 SHA 錯誤不得啟動**
   - **來源**：`SEF-AC-010`；**標籤**：@error-handling @critical；**測試鍵**：`Content_R2Corrupt`
 
 ```gherkin
@@ -744,7 +747,7 @@ Scenario: R2 缺檔或 SHA 錯誤不得啟動
 
 ### SEF-BDD-048：事件依賴錯誤或跨版本引用不可發布
 
-- [ ] **Scenario: 事件依賴錯誤或跨版本引用不可發布**
+- [x] **Scenario: 事件依賴錯誤或跨版本引用不可發布**
   - **來源**：`SEF-AC-010`；**標籤**：@error-handling @critical；**測試鍵**：`Content_InvalidManifest`
 
 ```gherkin
@@ -758,7 +761,7 @@ Scenario: 事件依賴錯誤或跨版本引用不可發布
 
 ### SEF-BDD-050：十條驗收不可由背景或測試故事充數
 
-- [ ] **Scenario: 十條驗收不可由背景或測試故事充數**
+- [x] **Scenario: 十條驗收不可由背景或測試故事充數**
   - **來源**：`SEF-AC-011`；**標籤**：@error-handling @critical；**測試鍵**：`Gate_CannotCountFixtures`
 
 ```gherkin
@@ -774,7 +777,7 @@ Scenario: 十條驗收不可由背景或測試故事充數
 
 ### SEF-BDD-053：畫面依類別候選數切換
 
-- [ ] **Scenario: 畫面依類別候選數切換**
+- [x] **Scenario: 畫面依類別候選數切換**
   - **來源**：`SEF-AC-001`；**標籤**：@frontend @normal；**測試鍵**：`UI_OfferCount`
 
 ```gherkin
@@ -788,7 +791,7 @@ Scenario: 畫面依類別候選數切換
 
 ### SEF-BDD-054：等待對方投票可聊天並回來
 
-- [ ] **Scenario: 等待對方投票可聊天並回來**
+- [x] **Scenario: 等待對方投票可聊天並回來**
   - **來源**：`SEF-AC-001`；**標籤**：@frontend @normal；**測試鍵**：`UI_VoteWaiting`
 
 ```gherkin
@@ -802,7 +805,7 @@ Scenario: 等待對方投票可聊天並回來
 
 ### SEF-BDD-055：隱藏事件在符合條件前不暴露
 
-- [ ] **Scenario: 隱藏事件在符合條件前不暴露**
+- [x] **Scenario: 隱藏事件在符合條件前不暴露**
   - **來源**：`SEF-AC-005`；**標籤**：@frontend @normal；**測試鍵**：`UI_HiddenEvent`
 
 ```gherkin
@@ -816,7 +819,7 @@ Scenario: 隱藏事件在符合條件前不暴露
 
 ### SEF-BDD-056：事件互動有提交回饋與防重
 
-- [ ] **Scenario: 事件互動有提交回饋與防重**
+- [x] **Scenario: 事件互動有提交回饋與防重**
   - **來源**：`SEF-AC-006`；**標籤**：@frontend @normal；**測試鍵**：`UI_InteractionFeedback`
 
 ```gherkin
@@ -830,7 +833,7 @@ Scenario: 事件互動有提交回饋與防重
 
 ### SEF-BDD-057：完成時自然收尾並保留聊天
 
-- [ ] **Scenario: 完成時自然收尾並保留聊天**
+- [x] **Scenario: 完成時自然收尾並保留聊天**
   - **來源**：`SEF-AC-007`；**標籤**：@frontend @normal；**測試鍵**：`UI_ChapterCompleted`
 
 ```gherkin
@@ -844,7 +847,7 @@ Scenario: 完成時自然收尾並保留聊天
 
 ### SEF-BDD-058：再次遊玩按鈕等待雙方同意
 
-- [ ] **Scenario: 再次遊玩按鈕等待雙方同意**
+- [x] **Scenario: 再次遊玩按鈕等待雙方同意**
   - **來源**：`SEF-AC-008`；**標籤**：@frontend @critical；**測試鍵**：`UI_NextAgree`
 
 ```gherkin
@@ -858,7 +861,7 @@ Scenario: 再次遊玩按鈕等待雙方同意
 
 ### SEF-BDD-059：再次遊玩重複點擊不產生多場
 
-- [ ] **Scenario: 再次遊玩重複點擊不產生多場**
+- [x] **Scenario: 再次遊玩重複點擊不產生多場**
   - **來源**：`SEF-AC-008`；**標籤**：@frontend @critical；**測試鍵**：`UI_NextDuplicateClick`
 
 ```gherkin
@@ -872,7 +875,7 @@ Scenario: 再次遊玩重複點擊不產生多場
 
 ### SEF-BDD-060：斷線恢復顯示權威狀態
 
-- [ ] **Scenario: 斷線恢復顯示權威狀態**
+- [x] **Scenario: 斷線恢復顯示權威狀態**
   - **來源**：`SEF-AC-009`；**標籤**：@frontend @normal；**測試鍵**：`UI_OfflineRecovery`
 
 ```gherkin
@@ -886,7 +889,7 @@ Scenario: 斷線恢復顯示權威狀態
 
 ### SEF-BDD-061：內容壞檔提示可重試但不重抽
 
-- [ ] **Scenario: 內容壞檔提示可重試但不重抽**
+- [x] **Scenario: 內容壞檔提示可重試但不重抽**
   - **來源**：`SEF-AC-010`；**標籤**：@frontend @normal；**測試鍵**：`UI_ContentFailure`
 
 ```gherkin
@@ -900,7 +903,7 @@ Scenario: 內容壞檔提示可重試但不重抽
 
 ### SEF-BDD-062：Web 與 Android 共用首條驗收
 
-- [ ] **Scenario: Web 與 Android 共用首條驗收**
+- [x] **Scenario: Web 與 Android 共用首條驗收**
   - **來源**：`SEF-AC-011`；**標籤**：@frontend @critical；**測試鍵**：`UI_BothPlatformsGate`
 
 ```gherkin
@@ -914,7 +917,7 @@ Scenario: Web 與 Android 共用首條驗收
 
 ### SEF-BDD-063：結束配對仍需二次確認
 
-- [ ] **Scenario: 結束配對仍需二次確認**
+- [x] **Scenario: 結束配對仍需二次確認**
   - **來源**：`SEF-AC-009`；**標籤**：@frontend @critical；**測試鍵**：`UI_EndConfirmation`
 
 ```gherkin
@@ -930,7 +933,7 @@ Scenario: 結束配對仍需二次確認
 
 ### SEF-BDD-064：選擇懸疑類別只能抽到適用的主線
 
-- [ ] **Scenario: 選擇懸疑類別只能抽到適用的主線**
+- [x] **Scenario: 選擇懸疑類別只能抽到適用的主線**
   - **來源**：`SEF-AC-003`、`SEF-RA-01／RA-Q1=A`；**標籤**：@happy-path @critical；**測試鍵**：`Narrative_SelectedCategory_MatchesEligibleCodes`
 
 ```gherkin
@@ -945,7 +948,7 @@ Scenario: 選擇懸疑類別只能抽到適用的主線
 
 ### SEF-BDD-065：重新遊玩時使用雙方最新已儲存興趣
 
-- [ ] **Scenario: 重新遊玩時使用雙方最新已儲存興趣**
+- [x] **Scenario: 重新遊玩時使用雙方最新已儲存興趣**
   - **來源**：`SEF-AC-008`、`SEF-RA-02／RA-Q2=A`；**標籤**：@happy-path @critical；**測試鍵**：`NextEpisode_UsesLatestPersistedInterestsAtFreeze`
 
 ```gherkin
@@ -960,7 +963,7 @@ Scenario: 重新遊玩時使用雙方最新已儲存興趣
 
 ### SEF-BDD-066：類別下只有不相符的主線不得顯示為可玩
 
-- [ ] **Scenario: 類別下只有不相符的主線不得顯示為可玩**
+- [x] **Scenario: 類別下只有不相符的主線不得顯示為可玩**
   - **來源**：`SEF-AC-001`、`SEF-RA-01／RA-Q1=A`；**標籤**：@error-handling @critical；**測試鍵**：`Category_WithoutMatchingNarrative_HasNoPlayableContent`
 
 ```gherkin
@@ -979,7 +982,7 @@ Scenario: 類別下只有不相符的主線不得顯示為可玩
 
 ### SEF-BDD-067：Scene／Narrative 拆分保留雨聲書店正式視覺
 
-- [ ] **Scenario: Scene／Narrative 拆分保留雨聲書店正式視覺**
+- [x] **Scenario: Scene／Narrative 拆分保留雨聲書店正式視覺**
   - **來源**：`SEF-AC-013`；**標籤**：@frontend @critical；**測試鍵**：`Scene_Presentation_Preserved`
 
 ```gherkin
@@ -993,7 +996,7 @@ Scenario: Scene／Narrative 拆分保留雨聲書店正式視覺
 
 ### SEF-BDD-068：事件可暫時改變表情與鏡頭並還原
 
-- [ ] **Scenario: 事件可暫時改變表情與鏡頭並還原**
+- [x] **Scenario: 事件可暫時改變表情與鏡頭並還原**
   - **來源**：`SEF-AC-013`；**標籤**：@frontend @critical；**測試鍵**：`Event_Presentation_Overlay_ReturnsToNode`
 
 ```gherkin
@@ -1007,7 +1010,7 @@ Scenario: 事件可暫時改變表情與鏡頭並還原
 
 ### SEF-BDD-069：不合法的事件演出素材不能發布
 
-- [ ] **Scenario: 不合法的事件演出素材不能發布**
+- [x] **Scenario: 不合法的事件演出素材不能發布**
   - **來源**：`SEF-AC-013`；**標籤**：@frontend @critical；**測試鍵**：`Event_Presentation_InvalidReference_Rejected`
 
 ```gherkin
@@ -1021,7 +1024,7 @@ Scenario: 不合法的事件演出素材不能發布
 
 ### SEF-BDD-070：隱藏事件解鎖前不顯示熱區且檢視不提交
 
-- [ ] **Scenario: 隱藏事件解鎖前不顯示熱區且檢視不提交**
+- [x] **Scenario: 隱藏事件解鎖前不顯示熱區且檢視不提交**
   - **來源**：`SEF-AC-015`；**標籤**：@frontend @critical；**測試鍵**：`Hotspot_AuthoritativeVisibility_PreviewNoCommit`
 
 ```gherkin
@@ -1035,7 +1038,7 @@ Scenario: 隱藏事件解鎖前不顯示熱區且檢視不提交
 
 ### SEF-BDD-071：遊戲中角色換成完整五表情且不重置劇情
 
-- [ ] **Scenario: 遊戲中角色換成完整五表情且不重置劇情**
+- [x] **Scenario: 遊戲中角色換成完整五表情且不重置劇情**
   - **來源**：`SEF-AC-014`；**標籤**：@frontend @critical；**測試鍵**：`Avatar_SafeSwap_IndependentOfNarrative`
 
 ```gherkin
@@ -1049,7 +1052,7 @@ Scenario: 遊戲中角色換成完整五表情且不重置劇情
 
 ### SEF-BDD-072：人物仍在製作或讀圖失敗不生成與不混包
 
-- [ ] **Scenario: 人物仍在製作或讀圖失敗不生成與不混包**
+- [x] **Scenario: 人物仍在製作或讀圖失敗不生成與不混包**
   - **來源**：`SEF-AC-014`；**標籤**：@frontend @critical；**測試鍵**：`Avatar_NotReadyOrFailed_NoGeneration`
 
 ```gherkin
@@ -1063,7 +1066,7 @@ Scenario: 人物仍在製作或讀圖失敗不生成與不混包
 
 ### SEF-BDD-073：新場次同樣叫 entry 也要重置舞台但保留聊天
 
-- [ ] **Scenario: 新場次同樣叫 entry 也要重置舞台但保留聊天**
+- [x] **Scenario: 新場次同樣叫 entry 也要重置舞台但保留聊天**
   - **來源**：`SEF-AC-015`；**標籤**：@frontend @critical；**測試鍵**：`Episode_ResetOnlyStage_PreserveRound`
 
 ```gherkin
@@ -1077,7 +1080,7 @@ Scenario: 新場次同樣叫 entry 也要重置舞台但保留聊天
 
 ### SEF-BDD-074：App 背景前景恢復不重抽或再生成
 
-- [ ] **Scenario: App 背景前景恢復不重抽或再生成**
+- [x] **Scenario: App 背景前景恢復不重抽或再生成**
   - **來源**：`SEF-AC-015`；**標籤**：@frontend @critical；**測試鍵**：`App_BackgroundResume_NoRerollOrGeneration`
 
 ```gherkin
@@ -1091,7 +1094,7 @@ Scenario: App 背景前景恢復不重抽或再生成
 
 ### SEF-BDD-075：結束配對後私人角色與舊請求不能復活
 
-- [ ] **Scenario: 結束配對後私人角色與舊請求不能復活**
+- [x] **Scenario: 結束配對後私人角色與舊請求不能復活**
   - **來源**：`SEF-AC-014`；**標籤**：@frontend @critical；**測試鍵**：`Avatar_RevokedOrStaleResponse_PurgesPrivate`
 
 ```gherkin
@@ -1105,7 +1108,7 @@ Scenario: 結束配對後私人角色與舊請求不能復活
 
 ### SEF-BDD-076：主線完成時畫面保持收尾與聊天
 
-- [ ] **Scenario: 主線完成時畫面保持收尾與聊天**
+- [x] **Scenario: 主線完成時畫面保持收尾與聊天**
   - **來源**：`SEF-AC-015`；**標籤**：@frontend @critical；**測試鍵**：`Chapter_Completed_StageAndChatStillVisible`
 
 ```gherkin
@@ -1119,7 +1122,7 @@ Scenario: 主線完成時畫面保持收尾與聊天
 
 ### SEF-BDD-077：多事件切換保留微動開關且留下效能證據
 
-- [ ] **Scenario: 多事件切換保留微動開關且留下效能證據**
+- [x] **Scenario: 多事件切換保留微動開關且留下效能證據**
   - **來源**：`SEF-AC-016`；**標籤**：@frontend @critical；**測試鍵**：`Scene_MotionAndAssetReuse_PerformanceEvidence`
 
 ```gherkin
@@ -1147,7 +1150,7 @@ Scenario: 首條完整遊戲必須保留人物與 2.5D Gate
 
 ## SEF-BDD-079：本人目前採用化身尚未就緒時不可進入遊戲
 
-**已通過**：真 D1／R2、HTTP／共用 WS 用例、Web 及 Android 入口／恢復；證據見驗證紀錄。
+- [x] **Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身不影響入口**；真 D1／R2、HTTP／共用 WS 用例、Web 及 Android 入口／恢復已通過；證據見驗證紀錄。
 
 ```gherkin
 Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身不影響入口
@@ -1168,7 +1171,7 @@ Scenario: 本人採用化身的五表情必須就緒，無關的製作中化身�
 
 #### SEF-BDD-080：雙軌原子初始化
 
-- [ ] **Scenario: 雙軌原子初始化**
+- [x] **Scenario: 雙軌原子初始化**
   - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1182,7 +1185,7 @@ Scenario: 雙軌原子初始化
 
 #### SEF-BDD-081：各自推進不互蓋另一人
 
-- [ ] **Scenario: 各自推進不互蓋另一人**
+- [x] **Scenario: 各自推進不互蓋另一人**
   - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1196,7 +1199,7 @@ Scenario: 各自推進不互蓋另一人
 
 #### SEF-BDD-082：角色授權只能按原邀請紀錄
 
-- [ ] **Scenario: 角色授權只能按原邀請紀錄**
+- [x] **Scenario: 角色授權只能按原邀請紀錄**
   - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1210,7 +1213,7 @@ Scenario: 角色授權只能按原邀請紀錄
 
 #### SEF-BDD-083：落後玩家離線重連不跳節點
 
-- [ ] **Scenario: 落後玩家離線重連不跳節點**
+- [x] **Scenario: 落後玩家離線重連不跳節點**
   - **來源**：SEF-AC-018；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1224,7 +1227,7 @@ Scenario: 落後玩家離線重連不跳節點
 
 #### SEF-BDD-084：共同結局必須滿足雙人必經事實
 
-- [ ] **Scenario: 共同結局必須滿足雙人必經事實**
+- [x] **Scenario: 共同結局必須滿足雙人必經事實**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1240,7 +1243,7 @@ Scenario: 共同結局必須滿足雙人必經事實
 
 #### SEF-BDD-085：共同事件完成後各自分流再交會
 
-- [ ] **Scenario: 共同事件完成後各自分流再交會**
+- [x] **Scenario: 共同事件完成後各自分流再交會**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1254,7 +1257,7 @@ Scenario: 共同事件完成後各自分流再交會
 
 #### SEF-BDD-086：第二次共同事件只解鎖接受方
 
-- [ ] **Scenario: 第二次共同事件只解鎖接受方**
+- [x] **Scenario: 第二次共同事件只解鎖接受方**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1268,7 +1271,7 @@ Scenario: 第二次共同事件只解鎖接受方
 
 #### SEF-BDD-087：無界迴圈與跨線互等死鎖不得發布
 
-- [ ] **Scenario: 無界迴圈與跨線互等死鎖不得發布**
+- [x] **Scenario: 無界迴圈與跨線互等死鎖不得發布**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1282,7 +1285,7 @@ Scenario: 無界迴圈與跨線互等死鎖不得發布
 
 #### SEF-BDD-088：角色限定 DSL 與非法條件輸入
 
-- [ ] **Scenario: 角色限定 DSL 與非法條件輸入**
+- [x] **Scenario: 角色限定 DSL 與非法條件輸入**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1296,7 +1299,7 @@ Scenario: 角色限定 DSL 與非法條件輸入
 
 #### SEF-BDD-089：單一 Scene 支援多 Area 與多次遊玩
 
-- [ ] **Scenario: 單一 Scene 支援多 Area 與多次遊玩**
+- [x] **Scenario: 單一 Scene 支援多 Area 與多次遊玩**
   - **來源**：SEF-AC-019；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1312,7 +1315,7 @@ Scenario: 單一 Scene 支援多 Area 與多次遊玩
 
 #### SEF-BDD-090：個人線索分享前不得洩漏給另一人
 
-- [ ] **Scenario: 個人線索分享前不得洩漏給另一人**
+- [x] **Scenario: 個人線索分享前不得洩漏給另一人**
   - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1326,7 +1329,7 @@ Scenario: 個人線索分享前不得洩漏給另一人
 
 #### SEF-BDD-091：兩人競取共享物件只有一位成功
 
-- [ ] **Scenario: 兩人競取共享物件只有一位成功**
+- [x] **Scenario: 兩人競取共享物件只有一位成功**
   - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1340,7 +1343,7 @@ Scenario: 兩人競取共享物件只有一位成功
 
 #### SEF-BDD-092：合作答案分別由兩位真人提交
 
-- [ ] **Scenario: 合作答案分別由兩位真人提交**
+- [x] **Scenario: 合作答案分別由兩位真人提交**
   - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1354,7 +1357,7 @@ Scenario: 合作答案分別由兩位真人提交
 
 #### SEF-BDD-093：個人事件重複群組不能誤擋另一人
 
-- [ ] **Scenario: 個人事件重複群組不能誤擋另一人**
+- [x] **Scenario: 個人事件重複群組不能誤擋另一人**
   - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1368,7 +1371,7 @@ Scenario: 個人事件重複群組不能誤擋另一人
 
 #### SEF-BDD-094：隱藏線索不能透過事件補漏流出
 
-- [ ] **Scenario: 隱藏線索不能透過事件補漏流出**
+- [x] **Scenario: 隱藏線索不能透過事件補漏流出**
   - **來源**：SEF-AC-020；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1384,7 +1387,7 @@ Scenario: 隱藏線索不能透過事件補漏流出
 
 #### SEF-BDD-095：Area 移動不增加 SceneVisit
 
-- [ ] **Scenario: Area 移動不增加 SceneVisit**
+- [x] **Scenario: Area 移動不增加 SceneVisit**
   - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1398,7 +1401,7 @@ Scenario: Area 移動不增加 SceneVisit
 
 #### SEF-BDD-096：翻轉取書單必須親自點擊
 
-- [ ] **Scenario: 翻轉取書單必須親自點擊**
+- [x] **Scenario: 翻轉取書單必須親自點擊**
   - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1412,7 +1415,7 @@ Scenario: 翻轉取書單必須親自點擊
 
 #### SEF-BDD-097：錯書拖放不得造成不可恢復進度
 
-- [ ] **Scenario: 錯書拖放不得造成不可恢復進度**
+- [x] **Scenario: 錯書拖放不得造成不可恢復進度**
   - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1426,7 +1429,7 @@ Scenario: 錯書拖放不得造成不可恢復進度
 
 #### SEF-BDD-098：NPC 資訊由玩家觸發不代答
 
-- [ ] **Scenario: NPC 資訊由玩家觸發不代答**
+- [x] **Scenario: NPC 資訊由玩家觸發不代答**
   - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1440,7 +1443,7 @@ Scenario: NPC 資訊由玩家觸發不代答
 
 #### SEF-BDD-099：物件參數與非法 targetSlotId
 
-- [ ] **Scenario: 物件參數與非法 targetSlotId**
+- [x] **Scenario: 物件參數與非法 targetSlotId**
   - **來源**：SEF-AC-021；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1456,7 +1459,7 @@ Scenario: 物件參數與非法 targetSlotId
 
 #### SEF-BDD-100：站位、五表情與鏡頭 Cue 必須配合事件
 
-- [ ] **Scenario: 站位、五表情與鏡頭 Cue 必須配合事件**
+- [x] **Scenario: 站位、五表情與鏡頭 Cue 必須配合事件**
   - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1470,7 +1473,7 @@ Scenario: 站位、五表情與鏡頭 Cue 必須配合事件
 
 #### SEF-BDD-101：雨滴位移和微動開關
 
-- [ ] **Scenario: 雨滴位移和微動開關**
+- [x] **Scenario: 雨滴位移和微動開關**
   - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1484,7 +1487,7 @@ Scenario: 雨滴位移和微動開關
 
 #### SEF-BDD-102：重新回前景不能重播風起與產圖
 
-- [ ] **Scenario: 重新回前景不能重播風起與產圖**
+- [x] **Scenario: 重新回前景不能重播風起與產圖**
   - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1498,7 +1501,7 @@ Scenario: 重新回前景不能重播風起與產圖
 
 #### SEF-BDD-103：錯誤演出素材無法發布與平台量測
 
-- [ ] **Scenario: 錯誤演出素材無法發布與平台量測**
+- [x] **Scenario: 錯誤演出素材無法發布與平台量測**
   - **來源**：SEF-AC-022；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1514,7 +1517,7 @@ Scenario: 錯誤演出素材無法發布與平台量測
 
 #### SEF-BDD-104：RB-01 兩端不同開場進度與台詞
 
-- [ ] **Scenario: RB-01 兩端不同開場進度與台詞**
+- [x] **Scenario: RB-01 兩端不同開場進度與台詞**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-01；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1528,7 +1531,7 @@ Scenario: RB-01 兩端不同開場進度與台詞
 
 #### SEF-BDD-105：RB-02 紙單及袋外 27 線索只屬發現者
 
-- [ ] **Scenario: RB-02 紙單及袋外 27 線索只屬發現者**
+- [x] **Scenario: RB-02 紙單及袋外 27 線索只屬發現者**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-02；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1542,7 +1545,7 @@ Scenario: RB-02 紙單及袋外 27 線索只屬發現者
 
 #### SEF-BDD-106：RB-03 S01 真人核對跨離線仍可完成
 
-- [ ] **Scenario: RB-03 S01 真人核對跨離線仍可完成**
+- [x] **Scenario: RB-03 S01 真人核對跨離線仍可完成**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-03；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1556,7 +1559,7 @@ Scenario: RB-03 S01 真人核對跨離線仍可完成
 
 #### SEF-BDD-107：RB-04 A 分享正確書名才開啟 I06
 
-- [ ] **Scenario: RB-04 A 分享正確書名才開啟 I06**
+- [x] **Scenario: RB-04 A 分享正確書名才開啟 I06**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-04；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1570,7 +1573,7 @@ Scenario: RB-04 A 分享正確書名才開啟 I06
 
 #### SEF-BDD-108：RB-05 試放錯書有可恢復提示
 
-- [ ] **Scenario: RB-05 試放錯書有可恢復提示**
+- [x] **Scenario: RB-05 試放錯書有可恢復提示**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-05；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1584,7 +1587,7 @@ Scenario: RB-05 試放錯書有可恢復提示
 
 #### SEF-BDD-109：RB-06 A 先拿綠封套但 I 尚未找書
 
-- [ ] **Scenario: RB-06 A 先拿綠封套但 I 尚未找書**
+- [x] **Scenario: RB-06 A 先拿綠封套但 I 尚未找書**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-06；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1598,7 +1601,7 @@ Scenario: RB-06 A 先拿綠封套但 I 尚未找書
 
 #### SEF-BDD-110：RB-07 S02 風起、真人分工和斷線恢復
 
-- [ ] **Scenario: RB-07 S02 風起、真人分工和斷線恢復**
+- [x] **Scenario: RB-07 S02 風起、真人分工和斷線恢復**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-07；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1612,7 +1615,7 @@ Scenario: RB-07 S02 風起、真人分工和斷線恢復
 
 #### SEF-BDD-111：RB-08 同一張標籤只有一個權威位置
 
-- [ ] **Scenario: RB-08 同一張標籤只有一個權威位置**
+- [x] **Scenario: RB-08 同一張標籤只有一個權威位置**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-08；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1626,7 +1629,7 @@ Scenario: RB-08 同一張標籤只有一個權威位置
 
 #### SEF-BDD-112：RB-09 第二次共享事件後只進 A08
 
-- [ ] **Scenario: RB-09 第二次共享事件後只進 A08**
+- [x] **Scenario: RB-09 第二次共享事件後只進 A08**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-09；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1640,7 +1643,7 @@ Scenario: RB-09 第二次共享事件後只進 A08
 
 #### SEF-BDD-113：RB-10 真人意向不同則自然進入 E02
 
-- [ ] **Scenario: RB-10 真人意向不同則自然進入 E02**
+- [x] **Scenario: RB-10 真人意向不同則自然進入 E02**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-10；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1654,7 +1657,7 @@ Scenario: RB-10 真人意向不同則自然進入 E02
 
 #### SEF-BDD-114：RB-11 雙方回望書架後自然完成 E01
 
-- [ ] **Scenario: RB-11 雙方回望書架後自然完成 E01**
+- [x] **Scenario: RB-11 雙方回望書架後自然完成 E01**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-11；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1668,7 +1671,7 @@ Scenario: RB-11 雙方回望書架後自然完成 E01
 
 #### SEF-BDD-115：RB-12 重送斷線退出不得復活舊操作
 
-- [ ] **Scenario: RB-12 重送斷線退出不得復活舊操作**
+- [x] **Scenario: RB-12 重送斷線退出不得復活舊操作**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-12；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1682,7 +1685,7 @@ Scenario: RB-12 重送斷線退出不得復活舊操作
 
 #### SEF-BDD-116：RB-13 關雨景後仍能完成風起事件
 
-- [ ] **Scenario: RB-13 關雨景後仍能完成風起事件**
+- [x] **Scenario: RB-13 關雨景後仍能完成風起事件**
   - **來源**：SEF-AC-023／SDD §3.8.6 RB-13；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1712,7 +1715,7 @@ Scenario: RB-14 Web Android 全劇本且 Gate B 人工核准
 
 #### SEF-BDD-118：本地 Clean Rebuild 不誤刪帳號與化身
 
-- [ ] **Scenario: 本地 Clean Rebuild 不誤刪帳號與化身**
+- [x] **Scenario: 本地 Clean Rebuild 不誤刪帳號與化身**
   - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1726,7 +1729,7 @@ Scenario: 本地 Clean Rebuild 不誤刪帳號與化身
 
 #### SEF-BDD-119：最終 Schema 無舊互動表或單線命令
 
-- [ ] **Scenario: 最終 Schema 無舊互動表或單線命令**
+- [x] **Scenario: 最終 Schema 無舊互動表或單線命令**
   - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1740,7 +1743,7 @@ Scenario: 最終 Schema 無舊互動表或單線命令
 
 #### SEF-BDD-120：保留有引用的正式角色素材與書店場景
 
-- [ ] **Scenario: 保留有引用的正式角色素材與書店場景**
+- [x] **Scenario: 保留有引用的正式角色素材與書店場景**
   - **來源**：SEF-AC-024；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1754,7 +1757,7 @@ Scenario: 保留有引用的正式角色素材與書店場景
 
 #### SEF-BDD-121：人工首條 Gate 未核准禁止九條量產
 
-- [ ] **Scenario: 人工首條 Gate 未核准禁止九條量產**
+- [x] **Scenario: 人工首條 Gate 未核准禁止九條量產**
   - **來源**：SEF-AC-023；**狀態**：待實作／未驗收
 
 ```gherkin
@@ -1796,3 +1799,1096 @@ Scenario: 人工首條 Gate 未核准禁止九條量產
 | SEF-AC-024 | SEF-BDD-118、SEF-BDD-119、SEF-BDD-120 |
 
 **121/121 場景已有 BDD 規劃與 SPEC AC 追溯（舊版 79＋新版 42）**；目前舊版 1/79 項完整覆核，新版 0/42，合計 1/121。RB-01～14 均對應 BDD-104～117，E01 選項依 V2-RQ-01=A 更新為「再看一眼書架，替今天畫個句點」，無互動尾聲。TDD 現為 625 項，12 項新風險與 10 組 GAP 已回寫，**Phase 5 規劃可交 well-done，但所有新行為與人工 Gate B 仍待實際驗收**。
+
+
+---
+
+## 2026-11-17 雨聲書店 V3 正式新增 BDD（SEF-BDD-122～181，60 場）
+
+**最新有效狀態**：V3-RQ-01～06 已全數確認（01～05=A、06=A＋C）。舊 121 場 BDD／625 項 TDD 是 V2／引擎基線，**不可視為 V3 已驗收**；下列 60 場均為新增規劃、0/60 完成，原 121 場完成狀態與測試 ID 原封保留。更新後 **總 BDD 181 場（121 歷史＋60 V3），實際通過仍只有原完整覆核 1 場，V3 0 場**。MVP 新條件 `AC-005-24～35` 全部逐項對應；每個正式故事分鏡／NPC／道具／角色需 Web 與 Android 人工 Gate B。未完成 RiskAudit 人工決策，不得標記 V3 Ready。
+
+**測試角色和環境**：登入 I/A 雙真人、角色版號及 R2 授權、真 Worker／Miniflare D1、已發佈 V3 immutable manifests、可觀察的 Web／Android 舞台，沒有替代另一真人提交的測試捷徑。所有 Scene／Narrative／Event 特定 ID 以 SDD §3.8 和合法 Publisher 定義為準。五語意表情保留，但 **V3 是可動 Rig 而非五張完整全身圖片的業務契約**。
+
+**覆蓋分類**：每 AC 五場，包含正常、替代、錯誤、邊界、跨端人物／畫面；特殊負向斷言與真跨層觀察不能僅由 UI mock 代簽。
+
+### SEF-BDD-122：兩人各自抵達同一間書店
+- [ ] **Scenario: 兩人各自抵達同一間書店**
+  - **來源**：`AC-005-24`／`V3-AC-01`；**標籤**：@frontend @critical；**測試鍵**：`DualEntrySeparate`；**跨層**：`ET`
+  - **負向斷言**：伺服器不得只存一份共用 currentNode
+
+```gherkin
+@frontend @critical
+Scenario: 兩人各自抵達同一間書店
+  Given 雙方進入同一已釘選 V3 場次，I 當日準時下班、A 下午逛街
+  When 兩人分別讀取自己的首節點並進門
+  Then I 與 A 各自看到街景→入口的合法分鏡及店員迎賓
+  And 兩人不因先到而跳過另一人的個人開場
+  But 伺服器不得只存一份共用 currentNode
+```
+
+### SEF-BDD-123：入店雨聲門鈴與音樂一致
+- [ ] **Scenario: 入店雨聲門鈴與音樂一致**
+  - **來源**：`AC-005-24`／`V3-AC-01`；**標籤**：@frontend @critical；**測試鍵**：`EntryAudioSequence`；**跨層**：`ET`
+  - **負向斷言**：不允許由音效播放推進 D1 節點
+
+```gherkin
+@frontend @critical
+Scenario: 入店雨聲門鈴與音樂一致
+  Given 兩人各自在街道大雨下進入書店
+  When 播放 sh-street-rain 與 sh-entrance-welcome
+  Then 門鈴、雨聲遠近及店內音樂依分鏡順序切換
+  And 前景恢復不重播一次性門鈴或重產素材
+  But 不允許由音效播放推進 D1 節點
+```
+
+### SEF-BDD-124：I 和 A 的入場權限及資訊隔離
+- [ ] **Scenario: I 和 A 的入場權限及資訊隔離**
+  - **來源**：`AC-005-24`／`V3-AC-01`；**標籤**：@error-handling @critical；**測試鍵**：`EntryActorProjection`；**跨層**：`API`
+  - **負向斷言**：不得由 Client 指定任意 role 取得別人視角
+
+```gherkin
+@error-handling @critical
+Scenario: I 和 A 的入場權限及資訊隔離
+  Given StorySession 有雙方獨立角色、Entry 與 Area
+  When I 和 A 分別呼叫授權 experience
+  Then 回應只有本人 Track 與可見已分享世界
+  And 不能取得另一方未觸發私有節點與選書
+  But 不得由 Client 指定任意 role 取得別人視角
+```
+
+### SEF-BDD-125：書店多區導覽的真實位置
+- [ ] **Scenario: 書店多區導覽的真實位置**
+  - **來源**：`AC-005-24`／`V3-AC-01`；**標籤**：@happy-path @critical；**測試鍵**：`EntryAreaSpatialMap`；**跨層**：`IT`
+  - **負向斷言**：不能把另一張不相容店面圖當作同一店
+
+```gherkin
+@happy-path @critical
+Scenario: 書店多區導覽的真實位置
+  Given 已發布書店有入口、書架、閱讀角、櫃檯與窗邊的固定地圖
+  When 玩家依允許的移動事件從入口走至書架
+  Then 場景背景和視角依 Area 正確切換且書架相對方位不變
+  And 跨 Area 後先前角色與共用物件位置一致
+  But 不能把另一張不相容店面圖當作同一店
+```
+
+### SEF-BDD-126：缺開場 Shot 或 NPC 素材拒絕發布
+- [ ] **Scenario: 缺開場 Shot 或 NPC 素材拒絕發布**
+  - **來源**：`AC-005-24`／`V3-AC-01`；**標籤**：@happy-path @critical；**測試鍵**：`EntryAssetRequired`；**跨層**：`IT`
+  - **負向斷言**：不能只有文字框就標示角色入場成功
+
+```gherkin
+@happy-path @critical
+Scenario: 缺開場 Shot 或 NPC 素材拒絕發布
+  Given V3 Entry 對應的迎賓 NPC 或必要 Shot 缺少有效素材 SHA
+  When Publisher 驗證新內容
+  Then 拒絕發布且不得設為可玩的主線
+  And 原已發布 V2 Session 仍可讀取釘選原版
+  But 不能只有文字框就標示角色入場成功
+```
+
+### SEF-BDD-127：點擊書脊抽出並閱讀原創簡介
+- [ ] **Scenario: 點擊書脊抽出並閱讀原創簡介**
+  - **來源**：`AC-005-25`／`V3-AC-02`；**標籤**：@frontend @critical；**測試鍵**：`BookSpineRead`；**跨層**：`ET`
+  - **負向斷言**：未點擊之前不自動展開閱讀浮層
+
+```gherkin
+@frontend @critical
+Scenario: 點擊書脊抽出並閱讀原創簡介
+  Given 玩家在書架 Area 看見嵌入背景的原創書脊
+  When 點選書本原位並選擇閱讀
+  Then 書本抽出、轉近景、打開封面摘要及試讀頁
+  And 關閉後返回同一書架與原位而非漂浮卡片
+  But 未點擊之前不自動展開閱讀浮層
+```
+
+### SEF-BDD-128：書種與試讀內容合法且可重用
+- [ ] **Scenario: 書種與試讀內容合法且可重用**
+  - **來源**：`AC-005-25`／`V3-AC-02`；**標籤**：@happy-path @critical；**測試鍵**：`BookCatalogValid`；**跨層**：`IT`
+  - **負向斷言**：不得露出未授權既有著作全文或無 bookId 書
+
+```gherkin
+@happy-path @critical
+Scenario: 書種與試讀內容合法且可重用
+  Given 已發布四類原創書籍具有 bookId、封面、摘要和適用主題
+  When 玩家切換不同書籍與類別
+  Then 每本展示正確封面、書名與經授權內容
+  And 來源版本不變並可安全重開
+  But 不得露出未授權既有著作全文或無 bookId 書
+```
+
+### SEF-BDD-129：個人選書先私有直到本人分享
+- [ ] **Scenario: 個人選書先私有直到本人分享**
+  - **來源**：`AC-005-25`／`V3-AC-02`；**標籤**：@error-handling @critical；**測試鍵**：`BookSelectionPrivate`；**跨層**：`API`
+  - **負向斷言**：不得以 NPC 或系統自動發送 A 的分享訊息
+
+```gherkin
+@error-handling @critical
+Scenario: 個人選書先私有直到本人分享
+  Given A 已選定閱讀書籍但未提交分享
+  When I 讀取快照、WS 提示及可見書目
+  Then 只能得知公開書架內容，沒有 A 的個人選書答案
+  And A 親自分享後才顯示受允許的書籍摘要
+  But 不得以 NPC 或系統自動發送 A 的分享訊息
+```
+
+### SEF-BDD-130：重複查看書本不會重複完成事件
+- [ ] **Scenario: 重複查看書本不會重複完成事件**
+  - **來源**：`AC-005-25`／`V3-AC-02`；**標籤**：@frontend @critical；**測試鍵**：`BookPeekNoCommit`；**跨層**：`ET`
+  - **負向斷言**：不能因關閉視窗直接寫入故事完成 receipt
+
+```gherkin
+@frontend @critical
+Scenario: 重複查看書本不會重複完成事件
+  Given 同一本書的閱讀預覽允許多次開關
+  When 玩家連續點選、返回再選不同書
+  Then 每次都顯示預覽但不等同完成合作事件
+  And 只在合法本人提交後持久化正式選擇
+  But 不能因關閉視窗直接寫入故事完成 receipt
+```
+
+### SEF-BDD-131：書籍類型不匹配的情緒選項受限
+- [ ] **Scenario: 書籍類型不匹配的情緒選項受限**
+  - **來源**：`AC-005-25`／`V3-AC-02`；**標籤**：@happy-path @critical；**測試鍵**：`BookThemeCompatibility`；**跨層**：`IT`
+  - **負向斷言**：不能把任意情緒經歷強塞到所有書類
+
+```gherkin
+@happy-path @critical
+Scenario: 書籍類型不匹配的情緒選項受限
+  Given 某書籍只適用成長療癒類的共鳴主題
+  When 玩家嘗試用另一書類專屬情緒選項操作
+  Then Domain 拒絕不相容組合但允許中性原因
+  And 個人選書狀態保持，畫面提供重選
+  But 不能把任意情緒經歷強塞到所有書類
+```
+
+### SEF-BDD-132：A 選虛構故事共鳴而非真人經歷
+- [ ] **Scenario: A 選虛構故事共鳴而非真人經歷**
+  - **來源**：`AC-005-26`／`V3-AC-03`；**標籤**：@error-handling @critical；**測試鍵**：`ResonanceFiction`；**跨層**：`API`
+  - **負向斷言**：不能將虛構故事選項解讀為真實隱私資料
+
+```gherkin
+@error-handling @critical
+Scenario: A 選虛構故事共鳴而非真人經歷
+  Given A 正在讀已發布原創故事，畫面有虛構角色背景
+  When A 選擇與角色相應的共鳴原因
+  Then 故事只作虛構角色內心演出、不問真實失戀或壓力史
+  And 不得回寫玩家 Profile 或配對條件
+  But 不能將虛構故事選項解讀為真實隱私資料
+```
+
+### SEF-BDD-133：A 可選單純被書感動的中性原因
+- [ ] **Scenario: A 可選單純被書感動的中性原因**
+  - **來源**：`AC-005-26`／`V3-AC-03`；**標籤**：@frontend @critical；**測試鍵**：`ResonanceNeutral`；**跨層**：`ET`
+  - **負向斷言**：不能以空缺強迫補填私密背景
+
+```gherkin
+@frontend @critical
+Scenario: A 可選單純被書感動的中性原因
+  Given A 不願選失去戀情、工作壓力等故事原因
+  When A 選擇純粹因故事感動
+  Then 可合法進入閱讀角坐下並繼續劇情
+  And 不因不揭露私人原因卡住雨情主線
+  But 不能以空缺強迫補填私密背景
+```
+
+### SEF-BDD-134：閱讀角有坐姿淚光及正確可見性
+- [ ] **Scenario: 閱讀角有坐姿淚光及正確可見性**
+  - **來源**：`AC-005-26`／`V3-AC-03`；**標籤**：@frontend @critical；**測試鍵**：`CornerTearPose`；**跨層**：`ET`
+  - **負向斷言**：不能用表情文字取代坐姿或洩漏內心
+
+```gherkin
+@frontend @critical
+Scenario: 閱讀角有坐姿淚光及正確可見性
+  Given A 已選合法書籍並到閱讀角，I 尚在書架
+  When A 翻書到動容節點 av3-05
+  Then A 的已核准角色呈現坐姿、眼眶濕潤與擦淚 Cue
+  And I 僅在合法觀察範圍看見可見行為不見原因
+  But 不能用表情文字取代坐姿或洩漏內心
+```
+
+### SEF-BDD-135：I 早到閱讀角不會偷看到 A 的未來狀態
+- [ ] **Scenario: I 早到閱讀角不會偷看到 A 的未來狀態**
+  - **來源**：`AC-005-26`／`V3-AC-03`；**標籤**：@happy-path @critical；**測試鍵**：`CornerVisibilityTiming`；**跨層**：`IT`
+  - **負向斷言**：不能為讓畫面好看而替 A 推進 Track
+
+```gherkin
+@happy-path @critical
+Scenario: I 早到閱讀角不會偷看到 A 的未來狀態
+  Given I 已抵達閱讀角，但 A 尚未完成 av3-05
+  When I 查看場景及可用事件
+  Then 不提前顯示 A 已坐著落淚的未發生狀態
+  And I 可以繼續逛書架而不是強制等待
+  But 不能為讓畫面好看而替 A 推進 Track
+```
+
+### SEF-BDD-136：A 的私有情緒及書籍答案不可外洩
+- [ ] **Scenario: A 的私有情緒及書籍答案不可外洩**
+  - **來源**：`AC-005-26`／`V3-AC-03`；**標籤**：@error-handling @critical；**測試鍵**：`ResonanceProjectionSafe`；**跨層**：`API`
+  - **負向斷言**：不能靠隱藏 UI 而完整傳送私人內容
+
+```gherkin
+@error-handling @critical
+Scenario: A 的私有情緒及書籍答案不可外洩
+  Given A 已提交虛構情緒原因但未主動分享
+  When I 以 HTTP、WS、R2 Manifest 嘗試取 A 選項
+  Then 不回傳私有 nodeId、resonanceId、隱藏答案或角色照片 Key
+  And I 僅看到法律上合法的公開情緒視覺 Cue
+  But 不能靠隱藏 UI 而完整傳送私人內容
+```
+
+### SEF-BDD-137：I 可以不搭話而正常前進
+- [ ] **Scenario: I 可以不搭話而正常前進**
+  - **來源**：`AC-005-27`／`V3-AC-04`；**標籤**：@happy-path @critical；**測試鍵**：`ApproachOptional`；**跨層**：`IT`
+  - **負向斷言**：不能由系統自動替 I 選擇搭話
+
+```gherkin
+@happy-path @critical
+Scenario: I 可以不搭話而正常前進
+  Given I 在角落觀察到 A，選擇繼續逛自己的書
+  When I 繼續閱讀書籍直到天氣惡化
+  Then 可經外部雨情進入後續主線並保有再搭話的合法機會
+  And A 不會收到並不存在的搭話訊息
+  But 不能由系統自動替 I 選擇搭話
+```
+
+### SEF-BDD-138：三種搭話實際有三種演出
+- [ ] **Scenario: 三種搭話實際有三種演出**
+  - **來源**：`AC-005-27`／`V3-AC-04`；**標籤**：@frontend @critical；**測試鍵**：`ApproachThreeStyles`；**跨層**：`ET`
+  - **負向斷言**：不能只換文字而沿用錯誤的道具動作
+
+```gherkin
+@frontend @critical
+Scenario: 三種搭話實際有三種演出
+  Given I 已確認 A 真正在閱讀角且可接觸
+  When I 分別選關心、遞面紙或聊手上的書
+  Then 各方案有相異的人物站位、面紙或書封演出
+  And A 只收到 I 真正提交的那一種做法
+  But 不能只換文字而沿用錯誤的道具動作
+```
+
+### SEF-BDD-139：A 可自行談心、聊書或婉拒
+- [ ] **Scenario: A 可自行談心、聊書或婉拒**
+  - **來源**：`AC-005-27`／`V3-AC-04`；**標籤**：@error-handling @critical；**測試鍵**：`ResponseThreeChoices`；**跨層**：`API`
+  - **負向斷言**：系統不可因已收到邀請而替 A 接受
+
+```gherkin
+@error-handling @critical
+Scenario: A 可自行談心、聊書或婉拒
+  Given A 收到 I 本人已提交的接觸邀請
+  When A 親自選 open-up、books-only 或 decline
+  Then I 僅收到 A 已提交的正確回應
+  And 不同回應各自啟動合法接話或互不打擾分支
+  But 系統不可因已收到邀請而替 A 接受
+```
+
+### SEF-BDD-140：A 婉拒後不再自動推進親密聊天
+- [ ] **Scenario: A 婉拒後不再自動推進親密聊天**
+  - **來源**：`AC-005-27`／`V3-AC-04`；**標籤**：@happy-path @critical；**測試鍵**：`DeclineRespected`；**跨層**：`IT`
+  - **負向斷言**：不能由共同救書推定 A 同意私人交往
+
+```gherkin
+@happy-path @critical
+Scenario: A 婉拒後不再自動推進親密聊天
+  Given A 已對 I 的搭話提交 decline
+  When 接著進入店員路過和救書合作
+  Then 只允許安全相關合作，雙方保持自主距離
+  And 私下聊天仍需雙方後續主動發起
+  But 不能由共同救書推定 A 同意私人交往
+```
+
+### SEF-BDD-141：I 遞面紙與 A 回應的因果正確
+- [ ] **Scenario: I 遞面紙與 A 回應的因果正確**
+  - **來源**：`AC-005-27`／`V3-AC-04`；**標籤**：@frontend @critical；**測試鍵**：`TissueInteractionAgency`；**跨層**：`ET`
+  - **負向斷言**：不能把道謝等同於同意談心
+
+```gherkin
+@frontend @critical
+Scenario: I 遞面紙與 A 回應的因果正確
+  Given I 選體貼提供面紙，A 仍有獨立回應權
+  When A 接受面紙但同時選擇不聊天
+  Then 面紙交接動畫可播，仍維持 decline 的拒絕效果
+  And I 不會出現未被本人選擇的延續對話
+  But 不能把道謝等同於同意談心
+```
+
+### SEF-BDD-142：雙 Track 快慢不同不跳戲
+- [ ] **Scenario: 雙 Track 快慢不同不跳戲**
+  - **來源**：`AC-005-28`／`V3-AC-05`；**標籤**：@happy-path @critical；**測試鍵**：`TracksDifferentPace`；**跨層**：`IT`
+  - **負向斷言**：不得合併成全域 currentNode 覆寫對方
+
+```gherkin
+@happy-path @critical
+Scenario: 雙 Track 快慢不同不跳戲
+  Given I 完成自己的書架段落，A 尚在選故事書
+  When I 收到共用雨情前置解鎖通知
+  Then A 的私人段落未被跳過，I 可以繼續合法探索
+  And 各自 Revision 和 Area 彼此獨立
+  But 不得合併成全域 currentNode 覆寫對方
+```
+
+### SEF-BDD-143：A 離線後重連保留本人選擇
+- [ ] **Scenario: A 離線後重連保留本人選擇**
+  - **來源**：`AC-005-28`／`V3-AC-05`；**標籤**：@frontend @critical；**測試鍵**：`TrackReconnect`；**跨層**：`ET`
+  - **負向斷言**：不能因重連自動替 A 搭話、選書或生成 AI 圖
+
+```gherkin
+@frontend @critical
+Scenario: A 離線後重連保留本人選擇
+  Given A 選了一本書後網路斷線，I 持續本人的探索
+  When A 重連取得 /experience 快照與事件游標
+  Then A 回原來自己的合法節點與已選書籍
+  And I 的節點與共享世界仍保持真實狀態
+  But 不能因重連自動替 A 搭話、選書或生成 AI 圖
+```
+
+### SEF-BDD-144：拒絕聊天仍可合法開始雨情
+- [ ] **Scenario: 拒絕聊天仍可合法開始雨情**
+  - **來源**：`AC-005-28`／`V3-AC-05`；**標籤**：@happy-path @critical；**測試鍵**：`DeclineDoesNotDeadlock`；**跨層**：`IT`
+  - **負向斷言**：不能把 decline 設成不可能完成主線的前置
+
+```gherkin
+@happy-path @critical
+Scenario: 拒絕聊天仍可合法開始雨情
+  Given I 沒搭話或 A 已經婉拒，而雙方完成必要個人開場
+  When 天氣共用事件滿足前置並觸發
+  Then 雨情依相同世界狀態開始，沒有互相等待死鎖
+  And 不強迫兩人建立私人親密關係
+  But 不能把 decline 設成不可能完成主線的前置
+```
+
+### SEF-BDD-145：斷線與雙人同時操作必須原子結算
+- [ ] **Scenario: 斷線與雙人同時操作必須原子結算**
+  - **來源**：`AC-005-28`／`V3-AC-05`；**標籤**：@error-handling @critical；**測試鍵**：`TrackConcurrency`；**跨層**：`API`
+  - **負向斷言**：不能將 WS 播放成功當成 D1 成功
+
+```gherkin
+@error-handling @critical
+Scenario: 斷線與雙人同時操作必須原子結算
+  Given I/A 以相同舊 Shared revision 同時提交互動
+  When Worker 在真 D1 CAS 執行兩人提交
+  Then 各本人答案與共用效果只合法寫入一次
+  And 409 競態者可讀權威快照繼續
+  But 不能將 WS 播放成功當成 D1 成功
+```
+
+### SEF-BDD-146：第三人或假冒角色不得操作對方進度
+- [ ] **Scenario: 第三人或假冒角色不得操作對方進度**
+  - **來源**：`AC-005-28`／`V3-AC-05`；**標籤**：@error-handling @critical；**測試鍵**：`TrackRoleAuthorization`；**跨層**：`API`
+  - **負向斷言**：不得相信 Client 提供的原邀請者身份
+
+```gherkin
+@error-handling @critical
+Scenario: 第三人或假冒角色不得操作對方進度
+  Given 已登入 I 或無關第三人持有可見 sessionId
+  When 傳入 A 的 role、nodeId 或 requestId 偽造事件
+  Then 伺服器依認證身份拒絕越權操作
+  And A 私有資料及原本 Revision 不變
+  But 不得相信 Client 提供的原邀請者身份
+```
+
+### SEF-BDD-147：NPC 店員有固定身份和出入場姿態
+- [ ] **Scenario: NPC 店員有固定身份和出入場姿態**
+  - **來源**：`AC-005-29`／`V3-AC-06`；**標籤**：@frontend @critical；**測試鍵**：`NpcStageIdentity`；**跨層**：`ET`
+  - **負向斷言**：不能只顯示店員台詞而無人物資產
+
+```gherkin
+@frontend @critical
+Scenario: NPC 店員有固定身份和出入場姿態
+  Given 書店正式場景有唯一店員 actorId、造型與合法站位
+  When 從迎賓切到櫃檯及書架路過
+  Then 同一店員連續出現並轉頭走動、表情一致
+  And NPC 不會突然變成另一真人玩家立繪
+  But 不能只顯示店員台詞而無人物資產
+```
+
+### SEF-BDD-148：玩家點店員本體才開啟對話
+- [ ] **Scenario: 玩家點店員本體才開啟對話**
+  - **來源**：`AC-005-29`／`V3-AC-06`；**標籤**：@frontend @critical；**測試鍵**：`NpcEmbeddedClick`；**跨層**：`ET`
+  - **負向斷言**：不能點畫面任意空白處都觸發 NPC
+
+```gherkin
+@frontend @critical
+Scenario: 玩家點店員本體才開啟對話
+  Given 店員已站在閱讀角邊且可以被玩家交談
+  When 玩家點店員身體的場景 hitShape
+  Then 店員回頭、顯示對話並保持正確腳底錨點
+  And 沒有永久漂浮的 ✧ 或大頭卡片
+  But 不能點畫面任意空白處都觸發 NPC
+```
+
+### SEF-BDD-149：店員可見地引導遠離水並端咖啡
+- [ ] **Scenario: 店員可見地引導遠離水並端咖啡**
+  - **來源**：`AC-005-29`／`V3-AC-06`；**標籤**：@frontend @critical；**測試鍵**：`NpcSafetyCoffeeMotion`；**跨層**：`ET`
+  - **負向斷言**：不能用未發布姿勢在遊玩時向 AI 即時產圖
+
+```gherkin
+@frontend @critical
+Scenario: 店員可見地引導遠離水並端咖啡
+  Given 店員已在進水段察覺危險，後續雨情安全解除
+  When 店員移動指示安全區並在收尾端上兩杯咖啡
+  Then 不同事件各有已核准的站位、端杯道具、遮擋與表情
+  And 無必要動作素材時不可宣稱完整發布
+  But 不能用未發布姿勢在遊玩時向 AI 即時產圖
+```
+
+### SEF-BDD-150：NPC 不可被偽裝成對方的聊天訊息
+- [ ] **Scenario: NPC 不可被偽裝成對方的聊天訊息**
+  - **來源**：`AC-005-29`／`V3-AC-06`；**標籤**：@error-handling @critical；**測試鍵**：`NpcNoPartnerImpersonation`；**跨層**：`API`
+  - **負向斷言**：不能把 NPC 系統旁白寫入對方聊天歷史
+
+```gherkin
+@error-handling @critical
+Scenario: NPC 不可被偽裝成對方的聊天訊息
+  Given NPC 已向雙方詢問是否幫忙整理書籍
+  When 某位玩家偽造 NPC chat 或另一真人的 actorId
+  Then 伺服器僅接受登入者的合法提交和標示 NPC 對白
+  And 聊天 message.committed 不出現假真人
+  But 不能把 NPC 系統旁白寫入對方聊天歷史
+```
+
+### SEF-BDD-151：NPC 必要資產缺失 Publisher 拒絕
+- [ ] **Scenario: NPC 必要資產缺失 Publisher 拒絕**
+  - **來源**：`AC-005-29`／`V3-AC-06`；**標籤**：@happy-path @critical；**測試鍵**：`NpcRequiredAssetValidation`；**跨層**：`IT`
+  - **負向斷言**：不能只驗 actor 名稱存在就算完整演出
+
+```gherkin
+@happy-path @critical
+Scenario: NPC 必要資產缺失 Publisher 拒絕
+  Given V3 必經節點宣告 NPC 端杯但缺動作或杯子資產
+  When 發佈工具檢驗演出依賴圖
+  Then 拒絕發布該 Narrative，不能發布文字替身
+  And 仍可重放已釘選的合法歷史內容
+  But 不能只驗 actor 名稱存在就算完整演出
+```
+
+### SEF-BDD-152：雨勢從重雨到入口滲水的可見變化
+- [ ] **Scenario: 雨勢從重雨到入口滲水的可見變化**
+  - **來源**：`AC-005-30`／`V3-AC-07`；**標籤**：@frontend @critical；**測試鍵**：`StormToSeep`；**跨層**：`ET`
+  - **負向斷言**：不能只調透明度冒充雨滴移動
+
+```gherkin
+@frontend @critical
+Scenario: 雨勢從重雨到入口滲水的可見變化
+  Given 兩人均進入合法天氣事件、雨量尚未升級
+  When Shared 事件從 heavy 開始並進展到 seeping
+  Then 窗外雨滴移動、門縫水痕、地板反射與音效可見變化
+  And 兩端看到一致的權威水位等級
+  But 不能只調透明度冒充雨滴移動
+```
+
+### SEF-BDD-153：危險入口禁止救書操作
+- [ ] **Scenario: 危險入口禁止救書操作**
+  - **來源**：`AC-005-30`／`V3-AC-07`；**標籤**：@error-handling @critical；**測試鍵**：`UnsafeAreaDisabled`；**跨層**：`API`
+  - **負向斷言**：不能將客戶端隱藏按鈕當成安全授權
+
+```gherkin
+@error-handling @critical
+Scenario: 危險入口禁止救書操作
+  Given 書店入口低窪水位達禁止靠近條件
+  When 玩家嘗試進入危險 Area 或操作插座附近物件
+  Then Domain 拒絕該動作且不寫成功 receipt
+  And 可選安全導覽移動到乾燥區
+  But 不能將客戶端隱藏按鈕當成安全授權
+```
+
+### SEF-BDD-154：水位超標切換到安全撤離
+- [ ] **Scenario: 水位超標切換到安全撤離**
+  - **來源**：`AC-005-30`／`V3-AC-07`；**標籤**：@happy-path @critical；**測試鍵**：`FloodSafetyFallback`；**跨層**：`IT`
+  - **負向斷言**：不能因任務未完成就永遠鎖住劇情
+
+```gherkin
+@happy-path @critical
+Scenario: 水位超標切換到安全撤離
+  Given 共享水位超過安全整理門檻，或退出通道不安全
+  When 系統觸發獨立 safety-exit 並停止整理
+  Then 雙方能在合法狀態完成安全撤離分鏡
+  And 不出現端咖啡留在危險店內的結尾
+  But 不能因任務未完成就永遠鎖住劇情
+```
+
+### SEF-BDD-155：A/I 水位與 NPC 警示同步
+- [ ] **Scenario: A/I 水位與 NPC 警示同步**
+  - **來源**：`AC-005-30`／`V3-AC-07`；**標籤**：@happy-path @critical；**測試鍵**：`FloodWorldConsistency`；**跨層**：`IT`
+  - **負向斷言**：不能由兩端分別增水而出現不同危險等級
+
+```gherkin
+@happy-path @critical
+Scenario: A/I 水位與 NPC 警示同步
+  Given 兩玩家在不同 Area，A 先看到店員察覺積水
+  When I 收到安全權威快照及 WS 通知
+  Then 共用世界只保存一套水位／警示／禁入狀態
+  And 個人鏡位依本人 Area 合法投影但結果一致
+  But 不能由兩端分別增水而出現不同危險等級
+```
+
+### SEF-BDD-156：安全區救書不靠近電源或積水
+- [ ] **Scenario: 安全區救書不靠近電源或積水**
+  - **來源**：`AC-005-30`／`V3-AC-07`；**標籤**：@frontend @critical；**測試鍵**：`RescueSafeZoneOnly`；**跨層**：`ET`
+  - **負向斷言**：不能因動畫好看而把箱子移到危險區
+
+```gherkin
+@frontend @critical
+Scenario: 安全區救書不靠近電源或積水
+  Given NPC 指引到乾燥區且真正安全條件成立
+  When 玩家點收納箱與乾燥書架
+  Then 可做已授權的安全找書／收納操作
+  And 不顯示教玩家涉水靠電救書的操作引導
+  But 不能因動畫好看而把箱子移到危險區
+```
+
+### SEF-BDD-157：兩人收到互補書單線索
+- [ ] **Scenario: 兩人收到互補書單線索**
+  - **來源**：`AC-005-31`／`V3-AC-08`；**標籤**：@happy-path @critical；**測試鍵**：`ClueComplementary`；**跨層**：`IT`
+  - **負向斷言**：不能把完整答案一開始就公開
+
+```gherkin
+@happy-path @critical
+Scenario: 兩人收到互補書單線索
+  Given I 可看書架封面，A 可看店員讀書會名單
+  When 兩人各自查看自己合法來源
+  Then 個人取得互補且可合併判斷的有效線索
+  And 未分享的部分在另一人視角不可見
+  But 不能把完整答案一開始就公開
+```
+
+### SEF-BDD-158：A 主動共享清單後 I 才可比對
+- [ ] **Scenario: A 主動共享清單後 I 才可比對**
+  - **來源**：`AC-005-31`／`V3-AC-08`；**標籤**：@error-handling @critical；**測試鍵**：`ClueExplicitShare`；**跨層**：`API`
+  - **負向斷言**：不能靠 Preview/動作播放自動完成分享
+
+```gherkin
+@error-handling @critical
+Scenario: A 主動共享清單後 I 才可比對
+  Given A 取得清單但尚未明確點擊分享
+  When I 多次讀取 experience 或等待 WS
+  Then I 不見未分享的預留書名；A 提交後才同步允許資訊
+  And 公開資訊最小化且持久化一份
+  But 不能靠 Preview/動作播放自動完成分享
+```
+
+### SEF-BDD-159：玩家選錯書仍可重新比對
+- [ ] **Scenario: 玩家選錯書仍可重新比對**
+  - **來源**：`AC-005-31`／`V3-AC-08`；**標籤**：@frontend @critical；**測試鍵**：`WrongBookRecover`；**跨層**：`ET`
+  - **負向斷言**：不能提前提供另一人的私人正確答案
+
+```gherkin
+@frontend @critical
+Scenario: 玩家選錯書仍可重新比對
+  Given 兩人正在找預留書，但 I 選了錯誤封面
+  When 按下本人的核對動作
+  Then 顯示可理解的重新比對提示且世界中書仍在原位
+  And 沒有永久鎖死、錯誤筆數不能當完成任務
+  But 不能提前提供另一人的私人正確答案
+```
+
+### SEF-BDD-160：取書入箱與放高處由兩個真人完成
+- [ ] **Scenario: 取書入箱與放高處由兩個真人完成**
+  - **來源**：`AC-005-31`／`V3-AC-08`；**標籤**：@happy-path @critical；**測試鍵**：`PackTwoRealContributions`；**跨層**：`IT`
+  - **負向斷言**：不能只看其中一個人點完成便 chapter.completed
+
+```gherkin
+@happy-path @critical
+Scenario: 取書入箱與放高處由兩個真人完成
+  Given I 和 A 都已取得合法的互補線索
+  When I 取書放乾箱，A 逐本核對並放至高處
+  Then 兩人的真實動作都到齊才完成 sv3-12-pack
+  And NPC 只能表演自己的整理，不代任何一位真人
+  But 不能只看其中一個人點完成便 chapter.completed
+```
+
+### SEF-BDD-161：同本書競態和錯 Revision 不得複製
+- [ ] **Scenario: 同本書競態和錯 Revision 不得複製**
+  - **來源**：`AC-005-31`／`V3-AC-08`；**標籤**：@error-handling @critical；**測試鍵**：`BookCasNoDuplication`；**跨層**：`API`
+  - **負向斷言**：不能同一本書在架上和箱內同時存在
+
+```gherkin
+@error-handling @critical
+Scenario: 同本書競態和錯 Revision 不得複製
+  Given I/A 同時拿同一書架原位物件且都用舊版本
+  When 兩個 HTTP 提交同時進入 D1
+  Then 只一個合法移動成功並保存 objectId 唯一位置
+  And 另一個返回 409 且重載後顯示真實書籍位置
+  But 不能同一本書在架上和箱內同時存在
+```
+
+### SEF-BDD-162：兩人都願再聊得到同桌結局
+- [ ] **Scenario: 兩人都願再聊得到同桌結局**
+  - **來源**：`AC-005-32`／`V3-AC-09`；**標籤**：@frontend @critical；**測試鍵**：`EndingMoreTalk`；**跨層**：`ET`
+  - **負向斷言**：不能只靠第一人的選擇決定全部人的結局
+
+```gherkin
+@frontend @critical
+Scenario: 兩人都願再聊得到同桌結局
+  Given 書已安全收妥且兩人都各自選 keep-talking
+  When 第二名真人提交 sv3-16-final-wish
+  Then 僅產生 ev3-01-more-talk，人物靠近同桌、鏡頭聚焦
+  And 不自動告白或生成本人聊天訊息
+  But 不能只靠第一人的選擇決定全部人的結局
+```
+
+### SEF-BDD-163：選聊書得到真實雙書推薦結局
+- [ ] **Scenario: 選聊書得到真實雙書推薦結局**
+  - **來源**：`AC-005-32`／`V3-AC-09`；**標籤**：@frontend @critical；**測試鍵**：`EndingShareBooks`；**跨層**：`ET`
+  - **負向斷言**：不能只更換最後一段文字
+
+```gherkin
+@frontend @critical
+Scenario: 選聊書得到真實雙書推薦結局
+  Given 兩人都不是 quiet-rest 且至少一方選 share-books
+  When 第二名真人提交最終意願
+  Then 僅產生 ev3-02-book-recommendation，已選兩本書在桌上可推薦
+  And 不同書本／鏡頭／NPC 對話與同桌結局有差異
+  But 不能只更換最後一段文字
+```
+
+### SEF-BDD-164：任一人想獨處時尊重距離
+- [ ] **Scenario: 任一人想獨處時尊重距離**
+  - **來源**：`AC-005-32`／`V3-AC-09`；**標籤**：@happy-path @critical；**測試鍵**：`EndingQuietRest`；**跨層**：`IT`
+  - **負向斷言**：不能以邀請方意願覆蓋對方獨處選擇
+
+```gherkin
+@happy-path @critical
+Scenario: 任一人想獨處時尊重距離
+  Given 其中一位本人選 quiet-rest，另一位選 keep-talking
+  When 雙方意願提交後計算結局
+  Then 僅產生 ev3-03-gentle-distance，座位分開且仍能聊天
+  And 無人被強迫接受同桌親密分鏡
+  But 不能以邀請方意願覆蓋對方獨處選擇
+```
+
+### SEF-BDD-165：最終意願須兩人各自提交且只能結算一次
+- [ ] **Scenario: 最終意願須兩人各自提交且只能結算一次**
+  - **來源**：`AC-005-32`／`V3-AC-09`；**標籤**：@error-handling @critical；**測試鍵**：`EndingAtomicConsent`；**跨層**：`API`
+  - **負向斷言**：不能在兩份答案尚未齊備時自動替第二人選
+
+```gherkin
+@error-handling @critical
+Scenario: 最終意願須兩人各自提交且只能結算一次
+  Given 第一個玩家已提交最終意願、第二個尚未選
+  When 第二個玩家提交並與重送同時抵達
+  Then D1 同一筆唯一結局與 chapter.completed 原子寫入
+  And 第一人等待仍能聊天、重送不產生第二個 ending
+  But 不能在兩份答案尚未齊備時自動替第二人選
+```
+
+### SEF-BDD-166：危險淹水優先撤離且聊天保持
+- [ ] **Scenario: 危險淹水優先撤離且聊天保持**
+  - **來源**：`AC-005-32`／`V3-AC-09`；**標籤**：@happy-path @critical；**測試鍵**：`EndingSafetyOverride`；**跨層**：`IT`
+  - **負向斷言**：不能因 fallback 而繞過必要真人授權或結束 Round
+
+```gherkin
+@happy-path @critical
+Scenario: 危險淹水優先撤離且聊天保持
+  Given 兩人接近咖啡結局前水位被權威判定不安全
+  When 安全分流觸發並結算本場
+  Then 顯示安全撤離而不是留店喝咖啡，Chapter 可合法收尾
+  And 配對 Round 仍可聊天、待雙方同意再重玩
+  But 不能因 fallback 而繞過必要真人授權或結束 Round
+```
+
+### SEF-BDD-167：所有必要節點都要合法 Shot 和素材
+- [ ] **Scenario: 所有必要節點都要合法 Shot 和素材**
+  - **來源**：`AC-005-33`／`V3-AC-10`；**標籤**：@happy-path @critical；**測試鍵**：`PublisherShotMatrix`；**跨層**：`IT`
+  - **負向斷言**：不能用上一張無變化靜圖加不同文字蒙混
+
+```gherkin
+@happy-path @critical
+Scenario: 所有必要節點都要合法 Shot 和素材
+  Given V3 Narrative 有兩人 Entry、共享節點與三種咖啡結尾
+  When Publisher 枚舉所有必經 nodeId、bindingId 與條件分支
+  Then 每個合法分支都能對到已釘選 Shot、人物、NPC／道具和音效
+  And 同一 Area 內容版本與 SHA 均符合 manifest
+  But 不能用上一張無變化靜圖加不同文字蒙混
+```
+
+### SEF-BDD-168：缺必要素材或未知 Cue 時不能發布
+- [ ] **Scenario: 缺必要素材或未知 Cue 時不能發布**
+  - **來源**：`AC-005-33`／`V3-AC-10`；**標籤**：@error-handling @critical；**測試鍵**：`PublisherRejectMissing`；**跨層**：`API`
+  - **負向斷言**：不能在 Runtime 偷偷回退文字劇情
+
+```gherkin
+@error-handling @critical
+Scenario: 缺必要素材或未知 Cue 時不能發布
+  Given 新 V3 參考未上傳的原創書封、NPC 姿勢或未知 gesture
+  When Publisher 驗證 source manifest
+  Then 拒發 V3 內容且不影響合法舊版
+  And 缺陷列表可指回確切 nodeId、assetId 與原因
+  But 不能在 Runtime 偷偷回退文字劇情
+```
+
+### SEF-BDD-169：事件失敗需要撤銷虛假成功動畫
+- [ ] **Scenario: 事件失敗需要撤銷虛假成功動畫**
+  - **來源**：`AC-005-33`／`V3-AC-10`；**標籤**：@frontend @critical；**測試鍵**：`AnimationCommitAuthority`；**跨層**：`ET`
+  - **負向斷言**：不能因動畫已播放就認定事件完成
+
+```gherkin
+@frontend @critical
+Scenario: 事件失敗需要撤銷虛假成功動畫
+  Given 玩家對原位物件送出動作，當時 revision 已失效
+  When 伺服器拒絕後前端恢復權威快照
+  Then 書本／人物回到真實位置，未出現假收納完成
+  And 不寫入多餘 EventInstance 或 WS 成功訊息
+  But 不能因動畫已播放就認定事件完成
+```
+
+### SEF-BDD-170：微動開關不會關掉必要劇情動作
+- [ ] **Scenario: 微動開關不會關掉必要劇情動作**
+  - **來源**：`AC-005-33`／`V3-AC-10`；**標籤**：@frontend @critical；**測試鍵**：`AmbientStoryMotionSeparated`；**跨層**：`ET`
+  - **負向斷言**：不能以關閉微動造成世界狀態難辨
+
+```gherkin
+@frontend @critical
+Scenario: 微動開關不會關掉必要劇情動作
+  Given 玩家關閉書店環境微動，仍觸發拿書和店員端杯
+  When Web／Android 播放必要 StoryMotion
+  Then 雨水背景循環停止，必要動作仍合法演出或安全略過
+  And 回前景不自動重放已完成事件／音效
+  But 不能以關閉微動造成世界狀態難辨
+```
+
+### SEF-BDD-171：一場完整試玩前其他九篇維持不可玩
+- [ ] **Scenario: 一場完整試玩前其他九篇維持不可玩**
+  - **來源**：`AC-005-33`／`V3-AC-10`；**標籤**：@error-handling @critical；**測試鍵**：`PublisherGateBEnforced`；**跨層**：`API`
+  - **負向斷言**：不能拿 121 個舊 BDD 通過率當作 V3 人工驗收
+
+```gherkin
+@error-handling @critical
+Scenario: 一場完整試玩前其他九篇維持不可玩
+  Given V3 首條仍未由使用者 Web／Android 完整人工核准
+  When 系統嘗試將第二至第十篇標為完成發布
+  Then 發佈流程或規劃 Gate 阻擋其他九篇的可玩狀態
+  And 首條所有必經演出必須真實人工觀察
+  But 不能拿 121 個舊 BDD 通過率當作 V3 人工驗收
+```
+
+### SEF-BDD-172：六個店內 Area 有不同但一致的環境畫面
+- [ ] **Scenario: 六個店內 Area 有不同但一致的環境畫面**
+  - **來源**：`AC-005-34`／`V3-AC-11`；**標籤**：@frontend @critical；**測試鍵**：`AreaDedicatedLayers`；**跨層**：`ET`
+  - **負向斷言**：不能全區只用單張全景硬裁切或 AI 亂換店面
+
+```gherkin
+@frontend @critical
+Scenario: 六個店內 Area 有不同但一致的環境畫面
+  Given 書店入口、書架、閱讀角、櫃檯、乾燥儲藏和窗邊咖啡有固定地圖
+  When 玩家在 Area 之間移動和轉鏡
+  Then 各區有相互一致但專屬的背景、遮擋、陰影和可見物件圖層
+  And 桌椅、窗與書架位置、店員衣著保持一致
+  But 不能全區只用單張全景硬裁切或 AI 亂換店面
+```
+
+### SEF-BDD-173：書本原位點擊並打開關閉返回
+- [ ] **Scenario: 書本原位點擊並打開關閉返回**
+  - **來源**：`AC-005-34`／`V3-AC-11`；**標籤**：@frontend @critical；**測試鍵**：`EmbeddedBookAnimation`；**跨層**：`ET`
+  - **負向斷言**：不能常駐漂浮按鈕、星號或物件卡片
+
+```gherkin
+@frontend @critical
+Scenario: 書本原位點擊並打開關閉返回
+  Given 書脊已和書架背景配準並有合法無形 hitShape
+  When 玩家點擊書脊、閱讀後關閉
+  Then 抽書、翻頁、返回與原背景空位／遮擋一致
+  And 不同鏡頭、螢幕比例下點擊區與書脊仍對齊
+  But 不能常駐漂浮按鈕、星號或物件卡片
+```
+
+### SEF-BDD-174：NPC 腳底貼地、椅桌遮擋正確
+- [ ] **Scenario: NPC 腳底貼地、椅桌遮擋正確**
+  - **來源**：`AC-005-34`／`V3-AC-11`；**標籤**：@frontend @critical；**測試鍵**：`ActorDepthOcclusion`；**跨層**：`ET`
+  - **負向斷言**：不能把 2D 原圖無動作橫移冒充自然坐下
+
+```gherkin
+@frontend @critical
+Scenario: NPC 腳底貼地、椅桌遮擋正確
+  Given 角色從書架走到閱讀角並坐到椅子上
+  When 切換鏡位並播放 sitting pose
+  Then 人物穿過對應前景時有合理遮擋、陰影及透視
+  And NPC 頭部與杯子不浮在場景外
+  But 不能把 2D 原圖無動作橫移冒充自然坐下
+```
+
+### SEF-BDD-175：書從架上被拿走後兩端不再重複顯示
+- [ ] **Scenario: 書從架上被拿走後兩端不再重複顯示**
+  - **來源**：`AC-005-34`／`V3-AC-11`；**標籤**：@happy-path @critical；**測試鍵**：`EmbeddedWorldAuthoritative`；**跨層**：`IT`
+  - **負向斷言**：不能繪圖資源快取覆蓋權威已移動物件
+
+```gherkin
+@happy-path @critical
+Scenario: 書從架上被拿走後兩端不再重複顯示
+  Given 同一書物件在 D1 世界狀態中已移到箱子
+  When 兩人各自更新不同角度的 Area snapshot
+  Then 兩邊書架同位置顯示空位、箱內有書，沒有重複書
+  And 世界狀態 Revision 與 client animation cue 對應
+  But 不能繪圖資源快取覆蓋權威已移動物件
+```
+
+### SEF-BDD-176：縮放與裁切的觸控 hitShape 不越權
+- [ ] **Scenario: 縮放與裁切的觸控 hitShape 不越權**
+  - **來源**：`AC-005-34`／`V3-AC-11`；**標籤**：@error-handling @critical；**測試鍵**：`HitShapeCameraTransform`；**跨層**：`API`
+  - **負向斷言**：不能因前端錯座標觸發隱藏私有事件
+
+```gherkin
+@error-handling @critical
+Scenario: 縮放與裁切的觸控 hitShape 不越權
+  Given 某書僅在合法 Area/狀態允許觸發
+  When 玩家在 Web／Android 不同尺寸觸控書附近物件
+  Then 只有正確本體 hitShape 可啟動該書操作
+  And 伺服器仍重驗權威資格及角色身份
+  But 不能因前端錯座標觸發隱藏私有事件
+```
+
+### SEF-BDD-177：首次 AI 全身候選建立正式 Rig 而非五張整圖
+- [ ] **Scenario: 首次 AI 全身候選建立正式 Rig 而非五張整圖**
+  - **來源**：`AC-005-35`／`V3-AC-12`；**標籤**：@error-handling @critical；**測試鍵**：`RigFirstAdoption`；**跨層**：`API`
+  - **負向斷言**：不能用沒有 Rig 的半完成成品替換正式角色
+
+```gherkin
+@error-handling @critical
+Scenario: 首次 AI 全身候選建立正式 Rig 而非五張整圖
+  Given AI 玩家核准一張 3:4 全身候選並擁有合法私人素材
+  When 本人首次採用時執行分層、局部表情、骨架及少量必要姿勢建檔
+  Then 完整 ready ActorRigPackage 與原有玩家身份畫風一致
+  And 保留舊角色直至新包完整驗證通過，途中故障可受控重試
+  But 不能用沒有 Rig 的半完成成品替換正式角色
+```
+
+### SEF-BDD-178：Rig 五種情緒與自然坐讀拿書動作
+- [ ] **Scenario: Rig 五種情緒與自然坐讀拿書動作**
+  - **來源**：`AC-005-35`／`V3-AC-12`；**標籤**：@frontend @critical；**測試鍵**：`RigFiveExpressionsAndPose`；**跨層**：`ET`
+  - **負向斷言**：不能以五張整圖重生代替新版可動介面驗證
+
+```gherkin
+@frontend @critical
+Scenario: Rig 五種情緒與自然坐讀拿書動作
+  Given 一位免費與一位 AI 角色有同版有效 Rig、表情與姿態
+  When 播放 neutral、smile、surprised、thoughtful、concerned 及 sit/read/hold
+  Then 表情辨識、臉型一致、動作自然且書本綁合法手部錨點
+  And 坐姿椅背前景遮擋不穿幫且舊版近景品質不退化
+  But 不能以五張整圖重生代替新版可動介面驗證
+```
+
+### SEF-BDD-179：Ready 後切角色重連和切表情不再產圖
+- [ ] **Scenario: Ready 後切角色重連和切表情不再產圖**
+  - **來源**：`AC-005-35`／`V3-AC-12`；**標籤**：@frontend @critical；**測試鍵**：`RigNoGeminiDuringPlay`；**跨層**：`ET`
+  - **負向斷言**：不能把已存的同版 Rig 判定為需要再次製作
+
+```gherkin
+@frontend @critical
+Scenario: Ready 後切角色重連和切表情不再產圖
+  Given 兩位玩家已使用驗證 ready 的 immutable Rig Package
+  When 換表情、重新選回同角色、重連或新場次進入
+  Then Gemini 呼叫次數為零且只讀已授權版本化素材
+  And 場次／聊天／角色身份與資產 hash 無混包
+  But 不能把已存的同版 Rig 判定為需要再次製作
+```
+
+### SEF-BDD-180：不同玩家只共用有授權的骨架與服裝素材
+- [ ] **Scenario: 不同玩家只共用有授權的骨架與服裝素材**
+  - **來源**：`AC-005-35`／`V3-AC-12`；**標籤**：@happy-path @critical；**測試鍵**：`RigSharedAssetsAndPrivacy`；**跨層**：`IT`
+  - **負向斷言**：不能為每位玩家複製五張全身角色圖作公用衣物
+
+```gherkin
+@happy-path @critical
+Scenario: 不同玩家只共用有授權的骨架與服裝素材
+  Given 多位玩家選同一免費角色與通用骨架，道具由公共目錄提供
+  When 兩人同時讀共用資產及個人 AI Rig
+  Then 共用素材僅有一份來源，私人臉／master 仍依 owner 驗證
+  And 無法從另一人的 manifest 取得私有 R2 key 或來源照片
+  But 不能為每位玩家複製五張全身角色圖作公用衣物
+```
+
+### SEF-BDD-181：Puppet 記憶體容量與未來 MVP-005 可擴充
+- [ ] **Scenario: Puppet 記憶體容量與未來 MVP-005 可擴充**
+  - **來源**：`AC-005-35`／`V3-AC-12`；**標籤**：@frontend @critical；**測試鍵**：`RigQualityStorageGate`；**跨層**：`ET`
+  - **負向斷言**：不能宣稱分層一定省空間，亦不可降低五官相似度與解析度
+
+```gherkin
+@frontend @critical
+Scenario: Puppet 記憶體容量與未來 MVP-005 可擴充
+  Given 已核准原 AI 全身生成圖與對照的新版 Rig、相同照片／畫風測資存在
+  When 比對 1 免費、1 AI 的 Web／Android 表情、站坐與素材指標
+  Then 記錄每名 AI 總 R2 bytes、Gemini 次數及失敗重試、讀取與記憶體／畫面品質
+  And 來源可版本化為 ai-full-body 與未來 ai-face-only 且不需故事特殊邏輯
+  But 不能宣稱分層一定省空間，亦不可降低五官相似度與解析度
+```
+
+### V3 新增需求追溯（必須再對應 TDD，新增項未實作）
+
+| MVP | SPEC | V3 BDD 場景 | 數量 |
+|---|---|---|---:|
+| `AC-005-24` | `V3-AC-01` | `SEF-BDD-122`、`SEF-BDD-123`、`SEF-BDD-124`、`SEF-BDD-125`、`SEF-BDD-126` | 5 |
+| `AC-005-25` | `V3-AC-02` | `SEF-BDD-127`、`SEF-BDD-128`、`SEF-BDD-129`、`SEF-BDD-130`、`SEF-BDD-131` | 5 |
+| `AC-005-26` | `V3-AC-03` | `SEF-BDD-132`、`SEF-BDD-133`、`SEF-BDD-134`、`SEF-BDD-135`、`SEF-BDD-136` | 5 |
+| `AC-005-27` | `V3-AC-04` | `SEF-BDD-137`、`SEF-BDD-138`、`SEF-BDD-139`、`SEF-BDD-140`、`SEF-BDD-141` | 5 |
+| `AC-005-28` | `V3-AC-05` | `SEF-BDD-142`、`SEF-BDD-143`、`SEF-BDD-144`、`SEF-BDD-145`、`SEF-BDD-146` | 5 |
+| `AC-005-29` | `V3-AC-06` | `SEF-BDD-147`、`SEF-BDD-148`、`SEF-BDD-149`、`SEF-BDD-150`、`SEF-BDD-151` | 5 |
+| `AC-005-30` | `V3-AC-07` | `SEF-BDD-152`、`SEF-BDD-153`、`SEF-BDD-154`、`SEF-BDD-155`、`SEF-BDD-156` | 5 |
+| `AC-005-31` | `V3-AC-08` | `SEF-BDD-157`、`SEF-BDD-158`、`SEF-BDD-159`、`SEF-BDD-160`、`SEF-BDD-161` | 5 |
+| `AC-005-32` | `V3-AC-09` | `SEF-BDD-162`、`SEF-BDD-163`、`SEF-BDD-164`、`SEF-BDD-165`、`SEF-BDD-166` | 5 |
+| `AC-005-33` | `V3-AC-10` | `SEF-BDD-167`、`SEF-BDD-168`、`SEF-BDD-169`、`SEF-BDD-170`、`SEF-BDD-171` | 5 |
+| `AC-005-34` | `V3-AC-11` | `SEF-BDD-172`、`SEF-BDD-173`、`SEF-BDD-174`、`SEF-BDD-175`、`SEF-BDD-176` | 5 |
+| `AC-005-35` | `V3-AC-12` | `SEF-BDD-177`、`SEF-BDD-178`、`SEF-BDD-179`、`SEF-BDD-180`、`SEF-BDD-181` | 5 |
+| **合計** | **V3-AC-01～12** | **SEF-BDD-122～181** | **60** |
+
+**跨 MVP 的責任分界**：`MVP-005-AvatarWithDating.md` 未來才做捏臉／AI face-only／換裝／衣物權益；本階段 V3-AC-12 只驗證 Rig 介面可版本化、共用骨架和動畫可重用、未來可接受其他 identity source，**不在現在實作未來完整 MVP-005**。所有儲存容量／生成效率數字皆需實測，不可填假 KPI；不降低已核准 AI 臉部、全身畫風及五情緒品質。
+
+
+## 2026-11-17 RiskAudit Phase 4 補強 Gherkin（SEF-BDD-182～191，10 場）
+
+**依使用者 `SEF-V3-RQ-01=B` 決策補齊**：上段 BDD 122～181 60 場沿用；本段新增 10 個風險邊界場景，與 `SEF-V3-GAP-01～10`／TDD 正式追加測試一對一。涵蓋 AI Rig 首次建檔重入、R2 孤兒、私人線索、拒絕後安全撤離、結局競態、跨平台 hitShape、Publisher 可達路徑、外觀版控、Android 低記憶體與免費16款身份保真。**總 BDD 191（原121＋V3 60＋風險10）場；V3 規劃 70 場、實際 0/70 驗收；不得將本段寫入當成產品 Gate B 已過。**
+
+### SEF-BDD-182：兩個裝置同時首次製作 AI Rig 只產生一份不可變包
+- [ ] **Scenario: 兩個裝置同時首次製作 AI Rig 只產生一份不可變包**
+  - **來源**：`AC-005-35`／`V3-AC-12`／`SEF-V3-GAP-01`；**既有場景交叉驗證**：SEF-BDD-177、179；**標籤**：@critical @edge-case
+
+```gherkin
+@critical @edge-case
+Scenario: 兩個裝置同時首次製作 AI Rig 只產生一份不可變包
+  Given 同一 AI 玩家有已核准的全身 Master、來源 SHA 和 rigSpecVersion，兩部裝置同時發起首次建檔
+  When 兩筆同來源版本的首次 Rig 建檔請求並行到達 Worker
+  Then 伺服器只有一個受控建檔任務和一份經驗證的 ready Manifest，重複者重用已完成步驟
+  And Gemini 必需產圖呼叫數不因雙裝置重送增加，不產生兩個不同 owner／來源混包
+  But 任一中途失敗或尚未 ready 的套組不得切換本人正式化身
+```
+
+### SEF-BDD-183：Rig 製作中斷後重試只補缺少圖層且清理孤兒
+- [ ] **Scenario: Rig 製作中斷後重試只補缺少圖層且清理孤兒**
+  - **來源**：`AC-005-35`／`V3-AC-12`／`SEF-V3-GAP-02`；**既有場景交叉驗證**：SEF-BDD-177、181；**標籤**：@critical @error-handling
+
+```gherkin
+@critical @error-handling
+Scenario: Rig 製作中斷後重試只補缺少圖層且清理孤兒
+  Given 初次製作一半的 AI Rig 部分分層已驗證 SHA，部分上傳失敗而原正式化身仍可用
+  When 本人在有效授權下重新執行同版 Rig 建檔並進行受控孤兒掃描
+  Then 已驗證成功圖層直接重用，只重試缺少或不合格部分，完成後唯一新包才可 ready
+  And 僅清除符合 owner、未被 ready Manifest 引用、非未知環境且已判定無引用的孤兒
+  But 不得誤刪已 ready 或其他玩家的私人 R2 圖檔，也不得因重試無限增加圖片
+```
+
+### SEF-BDD-184：私有情緒與書籍資料不因快取重連流向另一人
+- [ ] **Scenario: 私有情緒與書籍資料不因快取重連流向另一人**
+  - **來源**：`AC-005-26`／`V3-AC-03`／`SEF-V3-GAP-03`；**既有場景交叉驗證**：SEF-BDD-129、136；**標籤**：@critical @error-handling
+
+```gherkin
+@critical @error-handling
+Scenario: 私有情緒與書籍資料不因快取重連流向另一人
+  Given A 已選擇虛構角色共鳴原因與一本書，尚未主動分享；I 的手機有舊快取並經 WS 重連
+  When I 重讀 experience、接收 events 補漏、讀已發布內容投影及快取重驗
+  Then I 只能收到本人的劇情進度與合法的 A 公開可見動作，沒有 A 未分享的情緒和書籍答案
+  And A 後續親自分享時，I 才能看明確授權的書籍摘要且不見私人共鳴原因
+  But 不允許把完整私人 Track 或 raw Manifest 送給 Client 再只靠 UI 隱藏
+```
+
+### SEF-BDD-185：拒絕搭話後遇洪水仍可安全撤離且不被迫親密
+- [ ] **Scenario: 拒絕搭話後遇洪水仍可安全撤離且不被迫親密**
+  - **來源**：`AC-005-30`／`V3-AC-07`／`SEF-V3-GAP-04`；**既有場景交叉驗證**：SEF-BDD-137、140、154；**標籤**：@critical @alternative-path
+
+```gherkin
+@critical @alternative-path
+Scenario: 拒絕搭話後遇洪水仍可安全撤離且不被迫親密
+  Given I 未搭話或 A 已選 decline，兩個 Track 已達合法雨情前置，入口水位突然超標
+  When 伺服器推進安全事件並觸發 safety-exit
+  Then 兩人依自己的合法畫面安全撤離且可自然完成本章，Round 仍允許聊天與本人退出
+  And 拒絕仍然有效，沒有 NPC 代兩人決定是否交往或製造假訊息
+  But 不得要求先同意私人聊天才進入雨情安全事件
+```
+
+### SEF-BDD-186：最後意願與水位危險及 Room 結束同時發生只產一個結果
+- [ ] **Scenario: 最後意願與水位危險及 Room 結束同時發生只產一個結果**
+  - **來源**：`AC-005-32`／`V3-AC-09`／`SEF-V3-GAP-05`；**既有場景交叉驗證**：SEF-BDD-164、165、166；**標籤**：@critical @edge-case
+
+```gherkin
+@critical @edge-case
+Scenario: 最後意願與水位危險及 Room 結束同時發生只產一個結果
+  Given I/A 正在提交最後意願，Room 正在結束或共享水位已進入危險，且相同 requestId 被重送
+  When 所有提交在同一有效 D1 CAS 與 Round active 檢查交錯執行
+  Then 合法狀態最多只有一個安全結局或依終了狀態停止推進，不會同時寫入咖啡和撤離 Ending
+  And 已 ended 的 Round 不再接受劇情動作，未結束 Round 仍保留真聊天權限
+  But 不能因 WS 重送、先播端杯動畫或另一方請求而產出兩個完成紀錄
+```
+
+### SEF-BDD-187：縮放轉鏡和快速連點書脊只操作一個真正物件
+- [ ] **Scenario: 縮放轉鏡和快速連點書脊只操作一個真正物件**
+  - **來源**：`AC-005-34`／`V3-AC-11`／`SEF-V3-GAP-06`；**既有場景交叉驗證**：SEF-BDD-173、175、176；**標籤**：@critical @frontend @edge-case
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 縮放轉鏡和快速連點書脊只操作一個真正物件
+  Given Web／Android 在不同螢幕比例及相機縮放下顯示原位書脊，該書仍在書架
+  When 玩家快速連點接近書脊邊界並與另一方同時操作箱內物件
+  Then hitShape 跟著 camera/viewport 轉換，只有被按中之合法物件觸發且權威 CAS 只成功一次
+  And 兩端同步顯示書架空位與箱中真實書本並保留正確遮擋
+  But 不能將點擊傳到相鄰私有物件、隱藏事件或讓同本書重複出現
+```
+
+### SEF-BDD-188：三種咖啡結局或撤離分支缺一項資產都拒發
+- [ ] **Scenario: 三種咖啡結局或撤離分支缺一項資產都拒發**
+  - **來源**：`AC-005-33`／`V3-AC-10`／`SEF-V3-GAP-07`；**既有場景交叉驗證**：SEF-BDD-126、151、167、168；**標籤**：@critical @error-handling
+
+```gherkin
+@critical @error-handling
+Scenario: 三種咖啡結局或撤離分支缺一項資產都拒發
+  Given 新 V3 Publisher 宣告三種最終意願結局及 water danger safety-exit，第三結局缺必要 NPC pose 或安全撤離缺 Area 圖層
+  When Publisher 展開全部可達條件路徑檢驗 node、shot、actor、cue、資產 SHA
+  Then Publisher 拒絕整份不可完整發布的 V3 新版本，指出欠缺之確切結局節點和資產
+  And 既有合法 V2 已釘選 Session 仍可讀原版本
+  But 不能只驗一條 happy path 或把無素材分支退化為文字框
+```
+
+### SEF-BDD-189：未来不同身份來源不得偷偷替換已釘選的 AI 全身角色
+- [ ] **Scenario: 未来不同身份來源不得偷偷替換已釘選的 AI 全身角色**
+  - **來源**：`AC-005-35`／`V3-AC-12`／`SEF-V3-GAP-08`；**既有場景交叉驗證**：SEF-BDD-177、179、180；**標籤**：@critical @error-handling
+
+```gherkin
+@critical @error-handling
+Scenario: 未来不同身份來源不得偷偷替換已釘選的 AI 全身角色
+  Given 某場 StorySession 已固定本人 ai-full-body Rig 的 owner、sourceHash、rigVersion、外觀版本
+  When Client 企圖注入尚未支援或不相容的 ai-face-only 欄位與錯誤來源版本，並重新讀取遊玩快照
+  Then 後端拒絕未知來源和不合版本組合，原場固定的合法角色外觀不被改寫
+  And 未來真的完成 MVP-005 後也必須按新版本及使用者合法選角流程，不依 Client 直接切身份
+  But 不能混用另一玩家臉部、舊版髮型／衣服或私人 R2 keys
+```
+
+### SEF-BDD-190：Android 記憶體不足恢復同一個 Rig 不生新圖
+- [ ] **Scenario: Android 記憶體不足恢復同一個 Rig 不生新圖**
+  - **來源**：`AC-005-35`／`V3-AC-12`／`SEF-V3-GAP-09`；**既有場景交叉驗證**：SEF-BDD-178、179、181；**標籤**：@critical @frontend @edge-case
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: Android 記憶體不足恢復同一個 Rig 不生新圖
+  Given Android 前景顯示已 ready 的 AI Rig，切至背景遭 OS 回收部分記憶體與圖層
+  When 玩家返回遊戲、重新載入已授權同版 Rig 並切換五情緒
+  Then 仍顯示原有五官與姿態、正確遮擋與同版資產 hash；失敗時提供安全等待／重載
+  And 記錄真裝置記憶體與載入延遲，不會因重新進場或表情切換呼叫 Gemini
+  But 缺必要素材不能假裝完整 ready，也不能顯示混雜其他人的圖層
+```
+
+### SEF-BDD-191：免費十六款逐一保留已核准身份與原衣裝
+- [ ] **Scenario: 免費十六款逐一保留已核准身份與原衣裝**
+  - **來源**：`AC-005-35`／`V3-AC-12`／`SEF-V3-GAP-10`；**既有場景交叉驗證**：SEF-BDD-177、178、181；**標籤**：@critical @frontend @edge-case
+
+```gherkin
+@critical @frontend @edge-case
+Scenario: 免費十六款逐一保留已核准身份與原衣裝
+  Given 正式免費素材目錄包含男8女8共16個穩定 ID 和已核准的角色外觀／來源 hash
+  When 逐一為每款建置 Rig 並在 Web／Android 切五表情、站坐讀書與持物
+  Then 16 款全部維持原五官、髮型、上身衣裝、氣質和穩定 ID，必要新增分層不重畫既有身份
+  And 每款保留可驗 SHA／來源／真機視覺對照；未通過任何一款都不得把全16款視為已驗收
+  But 不能只測第一款 POC 就將其餘15款標為 ready 或清除舊正式素材
+```
+
+### RiskAudit GAP → BDD 追溯
+
+| 缺漏 | BDD | 設計所屬需求 | 新增真測試 |
+|---|---|---|---|
+| `SEF-V3-GAP-01` | `SEF-BDD-182` | `AC-005-35`／`V3-AC-12` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-02` | `SEF-BDD-183` | `AC-005-35`／`V3-AC-12` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-03` | `SEF-BDD-184` | `AC-005-26`／`V3-AC-03` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-04` | `SEF-BDD-185` | `AC-005-30`／`V3-AC-07` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-05` | `SEF-BDD-186` | `AC-005-32`／`V3-AC-09` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-06` | `SEF-BDD-187` | `AC-005-34`／`V3-AC-11` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-07` | `SEF-BDD-188` | `AC-005-33`／`V3-AC-10` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-08` | `SEF-BDD-189` | `AC-005-35`／`V3-AC-12` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-09` | `SEF-BDD-190` | `AC-005-35`／`V3-AC-12` | 依 TDD V3 稽核補強章節 |
+| `SEF-V3-GAP-10` | `SEF-BDD-191` | `AC-005-35`／`V3-AC-12` | 依 TDD V3 稽核補強章節 |
+
+**狀態優先序**：歷史 BDD 121 場及其完成紀錄不可覆寫；V3 70 場仍全部待實作，新的 Phase 5 只表示規劃可交開發，不代表真 Web／Android 或真人操作已通過。

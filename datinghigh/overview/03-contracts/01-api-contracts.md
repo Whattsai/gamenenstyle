@@ -35,6 +35,8 @@ playing／completed 的 `schemaVersion=scene-event.v2`，含 myTrack(role/nodeId
 
 active 遊戲入口／恢復、events query、realtime-ticket 及 HTTP／WS 遊戲命令另驗本人目前採用的 ready 五表情；不完整回 `409 OWN_AVATAR_PACK_NOT_READY`。前端清空私人場景並提供個人檔案入口；另一組 pending 化身不影響已就緒的採用者。end 與 ended 安全投影保留。固定內部 `avatar.current.readiness` 只接收登入身分、回 `{ready:true}`，不接受 owner／assetId 或公開素材路徑。
 
+內容宣告多 Area 舞台時，experience 可含 `stage`：`version=scene-stage.v1`、`currentShotId`、安全子集的 `shots`／`areaVisuals`／`embeddedInteractables`／NPC appearance。範圍限本人目前鏡位及已提交 cue 引用，不回完整未觸發舞台、條件或另一人的私人視角；原內容未宣告時省略 stage。cue 另可含有界 `{type:'shot',shotId,durationMs}`；只控制呈現，不由 client 寫回世界或選擇結果。此欄位沒有新增正式 Rig 製作或 binary 讀取端點。
+
 `/internal/round-command`僅Worker→Container私有transport，外部`/internal/*`仍阻擋。公開故事素材只允許GET／HEAD `/story-content/assets/<64位sha256>`，不接受query或任意key。
 
 ## 配對與邀請

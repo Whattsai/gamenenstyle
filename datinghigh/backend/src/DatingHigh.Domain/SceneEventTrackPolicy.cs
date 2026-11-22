@@ -66,6 +66,11 @@ public static class SceneEventTrackPolicy
             foreach(var r in Roles){var track=narrative["tracks"]![r]!;_=c.Node(r,Text(track,"entry"));var ids=track["nodes"]!.AsArray().Select(n=>Text(n!,"id")).ToArray();if(ids.Length is 0 or >256||ids.Distinct().Count()!=ids.Length)Invalid();foreach(var node in track["nodes"]!.AsArray())if(!scene["areas"]!.AsArray().Any(a=>Text(a!,"id")==Text(node!,"areaId")))Invalid();}
             foreach(var b in c.Bindings){ValidateCondition(c,b.Raw["triggerConditions"]!.AsObject());foreach(var a in b.Raw["actions"]!.AsArray()){ValidateCondition(c,a!["conditions"]!.AsObject());if(a["nextNode"] is JsonNode next)_=c.Node(Text(a,"role"),next.GetValue<string>());}}
             foreach(var ending in narrative["endings"]!.AsArray())ValidateCondition(c,ending!["conditions"]!.AsObject());
+            if(narrative["safetyExit"] is JsonObject safety){
+                Only(safety,"endingId","conditions");ValidateCondition(c,safety["conditions"]!.AsObject());
+                var targets=narrative["endings"]!.AsArray().Where(e=>Text(e!,"id")==Text(safety,"endingId")).ToArray();
+                if(targets.Length!=1||!JsonNode.DeepEquals(targets[0]!["conditions"],safety["conditions"]))Invalid();
+            }
             return c;
         }catch(Exception e)when(e is InvalidOperationException or ArgumentException or KeyNotFoundException or NullReferenceException){throw new DomainException("INVALID_STORY_CONTENT");}
     }
@@ -214,8 +219,14 @@ public static class SceneEventTrackPolicy
         RememberEntered(c,state,me.Role,fact["nodeId"]!.GetValue<string>(),next);
         foreach(var p in s.Progress.Where(p=>p!=original.Progress.Single(old=>old.Role==p.Role)))RememberEntered(c,state,p.Role,original.Progress.Single(old=>old.Role==p.Role).NodeId,p.NodeId);
         string? endingId=null;
-        if(c.Narrative["endingRequires"]!.AsArray().All(k=>s.Instances.TryGetValue(k!.GetValue<string>(),out var i)&&i.Status=="completed")){
-            var endings=c.Narrative["endings"]!.AsArray().Where(e=>Evaluate(c,s,e!["conditions"]!.AsObject())).ToArray();if(endings.Length!=1)Invalid();endingId=Text(endings[0]!,"id");state["endingId"]=endingId;s=s with{Completed=true};shared=true;
+        // 安全收尾優先於一般合作與最終意願；不為了等未完成的救書操作而留在危險區。
+        var safety=c.Narrative["safetyExit"] as JsonObject;
+        if(safety is not null&&Evaluate(c,s,safety["conditions"]!.AsObject()))endingId=Text(safety,"endingId");
+        else if(c.Narrative["endingRequires"]!.AsArray().All(k=>s.Instances.TryGetValue(k!.GetValue<string>(),out var i)&&i.Status=="completed")){
+            var endings=c.Narrative["endings"]!.AsArray().Where(e=>e!["id"]!.GetValue<string>()!=safety?["endingId"]?.GetValue<string>()&&Evaluate(c,s,e["conditions"]!.AsObject())).ToArray();if(endings.Length!=1)Invalid();endingId=Text(endings[0]!,"id");
+        }
+        if(endingId is not null){
+            state["endingId"]=endingId;s=s with{Completed=true};shared=true;
             foreach(var (k,i)in instances.ToArray())if(i.Status=="active")instances[k]=i with{Status="cancelled",Revision=i.Revision+1};
         }
         s=s with{SharedRevision=original.SharedRevision+(shared?1:0)};

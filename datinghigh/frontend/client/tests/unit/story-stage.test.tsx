@@ -11,6 +11,35 @@ import type {ScenePresentation} from '../../src/story-stage-geometry';
 import {Animated} from 'react-native';
 afterEach(()=>{cleanup();vi.restoreAllMocks();});
 const scene={...source.scene.scenePresentation,hotspots:[{id:'paper',definitionId:'pickup-slip-27',label:'濕紙單',x:.45,y:.42}]} as ScenePresentation;
+it('SEF-UT-529 / SEF-UT-511 partial: V3 pan moves the published area and book sprite by the same camera transform',()=>{
+ const oldWidth=window.innerWidth;Object.defineProperty(window,'innerWidth',{configurable:true,value:390});
+ try{
+  const v3Stage:any={version:'scene-stage.v1',currentShotId:'entry',shots:[{id:'entry',areaId:'shelves',cameraId:'shelves',actors:[],audioCueIds:[]}],
+   areaVisuals:[{areaId:'shelves',defaultShotId:'entry',backgroundAsset:'shelves-bg',layers:[]}],
+   embeddedInteractables:[{id:'book-spine',areaId:'shelves',objectId:'book',state:'at-shelf',assetId:'cover',depth:2,anchor:{x:.4,y:.2},size:{width:.15,height:.3},hitShape:{type:'rect',x:0,y:0,width:1,height:1},interactionPreset:'book'}],npcs:[]};
+  const presentation={...scene,cameras:scene.cameras.map(v=>v.id==='shelves'?{...v,scale:1.6}:v)};
+  const track:any={actorRole:'inviter',areaId:'shelves',world:{objects:[{id:'book',label:'書',areaId:'shelves',state:'at-shelf',holderRole:null,x:.4,y:.2}],flags:{}},
+   stage:v3Stage,asset:(id:string)=>'/'+id+'.png',onDrop:vi.fn()};
+  const view=render(<StoryStage presentation={presentation} cameraId="shelves" hotspotIds={[]} safeToSwap onInspect={vi.fn()} height={490} track={track}/>);
+  const bg=screen.getByTestId('area-background') as HTMLElement,book=screen.getByTestId('embedded-book-spine') as HTMLElement;
+  const x=parseFloat(bg.style.left),dx=parseFloat(book.style.left)-x;
+  expect(screen.getByLabelText('環視左側場景')).toBeTruthy();
+  fireEvent.click(screen.getByLabelText('環視左側場景'));
+  expect(parseFloat(bg.style.left)).toBeGreaterThan(x);
+  expect(parseFloat(book.style.left)-parseFloat(bg.style.left)).toBeCloseTo(dx,2);
+  fireEvent.click(screen.getByLabelText('重設場景視角'));
+  expect(parseFloat(bg.style.left)).toBeCloseTo(x,1);
+  expect(screen.getByTestId('scene-atmosphere')).toBeTruthy();
+  fireEvent.click(screen.getByLabelText('關閉場景微動'));
+  expect(screen.queryByTestId('scene-atmosphere')).toBeNull();
+  expect(screen.getByTestId('embedded-book-spine')).toBeTruthy();
+  fireEvent.click(screen.getByLabelText('開啟場景微動'));
+  expect(screen.getByTestId('scene-atmosphere')).toBeTruthy();
+  view.rerender(<StoryStage presentation={{...presentation,cameras:[]}} cameraId="shelves" hotspotIds={[]} safeToSwap onInspect={vi.fn()} height={490} track={track}/>);
+  expect(screen.getByText('場景鏡位尚未就緒，請重新同步。')).toBeTruthy();
+  expect(screen.queryByTestId('embedded-book-spine')).toBeNull();
+ }finally{Object.defineProperty(window,'innerWidth',{configurable:true,value:oldWidth});}
+});
 it('a player can stop decorative motion on a slow device while the same camera and interactive scene remain available',()=>{
  const inspect=vi.fn();render(<StoryStage presentation={scene} cameraId="shelves" hotspotIds={['paper']} safeToSwap onInspect={inspect}/>);
  fireEvent.click(screen.getByLabelText('關閉場景微動'));expect(screen.getByLabelText('開啟場景微動')).toBeTruthy();

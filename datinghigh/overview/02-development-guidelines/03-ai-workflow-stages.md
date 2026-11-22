@@ -82,6 +82,8 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 - `avatar-controlled.mjs` 使用隔離 E2eHost 與8084 Metro；`avatar-full-body.mjs` 使用明確QA31／ADB5038與已確認圖像回放目錄。受控回應與回放不能作為真 provider 品質證據。
 - 表情迴圈核對 focus／AppState、背景停止續送與採用、前景只讀復原、本人明確繼續及未知成本不自動重送。候選與 next POST 的 client deadline 為110秒，provider90秒、HTTP100秒；到期時關閉確認窗，提交仍重驗 serverNow。
 - 套組檢查使用 `node --test tools/tests/builtin-avatar-assets.test.mjs`；正式目錄更新後執行 `node tools/generate-builtin-avatar-assets.mjs`，核對80張成品SHA、avatarVersion與16個neutral匯入。素材只存一份public來源，未使用的原畫、製作紀錄與副本不留存；人工核准結果記在需求驗證文件。
+- Rig 本機審查使用 `node tests/component-layout/server.mjs` 與 `npx playwright test --config tests/scene-rig.playwright.config.ts`；Android 需明確 development-only `DATINGHIGH_NATIVE_RIG_PROFILE=1` 的8086 Metro、8092素材server、QA31／ADB5038，再執行 `tests/e2e/android/scene-rig-pilot.mjs`。素材server啟動先驗catalog與成品SHA一致；catalog可列姿態sheet及單一表情的完整圖格`corrections`，素材白名單與原生fingerprint均展開這些來源，單格修正不改其他表情綁定。Web單款入口可用`character`、`pose`、`expression`直接定位審查。Android runner只對指定QA建立8092的ADB reverse，以loopback讀同一份素材。整批 runner 期間固定 renderer／catalog／viewer／素材，來源與成品共同計算fingerprint，不切換 profile 或熱更新；QA控制項／截圖證據不替代人工品質判斷、正式ready或劇情 Gate B。
+- Rig本機審查的免費16款與虛構AI角色均以四姿態完整表情圖格呈現，審查頁不再拼接分離頭身；只屬外觀核對，不代替正式Puppet的分層／局部表情／連續動作驗收。每款固定素材SHA及使用者確認以需求驗證紀錄為權威。
 - 名片測試涵蓋關閉照片無讀取、預覽先儲存、載入失敗不導覽、返回保護草稿及變更後清除舊投影；schema／SQL 原子性使用真 D1。
 
 ### 配對與劇情

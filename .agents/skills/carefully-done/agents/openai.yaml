@@ -1,0 +1,4 @@
+interface:
+  display_name: "Carefully Done"
+  short_description: "依核准 SD 逐項實作與驗證，同步需求進度並在設計變更前確認"
+  default_prompt: "使用 $carefully-done 依已確認的 SD 文件包與設計版本逐項實作並驗收。"

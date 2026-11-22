@@ -125,6 +125,8 @@ Gemini只在忽略的 `cloudflare/.dev.vars` 設 `GEMINI_API_KEY`，選填 `GEMI
 
 真生成／原生UI測試期間凍結frontend export、Worker／backend原始碼及平台重啟；熱重載亦可能中斷正在執行的操作。先完成編譯／restart及ready，再依序跑平台操作。Android僅使用本專案專用QA AVD／指定ADB port，不操作其他專案裝置。development build的右上Tools overlay可能蓋住右側導覽按鈕，QA腳本在同按鈕左緣點擊，不把overlay故障算成產品授權成功。
 
+角色 Rig 審查 profile 只供 development，正式 export／release 必須省略 `DATINGHIGH_NATIVE_RIG_PROFILE`；8092審查server及 `.local/rig-pilot/` 成品不屬部署輸入。正式角色目錄與 ready 驗證不能由本機審查結果自動替換。
+
 GC每小時清理；Foundation、照片、候選分配時間預算，R2 `_system/avatar-preferences/cleanup.json` 保存tombstone cursor與未處理清單頁，預算耗盡下次接續。只有固定私人key、D1已deleted／未提交orphan及已到期候選可清除；正式ready化身保持。不使用 D1 job 表。
 
 執行結果與平台缺項只回寫 [化身驗證紀錄](../../docs/verification/SPEC-001-AvatarAndPreferences-Verification.md) 或 [劇情驗證紀錄](../../docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md)，不在操作說明追加過程紀錄。

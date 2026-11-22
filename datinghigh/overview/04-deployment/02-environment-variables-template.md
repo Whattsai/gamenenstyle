@@ -81,6 +81,7 @@ GOOGLE_IOS_URL_SCHEME=<reversed-ios-client-id>
 | DATINGHIGH_E2E_AVATAR_PROFILE | 僅隔離E2eHost明選受控圖片供應商及真D1／R2 bridge；不由正式API讀取，不含真Gemini呼叫 |
 | DATINGHIGH_NATIVE_FAULT_PROFILE | Metro development-only SecureStore故障adapter；正式build／export不得帶1 |
 | DATINGHIGH_NATIVE_GOOGLE_PROFILE | 專用測試Google adapter，須搭配fault profile且僅development；不是真SDK證據 |
+| DATINGHIGH_NATIVE_RIG_PROFILE | 僅development的角色審查入口，Metro改接tests/native/rig-entry.tsx；production直接拒絕，正式build／export不得帶1 |
 | EXPO_PUBLIC_NATIVE_FAULT_ORIGIN | 僅測試profile的loopback host／emulator對應來源，供SecureStore與clock adapter使用；不得帶入正式bundle |
 | DATINGHIGH_E2E_REAL_GOOGLE、DATINGHIGH_E2E_GOOGLE_CLIENTS | 隔離E2E host選擇真Google驗證及公開client allowlist；不是正式runtime設定 |
 | EXPO_NO_DOTENV | native fixture設1，避免讀入日常client設定而覆蓋受控測試環境 |

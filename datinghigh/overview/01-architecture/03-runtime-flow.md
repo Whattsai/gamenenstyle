@@ -51,6 +51,10 @@ App 先讀受保護 experience，再取得30秒一次性 realtime-ticket，以�
 
 SceneEventFrameworkService 組合已驗 SHA 的四層內容；Domain 以已提交事實、能力、條件及 repeatGroup 裁定候選，Worker 以本人 Track／Shared World／EventInstance revision CAS 原子啟動或推進。隨機未觸發也保存取消裁定與安全 cursor 更新，重整不重擲；未觸發內容、條件、私人 key 不投影給 client。R2 等待前後重新驗 family 與 Round 成員。
 
+Narrative 若宣告 `safetyExit`，合法動作套用效果後先判定其條件，再判定普通結局；安全收尾可越過未完成的普通合作要求。章節通知必須對應本次原 receipt event ID 的既有系統事件，不能把剛插入的 receipt 當成重播而跳過通知原子性檢查。
+
+Scene 若含 `stage`，`SceneEventStageProjection` 只選本人目前 Area 的鏡位及已提交 cue 引用的鏡位、相關 Area 素材與目前可見物件狀態。client 共用相機轉換呈現圖層及命中幾何（包含狹長螢幕的 V3 水平環視、原位書籍及演出圖像）；沒有 stage 的內容繼續走既有舞台。NPC 可由內容公開素材組裝 Rig，所有表情／姿態引用都須有對應圖片；任何來源缺失或載入失敗都不能留下可點擊的殘缺舞台。`ActorMotionRenderer` 在本機切 atlas 區域，失焦／AppState 背景時停止微動，不呼叫生成服務；缺少 Rig 或姿態時明確顯示未就緒。此元件不負責正式 Rig 製作、發布或授權讀取。
+
 抵達 Ending 同批完成 Session、取消未完支線及關閉 SceneVisit，Round 仍 active 並可聊天。兩位真人對同一最新 completed episode 的最後同意皆有效，才同批以最新已儲存興趣凍結下一場候選；無可玩內容回 NO_PLAYABLE_STORY，不留空場。換 Session 重設逐字、鏡位、Modal 與事件演出，保留同 Round 聊天、草稿與對方角色。
 
 初載、回前景、重連與 `avatar.updated` 讀本人與對方套組；五圖保持掛載，完整解碼且句尾才換套。授權移除或 ended 使在途回應失效。同 Area 才顯示雙人角色；StoryStage 共用鏡頭矩陣呈現背景、角色、前景及熱區，場內移動不新增 SceneVisit。AmbientMotion 可關閉，提交後的必要 StoryMotion 獨立播放且可略過／背景取消，不重播舊 cue，也不寫權威狀態；聊天室與敘事使用各自捲動區。

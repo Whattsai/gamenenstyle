@@ -2,6 +2,14 @@
 
 現行 migration 基線為 `0007_scene_event_tracks.sql`，共21張自有表、零 SQL Trigger；Foundation六表54欄、本人資料／媒體兩表27欄保持。資料契約以現行 migration、固定 commands 與程式型別為依據；需求進度及執行結果不在本文追加。
 
+## 舞台與 atlas 呈現契約
+
+`scene-stage.v1` 為可選 Scene JSON，定義 Area 的背景／前景／圖層、有限 shots（Area／camera／actor姿態、表情、gesture及音訊）與依 World object state 顯示的 embeddedInteractables。原位命中使用標準化 rect／polygon 與相同 camera 轉換；Publisher 檢查素材、Area、object state、shot及音訊引用，所有節點與結局演出須有對應 shot。NPC appearance 使用既有 Scene image asset ID，並非私人玩家 Rig。所有宣告的 NPC 姿態及五種語意表情圖片均須可解碼且具合法 image asset ID，即使本 Shot 尚未選取也不能略過；持物時另要求公開物件素材及唯一 `right-hand` 手錨。
+
+Narrative 可選 `safetyExit:{endingId,conditions}`，必須引用同條件的唯一結局；合法動作先套效果，再優先判定安全收尾。以上均沿用既有 JSON 儲存及 D1 原子命令，不新增表或欄位。
+
+client `ActorRigView` 的 `actor-rig.v1` 包含內容定址 assets、joints、atlas layers（region／position／size／depth）、四種姿態、五種表情覆寫及 propAnchors。這是共用呈現元件的輸入型別，尚不等於正式 R2 ready Manifest 或新授權 API；正式採用仍依既有五表情契約。Client 可從已授權 Scene NPC 的公開姿勢／表情圖片建構共用渲染 Rig，但不得藉此推定私人玩家已取得正式 Rig ready；任一必要圖層失敗須封閉互動舞台。審查頁不產生正式版本或修改原角色 ID。
+
 ## D1 schema
 
 Foundation 原六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每表首欄為 NOT NULL TEXT PRIMARY KEY，由程式建立小寫 canonical UUIDv7。D1 的 `d1_migrations` 是工具維護表，不計入自有六表。日期欄位使用 Unix epoch **milliseconds INTEGER**；DB row snake_case，公開 DTO camelCase。

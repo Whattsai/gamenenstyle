@@ -58,4 +58,6 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 
 Android 場景 framebuffer 位移檢查另使用本地 Python／Pillow 比對同一 ROI 的開／關微動畫面，僅為測試依賴，不進入應用程式。
 
+`ActorMotionRenderer` 只使用既有 React Native Image／Animated／AppState，atlas 區域在共用元件裁切；沒有新增 Rig SDK 或生圖相依。NPC 的公開 2D 姿態／表情依發佈內容在本地切換，缺圖 fail-closed；只屬演出模型，未包含正式私人 Rig 版控、首次生成、R2 採用和授權 Gate。本機審查使用既有 Vite／Chrome 與專用 QA31 的 Metro profile，8092 僅提供審查白名單素材；與正式角色授權 API 及私人 R2 分離。
+
 測試對 Miniflare、Docker／WSL、Chrome、emulator 的前提見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md)，部署設定與 secrets 分類見 [環境變數](../04-deployment/02-environment-variables-template.md)。

@@ -133,3 +133,26 @@ it('entered-node history cannot be erased, exceed the immutable node bound or ch
   await expect(executeTrackAction(db,next,now)).rejects.toThrow();expect(await facts()).toEqual(saved);
  }
 });
+
+it('SEF-IT-151: a unilateral safety completion atomically cancels cooperation, closes the visit and preserves active room and chat',async()=>{
+ await db.prepare("INSERT OR IGNORE INTO content_scene_catalog VALUES(?,'safety-scene','v1','安全區','safety-scene',?,'published',?)").bind(id(420),'a'.repeat(64),now).run();
+ await db.prepare('INSERT INTO game_scene_visits VALUES(?,?,1,?,?,NULL)').bind(id(421),id(501),id(420),now).run();
+ await executeTrackAction(db,command(),now);
+ const safety=command(1,800);safety.expectedSharedRevision=2;safety.completed=true;safety.endingId='safety-exit';
+ safety.worldStateJson=JSON.stringify({objects:{tag:'window'},flags:{water:'danger'}});
+ safety.instance={...safety.instance,instanceId:id(801),bindingId:'narrative:test:safety',repeatGroup:'safety',trackScope:'acceptor',expectedRevision:null,status:'completed',stateJson:JSON.stringify({submissions:JSON.parse(safety.instance.stateJson).submissions,endingId:'safety-exit'})};
+ const before=await facts();
+ // 完成通知零列也必須撤銷整份安全結算，不能留下半 completed。
+ const plans=planTrackAction(safety,now);let injected=false;
+ await expect(db.batch(plans.map(s=>{let sql=s.sql;if(!injected&&sql.startsWith('INSERT INTO game_round_events')&&s.values.includes('chapter.completed')){sql=sql.replace(' WHERE ',' WHERE 0 AND ');injected=true;}return db.prepare(sql).bind(...s.values);}))).rejects.toThrow();
+ expect(injected).toBe(true);expect(await facts()).toEqual(before);
+ const receipt=await executeTrackAction(db,safety,now),saved=await facts();
+ expect(saved.game_story_sessions[0]).toMatchObject({chapter_status:'completed',shared_revision:3});
+ expect(saved.game_rounds[0].status).toBe('active');expect(await rows('SELECT * FROM game_active_round_claims')).toHaveLength(2);
+ expect(saved.game_event_instances.find((i:any)=>i.track_scope==='shared').status).toBe('cancelled');
+ expect(saved.game_scene_visits[0].left_at).toBe(now);
+ expect(saved.game_round_events.filter((e:any)=>e.kind==='chapter.completed')).toHaveLength(1);
+ expect(saved.game_story_participant_progress.find((p:any)=>p.role==='inviter')).toEqual(before.game_story_participant_progress.find((p:any)=>p.role==='inviter'));
+ expect((await executeTrackAction(db,safety,now)).rows).toEqual(receipt.rows);expect(await facts()).toEqual(saved);
+ await expect(executeTrackAction(db,command(2,802),now)).rejects.toThrow();expect(await facts()).toEqual(saved);
+});

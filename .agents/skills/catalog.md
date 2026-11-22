@@ -24,6 +24,9 @@
 | `bdd-frontend-ux-implementation` | BDD 前端、前端 UX、UX checklist、依 BDD 實作畫面 | 從 BDD Feature 提取前端 UX 場景，建立 checklist 並逐項引導前端畫面功能實作與稽核。 | `.agents/skills/bdd-frontend-ux-implementation/SKILL.md` |
 | `spec-bdd-implementation-deep-audit` | 深度稽核、SPEC/BDD/TDD 對照、完成度百分比、缺漏回寫 | 在 TDD 完成後，逐項比對 SPEC/BDD/TDD 與實作現況，回寫缺漏並重新計算進度。 | `.agents/skills/spec-bdd-implementation-deep-audit/SKILL.md` |
 | `well-done` | `well-done`、開始開發、依 TDD 開發、從文件實作到驗收、補齊缺漏直到完成 | 開發與驗收階段協調技能，接手 MVP/SPEC/BDD/TDD 文件包，整合 TDD、前端 UX 與深度稽核，直到需求可追溯完成。這是實作主入口。 | `.agents/skills/well-done/SKILL.md`，以及該 skill 指定的組合 skill 文件 |
+| `fantastic-design` | `fantastic-design`、SD 設計、開發前詳細實作設計 | 承接已確認的規劃文件包，產出多 AI／模型／批次候選系統設計、分項 SD 與追溯矩陣；只設計，等待人工確認。 | `.agents/skills/fantastic-design/SKILL.md`，以及該 skill 指定的文件契約、規劃規則與四份固定範本 |
+| `design-decision` | `design-decision`、比較設計、決定最終 SD | 選用的逐細項候選比較與整合，產出可獨立接手的完整 final 文件包；等待人工確認 final。 | `.agents/skills/design-decision/SKILL.md`，以及該 skill 指定的共用規則與五份固定範本 |
+| `carefully-done` | `carefully-done`、依核准 SD 逐項實作 | 依具體核准設計版本逐項實作、實際驗證、稽核並同步 SD 與 BDD/TDD；偏離已記載設計先停止討論。 | `.agents/skills/carefully-done/SKILL.md`，以及該 skill 指定的規則、執行程序與適用子技能 |
 
 ## 常用選擇
 
@@ -34,6 +37,9 @@
 | 已有 TDD 文件，要開始測試先行實作 | `tdd-development` |
 | 已有完整 MVP/SPEC/BDD/TDD，要自動化開發到驗收 | `well-done` |
 | TDD 完成後要檢查實作是否 100% 對齊文件 | `spec-bdd-implementation-deep-audit` |
+| 已有 Ready for well-done 文件包，另需先完成 SD 詳細設計 | `fantastic-design` |
+| 要逐項比較 SD 候選並整合完整 final | `design-decision`（選用） |
+| 已明確確認 SD 文件包與版本，依設計逐項實作驗收 | `carefully-done` |
 
 ## 組合規則
 
@@ -41,3 +47,21 @@
 - `well-done` 是開發驗收組合入口，可能串接 `tdd-development`、`bdd-frontend-ux-implementation`、`spec-bdd-implementation-deep-audit`。
 - 若使用者只指定單一 skill，先執行該 skill，不自動升級為組合流程。
 - 若任務目標只是問答、查詢或小型文件修正，不必強行使用規劃或開發型 skill。
+
+## 可選 SD 分支
+
+原有 `perfect-plan → well-done` 路徑、入口選用規則與技能／範本保持原樣。需要詳細設計時，另選以下分支：
+
+```text
+perfect-plan
+  → Ready for well-done
+  → fantastic-design（可由不同 AI／模型以不同批次執行）
+  → design-decision（選用）
+  → 人工確認採用的 SD 文件包與具體設計版本
+  → Ready for carefully-done
+  → carefully-done
+```
+
+`Ready for well-done` 仍是原 TDD 規劃交接；`Ready for carefully-done` 另記於 SD 交接。readyforwelldone、可進行 carefullydone 是狀態，不新增同名技能。
+
+SD 存於需求所屬 `docs/sd/<SPEC 完整名稱>/`，以完整 SPEC 名稱及來源文件關聯；不只用共用編號。carefully-done 有 final 優先採 final；無 final 時唯一候選可選用，兩套以上須先取得選擇或執行 design-decision。各情況仍須通過設計完整性、來源基準與明確核准檢查，不能因有候選就直接開發。

@@ -6,6 +6,8 @@
 
 免費角色 metadata 在 `contracts/builtin-avatar-packs.json`，正式80張WebP唯一存放於 `frontend/client/public/avatars/full-body.v1/`；Web／原生選角直接匯入其中16張neutral，劇情透過授權通道讀同一份五表情。只保留正式runtime資產，不存舊JPG、來源PNG、製作JSON或重複圖片；真人照片及私人生成圖不得放入公開目錄。
 
+尚待人工品質確認的本機 Rig 成品放忽略的 `.local/rig-pilot/`，由測試頁的 `rig-review-catalog.ts` 指定 SHA、atlas 區域及接點，Web／Android 共讀同一成品。它們不能混入正式 public 目錄或作 ready 依據；未發布的場景草稿放 `.local/scene-pilot/`，不留在正式內容素材目錄。
+
 ## 模組責任
 
 Domain 放純規則，Application 放用例與介面，Infrastructure 放 provider／binary adapter，Api 放 parser 與路由。固定 D1 SQL、R2 CAS、DO 與清理模組放 `cloudflare/src/`；前端共用 renderer／transport 放 `src/`，`app/` 只組裝路由畫面。詳細入口見 [模組地圖](../01-architecture/04-module-map.md)。
@@ -32,6 +34,7 @@ Domain 放純規則，Application 放用例與介面，Infrastructure 放 provid
 | Worker 單元／真 D1 測試 | `cloudflare/tests/` |
 | Expo 路由畫面 | `frontend/client/app/`；layout 只組合全域 provider／Stack |
 | 前端共用 UI／API／session／storage | `frontend/client/src/`；Web 專用元件用 `.web.tsx` |
+| 分層角色純校驗／畫面呈現 | `frontend/client/src/actor-rig-policy.ts`（純 TypeScript）、`ActorMotionRenderer.tsx`（React Native）；舞台預檢在 `scene-stage.ts`、實體繪製在 `EmbeddedSceneStage.tsx` |
 | 前端單元測試 | `frontend/client/tests/unit/` |
 | 正式 UI 素材／原生 plugin | `frontend/client/assets/`、`frontend/client/plugins/` |
 | 免費角色素材 | `frontend/client/public/avatars/full-body.v1/`；契約為contracts/builtin-avatar-packs.json，無另一套素材或製作來源目錄 |

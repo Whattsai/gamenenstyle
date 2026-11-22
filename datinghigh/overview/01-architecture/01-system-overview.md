@@ -26,6 +26,8 @@ DatingHigh（心動迴路）是戀愛養成交友平台，以個人資料與化�
 
 劇情內容由 manifest 驅動，角色、鏡位、熱區、光色與音訊由共用 renderer 呈現。HTTP 與 WebSocket 命令共用 Application 用例，以 D1 提交為權威；Room DO 處理連線、presence 與通知。故事公開素材使用獨立 STORY_CONTENT，與私人媒體分離。
 
+舞台內容可宣告 `scene-stage.v1` 的 Area 背景、鏡位與原位物件；Application 只投影本人目前鏡位及已提交演出。client 的 `EmbeddedSceneStage` 與 `ActorMotionRenderer` 分別處理幾何與 atlas 圖層，沒有生圖或權威寫入責任。正式角色入口仍採既有五表情 ready 契約；本機 Rig 審查入口與正式採用分開，範圍及證據見 [SceneEventFramework 驗證](../../docs/verification/SPEC-001-SceneEventFramework-Verification.md)。
+
 ## 儲存與內容
 
 D1 migration 基線為 `0007_scene_event_tracks.sql`，共21張自有表、零 Trigger。Foundation 六表54欄、AvatarAndPreferences 兩表27欄的邊界保持；場景內容與執行六表共43欄，欄位與索引見 [資料契約](../03-contracts/02-data-contracts.md)。環境實際採用版本依各自 EXPECTED_MIGRATION，不能由本地升級推定雲端已部署。
