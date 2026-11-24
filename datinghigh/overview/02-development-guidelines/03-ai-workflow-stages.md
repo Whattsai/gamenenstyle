@@ -30,6 +30,7 @@
 | 重啟／換 key | `node --test tests/integration/restart-data.test.mjs`、`node --test tests/integration/key-rotation.test.mjs` |
 | readiness 故障 | `npm run test:readiness:faults`；暫停既有 local 服務，建立新 instance，完成後恢復 |
 | Android smoke | 安裝 development APK、啟動 emulator／Metro／平台後 `npm run test:android` |
+| AI靜態採用 | 先匯出Web並建E2eHost；`npx playwright test --config tests/playwright.config.ts avatar-static-adoption.spec.ts`；Android明確設QA31裝置／ADB port後 `node tests/e2e/android/avatar-static-adoption.mjs`，專用8084 fixture；不代簽真Gemini外觀 |
 | Android 受控矩陣 | `npm run test:android:faults`、`:forms`、`:recovery`、`:retry`、`:account`、`:identity`、`:pending`；前綴皆為 `test:android`，腳本先建 E2E host，使用專用 Metro／真 SecureStore |
 | Android 真身分管理 | `npm run test:android:real-identity`；需要人工取消及選擇已授權 Google 帳號，隔離 D1；不保存 Email／proof |
 | Android 真 Google 生命週期 | 先建 E2E host，再 `pwsh -File tools/test-android.ps1 -Suite real-google-lifecycle -AdbPort 5038`；只在已授權操作該帳號的模擬器使用 |
@@ -82,7 +83,7 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 - `avatar-controlled.mjs` 使用隔離 E2eHost 與8084 Metro；`avatar-full-body.mjs` 使用明確QA31／ADB5038與已確認圖像回放目錄。受控回應與回放不能作為真 provider 品質證據。
 - 表情迴圈核對 focus／AppState、背景停止續送與採用、前景只讀復原、本人明確繼續及未知成本不自動重送。候選與 next POST 的 client deadline 為110秒，provider90秒、HTTP100秒；到期時關閉確認窗，提交仍重驗 serverNow。
 - 套組檢查使用 `node --test tools/tests/builtin-avatar-assets.test.mjs`；正式目錄更新後執行 `node tools/generate-builtin-avatar-assets.mjs`，核對80張成品SHA、avatarVersion與16個neutral匯入。素材只存一份public來源，未使用的原畫、製作紀錄與副本不留存；人工核准結果記在需求驗證文件。
-- Rig 本機審查使用 `node tests/component-layout/server.mjs` 與 `npx playwright test --config tests/scene-rig.playwright.config.ts`；Android 需明確 development-only `DATINGHIGH_NATIVE_RIG_PROFILE=1` 的8086 Metro、8092素材server、QA31／ADB5038，再執行 `tests/e2e/android/scene-rig-pilot.mjs`。素材server啟動先驗catalog與成品SHA一致；catalog可列姿態sheet及單一表情的完整圖格`corrections`，素材白名單與原生fingerprint均展開這些來源，單格修正不改其他表情綁定。Web單款入口可用`character`、`pose`、`expression`直接定位審查。Android runner只對指定QA建立8092的ADB reverse，以loopback讀同一份素材。整批 runner 期間固定 renderer／catalog／viewer／素材，來源與成品共同計算fingerprint，不切換 profile 或熱更新；QA控制項／截圖證據不替代人工品質判斷、正式ready或劇情 Gate B。
+- Rig 本機審查使用 `node tests/component-layout/server.mjs` 與 `npx playwright test --config tests/scene-rig.playwright.config.ts`；Android 需明確 development-only `DATINGHIGH_NATIVE_RIG_PROFILE=1` 的8086 Metro、8092素材server、QA31／ADB5038，再執行 `tests/e2e/android/scene-rig-pilot.mjs`。素材server啟動先驗catalog與成品SHA一致，已採用免費成品由 `rig-review-assets.mjs` 指向public單一來源；catalog可列姿態sheet及單一表情的完整圖格`corrections`，素材白名單與原生fingerprint均展開這些來源，單格修正不改其他表情綁定。Web單款入口可用`character`、`pose`、`expression`直接定位審查。Android runner只對指定QA建立8092的ADB reverse，以loopback讀同一份素材。整批 runner 期間固定 renderer／catalog／viewer／素材，來源與成品共同計算fingerprint，不切換 profile 或熱更新；QA控制項／截圖證據不替代人工品質判斷、正式ready或劇情 Gate B。
 - Rig本機審查的免費16款與虛構AI角色均以四姿態完整表情圖格呈現，審查頁不再拼接分離頭身；只屬外觀核對，不代替正式Puppet的分層／局部表情／連續動作驗收。每款固定素材SHA及使用者確認以需求驗證紀錄為權威。
 - 名片測試涵蓋關閉照片無讀取、預覽先儲存、載入失敗不導覽、返回保護草稿及變更後清除舊投影；schema／SQL 原子性使用真 D1。
 
@@ -97,6 +98,8 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 - 隔離E2eHost的reset須在清空遊戲後重設內容索引及唯一首條，避免多類別／隱藏事件變體流入下一案例；R2故障還原同時保留bytes與httpMetadata，不能用丟失MIME的回填繞過immutable檢查。受控競爭提交仍走真正API／Application／D1，僅在RAM處理合成family metadata，不記錄原始命令或憑證。
 - `npm run test:scene:android:audio` 單獨驗證使用者啟用環境音、真人操作後獨立音效播放器、靜音／背景停止及返回不自動重播。只保存該 App UID 的標準化播放器 ID／狀態；它不是完整結局或人工 Gate 證據。音效 URL 改變會替換播放器，清理舊音效不得取消環境音意圖；過期 seek Promise 不能更改新音效狀態。
 - Web實際音效案例由`audio-browser.ts`啟動獨立Chrome，以`connectOverCDP`的`noDefaults`避免Playwright強制每頁前景；真正切頁後先驗證focus／visibility改變，再驗HTMLAudioElement暫停及返回不重播。此案例開啟自有測試視窗，移除遮擋造成的背景排程並正常化該視窗尺寸；不得操作使用者Chrome profile，暫存profile須驗證在workspace邊界內才清理。產品同時處理AppState與Web blur，返回不自動恢復音效。
+
+- 首場V3使用 `npx playwright test --config tests/playwright.config.ts scene-event-v3.spec.ts`，runner自行選mode3的隔離真D1／R2／Room DO；先export／build E2eHost。原生入口為 `DATINGHIGH_ANDROID_DEVICE=emulator-5556 DATINGHIGH_ADB_PORT=5038 node tests/e2e/android/scene-event-v3-book.mjs`；預設只驗原創書閱讀，`DATINGHIGH_V3_NATIVE_FULL=1`另驗A的原生搭話與收尾，`DATINGHIGH_V3_NATIVE_ENDING`可選`gentle`（預設）、`more-talk`或`book-recommendation`，各自留下結局證據。完整回放須等結局實體書可用才擷取，不能只等標題；推薦輪另檢查Android實際播放器開啟／靜音，診斷原文僅留RAM。夥伴I由獨立授權HTTP操控，不能當作I的Android UI證據。此原生入口只占自有8084 Metro，不能與其他原生fixture並行；XML留RAM，帳密／token不輸出。各平台技術回放與人工Gate B分別記錄。
 
 ### UI 與追溯原則
 

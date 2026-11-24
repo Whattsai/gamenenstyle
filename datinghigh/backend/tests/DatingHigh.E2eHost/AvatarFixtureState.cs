@@ -26,6 +26,7 @@ internal sealed class AvatarFixtureState: IAvatarImageGenerator,IAvatarExpressio
     public AvatarReadStore Reads {get;}
     public string Model=>"controlled-skia-fixture";
     public string ExpressionPromptVersion=>"controlled-skia.v1";
+    public bool SupportsStaticPoses=>true;
     public AvatarFixtureState(RealPlatform source)
     {
         platform=source;bridge=new(new MediaBridge(source)){BaseAddress=new("http://platform.internal/")};
@@ -113,12 +114,13 @@ internal sealed class AvatarFixtureState: IAvatarImageGenerator,IAvatarExpressio
         var attempt=await avatars.GenerateAsync(user,new JsonObject{["styleId"]="warm",["clientRequestId"]=EntityId.New(),["expectedProducedCount"]=0L},ct);
         var profile=(await platform.Sql("SELECT revision FROM user_profiles WHERE account_id=?",user.AccountId)).Single()!;var revision=profile.Number("revision");
         var service=new AvatarExpressionService(platform,Candidates,Expressions,expressionProvider,limiter);var workflow=EntityId.New();
-        await service.ExecuteAsync(user,"begin",new JsonObject{["attemptId"]=attempt.Text("attemptId"),["index"]=1L,["clientRequestId"]=workflow,["expectedRevision"]=revision},ct);
+        await platform.ExecuteAsync("avatar.attempt.expression.begin",new{accountId=user.AccountId,sessionId=user.SessionId,cv=user.CredentialVersion,accessExpiresAt=user.AccessExpiresAt,attemptId=attempt.Text("attemptId"),index=1,clientRequestId=workflow,expectedRevision=revision,proposedAssetId=EntityId.New(),generatorModel=expressionProvider.Model,promptVersion=expressionProvider.ExpressionPromptVersion,staticRequired=false},ct);
         foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})await service.ExecuteAsync(user,"next",new JsonObject{["workflowId"]=workflow,["expression"]=expression,["clientRequestId"]=EntityId.New()},ct);
         return await avatars.SelectAsync(user,new JsonObject{["type"]="generated",["attemptId"]=attempt.Text("attemptId"),["index"]=1L,["expectedRevision"]=revision},ct);
     }
     public async Task<CompressedImage> GenerateExpressionAsync(PrivateMediaContent master,string expression,CancellationToken ct=default)
     {
+        if(expression.StartsWith("pose-",StringComparison.Ordinal))return AvatarStaticPoseFixture.Sheet(expression[5..]);
         // 技術驗證專用：透明幾何人形，不是假裝 Gemini／正式全身美術。
         using var bitmap=new SKBitmap(600,800);using(var canvas=new SKCanvas(bitmap)){
             canvas.Clear(SKColors.Transparent);using var ink=new SKPaint{Color=SKColors.Coral,IsAntialias=true};canvas.DrawCircle(300,100,58,ink);canvas.DrawRoundRect(new SKRect(225,170,375,460),30,30,ink);canvas.DrawRect(230,430,55,315,ink);canvas.DrawRect(315,430,55,315,ink);canvas.DrawRect(170,200,45,260,ink);canvas.DrawRect(385,200,45,260,ink);
@@ -133,6 +135,7 @@ internal sealed class AvatarFixtureState: IAvatarImageGenerator,IAvatarExpressio
     private sealed class RecordedApprovedPack:IAvatarImageGenerator,IAvatarExpressionGenerator
     {
         private readonly CompressedImage master;private readonly Dictionary<string,CompressedImage> images=[];
+        public bool SupportsStaticPoses=>false;
         public string Model=>"recorded-approved-gemini-art-no-provider";public string ExpressionPromptVersion=>"recorded-approved-full-body.v2";
         public RecordedApprovedPack(string directory){
             var source=Path.GetFullPath(directory);var allowed=Path.GetFullPath(".local/evidence/avatar-full-body-gemini")+Path.DirectorySeparatorChar;

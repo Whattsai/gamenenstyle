@@ -5,6 +5,7 @@ import {waitLocalReady,shutdownLocal} from './restart-local.mjs';
 import {validateStoryUpgradeTarget,oldGamePurgeStatements} from './story-content-policy.mjs';
 import {buildSceneEventTrackBundle} from './scene-event-content-policy.mjs';
 import {publishSceneEventBundles,validateFormalSceneEventBundles} from './scene-event-publish-policy.mjs';
+import {validateFirstStoryAuthoring} from './rain-bookshop-v3-policy.mjs';
 import {applySceneEventUpgrade,validateSceneEventTarget,sceneEventMigration} from './scene-event-local-policy.mjs';
 import {createAvatarResetPlan,applyAvatarResetPlan,validateAvatarResetTarget,avatarResetDevelopmentReady} from './avatar-reset-policy.mjs';
 import {createRequire} from 'node:module';
@@ -75,13 +76,15 @@ if(command==='dev'){
  const {getPlatformProxy}=createRequire(path.join(root,'cloudflare/package.json'))('wrangler');
  const proxy=await getPlatformProxy({configPath:instance.config,envFiles:[],persist:{path:path.join(instance.state,'v3')},remoteBindings:false});
  try{const migrations=(await proxy.env.DB.prepare('SELECT name FROM d1_migrations ORDER BY id').all()).results;const counts={};for(const table of ['auth_accounts','user_profiles','user_media_assets','match_conditions','match_invitations','game_rounds','game_story_sessions','game_round_events','game_scene_visits','game_event_instances','content_story_catalog'])if(await proxy.env.DB.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").bind(table).first())counts[table]=(await proxy.env.DB.prepare('SELECT COUNT(*) AS total FROM '+table).first()).total;
- console.log(JSON.stringify({instance:instance.name,target,state:instance.state,buckets:config.r2_buckets.map(b=>({binding:b.binding,name:b.bucket_name})),migrations,counts}));}finally{await proxy.dispose();}
+ const activeGenerated=(await proxy.env.DB.prepare("SELECT p.account_id,p.selected_avatar_ref FROM user_profiles p WHERE p.selected_avatar_type='generated' AND EXISTS(SELECT 1 FROM game_rounds r WHERE r.status='active' AND (r.account_low_id=p.account_id OR r.account_high_id=p.account_id))").all()).results;
+ let withStaticPoseManifest=0,withSavedMaster=0,withCandidateIndex=0;for(const p of activeGenerated){if(!/^[0-9a-f-]{36}$/.test(p.account_id)||!/^[0-9a-f-]{36}$/.test(p.selected_avatar_ref))throw new Error('INVALID_LOCAL_AVATAR_REFERENCE');const master=await proxy.env.FILES.head(`private/${p.account_id}/avatar/${p.selected_avatar_ref}`);if(master)withSavedMaster++;if(Number.isInteger(Number(master?.customMetadata?.candidateIndex))&&Number(master.customMetadata.candidateIndex)>=1&&Number(master.customMetadata.candidateIndex)<=4)withCandidateIndex++;const prefix=`private/${p.account_id}/avatar/${p.selected_avatar_ref}/static-poses/v1/`;let cursor,found=false;do{const page=await proxy.env.FILES.list({prefix,limit:1000,...(cursor?{cursor}:{})});found ||= page.objects.some(o=>/^[0-9a-f]{64}\/manifest\.json$/.test(o.key.slice(prefix.length)));cursor=page.truncated?page.cursor:undefined;}while(cursor&&!found);if(found)withStaticPoseManifest++;}
+ console.log(JSON.stringify({instance:instance.name,target,state:instance.state,buckets:config.r2_buckets.map(b=>({binding:b.binding,name:b.bucket_name})),migrations,counts,activeGeneratedAvatars:{selected:activeGenerated.length,withStaticPoseManifest,withSavedMaster,withCandidateIndex}}));}finally{await proxy.dispose();}
 }else if(command==='scene-upgrade'||command==='scene-publish'){
  const config=JSON.parse(await fs.readFile(instance.config,'utf8'));validateSceneEventTarget(config);
  const directory=path.join(root,'.local','scene-event-publish',instance.name);await fs.mkdir(directory,{recursive:true});const lease=await fs.open(path.join(directory,'publisher.lock'),'wx');
  try{await withPausedWrites(async()=>{
    const definitions=JSON.parse(await fs.readFile(path.join(root,'contracts/scene-event-content.json'),'utf8'));
-   if(definitions.schemaVersion!=='scene-event.authoring.v2'||!Array.isArray(definitions.stories)||definitions.stories.length!==1||definitions.stories[0].sourceFile!=='contracts/rain-bookshop-last-order.json')throw new Error('FIRST_STORY_GATE_REQUIRED');
+   validateFirstStoryAuthoring(definitions);
    const bundles=[];for(const definition of definitions.stories){const source=JSON.parse(await fs.readFile(path.join(root,definition.sourceFile),'utf8'));bundles.push(buildSceneEventTrackBundle(source,root,definition));}
    await validateFormalSceneEventBundles(bundles,root);
   if(command==='scene-upgrade'){

@@ -1,6 +1,31 @@
 import {it,expect,vi} from 'vitest';
-import {produceAvatarExpressions,expressionIds,type AvatarAdoptionProgress} from '../../src/avatar-adoption';
+import {produceAvatarExpressions,confirmStaticAvatarAdoption,expressionIds,type AvatarAdoptionProgress} from '../../src/avatar-adoption';
+import catalog from '../../../../contracts/builtin-static-poses.json';
 const base:AvatarAdoptionProgress={assetId:'asset',attemptId:'attempt',index:1,clientRequestId:'workflow',status:'building',completed:[],currentExpression:null,uncertain:false,expiresAt:9999999999999};
+const readyStatic=()=>{const p=catalog.packs['female-01'];return {schemaVersion:p.schemaVersion,packageVersion:'c'.repeat(64),assets:p.assets.map(a=>({...a,url:`/api/v1/me/avatar/expressions/workflow/poses/${a.id}`})),poses:p.poses};};
+it('static build resumes missing poses but never adopts until the person reviews the exact complete package',async()=>{
+ const completedPoses=['stand','sit'],current:any={...base,staticRequired:true,completed:[...expressionIds],completedPoses};const steps:string[]=[];
+ const request=vi.fn(async(path:string,_method:string,body:any)=>{
+  if(path==='/me/avatar/expressions')return {adoption:current};
+  if(path.endsWith('/next')){steps.push(body.expression);completedPoses.push(body.expression.slice(5));return {...current,status:completedPoses.length===4?'ready':'building',...(completedPoses.length===4?{staticPosePackage:readyStatic()}:{} )};}
+  throw new Error('unexpected adoption before review');
+ });
+ expect(await produceAvatarExpressions({request},{attemptId:'attempt',index:1,expectedRevision:1},()=>true,vi.fn(),()=>String(steps.length),current)).toBeUndefined();
+ expect(steps).toEqual(['pose-read','pose-hold']);expect(request.mock.calls.some(c=>c[0].endsWith('/selection'))).toBe(false);
+});
+it('saved AI pose confirmation commits through its pinned review without re-selecting with an obsolete revision',async()=>{
+ const p:any={...base,savedSource:true,status:'ready',staticRequired:true,completed:[...expressionIds],completedPoses:['stand','sit','read','hold'],staticPosePackage:readyStatic()};
+ const request=vi.fn(async()=>({status:'committed',revision:2}));await confirmStaticAvatarAdoption({request},{attemptId:'attempt',index:1,expectedRevision:1},p,()=>true);
+ expect(request).toHaveBeenCalledTimes(1);
+});
+it('explicit static adoption reviews the pinned version then commits; leaving foreground prevents the commit',async()=>{
+ const p:any={...base,status:'ready',staticRequired:true,completed:[...expressionIds],completedPoses:['stand','sit','read','hold'],staticPosePackage:readyStatic()};
+ let active=true;const request=vi.fn(async()=>{active=false;return p;});
+ await confirmStaticAvatarAdoption({request},{attemptId:'attempt',index:1,expectedRevision:1},p,()=>active);
+ expect(request).toHaveBeenCalledExactlyOnceWith('/me/avatar/expressions/review','POST',{workflowId:'workflow',packageVersion:'c'.repeat(64)});
+ active=true;const committed=vi.fn(async(_path:string,_method:string,_body?:unknown)=>({revision:2}));await confirmStaticAvatarAdoption({request:committed},{attemptId:'attempt',index:1,expectedRevision:1},p,()=>active);
+ expect(committed.mock.calls.map(c=>c[0])).toEqual(['/me/avatar/expressions/review','/me/avatar/selection']);
+});
 it('B1 runs one awaited expression at a time and publishes the selection only after all five are confirmed ready',async()=>{
  const calls:string[]=[],steps:string[]=[];let resolve:(v:any)=>void=()=>{};
  const request=vi.fn(async(path:string,_method:string,body:any)=>{

@@ -15,6 +15,12 @@ function safetyFixture(){
 }
 
 describe('V3 safety publisher',()=>{
+ it('reachability keeps consumed alternative groups even when the completed branch has no world effect',()=>{
+  const c=trackContentFixture(),base=c.narrative.eventBindings[0];
+  for(const id of ['optional-blocker','optional-key']){const b=structuredClone(base);b.bindingId=id;b.repeatGroup='one-opportunity';b.narrativeRole='side';b.requiredForEnding=false;delete b.actions[0].nextNode;c.narrative.eventBindings.push(b);}
+  base.triggerConditions={all:[base.triggerConditions,{track_event_completed:{role:'inviter',bindingKey:'narrative:test-story:optional-key'}}]};
+  expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');
+ });
  it('SEF-UT-547: accepts danger exit before ordinary required cooperation and preserves the normal route',()=>{
   expect(()=>validateTrackContent(safetyFixture())).not.toThrow();
  });
@@ -52,6 +58,45 @@ function npcStageFixture(){
  c.scene.stage.shots[0].actors.push({actorId:'clerk',pose:'stand',expression:'neutral',gesture:'idle',position:{x:.5,y:.7},height:.5,depth:3});
  return c;
 }
+function staticNpcFixture(){
+ const c=npcStageFixture(),frames=Object.fromEntries(['neutral','smile','surprised','thoughtful','concerned'].map((e,i)=>[e,{x:i*200,y:0,width:200,height:800}]));
+ c.scene.npcs[0].appearance={format:'static-npc.v1',poses:[{id:'stand',assetId:'background',width:1000,height:800,frames}]};
+ return c;
+}
+describe('published static NPC frames',()=>{
+ it('an interactive NPC requires every pose/expression opaque mask; malformed or omitted cells cannot publish',()=>{
+  const c=staticNpcFixture(),npc=c.scene.npcs[0];npc.dialogueOptions=['browse'];npc.hitMasks=['neutral','smile','surprised','thoughtful','concerned'].map(expression=>({pose:'stand',expression,mask:{width:4,height:4,rows:['6','f','f','6']}}));
+  expect(()=>validateTrackContent(c)).not.toThrow();const good=structuredClone(c);
+  npc.hitMasks.pop();expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');good.scene.npcs[0].hitMasks[0].mask.rows=['0','0','0','0'];expect(()=>validateTrackContent(good)).toThrow('INVALID_STORY_CONTENT');
+ });
+ it('SEF-UT-502 static: accepts one complete body per expression without a detached face layer',()=>expect(()=>validateTrackContent(staticNpcFixture())).not.toThrow());
+ it.each(['missing-expression','duplicate-frame','outside-sheet','missing-asset','missing-pose'])('SEF-UT-505 static: refuses %s before publishing',kind=>{
+  const c=staticNpcFixture(),pose=c.scene.npcs[0].appearance.poses[0];
+  if(kind==='missing-expression')delete pose.frames.concerned;
+  if(kind==='duplicate-frame')pose.frames.concerned=pose.frames.neutral;
+  if(kind==='outside-sheet')pose.frames.concerned.width=201;
+  if(kind==='missing-asset')pose.assetId='unknown-npc';
+  if(kind==='missing-pose')pose.id='sit';
+  expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');
+ });
+});
+describe('public stage weather',()=>{
+ it('music is an actual audio asset and area gains are bounded data',()=>{
+  const c=stageFixture();c.scene.musicAsset='rain';c.scene.areas[0].audioMix={ambienceGain:.3,musicGain:.6};expect(()=>validateTrackContent(c)).not.toThrow();
+  c.scene.musicAsset='background';expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');c.scene.musicAsset='rain';c.scene.areas[0].audioMix.musicGain=1.1;expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');
+ });
+ it('actor visibility may depend on a public world flag but never on a private value',()=>{
+  const c=staticNpcFixture();c.scene.sharedFlags=[{id:'rain',values:['steady','secret'],initialValue:'steady',publicValues:['steady']}];c.scene.stage.shots[0].actors[0].whenFlagEquals={key:'rain',value:'steady'};
+  expect(()=>validateTrackContent(c)).not.toThrow();c.scene.stage.shots[0].actors[0].whenFlagEquals.value='secret';expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');
+ });
+ it('projects only declared public flag values into weather levels',()=>{
+  const c=stageFixture();c.scene.sharedFlags=[{id:'rain',values:['light','heavy'],initialValue:'light',publicValues:['light','heavy']}];
+  c.scene.stage.weather={flagId:'rain',levels:[{value:'light',intensity:'easing'},{value:'heavy',intensity:'heavy'}]};
+  c.scene.stage.areaVisuals[0].weatherRegion={anchor:{x:.1,y:.1},size:{width:.3,height:.5}};
+  expect(()=>validateTrackContent(c)).not.toThrow();
+  c.scene.sharedFlags[0].publicValues=['light'];expect(()=>validateTrackContent(c)).toThrow('INVALID_STORY_CONTENT');
+ });
+});
 describe('V3 NPC appearance completeness',()=>{
  it('SEF-UT-502: a stage with all five distinct semantic expressions and a valid NPC pose is accepted',()=>{
   expect(()=>validateTrackContent(npcStageFixture())).not.toThrow();

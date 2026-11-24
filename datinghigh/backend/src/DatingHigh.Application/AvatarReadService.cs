@@ -16,7 +16,7 @@ public sealed class AvatarReadService(IPlatformClient platform,IAvatarReadStore 
 {
     public static void Validate(AvatarReadScope scope,string targetId,string? version=null,string? expression=null)
     {
-        if(!Enum.IsDefined(scope)||!EntityId.IsValid(targetId)||version is not null&&!System.Text.RegularExpressions.Regex.IsMatch(version,"^[0-9a-f]{64}$")||expression is not null&&expression is not("neutral" or "smile" or "surprised" or "thoughtful" or "concerned"))throw new DomainException("INVALID_AVATAR_SELECTION");
+        if(!Enum.IsDefined(scope)||!EntityId.IsValid(targetId)||version is not null&&!System.Text.RegularExpressions.Regex.IsMatch(version,"^[0-9a-f]{64}$")||expression is not null&&expression is not("neutral" or "smile" or "surprised" or "thoughtful" or "concerned")&&!System.Text.RegularExpressions.Regex.IsMatch(expression,"^static-[0-9a-f]{64}$"))throw new DomainException("INVALID_AVATAR_SELECTION");
     }
     private static JsonObject Pick(JsonNode source,params string[] names)=>new(source.AsObject().Where(p=>names.Contains(p.Key,StringComparer.Ordinal)).Select(p=>new KeyValuePair<string,JsonNode?>(p.Key,p.Value?.DeepClone())));
     public async Task<JsonObject> ProjectionAsync(CurrentUser user,AvatarReadScope scope,string targetId,CancellationToken ct=default)
@@ -27,6 +27,22 @@ public sealed class AvatarReadService(IPlatformClient platform,IAvatarReadStore 
         var safe=Pick(result,"avatarAssetId","avatarVersion","expressionSpecVersion","avatarAssetSpecVersion","framing","pose");
         if(result["stageAnchors"] is JsonObject anchors){var points=new JsonObject();foreach(var point in new[]{"head","feet"})if(anchors[point] is JsonObject value)points[point]=Pick(value,"x","y");safe["stageAnchors"]=points;}
         var expressions=new JsonObject();foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})if(result["expressions"]?[expression] is JsonObject image)expressions[expression]=Pick(image,"url","sha256","mimeType","width","height","byteSize");safe["expressions"]=expressions;
+        if(result["staticPosePackage"] is JsonObject package)
+        {
+            var poses=new JsonArray();
+            if(package["poses"] is JsonArray items)foreach(var item in items.OfType<JsonObject>())
+            {
+                var frames=new JsonObject();
+                foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})if(item["frames"]?[expression] is JsonObject frame)
+                {
+                    var selected=Pick(frame,"assetId");if(frame["region"] is JsonObject region)selected["region"]=Pick(region,"x","y","width","height");frames[expression]=selected;
+                }
+                var pose=Pick(item,"id");pose["frames"]=frames;poses.Add(pose);
+            }
+            var projected=Pick(package,"schemaVersion","packageVersion");projected["poses"]=poses;
+            projected["assets"]=new JsonArray((package["assets"] as JsonArray)?.OfType<JsonObject>().Select(a=>(JsonNode)Pick(a,"id","url","sha256","mimeType","width","height","byteSize")).ToArray()??[]);
+            safe["staticPosePackage"]=projected;
+        }
         return safe;
     }
     public Task<PrivateMediaContent> ReadAsync(CurrentUser user,AvatarReadScope scope,string targetId,string version,string expression,CancellationToken ct=default)

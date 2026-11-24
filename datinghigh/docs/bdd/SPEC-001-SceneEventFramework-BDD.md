@@ -1,5 +1,7 @@
 # SPEC-001-SceneEventFramework — BDD 場景規格
 
+> **目前執行範圍**：依使用者決策先做靜態角色／場景整合，Puppet及連續角色動作試作暫緩，不保留未使用程式。原動態情境保留ID作後續追溯，不列本階段靜態交付前置，也不改勾通過；混合情境的身份、靜態表情／姿態、素材與授權斷言仍須驗證。實際進度及回復證據只記於[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)，下方歷史規劃與動作順序不覆蓋此範圍。
+
 > **來源 MVP**：[MVP-001-LoveGameDatingApp](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～35；新 V3 為 AC-005-24～35）
 > **已確認 SDD**：[SPEC-001-SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)（原 SEF-RQ-01～03=A；新版雙 Track、雨聲書店詳稿已由使用者指示繼續 perfect-plan）
 > **原規劃**：2026-11-12；**2026-11-16 最終計畫**：BDD-080～121 新增 42 項，合計 121 場景。V2-RQ-01=A 已確認，Phase 4 的 10 組 GAP 也已回寫 TDD，**新版 Phase 5 Ready for well-done（只代表規劃完成）**。舊版僅 1/79 完整覆核，新版仍 0/42，絕非產品已通過。
@@ -17,9 +19,9 @@
 
 ```text
 📦 SceneEventFramework
-├─ 目前範圍：16款免費角色Rig整批審查，V3正式劇情仍未完成
+├─ 目前範圍：正式靜態包接線與首場V3整合；完整劇情仍未核證
 ├─ BDD完整覆核：118/191；其中V3 0/70，相關局部實作見Verification
-├─ 首輪免費／AI品質已確認；其餘15款等待整批本人確認
+├─ 17款靜態外觀均已逐款確認；實作與跨平台證據以Verification為準
 └─ 正式Rig ready與首條V3 Gate B未通過，不製作其餘9場
 ```
 

@@ -8,11 +8,13 @@ default local 的 EXPECTED_MIGRATION 為 `0007_scene_event_tracks.sql`；ready �
 
 乾淨 DB 使用本地 migrate wrapper。舊0005／0006有非正式遊戲資料時，使用 `npm run db:upgrade-scene:local`：鎖定已知 local instance、暫停寫入，以排他備份名稱及原子改名保存備份，再用受限 D1 batch 清舊遊戲／邀請並套0007。帳號、個資、媒體等保護表於 RAM 比對筆數與雜湊；整批失敗回滾，不補假故事候選。0007 明確移除舊互動表並建立角色進度；非空舊遊戲不得直接 migrate。wrapper 發布唯一首條後才更新該 instance 的 EXPECTED_MIGRATION；重跑0007不再清遊戲，還原只建新目錄。
 
-`npm run content:publish:local` 使用 scene-publish，固定由 contracts/scene-event-content.json 建構首條；清理前先驗首條 v2 劇本／演出契約及四層 immutable 內容／DSL／相依／能力，再 create-only 寫 R2 並讀回驗 SHA，最後在 D1 batch 發布 Category／Scene／關聯／Narrative。宣告素材必須完整且 SHA／長度／MIME 一致，R2 既存同位元組但不同 MIME 亦拒絕覆寫。部分 R2 失敗不公開 D1 目錄，已發布內容不得覆寫。本地發布錯誤只提示公開依賴 ID／版本、玩法或演出引用；任意路徑／參數不反射，HTTP 仍回安全通用內容錯誤。正式增加其他主線需首條使用者 Gate 的精確版本／SHA 紀錄；技術 fixture 不充正式故事。
+`npm run content:publish:local` 使用 scene-publish，固定由 contracts/scene-event-content.json 建構首條；清理前先驗來源版本的正式劇本／演出契約及四層 immutable 內容／DSL／相依／能力，再 create-only 寫 R2 並讀回驗 SHA，最後在 D1 batch 發布 Category／Scene／關聯／Narrative。宣告素材必須完整且 SHA／長度／MIME 一致，R2 既存同位元組但不同 MIME 亦拒絕覆寫。部分 R2 失敗不公開 D1 目錄，已發布內容不得覆寫。本地發布錯誤只提示公開依賴 ID／版本、玩法或演出引用；任意路徑／參數不反射，HTTP 仍回安全通用內容錯誤。V2 舊首場與取代它的 V3 首場可各自發布；V3 發布時在同 batch 退休舊 Narrative 抽選索引，既有 Session 的 R2 釘選內容不改。正式增加其餘主線需新版首場使用者 Gate B 的精確版本／SHA 紀錄，舊版核准不能代用；技術 fixture 不充正式故事。
+
+Web匯出須包含public下的full-body.v1與static-poses.v1正式角色成品；執行 `node --test tools/tests/static-avatar-assets.test.mjs` 核對16款來源SHA、65份PNG與完整frame。角色靜態包沿用原有媒體通道，無新環境變數或D1 migration；未知或正式環境的私人包不得由本機fixture填入。
 
 ## 版本化故事發布
 
-執行 `npm run content:publish:local`，檢查完整無環圖、來源 SHA 與 immutable 版本後，上傳至獨立 local STORY_CONTENT；讀回素材與 manifest 驗 hash，再原子 published／retire 舊版。已釘選 Round 仍能讀 retired 版本，不覆寫已發布內容。
+執行 `npm run content:publish:local`，檢查完整無環圖、來源 SHA 與 immutable 版本後，上傳至獨立 local STORY_CONTENT；讀回素材與 manifest 驗 hash，再原子 published／retire 舊版。預設索引使用 `contracts/rain-bookshop-before-rain-stops.json`；已釘選 Round 仍能讀 retired 版本，不覆寫已發布內容。要使用新內容須在新Session抽選；既有章節自然收尾後由雙方同意下一場，不直接改寫當前Session的釘選資料。
 
 ROUND_TICKET_HMAC_KEY 僅由 local wrapper 補缺並沿用既有值。重新 export Web、必要時因 expo-audio／原生 plugin 變更重建 Android，再啟動平台。WS 路徑為 `/api/v1/game-rounds/<uuid>/ws`；故事素材路徑須 run_worker_first，不能導向私人 FILES。
 

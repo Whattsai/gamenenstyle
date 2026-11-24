@@ -10,6 +10,17 @@ import source from '../../../../contracts/rain-bookshop-last-order.json';
 import type {ScenePresentation} from '../../src/story-stage-geometry';
 import {Animated} from 'react-native';
 afterEach(()=>{cleanup();vi.restoreAllMocks();});
+it('an original book temporarily clears the narrative hit layer and restores it when closed',()=>{
+ const book={id:'original',objectId:'book',title:'原創',category:'人生',summary:'摘要',pages:['一','二']};
+ const track:any={actorRole:'inviter',areaId:'shelves',selectedObject:'book',books:[book],world:{objects:[{id:'book',areaId:'shelves',holderRole:null}],flags:{}},onDrop:vi.fn()};
+ const node:any={id:'reading',title:'閱讀',lines:[{speaker:'旁白',text:'閱讀原創書籍。'}]};
+ const view=render(<ADVStage node={node} track={track} disabled={false}/>);
+ expect(screen.getByTestId('story-narrative').style.display).toBe('none');
+ view.rerender(<ADVStage node={node} track={{...track,disabled:true}} disabled/>);
+ expect(screen.getByTestId('story-narrative').style.display).not.toBe('none');
+ view.rerender(<ADVStage node={node} track={{...track,selectedObject:null}} disabled={false}/>);
+ expect(screen.getByTestId('story-narrative').style.display).not.toBe('none');
+});
 const scene={...source.scene.scenePresentation,hotspots:[{id:'paper',definitionId:'pickup-slip-27',label:'濕紙單',x:.45,y:.42}]} as ScenePresentation;
 it('SEF-UT-529 / SEF-UT-511 partial: V3 pan moves the published area and book sprite by the same camera transform',()=>{
  const oldWidth=window.innerWidth;Object.defineProperty(window,'innerWidth',{configurable:true,value:390});

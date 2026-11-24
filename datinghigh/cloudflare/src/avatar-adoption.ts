@@ -1,4 +1,6 @@
 import {z} from 'zod';
+import {poseBuildSteps,isPoseStep,poseSheetSchema,type PoseBuildStep} from './avatar-pose-contract';
+import {poseProgress,recoverAvatarPose,acquireAvatarPose,finalizeAvatarPoses,cleanAvatarPoseTemps} from './avatar-pose-adoption';
 import {avatarExpressionPrefix,expressionIds,expressionSpecVersion,avatarAssetSpecVersion,type AvatarExpression,type AvatarExpressionManifest} from './avatar-expression-manifest';
 import {publishReadyAvatarPack,readReadyAvatarPack} from './avatar-expression-store';
 
@@ -6,15 +8,16 @@ const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{
 const descriptor=z.strictObject({objectKey:z.string(),sha256:z.string().regex(/^[0-9a-f]{64}$/),mimeType:z.literal('image/webp'),width:z.number().int().min(600).max(4096),height:z.number().int().min(800).max(5462),byteSize:z.number().int().positive().max(2000000),alphaMode:z.literal('straight'),framing:z.literal('full_body'),pose:z.literal('standing')});
 const stateSchema=z.strictObject({version:z.literal(1),ownerAccountId:id,assetId:id,attemptId:id,index:z.number().int().min(1).max(4),
  requestId:id,expectedRevision:z.number().int().positive(),sourceImageSha256:z.string().regex(/^[0-9a-f]{64}$/),expiresAt:z.number().int().positive(),
+ savedSource:z.boolean().optional(),committedRevision:z.number().int().positive().optional(),staticRequired:z.boolean().optional(),poseSheets:z.partialRecord(z.enum(['stand','sit','read','hold']),poseSheetSchema).optional(),staticVersion:z.string().regex(/^[0-9a-f]{64}$/).optional(),reviewedStaticVersion:z.string().regex(/^[0-9a-f]{64}$/).optional(),
  status:z.enum(['building','ready','committed','cancelled']),completed:z.partialRecord(z.enum(expressionIds),descriptor),receipts:z.partialRecord(z.enum(expressionIds),id),verifiedAt:z.number().int().positive().optional(),
- inFlight:z.strictObject({expression:z.enum(expressionIds),requestId:id,until:z.number().int().positive()}).nullable(),
+ inFlight:z.strictObject({expression:z.enum([...expressionIds,...poseBuildSteps]),requestId:id,until:z.number().int().positive()}).nullable(),
  failed:z.array(id).max(64),uncertain:z.boolean(),generatorModel:z.string().min(1).max(128),promptVersion:z.string().min(1).max(128)});
 export type AvatarAdoption=z.infer<typeof stateSchema>;
 export class AvatarAdoptionError extends Error{constructor(public code:string,public status=409){super(code);}}
 const key=(owner:string)=>`private/${id.parse(owner)}/avatar/temp/adoption`;
 function fail(code='AVATAR_ADOPTION_IN_PROGRESS',status=409):never{throw new AvatarAdoptionError(code,status);}
 export const adoptionProgress=(state:AvatarAdoption)=>({assetId:state.assetId,attemptId:state.attemptId,index:state.index,clientRequestId:state.requestId,
- status:state.status,completed:expressionIds.filter(e=>!!state.completed[e]),currentExpression:state.inFlight?.expression??null,uncertain:state.uncertain,expiresAt:state.expiresAt});
+ status:state.status,...(state.savedSource?{savedSource:true}:{}),completed:expressionIds.filter(e=>!!state.completed[e]),currentExpression:state.inFlight&&!isPoseStep(state.inFlight.expression)?state.inFlight.expression:null,uncertain:state.uncertain,expiresAt:state.expiresAt,...poseProgress(state)});
 async function load(bucket:R2Bucket,owner:string){
  const object=await bucket.get(key(owner));if(!object)return null;
  try{const state=stateSchema.parse(await object.json());if(state.ownerAccountId!==owner)throw new Error();return {state,etag:object.etag};}
@@ -28,29 +31,31 @@ const imageReceipt=z.strictObject({version:z.literal(1),ownerAccountId:id,assetI
 /** 單張物件與進度是兩次 R2 寫入；只依驗證過的同一 lease 收據補齊，不取得新 provider lease。 */
 async function recoverStoredExpression(bucket:R2Bucket,current:{state:AvatarAdoption;etag:string}){
  const {state}=current,flight=state.inFlight;if(state.status!=='building'||!flight)return;
- const objectKey=avatarExpressionPrefix(state.ownerAccountId,state.assetId)+flight.expression+'.webp';
+ if(isPoseStep(flight.expression)){await recoverAvatarPose(bucket,current);return;}
+ const expression=flight.expression as AvatarExpression;
+ const objectKey=avatarExpressionPrefix(state.ownerAccountId,state.assetId)+expression+'.webp';
  const object=await bucket.get(objectKey);if(!object)return;
  let receipt:z.infer<typeof imageReceipt>;
  try{const text=object.customMetadata?.avatarExpressionReceipt;if(!text||text.length>4096)return;receipt=imageReceipt.parse(JSON.parse(text));}catch{return;}
  if(receipt.ownerAccountId!==state.ownerAccountId||receipt.assetId!==state.assetId||receipt.workflowId!==state.requestId||receipt.requestId!==flight.requestId||receipt.expression!==flight.expression||receipt.image.objectKey!==objectKey||receipt.publishedAt>flight.until||receipt.publishedAt<flight.until-120000||receipt.publishedAt>=state.expiresAt||object.size!==receipt.image.byteSize||object.httpMetadata?.contentType!==receipt.image.mimeType||await digest(object)!==receipt.image.sha256)return;
  const neutral=state.completed.neutral;
  if(Math.abs(receipt.image.width/receipt.image.height-.75)>.015||neutral&&(neutral.width!==receipt.image.width||neutral.height!==receipt.image.height))return;
- state.completed[flight.expression]=receipt.image;state.receipts[flight.expression]=flight.requestId;state.inFlight=null;state.uncertain=false;
+ state.completed[expression]=receipt.image;state.receipts[expression]=flight.requestId;state.inFlight=null;state.uncertain=false;
  if(expressionIds.every(e=>!!state.completed[e]))state.verifiedAt=receipt.publishedAt;
  try{current.etag=await save(bucket,state,current.etag);}catch(error){
   const actual=await load(bucket,state.ownerAccountId);
-  if(!actual||actual.state.requestId!==state.requestId||actual.state.receipts[flight.expression]!==flight.requestId)throw error;
+  if(!actual||actual.state.requestId!==state.requestId||actual.state.receipts[expression]!==flight.requestId)throw error;
   current.state=actual.state;current.etag=actual.etag;
  }
  await finalize(bucket,current);
 }
 /** 跨 Worker 的本人前景鎖。呼叫者先驗 Session、候選來源與 profile revision；每次發布後仍須重驗。 */
-export async function beginAvatarAdoption(bucket:R2Bucket,input:Omit<AvatarAdoption,'version'|'status'|'completed'|'receipts'|'verifiedAt'|'inFlight'|'failed'|'uncertain'>,now:number){
- const state=stateSchema.parse({...input,version:1,status:'building',completed:{},receipts:{},inFlight:null,failed:[],uncertain:false});
+export async function beginAvatarAdoption(bucket:R2Bucket,input:Omit<AvatarAdoption,'version'|'status'|'completed'|'receipts'|'verifiedAt'|'inFlight'|'failed'|'uncertain'>,now:number,existing?:{completed:AvatarAdoption['completed'];verifiedAt:number}){
+ const state=stateSchema.parse({...input,version:1,status:'building',completed:{},receipts:{},inFlight:null,failed:[],uncertain:false,...existing});
  if(state.expiresAt<=now)fail('AVATAR_CANDIDATE_EXPIRED',410);
  const previous=await load(bucket,state.ownerAccountId);
  if(previous&&previous.state.status==='cancelled'&&previous.state.expiresAt>now&&previous.state.attemptId===state.attemptId&&previous.state.index===state.index&&previous.state.sourceImageSha256===state.sourceImageSha256){
-  const resumed={...previous.state,requestId:state.requestId,expectedRevision:state.expectedRevision,status:previous.state.verifiedAt?'ready' as const:'building' as const,inFlight:null,uncertain:false};
+  const resumed={...previous.state,requestId:state.requestId,expectedRevision:state.expectedRevision,status:(previous.state.staticRequired?previous.state.staticVersion:previous.state.verifiedAt)?'ready' as const:'building' as const,inFlight:null,uncertain:false};
   await save(bucket,resumed,previous.etag);return adoptionProgress(resumed);
  }
  if(previous&&['building','ready'].includes(previous.state.status)&&previous.state.expiresAt>now){
@@ -67,7 +72,8 @@ export async function assertAvatarSelectionUnlocked(bucket:R2Bucket,owner:string
  if(current&&['building','ready'].includes(current.state.status)&&current.state.expiresAt>now)fail();
 }
 /** 已成功的項目先回 receipt；未知結果不自動重呼供應商，人工重試須明確接受額外用量。 */
-export async function acquireAvatarExpression(bucket:R2Bucket,owner:string,workflow:string,expression:AvatarExpression,requestId:string,now:number,retryUncertain=false){
+export async function acquireAvatarExpression(bucket:R2Bucket,owner:string,workflow:string,expression:AvatarExpression|PoseBuildStep,requestId:string,now:number,retryUncertain=false){
+ if(isPoseStep(expression))return acquireAvatarPose(bucket,owner,workflow,expression,requestId,now,retryUncertain);
  id.parse(workflow);id.parse(requestId);z.enum(expressionIds).parse(expression);
  const current=await load(bucket,owner);if(!current||current.state.requestId!==workflow)fail('AVATAR_ADOPTION_NOT_FOUND',404);
  await recoverStoredExpression(bucket,current);
@@ -86,7 +92,7 @@ export async function acquireAvatarExpression(bucket:R2Bucket,owner:string,workf
 export async function failAvatarExpression(bucket:R2Bucket,owner:string,workflow:string,requestId:string,lease:string,uncertain:boolean){
  const current=await load(bucket,owner);if(!current||current.etag!==lease||current.state.requestId!==workflow||current.state.inFlight?.requestId!==requestId)fail();
  const expression=current.state.inFlight.expression;await recoverStoredExpression(bucket,current);
- if(current.state.receipts[expression]===requestId)return adoptionProgress(current.state);
+ if(isPoseStep(expression)?current.state.poseSheets?.[expression.slice(5) as 'stand']?.requestId===requestId:current.state.receipts[expression]===requestId)return adoptionProgress(current.state);
  current.state.failed.push(requestId);current.state.inFlight=null;current.state.uncertain=uncertain;
  await save(bucket,current.state,current.etag);return adoptionProgress(current.state);
 }
@@ -113,17 +119,20 @@ export async function publishAvatarExpression(bucket:R2Bucket,owner:string,workf
 }
 async function finalize(bucket:R2Bucket,current:{state:AvatarAdoption;etag:string}){
  const {state}=current,owner=state.ownerAccountId;
- if(state.status==='building'&&state.verifiedAt&&expressionIds.every(e=>!!state.completed[e])){
+ if(state.status==='building'&&state.verifiedAt&&expressionIds.every(e=>!!state.completed[e])&&await finalizeAvatarPoses(bucket,state)){
   const manifest:AvatarExpressionManifest={manifestSchemaVersion:1,ownerAccountId:owner,avatarAssetId:state.assetId,expressionSpecVersion,avatarAssetSpecVersion,
    sourceImageSha256:state.sourceImageSha256,sourceAssetRef:state.attemptId,status:'ready',framing:'full_body',pose:'standing',
    stageAnchors:{head:{x:.5,y:.08},feet:{x:.5,y:.96}},masterAsset:state.completed.neutral!,expressions:state.completed as AvatarExpressionManifest['expressions'],
    generatorModel:state.generatorModel,promptVersion:state.promptVersion,verifiedAt:state.verifiedAt};
-  await publishReadyAvatarPack(bucket,manifest,owner,state.assetId);state.status='ready';current.etag=await save(bucket,state,current.etag);
+  if(!state.savedSource)await publishReadyAvatarPack(bucket,manifest,owner,state.assetId);state.status='ready';current.etag=await save(bucket,state,current.etag);
  }
+ // ready 保存後清理若中斷，下次查回仍重試；GC不能以 ready reference 保留這些暫存副本。
+ if(state.status==='ready'||state.status==='committed')await cleanAvatarPoseTemps(bucket,state);
 }
 async function digest(object:R2ObjectBody){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await object.arrayBuffer())),n=>n.toString(16).padStart(2,'0')).join('');}
 export async function cancelAvatarAdoption(bucket:R2Bucket,owner:string,workflow:string,now:number){
  const current=await load(bucket,owner);if(!current||current.state.requestId!==workflow)fail('AVATAR_ADOPTION_NOT_FOUND',404);
+ await recoverStoredExpression(bucket,current);
  if(current.state.inFlight&&current.state.inFlight.until>now)fail();
  current.state.status='cancelled';current.state.inFlight=null;await save(bucket,current.state,current.etag);
  return {cancelled:true};
@@ -134,12 +143,17 @@ export async function readyAvatarAdoption(bucket:R2Bucket,owner:string,workflow:
  if(current.state.expiresAt<=now)fail('AVATAR_CANDIDATE_EXPIRED',410);
  await finalize(bucket,current);
  if(!['ready','committed'].includes(current.state.status))fail('AVATAR_PACK_NOT_READY');
+ if(current.state.staticRequired){if(!current.state.staticVersion||current.state.reviewedStaticVersion!==current.state.staticVersion)fail('AVATAR_PACK_NOT_READY');await finalizeAvatarPoses(bucket,current.state);}
  const manifest=await readReadyAvatarPack(bucket,owner,current.state.assetId,{sourceImageSha256:current.state.sourceImageSha256});
  return {state:current.state,manifest};
 }
-export async function completeAvatarAdoption(bucket:R2Bucket,owner:string,workflow:string){
+export async function completeAvatarAdoption(bucket:R2Bucket,owner:string,workflow:string,revision?:number){
  const current=await load(bucket,owner);if(!current||current.state.requestId!==workflow)fail('AVATAR_ADOPTION_NOT_FOUND',404);
  if(current.state.status==='committed')return;
  if(current.state.status!=='ready')fail('AVATAR_PACK_NOT_READY');
- current.state.status='committed';await save(bucket,current.state,current.etag);
+ if(current.state.staticRequired&&(!current.state.staticVersion||current.state.reviewedStaticVersion!==current.state.staticVersion))fail('AVATAR_PACK_NOT_READY');
+ current.state.status='committed';if(revision!==undefined)current.state.committedRevision=revision;await save(bucket,current.state,current.etag);
+ await cleanAvatarPoseTemps(bucket,current.state).catch(()=>{/* 已提交的採用不能因暫存清理失敗退回；到期GC會補清。 */});
 }
+
+export {load as loadAvatarAdoption,save as saveAvatarAdoption,finalize as finalizeAvatarAdoption};

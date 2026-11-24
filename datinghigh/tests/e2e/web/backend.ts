@@ -8,9 +8,9 @@ export async function startBackend(environment:Record<string,string>={}){
 export type Backend=Awaited<ReturnType<typeof startBackend>>;
 export async function control(backend:Backend,request:APIRequestContext,data:Record<string,unknown>){const response=await request.post(`${backend.url}/_test/control`,{headers:{'X-DatingHigh-Test-Control':backend.key},data,timeout:45000});if(response.status()!==200)throw new Error('Isolated API test control failed');return response.json();}
 export async function stopBackend(backend:Backend,request:APIRequestContext){await control(backend,request,{op:'shutdown'});await new Promise<void>(resolve=>{if(backend.child.exitCode!==null){resolve();return;}backend.child.once('exit',()=>resolve());});}
-export async function routeBackend(page:Page,backend:Backend){
+export async function routeBackend(page:Page,backend:Backend,timeout=50000){
  await page.addInitScript(()=>{let offset=0;const now=performance.now.bind(performance);Object.defineProperty(performance,'now',{configurable:true,value:()=>now()+offset});(window as any).__testAdvance=(milliseconds:number)=>{offset+=milliseconds;};});
- await page.route('**/api/v1/**',async route=>{const original=new URL(route.request().url());try{const response=await route.fetch({url:backend.url+original.pathname+original.search,headers:await route.request().allHeaders(),timeout:50000});await route.fulfill({response});}catch{await route.abort('failed').catch(()=>{});}});
+ await page.route('**/api/v1/**',async route=>{const original=new URL(route.request().url());try{const response=await route.fetch({url:backend.url+original.pathname+original.search,headers:await route.request().allHeaders(),timeout});await route.fulfill({response});}catch{await route.abort('failed').catch(()=>{});}});
 }
 export async function advance(backend:Backend,request:APIRequestContext,page:Page,milliseconds:number){await page.evaluate(value=>(window as any).__testAdvance(value),milliseconds);await control(backend,request,{op:'advance',milliseconds});}
 

@@ -17,11 +17,13 @@ public sealed class AvatarReadStore(HttpClient http):IAvatarReadStore
         try{
             using var response=await http.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,ct);
             if(!response.IsSuccessStatusCode){var status=(int)response.StatusCode;throw new DomainException(status switch{401=>"SESSION_REVOKED",403=>"RESOURCE_FORBIDDEN",404=>"AVATAR_NOT_FOUND",409=>"AVATAR_VERSION_CONFLICT",_=>"STORAGE_UNAVAILABLE"},status is 401 or 403 or 404 or 409?status:503);}
-            if(response.Content.Headers.ContentType?.MediaType!="image/webp"||response.Content.Headers.ContentLength>2000000)throw new DomainException("STORAGE_UNAVAILABLE",503);
+            var mime=expression.StartsWith("static-",StringComparison.Ordinal)?"image/png":"image/webp";
+            var maxBytes=mime=="image/png"?20000000:2000000;
+            if(response.Content.Headers.ContentType?.MediaType!=mime||response.Content.Headers.ContentLength>maxBytes)throw new DomainException("STORAGE_UNAVAILABLE",503);
             using var input=await response.Content.ReadAsStreamAsync(ct);using var output=new MemoryStream();var chunk=new byte[16384];int count;
-            while((count=await input.ReadAsync(chunk,ct))>0){if(output.Length+count>2000000)throw new DomainException("STORAGE_UNAVAILABLE",503);await output.WriteAsync(chunk.AsMemory(0,count),ct);}
+            while((count=await input.ReadAsync(chunk,ct))>0){if(output.Length+count>maxBytes)throw new DomainException("STORAGE_UNAVAILABLE",503);await output.WriteAsync(chunk.AsMemory(0,count),ct);}
             if(output.Length<1||response.Content.Headers.ContentLength is long length&&length!=output.Length)throw new DomainException("STORAGE_UNAVAILABLE",503);
-            return new(output.ToArray(),"image/webp");
+            return new(output.ToArray(),mime);
         }catch(HttpRequestException){throw new DomainException("STORAGE_UNAVAILABLE",503);}
     }
 }

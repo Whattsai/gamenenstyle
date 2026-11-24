@@ -1,6 +1,6 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {AppState,BackHandler,Image,Modal,Platform,RefreshControl,Switch,Pressable,ScrollView,Text,TextInput,useWindowDimensions,View} from 'react-native';
-import {useFocusEffect,useRouter,useNavigation} from 'expo-router';
+import {useFocusEffect,useRouter,useNavigation,useLocalSearchParams} from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Crypto from 'expo-crypto';
 import {File,Paths} from 'expo-file-system';
@@ -11,7 +11,8 @@ import {colors,SceneBackground,GlassPanel,PrimaryButton,FormField,SubtleBadge,In
 import type {ProfileField,Gender,CardVisibility} from './profile-fields';
 import {formSnapshot,profilePayload,visibleOnCard} from './profile-fields';
 import {usePendingBackGuard} from './pending-back-guard';
-import {produceAvatarExpressions,parseAvatarAdoption,type AvatarAdoptionProgress} from './avatar-adoption';
+import {AvatarStaticReview} from './AvatarStaticReview';
+import {produceAvatarExpressions,confirmStaticAvatarAdoption,parseAvatarAdoption,type AvatarAdoptionProgress} from './avatar-adoption';
 
 type Photo={assetId:string;mimeType:string;displayOrder:number};
 type Option={id:string;label:string;category?:string;active:boolean};
@@ -48,26 +49,31 @@ function message(error:unknown){
  const texts:Record<string,string>={AVATAR_DUPLICATE_IMAGE:'這次插畫與已有候選相同，未新增張數；可主動再試，可能增加供應商成本',INVALID_AVATAR_SELECTION:'這個化身目前無法選用，請重新整理後再選擇',INVALID_PROFILE:'請確認生日、文字長度、標籤與配對條件',IMAGE_TOO_LARGE:'照片超過 8 MiB，請選擇較小的圖片',INVALID_IMAGE:'圖片格式不支援或已損壞，請重新選圖',COMPRESSED_IMAGE_TOO_LARGE:'無法在保留畫質的情況下壓縮這張照片，請換一張',PHOTO_LIMIT_REACHED:'最多可保存 5 張個人照片',PROFILE_VERSION_CONFLICT:'資料已在其他地方更新，請重新整理後再修改',AVATAR_GENERATION_IN_PROGRESS:'本輪仍有操作進行中，請保留目前候選並稍後查看',AVATAR_CANDIDATE_EXPIRED:'本輪候選已過期，請重新開始',AVATAR_LIMIT_REACHED:'本輪最多 4 張，請從已有候選中選擇',IMAGE_PROVIDER_UNCERTAIN:'生成結果與供應商用量尚未確認；不會自動重送，已產生的候選仍保留',IMAGE_PROVIDER_UNAVAILABLE:'AI 服務目前無法使用，已產生的候選仍保留',IMAGE_PROVIDER_NO_IMAGE:'這次未取得有效插畫，既有候選不受影響',RATE_LIMITED:'操作過於頻繁，請稍後再試',SESSION_REVOKED:'登入已失效，請重新登入',PHOTO_NOT_FOUND:'照片已不存在，請重新整理',AVATAR_SOURCE_CHANGED:'來源照片已變更，本輪已結束；請重新開始',AVATAR_ATTEMPT_CLOSED:'本輪已結束，請重新整理',AVATAR_PHOTOS_REQUIRED:'至少需要 2 張已保存的個人照片'};
  Object.assign(texts,{
   AVATAR_ADOPTION_IN_PROGRESS:'另一個畫面正在製作角色，請重新整理後繼續或取消五表情製作',
-  AVATAR_EXPRESSION_UNCERTAIN:'這張表情的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試',
-  AVATAR_PACK_NOT_READY:'五表情還未完整保存，請先繼續製作；原角色保持不變',
+  AVATAR_EXPRESSION_UNCERTAIN:'這一步的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試',
+  AVATAR_PACK_NOT_READY:'化身套組尚未完整或尚未確認採用，請先查回製作結果；原角色保持不變',
+  AVATAR_POSE_LAYOUT_INVALID:'姿態圖片未完整呈現角色或表情，原角色保持不變；可明確重試尚未完成的姿態',
   AVATAR_TRANSPARENCY_REQUIRED:'這張角色圖的透明背景不符合規格，原角色保持不變；可明確重試尚未完成的表情',
   AVATAR_FULL_BODY_INVALID:'這張角色圖未完整呈現頭部、雙腿與雙腳，原角色保持不變；可明確重試尚未完成的表情',
   AVATAR_ADOPTION_NOT_FOUND:'找不到目前的五表情製作紀錄，請重新整理後再選擇',
-  AVATAR_EXPRESSION_MISMATCH:'表情尺寸或來源不一致，原角色保持不變；請重新整理查看製作進度',
+  AVATAR_EXPRESSION_MISMATCH:'化身圖片的尺寸或來源不一致，原角色保持不變；請重新整理查看製作進度',
   AVATAR_REQUEST_FAILED:'這次製作未成功，已完成的表情仍保留；請明確重試尚未完成項目',
   AVATAR_ADOPTION_CANCELLED:'這次五表情製作已取消，原角色保持不變',
-  AVATAR_PACK_UNAVAILABLE:'保存的五表情暫時無法讀取，請重新整理；不會自動重新產圖'
+  AVATAR_PACK_UNAVAILABLE:'保存的角色素材暫時無法讀取，請重新整理；不會自動重新產圖',
+  AVATAR_STATIC_ALREADY_READY:'目前角色姿態已齊備，可返回劇情重新確認角色素材'
  });
  if(error instanceof ApiFailure&&error.uncertain)return '操作結果尚未確認，請先重新整理查看；不會自動重送';
  return texts[code]??'服務暫時無法使用，請稍後重新整理';
 }
 
 export function DatingProfileScreen(){
+ const {completeAvatarPoses}=useLocalSearchParams<{completeAvatarPoses?:string}>();
+ const poseRouteHandled=useRef(false);
  const router=useRouter(),navigation=useNavigation(),session=useSession(),{width}=useWindowDimensions(),isWide=width>=820;
  const [profile,setProfile]=useState<Profile|null>(null),[groups,setGroups]=useState<Record<string,Option[]>>({}),[avatars,setAvatars]=useState<Avatar[]>([]),[definitions,setDefinitions]=useState<ProfileField[]>([]);
  const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[style,setStyle]=useState('warm');
  const [adoption,setAdoption]=useState<AvatarAdoptionProgress|null>(null);
  const [loadedAccount,setLoadedAccount]=useState<string|undefined>(undefined),[avatarModal,setAvatarModal]=useState(false),[modalTab,setModalTab]=useState<ModalTab>('free');
+ useEffect(()=>{if(completeAvatarPoses==='1'&&profile&&!poseRouteHandled.current){poseRouteHandled.current=true;setAvatarModal(true);setModalTab('ai');setNotice('可使用已保存的 AI 主圖補齊四種姿態，原五表情與劇情進度保持不變。');}},[completeAvatarPoses,profile]);
  const [attempt,setAttempt]=useState<Attempt|null>(null),[selected,setSelected]=useState(1),[confirm,setConfirm]=useState<{kind:'delete'|'adopt'|'discard';id?:string}|null>(null);
  const [,setExpiryTick]=useState(0);
  useEffect(()=>{
@@ -180,10 +186,19 @@ export function DatingProfileScreen(){
  }
  async function selectBuiltin(id:string){if(!profile||adoption)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'builtin',builtinAvatarId:id,expectedRevision:profile.revision});await refresh(true);setNotice('遊戲化身已更新');});}
  async function selectSaved(assetId:string){if(!profile||adoption)return;await run(async()=>{await api.request('/me/avatar/selection','PUT',{type:'generated',assetId,expectedRevision:profile.revision});await refresh(true);setNotice('已重新選用保存的化身');});}
+ const adoptionSelection=(value:AvatarAdoptionProgress,revision:number)=>value.savedSource?{assetId:value.assetId,expectedRevision:revision}:{attemptId:value.attemptId,index:value.index,expectedRevision:revision};
+ async function completeSavedPoses(){
+  if(!profile||profile.selectedAvatarType!=='generated'||!profile.selectedAvatarRef||adoption||!isForeground())return;const foreground=foregroundGeneration.current;
+  await run(async()=>{await produceAvatarExpressions(api,{assetId:profile.selectedAvatarRef,expectedRevision:profile.revision},()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground,setAdoption,uuid7);});
+ }
  async function continueAdoption(retryUncertain=false){
-  if(!profile||!adoption)return;if(!isForeground()){setNotice('回到前景後再繼續五表情製作');return;}
+  if(!profile||!adoption)return;if(!isForeground()){setNotice('回到前景後再繼續化身製作');return;}
   const foreground=foregroundGeneration.current;
-  await run(async()=>{const result=await produceAvatarExpressions(api,{attemptId:adoption.attemptId,index:adoption.index,expectedRevision:profile.revision},()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground,setAdoption,uuid7,adoption,retryUncertain);if(result&&alive.current&&isForeground()&&foregroundGeneration.current===foreground){await refresh(true);setNotice('已採用完整五表情全身化身');}});
+  await run(async()=>{const result=await produceAvatarExpressions(api,adoptionSelection(adoption,profile.revision),()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground,setAdoption,uuid7,adoption,retryUncertain);if(result&&alive.current&&isForeground()&&foregroundGeneration.current===foreground){await refresh(true);setNotice('已採用完整五表情全身化身');}});
+ }
+ async function adoptStatic(){
+  if(!profile||!adoption||!isForeground())return;const foreground=foregroundGeneration.current;
+  await run(async()=>{const result=await confirmStaticAvatarAdoption(api,adoptionSelection(adoption,profile.revision),adoption,()=>alive.current&&isForeground()&&foregroundGeneration.current===foreground);if(!result||!alive.current||!isForeground()||foregroundGeneration.current!==foreground)return;await refresh(true);setAdoption(null);setAttempt(null);setNotice('已採用完整靜態化身');});
  }
  async function cancelAdoption(){
   if(!adoption)return;
@@ -342,20 +357,23 @@ export function DatingProfileScreen(){
       <PrimaryButton label="關閉" compact secondary disabled={busy} onPress={()=>setAvatarModal(false)}/>
      </View>
      <InlineNotice text={notice}/>
-     {adoption?<View style={{gap:14}}>
-      <Text style={s.label}>正在準備完整五表情化身</Text>
+     {adoption?<ScrollView contentContainerStyle={{gap:14}} style={{maxHeight:620}}>
+      <Text style={s.label}>{adoption.staticRequired?'正在準備完整靜態化身':'正在準備完整五表情化身'}</Text>
       <Text style={s.body}>{adoption.completed.length} / 5 種已保存{busy&&adoption.currentExpression?` · 正在製作 ${expressionLabels[adoption.currentExpression]??'表情'}`:''}</Text>
+      {adoption.staticRequired&&<Text style={s.body}>{adoption.completedPoses?.length??0} / 4 種姿態已保存{busy&&adoption.currentPose?' · 正在製作姿態':''}</Text>}
+      {adoption.staticPosePackage&&<AvatarStaticReview key={adoption.staticPosePackage.packageVersion} package={adoption.staticPosePackage} origin={api.origin||globalThis.location?.origin} headers={api.platform==='web'?undefined:{Authorization:`Bearer ${api.access}`}} busy={busy} onConfirm={()=>void adoptStatic()}/>}
       <Text style={s.body}>全部完成並確認採用前，維持原來的角色。離開畫面後不會繼續製作。</Text>
       <Text style={s.footer}>明確重試可能增加第三方供應商用量；本 MVP 目前免費。</Text>
-      {!busy&&<><PrimaryButton label={adoption.uncertain?'確認可能增加供應商用量並繼續':'繼續製作尚未完成的表情'} onPress={()=>void continueAdoption(adoption.uncertain)}/>
+      {!busy&&<>{!adoption.staticPosePackage&&<PrimaryButton label={adoption.uncertain?'確認可能增加供應商用量並繼續':adoption.staticRequired?'繼續製作尚未完成的化身':'繼續製作尚未完成的表情'} onPress={()=>void continueAdoption(adoption.uncertain)}/>}
        <PrimaryButton label="查回製作與採用結果" secondary onPress={()=>void run(()=>refresh(true))}/>
-       <PrimaryButton label="取消五表情製作" secondary onPress={()=>void cancelAdoption()}/></>}
-     </View>:<>
+       <PrimaryButton label={adoption.staticRequired?"取消靜態化身製作":"取消五表情製作"} secondary onPress={()=>void cancelAdoption()}/></>}
+     </ScrollView>:<>
      <View style={{flexDirection:'row',gap:6,padding:4,borderRadius:999,backgroundColor:'rgba(0,0,0,.38)',borderWidth:1,borderColor:colors.line}}>
       <View style={{flex:1}}><PrimaryButton label="免費化身" compact secondary={modalTab!=='free'} active={modalTab==='free'} onPress={()=>setModalTab('free')}/></View>
       <View style={{flex:1}}><PrimaryButton label="AI 客製化" compact secondary={modalTab!=='ai'} active={modalTab==='ai'} onPress={()=>setModalTab('ai')}/></View>
      </View>
      <ScrollView contentContainerStyle={{gap:14,paddingBottom:8}} keyboardShouldPersistTaps="handled">
+      {profile.selectedAvatarType==='generated'&&profile.selectedAvatarRef&&<View style={{gap:8}}><Text style={s.body}>保留目前 AI 角色，以已保存的主圖補製作四種姿態。這會呼叫 AI 供應商；完成後先檢視，再確認採用。本 MVP 目前免費。</Text><PrimaryButton label="補齊目前角色的姿態" disabled={busy} onPress={()=>void completeSavedPoses()}/></View>}
       {modalTab==='free'?<>
        {(!profile.gender||JSON.parse(profile._savedForm??'{}').gender!==profile.gender)&&<InlineNotice text="請先儲存生理性別，再選擇免費化身"/>}
        {profile.selectedAvatarType==='generated'&&profile.selectedAvatarRef&&<View style={{gap:8}}><Text style={s.label}>目前選用的 AI 化身</Text><Image source={source(`/me/media/${profile.selectedAvatarRef}`)} accessibilityLabel="目前遊戲化身" resizeMode="contain" style={{width:'100%',aspectRatio:3/4,maxHeight:260,borderRadius:16}}/></View>}

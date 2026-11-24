@@ -14,9 +14,17 @@ public sealed class GeminiAvatarImageGenerator(HttpClient http,IImageCompression
 {
     public const string PromptVersion="datinghigh-adv-full-body.v2";
     public string Model=>options.Model;
-    public string ExpressionPromptVersion=>"datinghigh-expression-full-body.v2";
+    public string ExpressionPromptVersion=>"datinghigh-expression-and-static.v3";
+    public bool SupportsStaticPoses=>options.Model is "gemini-3.1-flash-image" or "gemini-3-pro-image";
     public async Task<CompressedImage> GenerateExpressionAsync(PrivateMediaContent master,string expression,CancellationToken ct=default)
     {
+        if(expression.StartsWith("pose-",StringComparison.Ordinal)){
+            var pose=expression switch{"pose-stand"=>"standing naturally, complete legs and shoes","pose-sit"=>"sitting with anatomically bent hips and knees, hands on lap","pose-read"=>"sitting and reading an open book held in both hands","pose-hold"=>"standing and holding a closed book with both hands",_=>throw new DomainException("INVALID_AVATAR_EXPRESSION")};
+            if(master.Bytes.Length is <1 or >2000000||master.MimeType is not("image/jpeg" or "image/png" or "image/webp"))throw new DomainException("INVALID_IMAGE");
+            if(string.IsNullOrWhiteSpace(options.ApiKey)||options.Model is not("gemini-3.1-flash-image" or "gemini-3-pro-image"))throw new DomainException("IMAGE_PROVIDER_UNAVAILABLE",503);
+            var posePrompt=$"datinghigh-static-poses.v1. The ONE attached image is the sole selected adult identity and clothing master. Produce ONE 16:9 transparent sprite sheet: exactly FIVE complete full-body figures, in five equal-width columns, left-to-right neutral / gentle symmetric smile / surprised / thoughtful / concerned. ALL five figures are {pose}. Preserve the exact face, eyes, hair, glasses, costume, proportions, shoes, rendering and colors from the master. The head, neck and clothing must be seamless; do not paste facial fragments. Each complete figure stays entirely inside its own column with a generous transparent gutter on both sides and safe top/bottom margins; never cross a column boundary. Same camera scale in all columns; no furniture, extra people, labels, text or panels. The book is a simple original prop. For deterministic alpha extraction, use ONLY a perfectly flat vivid magenta #FF00FF background including limb gaps; reserve that exact key for background, no gradient, cast shadow, texture, checkerboard or reflected magenta. Five clearly distinct facial expressions, keep the same body pose and identity.";
+            return await GenerateImageAsync([new{text=posePrompt},new{inlineData=new{mimeType=master.MimeType,data=Convert.ToBase64String(master.Bytes.Span)}}],true,ct,true);
+        }
         var meaning=expression switch{
             "neutral"=>"relaxed natural eyebrows and eyes, naturally closed relaxed mouth",
             "smile"=>"gently upturned mouth corners with relaxed eyebrows and eyes",
@@ -56,13 +64,13 @@ public sealed class GeminiAvatarImageGenerator(HttpClient http,IImageCompression
         }
         return await GenerateImageAsync(parts,false,ct);
     }
-    private async Task<CompressedImage> GenerateImageAsync(List<object> parts,bool sprite,CancellationToken ct)
+    private async Task<CompressedImage> GenerateImageAsync(List<object> parts,bool sprite,CancellationToken ct,bool staticSheet=false)
     {
         using var request=new HttpRequestMessage(HttpMethod.Post,$"https://generativelanguage.googleapis.com/v1beta/models/{options.Model}:generateContent");
         request.Headers.Add("x-goog-api-key",options.ApiKey);
         request.Content=JsonContent.Create(new{
             contents=new[]{new{role="user",parts}},
-            generationConfig=new{responseModalities=new[]{"TEXT","IMAGE"},candidateCount=1,imageConfig=new{aspectRatio="3:4",imageSize="1K"}}
+            generationConfig=new{responseModalities=new[]{"TEXT","IMAGE"},candidateCount=1,imageConfig=new{aspectRatio=staticSheet?"16:9":"3:4",imageSize=staticSheet?"2K":"1K"}}
         });
         try
         {
@@ -87,6 +95,7 @@ public sealed class GeminiAvatarImageGenerator(HttpClient http,IImageCompression
                                 images.Add((mime.GetString()??"",data.GetString()??""));
             if(images.Count!=1)throw new DomainException("IMAGE_PROVIDER_NO_IMAGE",503);
             var decoded=Convert.FromBase64String(images[0].Data);
+            if(staticSheet)return AvatarStaticPoseImage.Prepare(decoded);
             var prepared=sprite?AvatarChromaMask.Apply(decoded):decoded;
             using var input=new MemoryStream(prepared,false);
             // 正式 AI 化身不套用來源照片的 200 KB 限制，維持 1K 人臉品質。

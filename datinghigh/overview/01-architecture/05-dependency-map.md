@@ -32,7 +32,7 @@ Domain 嵌入根 `contracts/profile-fields.json` 與 `contracts/builtin-avatar-p
 |---|---|
 | Singleton | AuthOptions、TimeProvider.System、PasswordHashService／IPasswordHashService、AccessTokens／IAccessTokenIssuer、IAuthCryptography→AuthCryptography、IExternalCredentialValidator→GoogleExternalCredentialValidator |
 | Typed HttpClient | IPlatformClient→CloudflarePlatformClient；base `http://platform.internal/`、timeout 15 秒 |
-| 媒體／AI | IImageCompressionService→ImageCompressionService（singleton）；IPrivateMediaStore→PrivateMediaStore、IAvatarCandidateStore→AvatarCandidateStore（內部HTTP30秒）；IAvatarImageGenerator→GeminiAvatarImageGenerator（HTTP100秒、單次生成90秒、無redirect／自動重送）；IAvatarExpressionGenerator→GeminiAvatarImageGenerator（HTTP100秒／provider90秒）、IAvatarExpressionStore→AvatarExpressionStore、IAvatarReadStore→AvatarReadStore（內部HTTP30秒）；AvatarService、AvatarExpressionService、AvatarReadService、OwnCardPreviewService scoped |
+| 媒體／AI | IImageCompressionService→ImageCompressionService（singleton）；IPrivateMediaStore→PrivateMediaStore、IAvatarCandidateStore→AvatarCandidateStore（內部HTTP30秒）；IAvatarImageGenerator→GeminiAvatarImageGenerator（HTTP100秒、單次生成90秒、無redirect／自動重送）；IAvatarExpressionGenerator→GeminiAvatarImageGenerator（HTTP100秒／provider90秒；SupportsStaticPoses供begin檢查能力）、IAvatarExpressionStore→AvatarExpressionStore、IAvatarReadStore→AvatarReadStore（內部HTTP30秒）；AvatarService、AvatarExpressionService、AvatarReadService、OwnCardPreviewService scoped |
 | Scoped | DatingProfileService、PersonalPhotosService、RateLimiter／Application IRateLimiter、IEmailCodeSender→EmailCodeSender、AuthApplication、Readiness、IPrivateObjectStore→PrivateObjectStore |
 | 配對／劇情 | MatchingSessionService、StoryDialogueService scoped；StoryDialogueService 以既有 platform／clock／notifier 建立 SceneEventFrameworkService，無第二套房間服務；IMatchingCandidateProfileReader→MatchingCandidateProfileReader；IRoundRealtimeNotifier→CloudflareRoundRealtimeNotifier |
 | Framework | 自訂 Platform authentication scheme、PlatformAccess authorization policy、允許單一 Web origin 的 CORS |
@@ -47,7 +47,7 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 | .NET Linux container | Dockerfile 固定 SDK／ASP.NET 10 映像 digest、非 root、8080；Worker 傳入認證與 Google 設定 |
 | D1 | 所有寫入經固定 prepared commands／batch；.NET 不直接連 SQLite／D1 HTTP API |
 | R2 | FILES 保存 owner 私人照片、候選、生成角色、Manifest 與 probe；STORY_CONTENT 保存四層版本內容及公開素材，內容 Manifest 只由受保護 bridge 讀取。免費 WebP 由 ASSETS 讀取，Round 本人／對方通道重驗授權 |
-| Gemini | .NET 固定 generativelanguage.googleapis.com generateContent；server header secret；來源為本人已壓縮照片，候選與五表情每次只產一張；表情使用同一候選，不重送真人照；AvatarChromaMask 使用既有 Skia 去背，失敗及未知成本不自動重試 |
+| Gemini | .NET 固定 generativelanguage.googleapis.com generateContent；server header secret；來源為本人已壓縮照片，候選及九個衍生步驟每次只產一張；五表情與四姿態表使用同一選中Master，不重送真人照；AvatarChromaMask／AvatarStaticPoseImage 使用既有Skia去背與解碼，失敗及未知成本不自動重試 |
 | Google | Web GIS `https://accounts.google.com/gsi/client`；native SDK；Worker 只取 `https://www.googleapis.com/oauth2/v3/certs`，.NET 驗 RS256／audience／azp／Email |
 | Email | local／Log 在專用 category；staging／production 使用 Cloudflare sender binding，部署前須核對實際 binding／sender |
 | Client API | Web／iOS 預設 localhost:8787，Android emulator 預設 10.0.2.2:8787；EXPO_PUBLIC_API_ORIGIN 可覆寫，cloud 需 HTTPS |
@@ -58,6 +58,10 @@ Google validator 由 factory 建立，讀取各 platform allowlist，並使用�
 
 Android 場景 framebuffer 位移檢查另使用本地 Python／Pillow 比對同一 ROI 的開／關微動畫面，僅為測試依賴，不進入應用程式。
 
-`ActorMotionRenderer` 只使用既有 React Native Image／Animated／AppState，atlas 區域在共用元件裁切；沒有新增 Rig SDK 或生圖相依。NPC 的公開 2D 姿態／表情依發佈內容在本地切換，缺圖 fail-closed；只屬演出模型，未包含正式私人 Rig 版控、首次生成、R2 採用和授權 Gate。本機審查使用既有 Vite／Chrome 與專用 QA31 的 Metro profile，8092 僅提供審查白名單素材；與正式角色授權 API 及私人 R2 分離。
+`ActorMotionRenderer` 只使用既有 React Native Image／Animated／AppState，atlas區域在共用元件裁切，呈現時不呼叫provider。NPC公開姿態／表情依發布內容本地切換，缺圖fail-closed；完整身體與透明命中共用 `contracts/npc-static.ts`／`scene-hit-mask.ts`。新AI候選首次建檔沿用既有Gemini adapter／AvatarExpressionStore，四姿態表另由AvatarStaticPoseImage使用Skia檢查，無新SDK、套件、DI或資料表。靜態包純校驗由Worker與client共讀 `contracts/static-avatar.ts`，Metro watchFolders包含contracts；免費包讀public索引，私人包讀R2且沿用原有媒體bridge。
+
+本機審查使用既有 Vite／Chrome 與專用 QA31 的 Metro profile，8092 僅提供審查白名單素材；與正式角色授權 API 及私人 R2 分離。
+
+`AvatarExpressionService`亦使用既有`IPrivateMediaStore`讀本人保存的AI Master；保存角色補姿態的lease綁定asset及來源SHA，讀回後先驗SHA再呼叫既有generator。`avatar-saved-poses.ts`協調同一profile revision、永久來源及R2 workflow，無新provider、SDK、資料表或環境變數。
 
 測試對 Miniflare、Docker／WSL、Chrome、emulator 的前提見 [工作流](../02-development-guidelines/03-ai-workflow-stages.md)，部署設定與 secrets 分類見 [環境變數](../04-deployment/02-environment-variables-template.md)。

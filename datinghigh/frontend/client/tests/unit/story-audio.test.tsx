@@ -7,7 +7,13 @@ vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-
 vi.mock('react-native-safe-area-context',async()=>({SafeAreaView:(await vi.importActual<typeof import('react-native')>('react-native-web')).View}));
 vi.mock('expo-audio',()=>({useAudioPlayer:(url:string)=>{if(!state.players.has(url))state.players.set(url,{play:vi.fn(),pause:vi.fn(),seekTo:vi.fn().mockResolvedValue(undefined),volume:0,loop:false});return state.players.get(url);},useAudioPlayerStatus:()=>({playing:false})}));
 import {StoryAudio} from '../../src/StoryAudio';
-afterEach(()=>{cleanup();state.players.clear();});
+afterEach(()=>{cleanup();state.players.clear();vi.useRealTimers();});
+it('original indoor music and rain share one user gesture, fade by area and both stop in background',async()=>{
+ vi.useFakeTimers();const view=render(<StoryAudio url="rain" musicUrl="music" mix={{ambienceGain:1,musicGain:0}}/>);expect(state.players.has('music')).toBe(true);
+ const rain=state.players.get('rain'),music=state.players.get('music');expect(music.play).not.toHaveBeenCalled();fireEvent.click(screen.getByLabelText('開啟場景聲音'));expect(rain.play).toHaveBeenCalledOnce();expect(music.play).toHaveBeenCalledOnce();expect(music.volume).toBe(0);
+ view.rerender(<StoryAudio url="rain" musicUrl="music" mix={{ambienceGain:.3,musicGain:.6}}/>);await act(async()=>{await vi.advanceTimersByTimeAsync(500);});expect(rain.volume).toBeCloseTo(.09);expect(music.volume).toBeCloseTo(.18);expect(music.play).toHaveBeenCalledOnce();
+ act(()=>state.background('background'));expect(rain.pause).toHaveBeenCalled();expect(music.pause).toHaveBeenCalled();expect(screen.getByLabelText('開啟場景聲音')).toBeTruthy();
+});
 it('SD-UT-075/076: audio requires a gesture, changes volume, plays local node cues and stops in background',async()=>{
  const view=render(<StoryAudio url="rain" cueUrl="page" cueId="entry"/>),rain=state.players.get('rain'),page=state.players.get('page');
  expect(rain.play).not.toHaveBeenCalled();expect(page.play).not.toHaveBeenCalled();

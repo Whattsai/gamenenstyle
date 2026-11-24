@@ -57,7 +57,13 @@ public sealed class SceneEventFrameworkService(IPlatformClient platform,IRoundRe
         var current=Pick(node,"id","title","lines","presentation");current["objects"]=new JsonArray();current["choices"]=new JsonArray();current["visual"]="bookshop";
         // Area 是實際物理位置，節點可以先解鎖下一個地點，不能在尚未移動時偷換鏡位。
         current["presentation"]!["cameraId"]=c.Scene["areas"]!.AsArray().Single(a=>a!.Text("id")==me.AreaId)!["cameraId"]!.DeepClone();
-        if(state.Completed){var ending=c.Narrative["endings"]!.AsArray().Single(e=>e!.Text("id")==endingId)!;current=Pick(ending,"id","title","lines");current["ending"]=true;current["objects"]=new JsonArray();current["choices"]=new JsonArray();current["presentation"]=new JsonObject{["cameraId"]=ending["presentationSteps"]!.AsArray().FirstOrDefault(s=>s!.Maybe("type")=="camera")?["cameraId"]?.DeepClone()??JsonValue.Create(me.AreaId),["expression"]="smile",["hotspotIds"]=new JsonArray()};}
+        if(state.Completed){
+            var ending=c.Narrative["endings"]!.AsArray().Single(e=>e!.Text("id")==endingId)!;var steps=ending["presentationSteps"]!.AsArray();
+            var shotId=steps.LastOrDefault(s=>s!.Maybe("type")=="shot")?.Text("shotId");
+            var shotCamera=c.Scene["stage"]?["shots"]?.AsArray().SingleOrDefault(s=>s!.Maybe("id")==shotId)?["cameraId"];
+            current=Pick(ending,"id","title","lines");current["ending"]=true;current["objects"]=new JsonArray();current["choices"]=new JsonArray();
+            current["presentation"]=new JsonObject{["cameraId"]=shotCamera?.DeepClone()??steps.LastOrDefault(s=>s!.Maybe("type")=="camera")?["cameraId"]?.DeepClone()??c.Scene["areas"]!.AsArray().Single(a=>a!.Text("id")==me.AreaId)!["cameraId"]!.DeepClone(),["expression"]="smile",["hotspotIds"]=new JsonArray()};
+        }
         var result=new JsonObject{["roundId"]=roundId,["schemaVersion"]="scene-event.v2",["episodeSeq"]=story["episode_seq"]!.DeepClone(),["eventSeq"]=round["last_event_seq"]!.DeepClone(),["phase"]=state.Completed?"completed":"playing",["storySessionId"]=story["story_session_id"]!.DeepClone(),["selectedCategoryId"]=story["selected_category_id"]!.DeepClone(),["sceneId"]=c.Scene["sceneId"]!.DeepClone(),["storyId"]=c.Narrative["narrativeId"]!.DeepClone(),["version"]=c.Narrative["version"]!.DeepClone(),["title"]=c.Narrative["title"]!.DeepClone(),["chapterStatus"]=state.Completed?"completed":"playing",["sharedRevision"]=state.SharedRevision,["myTrack"]=new JsonObject{["role"]=me.Role,["nodeId"]=me.NodeId,["areaId"]=me.AreaId,["revision"]=me.Revision},["currentNode"]=current,["endingId"]=endingId,["partnerPresence"]=new JsonObject{["inSameArea"]=me.AreaId==other.AreaId},["objects"]=new JsonArray(),["events"]=new JsonArray()};
         var selectedVotes=Records(rows,"vote").Select(v=>JsonNode.Parse(v.Text("payload_json"))?.Maybe("categoryId")).Where(id=>id is not null).ToArray();
         if(selectedVotes.Length==2)result["selectionReason"]=selectedVotes[0]==selectedVotes[1]?"你們選擇了相同主題。":"你們選擇了不同主題，依原邀請方最後一次有效選擇開始。";
@@ -72,6 +78,7 @@ public sealed class SceneEventFrameworkService(IPlatformClient platform,IRoundRe
         }
         var flags=new JsonObject();foreach(var f in c.Scene["sharedFlags"]!.AsArray().Select(f=>f!)){var value=state.World["flags"]![f!.Text("id")]!.GetValue<string>();if(f["publicValues"]!.AsArray().Any(v=>v!.GetValue<string>()==value))flags[f.Text("id")]=value;}
         result["world"]=new JsonObject{["objects"]=objects,["flags"]=flags};
+        result["books"]=SceneBookProjection.Project(c,me,objects);
         result["knownClues"]=new JsonArray((c.Narrative["clues"]?.AsArray()??[]).Select(clue=>clue!).Where(clue=>(clue!.Text("role")==me.Role||clue.Text("role")=="shared")&&SceneEventTrackPolicy.Evaluate(c,state,clue["conditions"]!.AsObject())).Select(clue=>(JsonNode)Pick(clue!,"id","text")).ToArray());
         var available=SceneEventTrackPolicy.Available(c,state,u.AccountId);var events=new JsonArray();foreach(var group in available.GroupBy(a=>a.BindingKey)){
             var b=c.Bindings.Single(b=>b.Key==group.Key);var first=group.First();var e=new JsonObject{["bindingId"]=group.Key,["trackScope"]=b.TrackScope,["moduleType"]=b.ModuleType,["main"]=b.Raw["narrativeRole"]!.GetValue<string>()=="main",["revision"]=first.EventRevision,["needsSharedRevision"]=first.NeedsSharedRevision,["actions"]=new JsonArray(group.Select(a=>(JsonNode)new JsonObject{["actionId"]=a.ActionId,["label"]=a.Label,["params"]=a.Params.DeepClone(),["targetObjectId"]=b.Raw["actions"]!.AsArray().Single(raw=>raw!.Text("role")==me.Role&&raw!.Text("actionId")==a.ActionId&&JsonNode.DeepEquals(raw!["params"],a.Params))?["targetObjectId"]?.DeepClone(),["dropSlotId"]=b.Raw["actions"]!.AsArray().Single(raw=>raw!.Text("role")==me.Role&&raw!.Text("actionId")==a.ActionId&&JsonNode.DeepEquals(raw!["params"],a.Params))?["dropSlotId"]?.DeepClone()}).ToArray())};
@@ -83,7 +90,9 @@ public sealed class SceneEventFrameworkService(IPlatformClient platform,IRoundRe
         if(endingSteps is not null)result["endingPresentationSteps"]=endingSteps.DeepClone();
         var visibleSteps=result["presentationCue"]?["steps"]?.DeepClone().AsArray()??new JsonArray();
         if(endingSteps is not null)foreach(var step in endingSteps)visibleSteps.Add(step!.DeepClone());
-        if(SceneEventStageProjection.Project(c,me,current,objects,visibleSteps) is { } stage)result["stage"]=stage;
+        if(SceneEventStageProjection.Project(c,me,current,objects,visibleSteps,state) is { } stage)result["stage"]=stage;
+        if(c.Scene["musicAsset"] is JsonNode music)result["musicAsset"]=music.DeepClone();
+        if(SceneAudioProjection.Mix(c,me,result["stage"] as JsonObject) is { } mix)result["audioMix"]=mix;
         var consents=Records(rows,"consent").Select(c=>new{Actor=c.Text("actor_account_id"),Agree=JsonNode.Parse(c.Text("payload_json"))!["agree"]!.GetValue<bool>()}).ToArray();result["myAgreedNext"]=consents.Any(c=>c.Actor==u.AccountId&&c.Agree);result["partnerAgreedNext"]=consents.Any(c=>c.Actor!=u.AccountId&&c.Agree);
         return result;
     }
@@ -104,6 +113,9 @@ public sealed class SceneEventFrameworkService(IPlatformClient platform,IRoundRe
             var old=Records(rows,"event_instance").SingleOrDefault(i=>i.Text("binding_id")==result.Binding.Key);var definition=result.Binding.Raw["definition"]!;
             p["storySessionId"]=sessionId;p["episodeSeq"]=story["episode_seq"]!.DeepClone();p["actorRole"]=me.Role;p["expectedTrackRevision"]=me.Revision;p["expectedSharedRevision"]=result.SharedChanged?state.SharedRevision:null;p["sharedChanged"]=result.SharedChanged;p["worldStateJson"]=result.State.World.ToJsonString();p["completed"]=result.State.Completed;p["endingId"]=result.EndingId;p["requestPayload"]=request;p["presentationSteps"]=result.PresentationSteps.DeepClone();p["stateEventId"]=EntityId.New();p["completionEventId"]=EntityId.New();
             p["progressUpdates"]=new JsonArray(result.ChangedProgress.Select(progress=>(JsonNode)new JsonObject{["accountId"]=progress.AccountId,["role"]=progress.Role,["expectedRevision"]=state.Progress.Single(prior=>prior.Role==progress.Role).Revision,["nodeId"]=progress.NodeId,["areaId"]=progress.AreaId}).ToArray());
+            p["areaGuards"]=new JsonArray(SceneAreaObservation.Roles(result.Binding.Raw,content.Narrative["endings"],content.Narrative["safetyExit"]).Select(role=>state.Progress.Single(q=>q.Role==role)).Select(q=>(JsonNode)new JsonObject{["accountId"]=q.AccountId,["role"]=q.Role,["revision"]=q.Revision,["areaId"]=q.AreaId}).ToArray());
+            // 即使只寫個人Track，合法動作與安全收尾仍讀取共享世界；只重驗，不增加Shared revision。
+            p["observedSharedRevision"]=state.SharedRevision;
             p["instance"]=new JsonObject{["instanceId"]=old?.Maybe("event_instance_id")??EntityId.New(),["bindingId"]=result.Binding.Key,["eventId"]=definition["eventId"]!.DeepClone(),["eventVersion"]=definition["version"]!.DeepClone(),["repeatGroup"]=result.Binding.Raw["repeatGroup"]!.DeepClone(),["repeatScope"]=result.Binding.Raw["repeatScope"]!.DeepClone(),["trackScope"]=result.Binding.TrackScope,["expectedRevision"]=old?.Number("revision"),["status"]=result.Instance.Status,["stateJson"]=result.Instance.State.ToJsonString()};command="story.framework.action.commit";
         }else throw new DomainException("INVALID_STORY_REQUEST");
         await limiter.ConsumeAsync("story_mutation.v1","account",u.AccountId,ct);var committed=(await Rows(command,p,ct)).LastOrDefault()??throw new DomainException("EVENT_STATE_CONFLICT",409);try{await notifier.NotifyAsync(roundId,false,ct);}catch(Exception e)when(e is not OperationCanceledException){}return new(){["clientRequestId"]=requestId,["eventSeq"]=committed["sequence"]!.DeepClone()};

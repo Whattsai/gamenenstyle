@@ -5,8 +5,11 @@ import {StoryPortrait,type StagePortrait} from './StoryPortrait';
 import {SceneWorldObjects} from './SceneWorldObjects';
 import {SceneStoryMotion} from './SceneStoryMotion';
 import {EmbeddedSceneStage} from './EmbeddedSceneStage';
+import {SceneWeather} from './SceneWeather';
+import {embeddedFrame} from './scene-stage';
+import type {ActorRigView} from './actor-rig-policy';
 import type {ActorRole,PresentationStep,TrackSnapshot} from './scene-event-track';
-export type TrackStagePresentation={actorRole:ActorRole;areaId:string;world:TrackSnapshot['world'];stage?:TrackSnapshot['stage'];asset?:(id:string)=>string|undefined;own?:StagePortrait;steps?:PresentationStep[];onDrop:(objectId:string)=>void;selectedObject?:string|null;disabled?:boolean;showSlot?:boolean;onStageMediaUnavailable?:()=>void};
+export type TrackStagePresentation={mediaReload?:number;books?:TrackSnapshot['books'];allowBookPreview?:boolean;actorRole:ActorRole;areaId:string;world:TrackSnapshot['world'];stage?:TrackSnapshot['stage'];asset?:(id:string)=>string|undefined;actorRigsForShot?:(shotId:string)=>Record<string,ActorRigView>;own?:StagePortrait;steps?:PresentationStep[];onDrop:(objectId:string)=>void;selectedObject?:string|null;disabled?:boolean;showSlot?:boolean;onStageMediaUnavailable?:()=>void};
 
 import {cameraFrame,portraitFrame,hotspotFrame,type ScenePresentation} from './story-stage-geometry';
 
@@ -59,13 +62,11 @@ export function StoryStage({presentation,cameraId,hotspotIds,background,foregrou
   if(!stageRawCamera)return <Text>場景鏡位尚未就緒，請重新同步。</Text>;
   const stageCamera={...stageRawCamera,focus:{...stageRawCamera.focus,x:Math.max(0,Math.min(1,stageRawCamera.focus.x+pan))}};
   const stageFrame=cameraFrame(size.width,size.height,stageCamera),stageCanPan=stageFrame.width>size.width+48;
+  const visual=track.stage.areaVisuals.find(v=>v.areaId===shot?.areaId),weather=track.stage.weather;
+  const weatherFrame=visual?.weatherRegion?embeddedFrame(stageFrame,visual.weatherRegion):weather?undefined:{left:0,top:0,...size};
   return <View style={{width:'100%',height:resolvedHeight,position:'relative',overflow:'hidden'}} onLayout={e=>{const {width,height}=e.nativeEvent.layout;if(width>0&&height>0)setSize({width,height});}} onTouchStart={e=>{if(stageCanPan)dragStart.current={x:e.nativeEvent.pageX,pan};}} onTouchMove={e=>{if(!stageCanPan||!dragStart.current)return;const delta=(dragStart.current.x-e.nativeEvent.pageX)/Math.max(180,stageFrame.width-size.width);setPan(Math.max(-stageRawCamera.focus.x,Math.min(1-stageRawCamera.focus.x,dragStart.current.pan+delta)));}} onTouchEnd={()=>{dragStart.current=null;}}>
-   <EmbeddedSceneStage stage={track.stage} areaId={track.areaId} world={track.world} camera={stageCamera} width={size.width} height={size.height} asset={track.asset} onInspect={onInspect} disabled={!!track.disabled} shotId={eventShot} onMediaUnavailable={track.onStageMediaUnavailable}/>
-   {motion&&<Animated.View testID="scene-atmosphere" pointerEvents="none" style={{position:'absolute',left:0,top:0,width:'100%',height:'100%',opacity:glow}}>
-    <Animated.View testID="scene-rain-displacement" pointerEvents="none" style={{position:'absolute',left:0,right:0,top:-100,bottom:-100,transform:[{translateY:rain.interpolate({inputRange:[0,1],outputRange:[-70,130]})}]}}>
-     {primaryRain.map((x,i)=><View key={i} style={{position:'absolute',left:`${x*100}%`,top:`${4+(i%5)*11}%`,width:1.5,height:'34%',backgroundColor:'#c9d8f8',opacity:.24,transform:[{rotate:'12deg'}]}}/>)}
-    </Animated.View>
-   </Animated.View>}
+   <EmbeddedSceneStage key={track.mediaReload??0} allowBookPreview={track.allowBookPreview} books={track.books} selectedObject={track.selectedObject} stage={track.stage} areaId={track.areaId} world={track.world} camera={stageCamera} width={size.width} height={size.height} asset={track.asset} actorRigs={track.actorRigsForShot?.(eventShot??track.stage.currentShotId)} onInspect={onInspect} disabled={!!track.disabled} shotId={eventShot} onMediaUnavailable={track.onStageMediaUnavailable}/>
+   {motion&&weatherFrame&&<View testID="scene-atmosphere" pointerEvents="none" style={{position:'absolute',left:0,top:0,width:'100%',height:'100%'}}><SceneWeather intensity={weather?.intensity??'steady'} frame={weatherFrame} phase={rain}/></View>}
    <Pressable accessibilityRole="button" accessibilityLabel={motion?'關閉場景微動':'開啟場景微動'} onPress={()=>setMotion(value=>!value)} style={{position:'absolute',left:12,...controlsPosition,paddingHorizontal:11,paddingVertical:5,borderRadius:999,borderWidth:1,borderColor:'rgba(255,218,235,.32)',backgroundColor:'rgba(20,8,32,.82)'}}>
     <Text style={{color:'#ffe3ed',fontSize:11,fontWeight:'700'}}>{motion?'關閉場景微動':'開啟場景微動'}</Text>
    </Pressable>

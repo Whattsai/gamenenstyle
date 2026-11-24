@@ -2,10 +2,13 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFileSync,readdirSync} from 'node:fs';
 import {afterAll,beforeAll,beforeEach,expect,it} from 'vitest';
 import {createHash} from 'node:crypto';
+import {loadFrameworkCatalog} from '../src/scene-event-commands';
 // @ts-expect-error 固定本地發布政策由真 Miniflare D1／R2 驗證。
 import {buildTrackFixture} from '../../tests/support/scene-event-content-fixture.mjs';
 // @ts-expect-error Node 本地工具，使用實際 prepared statement 與 R2。
 import {publishSceneEventBundles,planSceneEventPublication} from '../../tools/scene-event-publish-policy.mjs';
+// @ts-expect-error 與正式發布使用相同的資料建構器。
+import {buildSceneEventTrackBundle} from '../../tools/scene-event-content-policy.mjs';
 
 let mf:Miniflare,db:D1Database,bucket:R2Bucket;
 const source=JSON.parse(readFileSync(new URL('../../contracts/rain-bookshop-last-order.json',import.meta.url),'utf8'));
@@ -88,6 +91,25 @@ it('first-story gate rejects a second formal narrative before any R2 or D1 opera
  const first=build(),second=buildTrackFixture(new URL('../../',import.meta.url),{...options,narrativeId:'another-fixture',narrativeCatalogId:'019a281e-0000-7000-8000-000000004004'});
  await expect(publishSceneEventBundles(db,bucket,[first,second])).rejects.toThrow('FIRST_STORY_GATE_REQUIRED');
  expect((await bucket.list()).objects).toEqual([]);expect(await rows('SELECT * FROM content_story_catalog')).toEqual([]);
+});
+
+it('V3 first story retires only the old selection index and keeps its immutable pinned bytes',async()=>{
+ const old=build();await publishSceneEventBundles(db,bucket,[old]);
+ const content=JSON.parse(readFileSync(new URL('../../contracts/rain-bookshop-before-rain-stops.json',import.meta.url),'utf8'));
+ const next=buildSceneEventTrackBundle(content,new URL('../../',import.meta.url),{...options,sceneCatalogId:'019a281e-0000-7000-8000-000000005011',narrativeCatalogId:'019a281e-0000-7000-8000-000000005012'});
+ await publishSceneEventBundles(db,bucket,[next]);
+ expect(await rows('SELECT story_id,status FROM content_story_catalog ORDER BY story_id')).toEqual([{story_id:'rain-bookshop-before-rain-stops',status:'published'},{story_id:'rain-bookshop-last-order',status:'retired'}]);
+ expect(await (await bucket.get(old.narrative.key))!.text()).toBe(old.narrative.bytes.toString());
+ expect((await loadFrameworkCatalog({DB:db,STORY_CONTENT:bucket})).map(c=>c.narrativeId)).toEqual(['rain-bookshop-before-rain-stops']);
+ expect(await rows('PRAGMA foreign_key_check')).toEqual([]);
+},60000);
+
+it('the old first-story approval cannot authorize any remaining story',async()=>{
+ const first=build();await publishSceneEventBundles(db,bucket,[first]);
+ const next=buildTrackFixture(new URL('../../',import.meta.url),{...options,narrativeId:'another-fixture',narrativeCatalogId:'019a281e-0000-7000-8000-000000004004'});
+ const before=await rows('SELECT * FROM content_story_catalog'),objects=(await bucket.list()).objects;
+ await expect(publishSceneEventBundles(db,bucket,[next],{firstStoryGate:{approvedByUser:true,narrativeId:first.narrative.id,version:first.narrative.version,sha256:first.narrative.sha256}})).rejects.toThrow('FIRST_STORY_GATE_REQUIRED');
+ expect(await rows('SELECT * FROM content_story_catalog')).toEqual(before);expect((await bucket.list()).objects).toEqual(objects);
 });
 
 it.each(['camera','expression','audio'])('invalid %s presentation reports its public reference and retains the published real D1/R2 version',async kind=>{

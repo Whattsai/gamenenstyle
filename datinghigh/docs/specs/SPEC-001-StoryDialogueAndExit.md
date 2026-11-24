@@ -1,5 +1,7 @@
 # SPEC-001-StoryDialogueAndExit：雙人 ADV 劇情、對話與平順退出
 
+**本階段靜態優先**：人物與NPC先以已確認姿態／五表情及對應Shot呈現；以下Puppet、連續眨眼／站坐／流淚／取書等角色動作暫緩，不作當前靜態路徑的前置Gate，也不保留未使用試作程式。場景／物件操作、真人選擇與同步、安全退出、素材品質／授權及Web／Android人工劇情Gate B仍須完成。優先範圍與證據見[SceneEventFramework](SPEC-001-SceneEventFramework.md)、[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+
 ## 2026-11-17 V3-RQ-04／05／06 已確認：多結局、場景原位互動與 Puppet 舞台
 
 **使用者最新決策**：`V3-RQ-04=A`（雙人意願三種結局）、`V3-RQ-05=A`（各區域獨立但一致的背景，物件和 NPC 與背景融合且點選本體後才展開）、`V3-RQ-06=A＋C`（2D Puppet 骨架＋少數一次性預製姿態）。**本節優先於**下方 2026-11-12「五張完整表情圖片」在 V3 的*角色演出實作方案*，但保留五種表情語意、完整全身身份保真、安全句尾換角、雙人聊天／退出與 Web／Android Gate B 等功能驗收。`V3-RQ-01～03=A` 也已明確獲使用者確認；**全部六項 V3 SDD 決策均已核准**，且使用者已選 `SEF-V3-RQ-01=B`（允許新 Rig 在不降品質及受控成本監測前提下超過舊五整圖容量）。**V3 BDD／TDD／RiskAudit 目前完成規劃與 Phase 5 文件交接**，但 Rig、舞台、角色生成程式與真 Web／Android／人工 Gate B 尚未實作驗證；不能當成已發佈或完成產品。

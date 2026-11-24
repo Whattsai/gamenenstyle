@@ -4,8 +4,21 @@ import {afterEach,it,expect,vi} from 'vitest';
 import {render,screen,fireEvent,cleanup} from '@testing-library/react';
 vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web'),Image:({source,accessibilityLabel,onLoad,onError,style}:any)=><img src={source?.uri} aria-label={accessibilityLabel} onLoad={onLoad} onError={onError} style={style}/> }));
 import {StoryPortrait} from '../../src/StoryPortrait';
+import catalog from '../../../../contracts/builtin-static-poses.json';
 afterEach(cleanup);
 const portrait=(version:string)=>({name:'另一位旅人',version,source:{uri:`https://private.test/${version}/neutral`}});
+it('static adopted art waits for a sentence boundary, stays selected during the next line and clears on authorization removal',()=>{
+ const p=catalog.packs['female-01'];
+ const value={...portrait('a'),staticAvatar:{package:{schemaVersion:p.schemaVersion,packageVersion:'c'.repeat(64),assets:p.assets.map(a=>({...a,url:'/'+a.sha256+'.png'})),poses:p.poses},origin:'http://localhost'}} as any;
+ const view=render(<StoryPortrait portrait={value} safeToSwap={false}/>);
+ expect(screen.queryByTestId('actor-identity-'+ 'c'.repeat(64))).toBeNull();
+ view.rerender(<StoryPortrait portrait={value} safeToSwap/>);
+ expect(screen.getByTestId('actor-identity-'+ 'c'.repeat(64))).toBeTruthy();
+ view.rerender(<StoryPortrait portrait={{...value,expression:'smile'}} safeToSwap={false}/>);
+ expect(screen.getByTestId('actor-identity-'+ 'c'.repeat(64))).toBeTruthy();
+ view.rerender(<StoryPortrait safeToSwap={false}/>);
+ expect(screen.queryByTestId('actor-identity-'+ 'c'.repeat(64))).toBeNull();
+});
 it('SD-UT-066: a decoded new avatar waits for the current sentence to finish and does not reset narration',()=>{
  const a=portrait('a'),b=portrait('b');const view=render(<StoryPortrait portrait={a} safeToSwap={false}/>);
  expect(screen.getByLabelText('另一位旅人的遊戲立繪').getAttribute('src')).toContain('/a/');

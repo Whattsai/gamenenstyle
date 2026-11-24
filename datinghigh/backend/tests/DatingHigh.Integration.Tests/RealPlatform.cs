@@ -19,13 +19,15 @@ internal sealed class RealPlatform:IPlatformClient,IAsyncDisposable
     public Task<JsonNode> Provider(string mode,bool reset=true)=>ExecuteAsync("$test-provider",new{mode,reset});
     public Task<JsonNode> ProviderStats()=>ExecuteAsync("$test-provider-stats",new{});
     public void ObserveUtcNow(DateTimeOffset now){lock(clockLock)if(now>Clock.GetUtcNow())Clock.SetUtcNow(now);}
-    public RealPlatform(bool framework=false,bool advanceFrameworkClock=true,bool tracks=false)
+    public RealPlatform(bool framework=false,bool advanceFrameworkClock=true,bool tracks=false,bool storyV3=false)
     {
         frameworkClock=(framework||tracks)&&advanceFrameworkClock;
         var utf8=new System.Text.UTF8Encoding(false,true);
         var start=new ProcessStartInfo("node"){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=utf8,StandardOutputEncoding=utf8,StandardErrorEncoding=utf8,UseShellExecute=false,CreateNoWindow=true};start.ArgumentList.Add(Runner);start.ArgumentList.Add(Root);
+        if(storyV3)start.ArgumentList.Add("story-v3");
         process=Process.Start(start)??throw new InvalidOperationException("Cannot start isolated D1 runner");stderr=process.StandardError.ReadToEndAsync();
-        if(process.StandardOutput.ReadLine()!="{\"ready\":true}")throw new InvalidOperationException("Isolated D1 runner did not start");
+        try{if(process.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(90)).GetAwaiter().GetResult()!="{\"ready\":true}")throw new InvalidOperationException("Isolated D1 runner did not start");}
+        catch(Exception error){if(!process.HasExited)process.Kill(true);var diagnostic=stderr.GetAwaiter().GetResult().Split('\n').FirstOrDefault(line=>line.StartsWith("{\"failure\":\"isolated-platform-runner\"",StringComparison.Ordinal));process.Dispose();if(diagnostic is not null)throw new InvalidOperationException(diagnostic,error);throw;}
     }
     private static string FindRoot(){var directory=new DirectoryInfo(AppContext.BaseDirectory);while(directory is not null){if(File.Exists(Path.Combine(directory.FullName,"cloudflare","wrangler.jsonc")))return directory.FullName;directory=directory.Parent;}throw new InvalidOperationException("Foundation root not found");}
     private static string BuildRunner()

@@ -1,5 +1,8 @@
 import type {PresentationStep,SceneWorldObject} from './scene-event-track';
 import {canRenderActorRig,type ActorRigView} from './actor-rig-policy';
+import {validateStaticNpcAppearance,type StaticNpcAppearance} from '../../../contracts/npc-static';
+import {staticExpressions} from '../../../contracts/static-avatar';
+import {validateSceneHitMask,type SceneHitMask} from '../../../contracts/scene-hit-mask';
 export type StagePoint={x:number;y:number};
 export type StageSize={width:number;height:number};
 export type StageFrame=StageSize&{left:number;top:number};
@@ -7,9 +10,9 @@ export type HitShape={type:'rect';x:number;y:number;width:number;height:number}|
 export type EmbeddedInteractable={id:string;areaId:string;objectId:string;state:string;assetId:string;depth:number;anchor:StagePoint;size:StageSize;hitShape:HitShape;interactionPreset:'inspect'|'book'|'npc'|'pick'|'place'};
 export type StageActorCue={actorId:string;pose:'stand'|'sit'|'read'|'hold';expression:'neutral'|'smile'|'surprised'|'thoughtful'|'concerned';gesture:'idle'|'blink'|'tear'|'turn'|'hold'|'smile';position:StagePoint;height:number;depth:number;propObjectId?:string};
 export type StageShot={id:string;areaId:string;cameraId:string;actors:StageActorCue[];audioCueIds:string[]};
-export type AreaVisual={areaId:string;backgroundAsset:string;defaultShotId:string;foregroundAsset?:string;layers:{id:string;assetId:string;depth:number;anchor:StagePoint;size:StageSize}[]};
-export type NpcAppearance={poses:{id:StageActorCue['pose'];assetId:string}[];expressions:{id:StageActorCue['expression'];assetId:string}[];faceAnchor:StagePoint;faceSize:StageSize;propAnchors?:{id:'right-hand';position:StagePoint}[]};
-export type SceneStageSnapshot={version:'scene-stage.v1';currentShotId:string;shots:StageShot[];areaVisuals:AreaVisual[];embeddedInteractables:EmbeddedInteractable[];npcs:{id:string;appearance:NpcAppearance}[]};
+export type AreaVisual={areaId:string;backgroundAsset:string;defaultShotId:string;foregroundAsset?:string;weatherRegion?:{anchor:StagePoint;size:StageSize};layers:{id:string;assetId:string;depth:number;anchor:StagePoint;size:StageSize}[]};
+export type NpcAppearance=StaticNpcAppearance|{poses:{id:StageActorCue['pose'];assetId:string}[];expressions:{id:StageActorCue['expression'];assetId:string}[];faceAnchor:StagePoint;faceSize:StageSize;propAnchors?:{id:'right-hand';position:StagePoint}[]};
+export type SceneStageSnapshot={version:'scene-stage.v1';currentShotId:string;weather?:{intensity:'steady'|'heavy'|'easing'|'stopped'}|null;shots:StageShot[];areaVisuals:AreaVisual[];embeddedInteractables:EmbeddedInteractable[];npcs:{id:string;label?:string;appearance:NpcAppearance;hitMasks?:{pose:StageActorCue['pose'];expression:StageActorCue['expression'];mask:SceneHitMask}[]}[]};
 
 /** 物件圖層與命中測試共用 top-left／size 及背景 cover 矩陣；不做放大點擊區。 */
 export function embeddedFrame(frame:StageFrame,item:Pick<EmbeddedInteractable,'anchor'|'size'>):StageFrame{
@@ -38,8 +41,17 @@ export function hitEmbeddedAtLocalPoint(items:EmbeddedInteractable[],frame:Stage
 }
 
 /** 從已授權 Shot 的 NPC 透明素材組合輕量可重用 Rig，不呼叫 Gemini，也不引用玩家私人資產。 */
-export function resolvePublishedNpcRig(npc:SceneStageSnapshot['npcs'][number],asset:(id:string)=>string|undefined):ActorRigView|null{
+export function resolvePublishedNpcRig(npc:SceneStageSnapshot['npcs'][number],asset:(id:string)=>string|undefined,pose:StageActorCue['pose']='stand'):ActorRigView|null{
  const a=npc.appearance,expressions=['neutral','smile','surprised','thoughtful','concerned'];
+ if(npc.hitMasks){try{if(!npc.hitMasks.length||npc.hitMasks.length>20||new Set(npc.hitMasks.map(m=>m.pose+':'+m.expression)).size!==npc.hitMasks.length)return null;for(const m of npc.hitMasks){if(!a.poses.some(p=>p.id===m.pose)||!expressions.includes(m.expression))return null;validateSceneHitMask(m.mask);}for(const p of a.poses)for(const e of expressions)if(!npc.hitMasks.some(m=>m.pose===p.id&&m.expression===e))return null;}catch{return null;}}
+ if(a&&'format' in a){
+  try{validateStaticNpcAppearance(a);}catch{return null;}
+  if(a.poses.some(p=>!asset(p.assetId)))return null;
+  const selected=a.poses.find(p=>p.id===pose);if(!selected)return null;
+  const region=selected.frames.neutral,ratio=region.width/region.height;
+  return {version:'actor-rig.v1',identityVersion:`npc-${npc.id}:${pose}:${selected.assetId}`,assets:[{id:selected.assetId,url:asset(selected.assetId)!,width:selected.width,height:selected.height}],joints:[{id:'root',parentId:null,position:{x:.5,y:1}}],
+   layers:[{id:'body',jointId:'root',assetId:selected.assetId,region,position:{x:(1-ratio/.75)/2,y:0},size:{width:ratio/.75,height:1},depth:1}],poses:[{id:pose,overrides:[]}],expressions:staticExpressions.map(id=>({id,overrides:[{layerId:'body',region:selected.frames[id]}]})),propAnchors:[]};
+ }
  if(!a||a.poses.length===0||a.poses.length>4||new Set(a.poses.map(p=>p.id)).size!==a.poses.length
    ||a.expressions.length!==5||new Set(a.expressions.map(e=>e.id)).size!==5
    ||expressions.some(id=>!a.expressions.some(e=>e.id===id)))return null;
@@ -69,7 +81,7 @@ export function canPresentPublishedStage(stage:SceneStageSnapshot,shotId:string,
  const shot=stage.shots.find(s=>s.id===shotId),visual=stage.areaVisuals.find(v=>v.areaId===shot?.areaId);
  if(!shot||!visual||!asset(visual.backgroundAsset)||visual.foregroundAsset&&!asset(visual.foregroundAsset)
    ||visual.layers.some(l=>!asset(l.assetId))||visibleEmbeddedObjects(stage,world,shot.areaId).some(i=>!asset(i.assetId)))return false;
- const published=Object.fromEntries(stage.npcs.map(n=>[n.id,resolvePublishedNpcRig(n,asset)]));
+ const published=Object.fromEntries(stage.npcs.map(n=>[n.id,resolvePublishedNpcRig(n,asset,shot.actors.find(a=>a.actorId===n.id)?.pose)]));
  return shot.actors.every(actor=>{
   // Published NPC is always resolved from public pinned content; private rig overrides cannot impersonate it.
   const rig=Object.hasOwn(published,actor.actorId)?published[actor.actorId]:actorRigs[actor.actorId];

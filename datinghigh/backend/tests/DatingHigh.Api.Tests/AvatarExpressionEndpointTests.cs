@@ -8,6 +8,24 @@ namespace DatingHigh.Api.Tests;
 [Collection("HTTP contracts")]
 public sealed class AvatarExpressionEndpointTests
 {
+    [Fact]
+    public async Task PosePreview_RequiresAuthenticationAndRejectsUnknownPose()
+    {
+        using var fixture=new ApiFixture();using var anonymous=fixture.Native();using var owner=fixture.Native(true);var workflow=EntityId.New();
+        Assert.Equal(HttpStatusCode.Unauthorized,(await anonymous.GetAsync($"/api/v1/me/avatar/expressions/{workflow}/poses/stand")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest,(await owner.GetAsync($"/api/v1/me/avatar/expressions/{workflow}/poses/foreign")).StatusCode);
+    }
+    [Fact]
+    public async Task StaticPoseProjection_UsesDeepWhitelistWithoutPrivateSourceOrStorageMetadata()
+    {
+        using var fixture=new ApiFixture();var round=EntityId.New();
+        fixture.Store.CommandOverride=(command,_)=>command=="avatar.round.projection"?JsonNode.Parse("""
+        {"avatarAssetId":"safe","staticPosePackage":{"schemaVersion":"static-poses.v1","packageVersion":"hash","sourceImageSha256":"private-source","assets":[{"id":"stand","url":"/authorized","sha256":"hash","mimeType":"image/png","width":1774,"height":887,"byteSize":100,"objectKey":"private/key"}],"poses":[{"id":"stand","frames":{"neutral":{"assetId":"stand","region":{"x":0,"y":0,"width":340,"height":887,"private":"secret"},"private":"secret"}},"private":"secret"}]}}
+        """):null;
+        using var client=fixture.Native(true);var response=await client.GetAsync($"/api/v1/game-rounds/{round}/partner-avatar");
+        var body=await response.Content.ReadAsStringAsync();Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+        Assert.Contains("static-poses.v1",body);Assert.Contains("/authorized",body);Assert.DoesNotContain("private",body);Assert.DoesNotContain("secret",body);
+    }
     [Theory]
     [InlineData("begin","{}")]
     [InlineData("next","{\"workflowId\":\"../foreign\",\"expression\":\"smile\",\"clientRequestId\":\"invalid\"}")]

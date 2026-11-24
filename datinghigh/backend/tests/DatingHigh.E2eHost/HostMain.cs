@@ -10,7 +10,7 @@ public static class HostMain
 {
     public static async Task Main()
     {
-        var tracks=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_SCENE_FRAMEWORK")=="2";var framework=tracks||Environment.GetEnvironmentVariable("DATINGHIGH_E2E_SCENE_FRAMEWORK")=="1";await using var platform=new RealPlatform(framework:framework&&!tracks,advanceFrameworkClock:false,tracks:tracks);platform.Clock.SetUtcNow(DateTimeOffset.UtcNow);var crypto=new SequenceCodes(platform.Options);var realGoogle=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_REAL_GOOGLE")=="1";
+        var storyV3=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_SCENE_FRAMEWORK")=="3";var tracks=storyV3||Environment.GetEnvironmentVariable("DATINGHIGH_E2E_SCENE_FRAMEWORK")=="2";var framework=tracks||Environment.GetEnvironmentVariable("DATINGHIGH_E2E_SCENE_FRAMEWORK")=="1";await using var platform=new RealPlatform(framework:framework&&!tracks,advanceFrameworkClock:false,tracks:tracks,storyV3:storyV3);platform.Clock.SetUtcNow(DateTimeOffset.UtcNow);var crypto=new SequenceCodes(platform.Options);var realGoogle=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_REAL_GOOGLE")=="1";
         foreach(var pair in new Dictionary<string,string>{["APP_ENV"]="local",["WEB_ORIGIN"]=platform.Options.WebOrigin,["ACCESS_TOKEN_ISSUER"]=platform.Options.Issuer,["ACCESS_TOKEN_AUDIENCE"]=platform.Options.Audience,["ACCESS_TOKEN_SECRET"]=Convert.ToBase64String(platform.Options.AccessKey),["EMAIL_CODE_HMAC_KEY"]=Convert.ToBase64String(platform.Options.EmailKey),["RATE_LIMIT_HMAC_KEY"]=Convert.ToBase64String(platform.Options.RateKey),["EmailDeliveryMode"]="Log"})Environment.SetEnvironmentVariable(pair.Key,pair.Value);
         using var avatar=Environment.GetEnvironmentVariable("DATINGHIGH_E2E_AVATAR_PROFILE")=="1"?new AvatarFixtureState(platform):null;
         var racing=new CredentialRacePlatform(platform);await using var factory=new Factory(platform,crypto,racing,realGoogle,avatar);using var api=factory.CreateClient(new WebApplicationFactoryClientOptions{HandleCookies=false,AllowAutoRedirect=false});
@@ -269,10 +269,12 @@ public static class HostMain
                 if(!source.StartsWith(allowed,StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Invalid recorded generated image directory");
                 using var approval=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(source,"result.json")));
                 if(approval.RootElement.GetProperty("visualApproval").GetString()!="expressions-and-identity-approved-by-user")throw new InvalidOperationException("Recorded expression identity approval required");
-                var index=Volatile.Read(ref sequence)+1;var file=Path.Combine(source,$"provider-{index:00}.jpg");var recorded=await File.ReadAllBytesAsync(file,ct);
-                if(recorded.Length is <1 or >2000000)throw new InvalidOperationException("Invalid recorded generated image size");
+                var index=Volatile.Read(ref sequence)+1;var matches=new[]{"jpg","png","webp"}.Select(extension=>Path.Combine(source,$"provider-{index:00}.{extension}")).Where(File.Exists).ToArray();
+                if(matches.Length!=1)throw new InvalidOperationException("Exactly one recorded image is required for every expression and pose step");
+                var file=matches[0];var recorded=await File.ReadAllBytesAsync(file,ct);var recordedMime=Path.GetExtension(file) switch{".png"=>"image/png",".webp"=>"image/webp",_=>"image/jpeg"};
+                if(recorded.Length is <1 or >8000000)throw new InvalidOperationException("Invalid recorded generated image size");
                 // 明示重播已取得的真供應商圖片，只驗新去背／無損編碼與D1/R2接線；不發新供應商請求。
-                response=new(HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(new{modelVersion="recorded-response-no-provider-call",candidates=new[]{new{content=new{parts=new[]{new{inlineData=new{mimeType="image/jpeg",data=Convert.ToBase64String(recorded)}}}}}}}))};
+                response=new(HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(new{modelVersion="recorded-response-no-provider-call",candidates=new[]{new{content=new{parts=new[]{new{inlineData=new{mimeType=recordedMime,data=Convert.ToBase64String(recorded)}}}}}}}))};
             }else response=await base.SendAsync(request,ct);
             if(!response.IsSuccessStatusCode)return response;
             var bytes=await response.Content.ReadAsByteArrayAsync(ct);if(bytes.Length>12*1024*1024)throw new InvalidOperationException("Provider evidence too large");

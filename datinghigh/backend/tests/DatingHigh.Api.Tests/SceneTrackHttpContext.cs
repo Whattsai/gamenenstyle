@@ -14,18 +14,20 @@ namespace DatingHigh.Api.Tests;
 
 internal class SceneTrackHttpContext:IAsyncDisposable
 {
-    public readonly RealPlatform Platform=new(tracks:true);public readonly ApiFixture Factory=new();public readonly List<CurrentUser> Users=[];public readonly List<HttpClient> Clients=[];public readonly List<string> Profiles=[];public string Round="";
+    public readonly RealPlatform Platform;public readonly ApiFixture Factory=new();public readonly List<CurrentUser> Users=[];public readonly List<HttpClient> Clients=[];public readonly List<string> Profiles=[];public string Round="";
     public StoryDialogueService Service=>new(Platform,new CloudflareRoundRealtimeNotifier(Platform),new RateLimiter(Platform,Platform.Options,Platform.Clock));
     private readonly HttpClient media;
+    private readonly bool ownsPlatform;private readonly string emailPrefix;
     public JsonObject? EngineFixture {get;private set;}
-    public SceneTrackHttpContext(){media=new(new MediaBridge(Platform)){BaseAddress=new("http://platform.internal/")};Factory.AdditionalServices=services=>{services.RemoveAll<IPlatformClient>();services.AddSingleton<IPlatformClient>(Platform);services.RemoveAll<TimeProvider>();services.AddSingleton<TimeProvider>(Platform.Clock);services.RemoveAll<AuthOptions>();services.AddSingleton(Platform.Options);services.RemoveAll<IAvatarReadStore>();services.AddSingleton<IAvatarReadStore>(new AvatarReadStore(media));};}
+    public Func<Task>? BeforeActionCommit {get;set;}
+    public SceneTrackHttpContext(bool storyV3=false,RealPlatform? platform=null){ownsPlatform=platform is null;emailPrefix=ownsPlatform?"track-http":EntityId.New();Platform=platform??new(tracks:true,storyV3:storyV3);media=new(new MediaBridge(Platform)){BaseAddress=new("http://platform.internal/")};Factory.AdditionalServices=services=>{services.RemoveAll<IPlatformClient>();services.AddSingleton<IPlatformClient>(new InterleavingPlatform(this));services.RemoveAll<TimeProvider>();services.AddSingleton<TimeProvider>(Platform.Clock);services.RemoveAll<AuthOptions>();services.AddSingleton(Platform.Options);services.RemoveAll<IAvatarReadStore>();services.AddSingleton<IAvatarReadStore>(new AvatarReadStore(media));};}
     public async Task Seed(int categories=1,int? probability=null,bool linear=false,string? engineFixture=null){
         if(engineFixture is not null)EngineFixture=(await Platform.ExecuteAsync("$test-framework-branches",new{purpose=engineFixture})).AsObject();
         if(categories>1)await Platform.ExecuteAsync("$test-framework-categories",new{count=categories});
         if(probability is not null)await Platform.ExecuteAsync("$test-framework-events",new{probability=probability.Value});
         if(linear)await Platform.ExecuteAsync("$test-framework-linear",new{});
         var profiles=new List<string>();for(var n=0;n<3;n++){
-            var email=$"track-http-{n}@example.test";await Platform.Seed(true,email);var login=RealPlatform.Json((await Platform.App.Login(email,RealPlatform.Password,"android","127.0.0.1",default)).Body);var user=new CurrentUser(login["account"]!.Text("accountId"),login["session"]!.Text("sessionId"),1,Platform.Clock.GetUtcNow().AddMinutes(10).ToUnixTimeMilliseconds());Users.Add(user);
+            var email=$"{emailPrefix}-{n}@example.test";await Platform.Seed(true,email);var login=RealPlatform.Json((await Platform.App.Login(email,RealPlatform.Password,"android","127.0.0.1",default)).Body);var user=new CurrentUser(login["account"]!.Text("accountId"),login["session"]!.Text("sessionId"),1,Platform.Clock.GetUtcNow().AddMinutes(10).ToUnixTimeMilliseconds());Users.Add(user);
             var service=new DatingProfileService(Platform,Platform.Clock);await service.ReadAsync(user);profiles.Add((await Platform.Sql("SELECT profile_id FROM user_profiles WHERE account_id=?",user.AccountId))[0]!.Text("profile_id"));await service.SaveAsync(user,new(1,$"雙軌玩家{n}","喜歡閱讀",null,"1990-01-01",null,["warm"],["reading"],[],[],null,null,null,null,null,null,null,[],50,"diverse",["diverse"],new()));await Platform.ExecuteAsync("profile.avatar.builtin",new{accountId=user.AccountId,sessionId=user.SessionId,cv=1,accessExpiresAt=user.AccessExpiresAt,expectedRevision=2,avatarId="male-01"});
             var client=Factory.Native();client.DefaultRequestHeaders.Authorization=new("Bearer",login["tokens"]!.Text("accessToken"));Clients.Add(client);
         }
@@ -33,7 +35,7 @@ internal class SceneTrackHttpContext:IAsyncDisposable
     }
     public async Task<JsonObject> Snapshot(int actor)=>(await Clients[actor].GetFromJsonAsync<JsonObject>($"/api/v1/game-rounds/{Round}/experience"))!;
     public async Task<JsonObject> Payload(int actor,string binding,string? option=null){
-        var s=await Snapshot(actor);var e=s["availableEvents"]!.AsArray().Single(e=>e!.Text("bindingId").EndsWith(":"+binding));var a=e!["actions"]!.AsArray().First(a=>option is null||a!["params"]?["optionId"]?.GetValue<string>()==option||a["params"]?["objectId"]?.GetValue<string>()==option);var p=new JsonObject{["clientRequestId"]=EntityId.New(),["storySessionId"]=s["storySessionId"]!.DeepClone(),["bindingId"]=e["bindingId"]!.DeepClone(),["actionId"]=a!["actionId"]!.DeepClone(),["params"]=a["params"]!.DeepClone(),["expectedTrackRevision"]=s["myTrack"]!["revision"]!.DeepClone()};if(e["needsSharedRevision"]!.GetValue<bool>())p["expectedSharedRevision"]=s["sharedRevision"]!.DeepClone();if(e["revision"] is JsonNode revision)p["expectedEventRevision"]=revision.DeepClone();return p;
+        var s=await Snapshot(actor);var e=s["availableEvents"]!.AsArray().Single(e=>e!.Text("bindingId").EndsWith(":"+binding));var a=e!["actions"]!.AsArray().First(a=>option is null||a!["params"]?["optionId"]?.GetValue<string>()==option||a["params"]?["objectId"]?.GetValue<string>()==option||a["params"]?["areaId"]?.GetValue<string>()==option);var p=new JsonObject{["clientRequestId"]=EntityId.New(),["storySessionId"]=s["storySessionId"]!.DeepClone(),["bindingId"]=e["bindingId"]!.DeepClone(),["actionId"]=a!["actionId"]!.DeepClone(),["params"]=a["params"]!.DeepClone(),["expectedTrackRevision"]=s["myTrack"]!["revision"]!.DeepClone()};if(e["needsSharedRevision"]!.GetValue<bool>())p["expectedSharedRevision"]=s["sharedRevision"]!.DeepClone();if(e["revision"] is JsonNode revision)p["expectedEventRevision"]=revision.DeepClone();return p;
     }
     public async Task<JsonObject> Send(int actor,string binding,string? option=null){var p=await Payload(actor,binding,option);var response=await Clients[actor].PostAsJsonAsync($"/api/v1/game-rounds/{Round}/story/event",p);Assert.Equal(HttpStatusCode.OK,response.StatusCode);return(await response.Content.ReadFromJsonAsync<JsonObject>())!;}
     public async Task BeforeFinal(bool stopBeforeRetrieve=false,bool stopBeforeShare=false){
@@ -47,7 +49,15 @@ internal class SceneTrackHttpContext:IAsyncDisposable
         await Send(0,"read-shared-clue");await Send(0,"pick-book");await Send(0,"move-inviter-counter");await Send(0,"deliver-book");await Send(0,"wind-rescue","start");await Send(0,"wind-rescue","hold-bag");await Send(1,"move-acceptor-window");if(stopBeforeRetrieve)return;await Send(1,"wind-rescue","retrieve-tag");await Send(1,"move-acceptor-counter");await Send(1,"wind-rescue","place-tag");
         Assert.Equal("i08",(await Snapshot(0))["myTrack"]!.Text("nodeId"));Assert.Equal("a08",(await Snapshot(1))["myTrack"]!.Text("nodeId"));await Send(1,"verify-order");
     }
-    public async ValueTask DisposeAsync(){foreach(var c in Clients)c.Dispose();Factory.Dispose();media.Dispose();await Platform.DisposeAsync();}
+    public async ValueTask DisposeAsync(){foreach(var c in Clients)c.Dispose();Factory.Dispose();media.Dispose();if(ownsPlatform)await Platform.DisposeAsync();}
+    private sealed class InterleavingPlatform(SceneTrackHttpContext context):IPlatformClient
+    {
+        public async Task<JsonNode> ExecuteAsync(string command,object payload,CancellationToken cancellationToken=default)
+        {
+            if(command=="story.framework.action.commit"&&context.BeforeActionCommit is{} before){context.BeforeActionCommit=null;await before();}
+            return await context.Platform.ExecuteAsync(command,payload,cancellationToken);
+        }
+    }
     private sealed class MediaBridge(RealPlatform platform):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct){var headers=request.Headers.ToDictionary(h=>h.Key,h=>string.Join(",",h.Value));var result=await platform.ExecuteAsync("$test-media",new{path=request.RequestUri!.AbsolutePath,method=request.Method.Method,headers,content=(string?)null},ct);var response=new HttpResponseMessage((HttpStatusCode)result.Number("status")){Content=new ByteArrayContent(Convert.FromBase64String(result.Text("content")))};if(result.Maybe("mime") is string mime)response.Content.Headers.ContentType=new(mime);return response;}

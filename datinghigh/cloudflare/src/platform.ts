@@ -262,7 +262,7 @@ export async function dispatch(request:Request,env:PlatformEnv,injectedNow?:numb
   }
   if(command.startsWith('avatar.attempt.')){
    const result=await avatarCommand(command,p,env,now);
-   if(command==='avatar.attempt.select')await notifyAvatarSelection(env,p,currentTime());
+   if(command==='avatar.attempt.select'||command==='avatar.attempt.expression.review'&&(result as {savedSource?:boolean;status?:string})?.savedSource&&(result as {status?:string}).status==='committed')await notifyAvatarSelection(env,p,currentTime());
    return Response.json(result,{headers:{'Cache-Control':'no-store'}});
   }
   if(command==='platform.ready'){z.strictObject({}).parse(p);return Response.json(await ready(env));}

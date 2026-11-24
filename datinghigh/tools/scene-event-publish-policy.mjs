@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {v3FirstStory,validateRainBookshopV3} from './rain-bookshop-v3-policy.mjs';
 
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const stmt=(sql,...values)=>({sql,values});
@@ -98,6 +99,8 @@ export function planSceneEventPublication(bundles,now=Date.now()){
   out.push(stmt(`INSERT INTO content_story_catalog(catalog_id,story_id,version,interest_tag_ids_json,recommendation_priority,manifest_key,manifest_sha256,status,published_at,scene_catalog_id,sequence_group_id,sequence_order,prerequisites_json) SELECT ?,?,?,?,?,?,?,'published',?,?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM content_story_catalog WHERE catalog_id=?)`,n.catalogId,n.storyId,n.version,tags,n.recommendationPriority,n.manifestKey,n.manifestSha256,now,n.sceneCatalogId,n.sequenceGroupId,n.sequenceOrder,prerequisites,n.catalogId));
   out.push(stmt(`UPDATE content_story_catalog SET status='published',published_at=COALESCE(published_at,?) WHERE catalog_id=? AND status='draft'`,now,n.catalogId));
   out.push(guard(`EXISTS(SELECT 1 FROM content_story_catalog WHERE catalog_id=? AND scene_catalog_id=? AND manifest_sha256=? AND status='published')`,n.catalogId,n.sceneCatalogId,n.manifestSha256));
+  // 新首條使用不同 Narrative ID；只退休舊抽選索引，不更動歷史釘選內容。
+  if(n.storyId===v3FirstStory)out.push(stmt(`UPDATE content_story_catalog SET status='retired' WHERE story_id=? AND status='published'`,'rain-bookshop-last-order'));
  }
  return out;
 }
@@ -139,25 +142,27 @@ export async function validateSceneEventBundles(bundles,validationRoot){
  * 調校新版本時必須同時檢視劇本契約與需求，不可只重算資產 SHA 略過必經台詞。
  */
 export async function validateFormalSceneEventBundles(bundles,validationRoot){
- const data=await validateSceneEventBundles(bundles,validationRoot);
  for(const bundle of bundles){
   const n=bundle.narrative.manifest;
+  if(n.narrativeId===v3FirstStory){validateRainBookshopV3(bundle);continue;}
   if(n.narrativeId!=='rain-bookshop-last-order'||n.version!=='v2')throw new Error('FIRST_STORY_GATE_REQUIRED');
   const dialogue=[...['inviter','acceptor'].flatMap(role=>n.tracks[role].nodes.map(node=>[role,node.id,node.lines])),...n.sharedEventBindings.map(binding=>['shared',binding.bindingId,binding.lines]),...n.endings.map(ending=>['ending',ending.id,ending.lines])];
   const performance=[...n.eventBindings.map(binding=>[binding.bindingId,binding.startPresentationSteps,binding.actions.map(action=>[action.actionId,action.stepId,action.presentationSteps])]),...n.sharedEventBindings.map(binding=>[binding.bindingId,binding.startPresentationSteps,binding.actions.map(action=>[action.actionId,action.stepId,action.presentationSteps])]),...n.endings.map(ending=>[ending.id,ending.presentationSteps])];
   if(sha(Buffer.from(JSON.stringify(dialogue)))!=='fcdbfa3b0bb5ed0169885fe1d0466a9fda0126868663fc107f3cd28a0a38fd3f'||sha(Buffer.from(JSON.stringify(performance)))!=='fcb20a23ecc58d7a1f8bf646202f80095e96e74191bb38e60601bcb0a80669d5')invalid();
  }
- return data;
+ return validateSceneEventBundles(bundles,validationRoot);
 }
 /** 本地 wrapper 專用：先 create-only 寫入全部公開內容並讀回驗證，再原子發布 D1。 */
 export async function publishSceneEventBundles(db,bucket,bundles,{firstStoryGate,validationRoot,now=Date.now()}={}){
  const data=await validateSceneEventBundles(bundles,validationRoot);
+ for(const bundle of bundles)if(bundle.narrative.id===v3FirstStory)validateRainBookshopV3(bundle);
  const baselineFields=['catalog_id','story_id','version','manifest_sha256','scene_catalog_id','status','sequence_group_id','sequence_order','prerequisites_json'];
  const baseline=(await db.prepare(`SELECT ${baselineFields.join(',')} FROM content_story_catalog WHERE scene_catalog_id IS NOT NULL ORDER BY CASE status WHEN 'published' THEN 0 WHEN 'retired' THEN 1 ELSE 2 END,published_at DESC,catalog_id DESC`).all()).results;
  validateDependencies(baseline,data.narratives);const existing=baseline.filter(n=>n.status==='published');
  const allIds=new Set([...existing.map(n=>n.story_id),...data.narratives.map(n=>n.storyId)]);
- const firstId='rain-bookshop-last-order';
- if([...allIds].some(id=>id!==firstId)){
+ // 舊首場可重播，新首場可獨立製作；其餘故事一律要求新版首場的人工核准。
+ const firstId=v3FirstStory;
+ if([...allIds].some(id=>id!==firstId&&id!=='rain-bookshop-last-order')){
   const first=[...existing.map(n=>({id:n.story_id,version:n.version,sha256:n.manifest_sha256})),...bundles.map(b=>({id:b.narrative.id,version:b.narrative.version,sha256:b.narrative.sha256}))];
   if(firstStoryGate?.approvedByUser!==true||firstStoryGate.narrativeId!==firstId||!first.some(n=>n.id===firstStoryGate.narrativeId&&n.version===firstStoryGate.version&&n.sha256===firstStoryGate.sha256))throw new Error('FIRST_STORY_GATE_REQUIRED');
  }

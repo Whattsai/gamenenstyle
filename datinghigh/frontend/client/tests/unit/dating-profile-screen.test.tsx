@@ -2,10 +2,10 @@
 import React from 'react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {render,screen,fireEvent,cleanup,waitFor,act} from '@testing-library/react';
-const state=vi.hoisted(()=>({now:1800000000000,focused:true,appState:'active',appHandlers:new Set<(value:string)=>void>(),request:vi.fn(),uploadPhoto:vi.fn(),pick:vi.fn(),router:{push:vi.fn(),replace:vi.fn(),back:vi.fn(),canGoBack:()=>false},navigation:{addListener:()=>()=>{},dispatch:vi.fn()}}));
+const state=vi.hoisted(()=>({now:1800000000000,params:{completeAvatarPoses:undefined as string|undefined},focused:true,appState:'active',appHandlers:new Set<(value:string)=>void>(),request:vi.fn(),uploadPhoto:vi.fn(),pick:vi.fn(),router:{push:vi.fn(),replace:vi.fn(),back:vi.fn(),canGoBack:()=>false},navigation:{addListener:()=>()=>{},dispatch:vi.fn()}}));
 vi.mock('react-native',async()=>({...await vi.importActual<typeof import('react-native')>('react-native-web'),AppState:{get currentState(){return state.appState;},addEventListener:(_event:string,handler:(value:string)=>void)=>{state.appHandlers.add(handler);return {remove:()=>state.appHandlers.delete(handler)};}}}));
 vi.mock('react-native-safe-area-context',async()=>({SafeAreaView:(await vi.importActual<typeof import('react-native')>('react-native-web')).View}));
-vi.mock('expo-router',()=>({useRouter:()=>state.router,useNavigation:()=>state.navigation,useFocusEffect:(effect:()=>void)=>React.useEffect(()=>state.focused?effect():undefined,[effect,state.focused])}));
+vi.mock('expo-router',()=>({useRouter:()=>state.router,useLocalSearchParams:()=>state.params,useNavigation:()=>state.navigation,useFocusEffect:(effect:()=>void)=>React.useEffect(()=>state.focused?effect():undefined,[effect,state.focused])}));
 vi.mock('expo-image-picker',()=>({launchImageLibraryAsync:state.pick,UIImagePickerPreferredAssetRepresentationMode:{Compatible:'compatible'}}));
 vi.mock('expo-crypto',()=>({getRandomValues:(bytes:Uint8Array<ArrayBuffer>)=>crypto.getRandomValues(bytes)}));
 vi.mock('expo-file-system',()=>({Paths:{cache:{uri:'file:///app/cache/'}},File:class{exists=false;delete(){}}}));
@@ -17,16 +17,32 @@ import {CardDisplay,CardPreviewScreen} from '../../src/CardPreviewScreen';
 import type {ProfileField} from '../../src/profile-fields';
 import {ApiFailure} from '../../src/api';
 vi.setConfig({testTimeout:20000});
-afterEach(()=>{cleanup();state.focused=true;state.appState='active';state.appHandlers.clear();vi.useRealTimers();state.now=1800000000000;vi.clearAllMocks();});
+afterEach(()=>{cleanup();state.params.completeAvatarPoses=undefined;state.focused=true;state.appState='active';state.appHandlers.clear();vi.useRealTimers();state.now=1800000000000;vi.clearAllMocks();});
 const openAvatars=async()=>{fireEvent.click(await screen.findByLabelText('選擇化身'));};
 const openAi=async()=>{await openAvatars();fireEvent.click(await screen.findByLabelText('AI 客製化'));};
+it('the scene recovery link opens saved-avatar pose preparation but never calls AI until the owner explicitly starts',async()=>{
+ setup();state.params.completeAvatarPoses='1';const base=state.request.getMockImplementation()!;
+ const progress:any={assetId:'saved',attemptId:'old-attempt',index:1,clientRequestId:'workflow',savedSource:true,status:'building',staticRequired:true,completed:['neutral','smile','surprised','thoughtful','concerned'],completedPoses:[],currentExpression:null,uncertain:false,expiresAt:1800003600000};
+ let release!:(value:any)=>void;
+ state.request.mockImplementation(async(path:string,method?:string,body?:any)=>{
+  if(path==='/me/dating-profile')return {...await base(path,method,body),selectedAvatarType:'generated',selectedAvatarRef:'saved',generatedAvatars:[{assetId:'saved'}]};
+  if(path.endsWith('/expressions/begin'))return {...progress,clientRequestId:body.clientRequestId};
+  if(path.endsWith('/expressions/next'))return new Promise(resolve=>{release=resolve;});return base(path,method,body);
+ });
+ render(<DatingProfileScreen/>);const start=await screen.findByRole('button',{name:'補齊目前角色的姿態'});
+ expect(state.request.mock.calls.some(([p])=>p.endsWith('/begin')||p.endsWith('/next'))).toBe(false);
+ fireEvent.click(start);await waitFor(()=>expect(state.request.mock.calls.some(([p,,body])=>p.endsWith('/next')&&body.expression==='pose-stand')).toBe(true));
+ expect(state.request.mock.calls.find(([p])=>p.endsWith('/begin'))?.[2]).toMatchObject({assetId:'saved',expectedRevision:1});
+ expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/generations')).toBe(false);
+ cleanup();await act(async()=>release({...progress,completedPoses:['stand']}));
+});
 
 it('B1 uncertainty discovered on resume explains cost and stops before another expression request',async()=>{
  setup();const base=state.request.getMockImplementation()!;let reads=0;
  const adoption={assetId:'formal',attemptId:'round',index:1,clientRequestId:'workflow',status:'building',completed:['neutral','smile'],currentExpression:null,uncertain:false,expiresAt:1800003600000};
  state.request.mockImplementation(async(path:string,...args:unknown[])=>path==='/me/avatar/expressions'?{adoption:{...adoption,uncertain:++reads>1}}:base(path,...args));
  render(<DatingProfileScreen/>);await openAvatars();fireEvent.click(await screen.findByLabelText('繼續製作尚未完成的表情'));
- await screen.findByText('這張表情的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試');
+ await screen.findByText('這一步的結果與供應商用量尚未確認；不會自動重送，請先查回結果再決定是否重試');
  expect(screen.getByLabelText('確認可能增加供應商用量並繼續')).toBeTruthy();
  expect(state.request.mock.calls.some(([p])=>p==='/me/avatar/expressions/next'||p==='/me/avatar/selection')).toBe(false);
 });

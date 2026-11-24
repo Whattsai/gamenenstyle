@@ -20,7 +20,7 @@
 | GOOGLE_IOS_ALLOWED_CLIENTS | 公開ID清單，iOS Google功能需要 | 逗號分隔，須涵蓋實際SDK產生的audience／azp |
 | GOOGLE_ANDROID_ALLOWED_CLIENTS | 公開ID清單，Android Google功能需要 | 逗號分隔，須配合Web client／native設定與簽章 |
 | GEMINI_API_KEY | Secret，AI 生成需要 | 只在忽略的 server `cloudflare/.dev.vars`／部署 secret 設定；Worker 轉入容器，永不進 EXPO_PUBLIC 或 URL／日誌；缺少時 AI 503，免費角色仍可用 |
-| GEMINI_IMAGE_MODEL | 一般變數，選填 | 預設 gemini-3.1-flash-image；只允許程式內列出的 Gemini image model，不能傳任意 endpoint |
+| GEMINI_IMAGE_MODEL | 一般變數，選填 | 預設 gemini-3.1-flash-image；新靜態姿態2K使用 gemini-3.1-flash-image 或 gemini-3-pro-image，舊2.5設定不能完成新姿態製作；只接受程式內列出的固定模型，不能傳任意endpoint |
 
 Google allowlist 可為空，基礎ready不因此失敗；呼叫該platform的Google驗證則503 EXTERNAL_PROVIDER_UNAVAILABLE。前端缺client ID時入口顯示不可用，不能回假成功。
 

@@ -36,9 +36,45 @@ export function validateTrackReachability(c:TrackContent,all:TrackBinding[]){
  const requiredGroups=new Set(bindings.filter(b=>b.requiredForEnding).map(b=>b.trackScope+':'+b.repeatGroup));
  const eligible=(st:State,b:TrackBinding)=>(b.requiredForEnding||!requiredGroups.has(b.trackScope+':'+b.repeatGroup))&&!Object.entries(st.instances).some(([k])=>byKey.get(k)?.trackScope===b.trackScope&&byKey.get(k)?.repeatGroup===b.repeatGroup)&&test(st,b.triggerConditions);
  const enter=(st:State,r:Role,id:string)=>{st.progress[r].node=id;if(!st.entered[r].includes(id)){st.entered[r].push(id);st.entered[r].sort();}};
- const signature=(st:State)=>JSON.stringify([st.progress.inviter,st.progress.acceptor,st.entered.inviter,st.entered.acceptor,Object.values(st.objects),Object.values(st.flags),bindings.map(b=>{const i=st.instances[key(b)];return i?[i.status,...roles.map(r=>Object.entries(i.sub[r]??{}).sort(([a],[b])=>a<b?-1:a>b?1:0))]:null;})]);
+ // 圖只保留會影響未來合法動作／收尾的事實。原創書籍、私有共鳴及可見分鏡的
+ // 純呈現差異不應產生指數級相同狀態；所有選項／效果仍逐一產生後繼並驗證。
+ const relevanceCache=new Map<string,{facts:Set<string>;nodes:Set<string>;objects:Set<string>;flags:Set<string>;options:Set<string>}>();
+ function signature(st:State){
+  // 未來規則所需欄位只由 binding 狀態與 flag 可達值決定；同一階段中的
+  // 移動／物件分支可重用欄位集合，實際世界值與提交內容仍各自進入 signature。
+  const relevanceKey=JSON.stringify([bindings.map(b=>st.instances[key(b)]?.status??null),s.sharedFlags.map(f=>st.flags[f.id])]);
+  let requirement=relevanceCache.get(relevanceKey);
+  if(!requirement){
+  const remaining=bindings.filter(b=>!['completed','cancelled'].includes(st.instances[key(b)]?.status));
+  const remainingEffects=remaining.flatMap(b=>[...b.startEffects,...b.completionEffects,...b.actions.flatMap(a=>a.worldEffects)]);
+  const possible=(v:any):[boolean,boolean]=>{const [op,a]=Object.entries(v)[0]as[string,any];
+   if(op==='all'||op==='any'){const values=a.map(possible)as [boolean,boolean][];return op==='all'?[values.every(v=>v[0]),values.some(v=>v[1])]:[values.some(v=>v[0]),values.every(v=>v[1])];}
+   if(op==='not'){const p=possible(a);return[p[1],p[0]];}
+   if(op==='shared_flag_equals'){const values=new Set([st.flags[a.key],...remainingEffects.filter(e=>e.type==='flag'&&e.flagId===a.key).map(e=>(e as {value:string}).value)]);return[values.has(a.value),[...values].some(v=>v!==a.value)];}
+   return [true,true]; // 其餘規則保守保留，不以目前為false推定未來不可達。
+  };
+  const live=remaining.filter(b=>st.instances[key(b)]?.status==='active'||possible(b.triggerConditions)[0]);
+  const facts=new Set<string>(),nodes=new Set<string>(),objects=new Set<string>(),flags=new Set<string>(),options=new Set<string>();
+  const refs=(v:any)=>{if(!v||typeof v!=='object')return;for(const [op,a]of Object.entries(v)as[string,any][]){
+   if(op==='track_node_entered')nodes.add(a.role+':'+a.nodeId);
+   if(op==='track_event_completed'||op==='track_choice_committed')facts.add(a.bindingKey);
+   if(op==='shared_event_completed')facts.add(a);
+   if(op==='track_choice_committed')options.add(a.bindingKey+':'+a.role+':'+a.actionId);
+   if(op==='world_object_state')objects.add(a.objectId);
+   if(op==='shared_flag_equals')flags.add(a.key);
+   refs(a);
+  }};
+  for(const b of live){facts.add(key(b));refs(b.triggerConditions);for(const a of b.actions){refs(a.conditions);if(a.params.objectId)objects.add(a.params.objectId);}for(const e of [...b.startEffects,...b.completionEffects,...b.actions.flatMap(a=>a.worldEffects)])if(e.type==='object')objects.add(e.objectId);else flags.add(e.flagId);}
+  // 已消耗的互斥機會即使沒有 world effect，仍會阻止同組其他 binding。
+  // 不可與尚未選擇的狀態合併，否則可能隱藏永遠無法完成的分支。
+  for(const e of n.endings)refs(e.conditions);if(n.safetyExit)refs(n.safetyExit.conditions);for(const b of bindings)if(b.requiredForEnding||(groupCount.get(b.trackScope+':'+b.repeatGroup)??0)>1)facts.add(key(b));
+  requirement={facts,nodes,objects,flags,options};if(relevanceCache.size>=512)relevanceCache.delete(relevanceCache.keys().next().value!);relevanceCache.set(relevanceKey,requirement);
+  }
+  const {facts,nodes,objects,flags,options}=requirement;
+  return JSON.stringify([roles.map(r=>st.progress[r].area),roles.map(r=>st.entered[r].filter(id=>nodes.has(r+':'+id))),[...objects].sort().map(id=>[id,st.objects[id]]),[...flags].sort().map(id=>[id,st.flags[id]]),bindings.map(b=>{const k=key(b),i=st.instances[k];return facts.has(k)&&i?[i.status,...roles.map(r=>Object.entries(i.sub[r]??{}).filter(([,f])=>i.status!=='completed'||options.has(k+':'+r+':'+f.actionId)).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([step,f])=>[step,f.actionId,options.has(k+':'+r+':'+f.actionId)?f.optionId:null]))]:null;})]);
+ }
  const states:State[]=[initial],indices=new Map([[signature(initial),0]]),reverse:number[][]=[[]],ends:number[]=[],seenEndings=new Set<string>(),seenNodes={inviter:new Set<string>(),acceptor:new Set<string>()};
- function connect(next:State,from:number){const value=signature(next);let index=indices.get(value);if(index===undefined){if(states.length>=50000)invalid('state-limit');index=states.length;indices.set(value,index);states.push(next);reverse.push([]);}reverse[index].push(from);}
+ function connect(next:State,from:number){for(const r of roles)for(const id of next.entered[r])seenNodes[r].add(id);const value=signature(next);let index=indices.get(value);if(index===undefined){if(states.length>=50000)invalid('state-limit');index=states.length;indices.set(value,index);states.push(next);reverse.push([]);}reverse[index].push(from);}
  for(let cursor=0;cursor<states.length;cursor++){
   const st=states[cursor];for(const r of roles)for(const id of st.entered[r])seenNodes[r].add(id);
   // 撤離是共享危險事實導出的優先收尾，不依賴已無法安全完成的合作任務。

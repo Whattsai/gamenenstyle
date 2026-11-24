@@ -4,13 +4,15 @@
 
 ## 角色授權讀圖
 
-讀圖端點：`GET /api/v1/game-rounds/{roundId}/partner-avatar` 及 `.../partner-avatar/{version}/{expression}`；同房本人 `GET /api/v1/game-rounds/{roundId}/my-avatar` 及 `.../my-avatar/{version}/{expression}`；本人 `GET /api/v1/me/avatar/assets/{assetId}/expressions` 及 `.../{version}/{expression}`。只回固定五表情、SHA／MIME／尺寸／大小、full-body.v1／standing／anchors 與授權 URL，不回 owner／來源照片／private key。binary no-store 且 IO 後重驗授權／目前選角；免費已確認套組也走同房通道。
+讀圖端點：`GET /api/v1/game-rounds/{roundId}/partner-avatar` 及 `.../partner-avatar/{version}/{expression}`；同房本人 `GET /api/v1/game-rounds/{roundId}/my-avatar` 及 `.../my-avatar/{version}/{expression}`；本人 `GET /api/v1/me/avatar/assets/{assetId}/expressions` 及 `.../{version}/{expression}`。回固定五表情、SHA／MIME／尺寸／大小、full-body.v1／standing／anchors 與授權 URL；另可含 `staticPosePackage`（static-poses.v1、packageVersion、assets、四pose各五表情frame）。靜態asset使用同一binary路徑的 `static-{sha256}` selector，回PNG；舊五表情仍回WebP。selector只能命中目前授權包中存在的SHA，不接受任意URL、owner或R2 key。API深層白名單移除來源SHA、儲存key及額外欄位。binary no-store 且 IO 後重驗授權／目前選角；免費已確認套組也走同房通道。
 
-## 五表情製作與採用
+## 靜態化身製作與採用
 
-受 PlatformAccess／Origin／no-store 保護的 GET `/me/avatar/expressions`（本人 adoption 或 null）；POST `/me/avatar/expressions/begin` 接 attemptId／index1..4／clientRequestId／expectedRevision；`/next` 接 workflowId／固定 expression／clientRequestId／可選 retryUncertain；`/cancel` 接 workflowId。status 亦可 POST 空物件。公開結果只含進度／穩定 ID，不含 lease、來源圖或私人 key；內部 binary PUT `/v1/avatar/expressions/{workflow}/{expression}` 只走 Container bridge。候選 PUT selection 須五表情 ready，切回 saved 須本人 ready Manifest；無半身升級入口。
+受 PlatformAccess／Origin／no-store 保護的 GET `/me/avatar/expressions`（本人 adoption 或 null）；POST `/me/avatar/expressions/begin` 接 attemptId／index1..4／clientRequestId／expectedRevision；`/next` 接 workflowId／固定 expression／clientRequestId／可選 retryUncertain；`/cancel` 接 workflowId。status 亦可 POST 空物件。公開 begin 固定要求完整靜態包，先檢查已配置供應商支援姿態製作，再建立流程與扣額度；next 的固定步驟為五表情及 `pose-stand/sit/read/hold`，依序缺項續作；公開結果含進度、穩定ID及完整後的安全 `staticPosePackage`，不含 lease、來源SHA或私人key。POST `/me/avatar/expressions/review` 只接 workflowId／packageVersion，確認該完整版本後才允許候選 PUT selection；切回 saved 仍須本人既有 ready Manifest。GET `/me/avatar/expressions/{workflow}/poses/{stand|sit|read|hold}` 只供本人有效前景流程預覽PNG，沿用 Session／候選來源檢查並在IO後重驗。內部 binary GET／PUT `/v1/avatar/expressions/{workflow}/{step}` 只走 Container bridge；五表情WebP上限2MB，姿態PNG上限20MB，固定selector且有界串流。無半身升級入口。
 
 ## 劇情與即時通訊
+
+已保存且目前採用的舊AI角色可用同一`/me/avatar/expressions/begin`提交`assetId`／`clientRequestId`／`expectedRevision`，與新候選的`attemptId`／`index`互斥。此流程沿用永久Master與既有五表情，只製作四姿態；進度帶`savedSource=true`，不依賴已過期候選或原真人照片。本人檢視精確`packageVersion`後的`review`會以原profile revision確認同一asset、結束工作流及通知同房讀取新包，不再另送選角PUT。重播回原確認結果；進場與重新同步不啟動生成。
 
 所有路徑相對 `/api/v1`，需既有登入／Origin保護，回應 `no-store`：
 
@@ -36,6 +38,8 @@ playing／completed 的 `schemaVersion=scene-event.v2`，含 myTrack(role/nodeId
 active 遊戲入口／恢復、events query、realtime-ticket 及 HTTP／WS 遊戲命令另驗本人目前採用的 ready 五表情；不完整回 `409 OWN_AVATAR_PACK_NOT_READY`。前端清空私人場景並提供個人檔案入口；另一組 pending 化身不影響已就緒的採用者。end 與 ended 安全投影保留。固定內部 `avatar.current.readiness` 只接收登入身分、回 `{ready:true}`，不接受 owner／assetId 或公開素材路徑。
 
 內容宣告多 Area 舞台時，experience 可含 `stage`：`version=scene-stage.v1`、`currentShotId`、安全子集的 `shots`／`areaVisuals`／`embeddedInteractables`／NPC appearance。範圍限本人目前鏡位及已提交 cue 引用，不回完整未觸發舞台、條件或另一人的私人視角；原內容未宣告時省略 stage。cue 另可含有界 `{type:'shot',shotId,durationMs}`；只控制呈現，不由 client 寫回世界或選擇結果。此欄位沒有新增正式 Rig 製作或 binary 讀取端點。
+
+Scene 原創書籍透過 `books:[{id,objectId,title,category,summary,pages}]` 白名單投影，限本人目前 Area 的可見實體書及宣告副本。`stage.weather` 只含公開世界狀態對應的 `intensity`；Area 視覺可含 `weatherRegion`。NPC appearance 可使用公開 `static-npc.v1` 完整身體圖格及完整姿態／表情的 `hitMasks`，不傳可見性條件。可選 `musicAsset` 與 `audioMix:{ambienceGain,musicGain}` 提供目前授權鏡位的原創音樂及混音。一般 Shot 不會繪出實際位於其他 Area 的真人；completed 的權威結局 Shot 保留於 `currentShotId`，`currentNode.presentation.cameraId` 使用該 Shot 的相機，重連不回到結局前鏡位。上述欄位均不增加操作端點，翻書、音訊與微動不提交權威狀態。
 
 `/internal/round-command`僅Worker→Container私有transport，外部`/internal/*`仍阻擋。公開故事素材只允許GET／HEAD `/story-content/assets/<64位sha256>`，不接受query或任意key。
 

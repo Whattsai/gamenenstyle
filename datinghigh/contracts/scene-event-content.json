@@ -2,9 +2,9 @@
   "schemaVersion": "scene-event.authoring.v2",
   "stories": [
     {
-      "sourceFile": "contracts/rain-bookshop-last-order.json",
-      "sceneCatalogId": "019a281e-0000-7000-8000-000000005001",
-      "narrativeCatalogId": "019a281e-0000-7000-8000-000000005002",
+      "sourceFile": "contracts/rain-bookshop-before-rain-stops.json",
+      "sceneCatalogId": "019a281e-0000-7000-8000-000000005011",
+      "narrativeCatalogId": "019a281e-0000-7000-8000-000000005012",
       "categories": [
         {
           "categoryId": "019a281e-0000-7000-8000-000000004003",

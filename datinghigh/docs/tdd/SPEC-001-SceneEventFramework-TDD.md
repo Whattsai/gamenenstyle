@@ -1,19 +1,21 @@
 # SPEC-001-SceneEventFramework — TDD 測試清單
 
+> **目前執行範圍**：先整合已確認靜態姿態／五表情及私人首次採用，Puppet與連續動作試作延期，未使用試作程式已撤回。原動態測試ID保留作後續追溯，不列靜態交付前置，也不改記通過；混合案例仍須核對靜態身份、姿態／表情、SHA／授權與跨平台顯示，既有ready及劇情Gate B不取消。原875項規劃數不是本階段重算後分母；現況與測試結果以[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)為權威。
+
 > **來源 MVP**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md)（AC-005-04～35；新 V3 AC-005-24～35）；**最新版 SDD**：[SceneEventFramework](../specs/SPEC-001-SceneEventFramework.md)；**BDD**：[191 場景](../bdd/SPEC-001-SceneEventFramework-BDD.md)
 > **原生成日期**：2026-11-12；**2026-11-16 Phase 5 最終規劃**：BDD 121 場景；TDD 原 383＋雙 Track／劇本 222＋RiskAudit 20＝**625 項**。V2-RQ-01=A 與 10 組 GAP 已正式回寫；**本輪交接 Ready for well-done（僅規劃 Gate）**，非程式實作、產品測試或人工 Gate B 通過。完整證據見 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 > **2026-11-17 V3 最新 Phase 5 規劃（本次）**：容量策略 `SEF-V3-RQ-01=B` 已確認，RiskAudit 10 GAP 正式補入；總 BDD **191** 場（V3 新增70），TDD **875** 項（V3 新增250），V3 真實完成 **0/70／0/250**。舊 2026-11-16 Ready 與先前 V3 Blocked 均屬歷史快照；本檔**末尾最新交接**才是 V3 有效狀態。
 
-> **目前執行權威**：[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)；原V2完整覆核610/625，V3已有部分實作但完整覆核仍0/250。首輪一款免費與一款AI已獲品質確認，其餘15款整批審查中；不是正式Rig ready或V3 Gate B。下方規劃日期與交接快照不取代目前執行證據。
+> **目前執行權威**：[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)；原V2完整覆核610/625，V3已有部分實作但完整覆核仍0/250。17款靜態外觀均已逐款確認；16款免費靜態包已有正式索引與接線，AI首次建檔及首場V3仍依Verification核證；不是正式Rig ready或V3 Gate B。下方規劃日期與交接快照不取代目前執行證據。
 
 ## 開發進度總覽
 
 ```text
 📦 SceneEventFramework / Red-Green-Refactor
-├─ 目前交付範圍：16款免費角色Rig整批品質審查，正式ready與V3劇情仍未完成
-├─ BDD：118/191完整覆核；V3 0/70，另有11項partial、59項pending，均不當已完成
-├─ TDD：610/875完整覆核；V3 0/250，另有22項partial、228項pending，精確缺項見Verification
-├─ 人工Gate：首輪兩款品質已確認；其餘15款與V3首場Gate B仍待本人確認
+├─ 目前交付範圍：正式靜態包接線與首場V3整合，私人首次建檔與劇情仍未完整核證
+├─ BDD：118/191完整覆核；V3 0/70，另有41項partial、29項pending，均不當已完成
+├─ TDD：610/875完整覆核；V3 0/250，另有86項partial、164項pending，精確缺項見Verification
+├─ 人工Gate：17款靜態外觀已確認；V3首場Gate B仍待本人試玩
 └─ 內容次序：首場完整V3 → 使用者Gate B → 其餘9場
 ```
 
@@ -4961,12 +4963,12 @@
 - [ ] **SEF-UT-535** `V3RigFiveExpressionsAndPose_ValidInput_ProducesExpectedOutcome`（高；Unit）
   - **來源**：`SEF-BDD-178`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
   - **測試前置、操作與斷言**：前置：一位免費與一位 AI 角色有同版有效 Rig、表情與姿態；操作：播放 neutral、smile、surprised、thoughtful、concerned 及 sit/read/hold；預期：表情辨識、臉型一致、動作自然且書本綁合法手部錨點
-  - **實作／驗證狀態**：`partial`；共用 Rig 層支援已發布 NPC 公開姿態與五語意表情真圖，沒有 Gemini 呼叫；免費／AI 正式全身 Rig、身份與臉型品質、自然動作及 Android fail 視覺復測未完成，維持 `[ ]`；[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-536** `V3RigFiveExpressionsAndPose_ForbiddenCase_RejectsInvalidEffect`（高；Unit）
   - **來源**：`SEF-BDD-178`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
   - **測試前置、操作與斷言**：同一功能的禁止條件：不能以五張整圖重生代替新版可動介面驗證；驗證不產生非法事件、狀態或錯誤畫面；必要時回權威 snapshot
-  - **實作／驗證狀態**：`partial`；已用 Red→Green 補強 `actor-rig-policy`：不僅校驗當前 neutral 姿態，且在首次渲染前核對五個不同語意表情、所有宣告姿態／表情的每種組合與 atlas 合法性、圖層／anchor ID 不重複、骨架無孤兒／循環。缺未選中表情或未選中 pose 亦 Fail-Closed。正式 ready Manifest 的 owner／R2 SHA／授權、真 five emotion 動畫、免重生整圖與 Android／Web 真視覺驗收仍未完成，維持 `[ ]`；[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-537** `V3RigFiveExpressionsAndPose_EdgeCase_MaintainsInvariant`（高；Unit）
   - **來源**：`SEF-BDD-178`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
@@ -4986,17 +4988,17 @@
 - [ ] **SEF-UT-538** `V3RigNoGeminiDuringPlay_ValidInput_ProducesExpectedOutcome`（高；Unit）
   - **來源**：`SEF-BDD-179`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
   - **測試前置、操作與斷言**：前置：兩位玩家已使用驗證 ready 的 immutable Rig Package；操作：換表情、重新選回同角色、重連或新場次進入；預期：Gemini 呼叫次數為零且只讀已授權版本化素材
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-539** `V3RigNoGeminiDuringPlay_ForbiddenCase_RejectsInvalidEffect`（高；Unit）
   - **來源**：`SEF-BDD-179`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
   - **測試前置、操作與斷言**：同一功能的禁止條件：不能把已存的同版 Rig 判定為需要再次製作；驗證不產生非法事件、狀態或錯誤畫面；必要時回權威 snapshot
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-540** `V3RigNoGeminiDuringPlay_EdgeCase_MaintainsInvariant`（高；Unit）
   - **來源**：`SEF-BDD-179`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`frontend/client/tests/unit/scene-v3-stage-rig.test.tsx`
   - **測試前置、操作與斷言**：額外不變條件：場次／聊天／角色身份與資產 hash 無混包；驗證角色／共享世界／素材版本及合法 UX 狀態在邊界仍成立
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-ET-101** `V3RigNoGeminiDuringPlay_RealBoundary_EnforcesScenario`（高；ET）
   - **來源**：`SEF-BDD-179`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`tests/e2e/web/scene-event-framework-v3.spec.ts；tests/e2e/android/scene-event-framework-v3.mjs`
@@ -5004,24 +5006,24 @@
   - **執行**：換表情、重新選回同角色、重連或新場次進入
   - **必通斷言**：Gemini 呼叫次數為零且只讀已授權版本化素材；場次／聊天／角色身份與資產 hash 無混包；且不能把已存的同版 Rig 判定為需要再次製作
   - **證據 Gate**：Web／Android 使用真人雙端舞台操作與實際畫面／效能證據；各角色與裝置均需有可觀察軌跡，不能以模擬畫面取代 Gate B
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ### V3-BDD-180 不同玩家只共用有授權的骨架與服裝素材
 
 - [ ] **SEF-UT-541** `V3RigSharedAssetsAndPrivacy_ValidInput_ProducesExpectedOutcome`（高；Unit）
   - **來源**：`SEF-BDD-180`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`backend/tests/DatingHigh.Unit.Tests/Application/SceneEventFrameworkV3PolicyTests.cs`
   - **測試前置、操作與斷言**：前置：多位玩家選同一免費角色與通用骨架，道具由公共目錄提供；操作：兩人同時讀共用資產及個人 AI Rig；預期：共用素材僅有一份來源，私人臉／master 仍依 owner 驗證
-  - **實作／驗證狀態**：`partial`；客戶端對已發布 NPC 僅接受公開釘選的 appearance，外部私人 Rig 即使相同 actorId 也不能覆蓋（[純校驗](../../frontend/client/src/scene-stage.ts)、[單元測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx)）。正式共用資產去重、私人 R2 owner 驗證、跨玩家同時讀取仍未實證，維持 `[ ]`。
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-542** `V3RigSharedAssetsAndPrivacy_ForbiddenCase_RejectsInvalidEffect`（高；Unit）
   - **來源**：`SEF-BDD-180`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`backend/tests/DatingHigh.Unit.Tests/Application/SceneEventFrameworkV3PolicyTests.cs`
   - **測試前置、操作與斷言**：同一功能的禁止條件：不能為每位玩家複製五張全身角色圖作公用衣物；驗證不產生非法事件、狀態或錯誤畫面；必要時回權威 snapshot
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-UT-543** `V3RigSharedAssetsAndPrivacy_EdgeCase_MaintainsInvariant`（高；Unit）
   - **來源**：`SEF-BDD-180`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`backend/tests/DatingHigh.Unit.Tests/Application/SceneEventFrameworkV3PolicyTests.cs`
   - **測試前置、操作與斷言**：額外不變條件：無法從另一人的 manifest 取得私有 R2 key 或來源照片；驗證角色／共享世界／素材版本及合法 UX 狀態在邊界仍成立
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 - [ ] **SEF-IT-148** `V3RigSharedAssetsAndPrivacy_RealBoundary_EnforcesScenario`（高；IT）
   - **來源**：`SEF-BDD-180`／`V3-AC-12`／`AC-005-35`；**建議路徑**：`cloudflare/tests/scene-event-v3-d1.integration.test.ts`
@@ -5029,7 +5031,7 @@
   - **執行**：兩人同時讀共用資產及個人 AI Rig
   - **必通斷言**：共用素材僅有一份來源，私人臉／master 仍依 owner 驗證；無法從另一人的 manifest 取得私有 R2 key 或來源照片；且不能為每位玩家複製五張全身角色圖作公用衣物
   - **證據 Gate**：真 Miniflare D1／不可變 R2 ／正式事件 CAS 及重讀快照證據；不得以 fixture 假造成功交易
-  - **狀態**：新增 V3 規劃，未實作／未通過
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ### V3-BDD-181 Puppet 記憶體容量與未來 MVP-005 可擴充
 
@@ -5186,7 +5188,7 @@
   - **動作**：並行取得相同版 Rig ready 資格並重送 clientRequestId
   - **必通斷言**：只有一份成功 ready Manifest、同一版本與 owner；Gemini 必需呼叫數沒有因併發倍增；部分完成仍不可正式選用；任一錯誤不得混入其他人素材
   - **證據層級**：真 Miniflare D1／Worker、R2 授權與交易紀錄；不可只用假 Repo
-  - **實作／驗證狀態**：`[ ]` 尚未開發、尚未通過；規劃追溯完成不等於 runner 證據
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ### SEF-V3-GAP-02 → SEF-IT-150（高優先）
 
@@ -5196,7 +5198,7 @@
   - **動作**：同版 Rig 安全重試，並在授權的非正式環境執行可追溯的無引用圖層識別／清理
   - **必通斷言**：不重新生成已成功分層；只補失敗部分；不得清 ready、未知或別人資產；每名玩家 master／layers／遮罩／pose／manifest 全部 R2 bytes 與短效孤兒 bytes 有實測紀錄；容量超過五整圖不直接拒絕 B ready，但重複素材與無限制重產不能通過
   - **證據層級**：真 Miniflare D1／Worker、R2 授權與交易紀錄；不可只用假 Repo
-  - **實作／驗證狀態**：`[ ]` 尚未開發、尚未通過；規劃追溯完成不等於 runner 證據
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ### SEF-V3-GAP-03 → SEF-API-070（高優先）
 
@@ -5276,7 +5278,7 @@
   - **動作**：逐一在雙平台建立／播放五種表情與坐讀持物姿態並產生供本人觀察的基線比對
   - **必通斷言**：16/16 ID 不變且臉、髮型、上衣色彩／風格／氣質不改，不為驗動作而擅重畫原貌；任何一款缺素材或視覺未經本人核准不得宣稱整批 Ready
   - **證據層級**：Web／Android 實際裝置／畫面與本人人工 Gate B；不能憑模擬截圖代簽
-  - **實作／驗證狀態**：`partial`；已有相關通用元件或局部測試，本項全部斷言尚未覆核。精確證據與缺項見 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)，維持 `[ ]`。
+  - **實作核對**：靜態子項已有局部實作；完整案例維持 `[ ]`，精確證據、延期動態與尚缺平台／採用流程只記於 [Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 ### 需求／風險／BDD／TDD 補回對照（10/10）
 

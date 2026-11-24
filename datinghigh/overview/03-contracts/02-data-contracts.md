@@ -6,11 +6,31 @@
 
 `scene-stage.v1` 為可選 Scene JSON，定義 Area 的背景／前景／圖層、有限 shots（Area／camera／actor姿態、表情、gesture及音訊）與依 World object state 顯示的 embeddedInteractables。原位命中使用標準化 rect／polygon 與相同 camera 轉換；Publisher 檢查素材、Area、object state、shot及音訊引用，所有節點與結局演出須有對應 shot。NPC appearance 使用既有 Scene image asset ID，並非私人玩家 Rig。所有宣告的 NPC 姿態及五種語意表情圖片均須可解碼且具合法 image asset ID，即使本 Shot 尚未選取也不能略過；持物時另要求公開物件素材及唯一 `right-hand` 手錨。
 
-Narrative 可選 `safetyExit:{endingId,conditions}`，必須引用同條件的唯一結局；合法動作先套效果，再優先判定安全收尾。以上均沿用既有 JSON 儲存及 D1 原子命令，不新增表或欄位。
+NPC 另支援 `static-npc.v1`：每姿態指定同一公開 PNG 的尺寸與五種完整身體圖格，不疊加臉部圖片；完整校驗共用 `contracts/npc-static.ts`。此格式不宣告手錨，不可冒充具備私人玩家 Rig 或綁定額外持物。有對話選項的 NPC 必須有全部姿態／表情的非空 `hitMasks`；`contracts/scene-hit-mask.ts` 校驗有界十六進位透明遮罩，點擊只選取實際不透明身體，再由本人按對話選項提交。Actor 可用 `whenFlagEquals` 控制公開狀態可見性；投影會剔除不符合的角色及條件本身。
 
-client `ActorRigView` 的 `actor-rig.v1` 包含內容定址 assets、joints、atlas layers（region／position／size／depth）、四種姿態、五種表情覆寫及 propAnchors。這是共用呈現元件的輸入型別，尚不等於正式 R2 ready Manifest 或新授權 API；正式採用仍依既有五表情契約。Client 可從已授權 Scene NPC 的公開姿勢／表情圖片建構共用渲染 Rig，但不得藉此推定私人玩家已取得正式 Rig ready；任一必要圖層失敗須封閉互動舞台。審查頁不產生正式版本或修改原角色 ID。
+Scene 的 `books` 定義原創書籍的 objectId、標題、分類、摘要及2～12頁試讀；`copies` 可宣告共用同一封面與原文的其他實體書本，每個物件僅能屬於一本書。experience 只投影本人目前 Area 中可見書本的閱讀欄位，不附私有選書／共鳴條件。開書、翻頁及合回原位只保留本地 UI 狀態；展開時暫藏原物件圖，關閉後恢復，completed 亦只在仍授權且素材就緒時提供閱讀。
+
+Stage 可用 `weather` 將公開 flag 的每個公開值映射到 steady／heavy／easing／stopped；不能引用私有 flag 值。Area 的 `weatherRegion` 宣告雨層的合法範圍，與背景共用鏡頭矩陣。對外只提供目前 intensity。
+
+Scene 可選 `musicAsset`，必須引用正式 WAV；各 Area 可宣告 `audioMix:{ambienceGain,musicGain}`，兩者限0～1。`SceneAudioProjection` 只投影目前授權鏡位的混音；Client 仍須本人開啟聲音，混音漸變不影響權威世界，背景／失焦停止全部播放器，返回不自動播放。
+
+Narrative 可選 `safetyExit:{endingId,conditions}`，必須引用同條件的唯一結局；合法動作先套效果，再優先判定安全收尾。結局最後一個已提交 Shot 成為重連後的持久鏡位；一般鏡位仍依實際 Area 過濾真人角色。以上均沿用既有 JSON 儲存及 D1 原子命令，不新增表或欄位。
+
+內部 `story.framework.action.commit` 可附 `areaGuards`（accountId／role／revision／areaId）。Application 依本次 Binding 與收尾條件中的 `actor_area_is` 收集讀取位置；D1 在寫入前同批驗證帳號、邀請角色、版本及區域。所有個人動作亦附伺服器實際讀取的 `observedSharedRevision`，重驗合法條件與安全收尾所讀的共享世界；此讀取guard不增加Shared revision，只有世界改變才使舊讀取失效。這些內部CAS不修改另一人的Progress，也不是公開可指定的payload；單純過往到訪事實不因此鎖住對方目前進度，精確receipt重播仍回原結果。
+
+client `ActorRigView` 的 `actor-rig.v1` 包含內容定址 assets、joints、atlas layers（region／position／size／depth）、四種姿態、五種表情覆寫及 propAnchors。這是共用呈現元件的輸入型別，尚不等於正式 R2 ready Manifest 或新授權 API；既有資產依五表情契約，新候選另依完整靜態包及本人版本確認契約。Client 可從已授權 Scene NPC 的公開姿勢／表情圖片建構共用渲染 Rig，但不得藉此推定私人玩家已取得正式 Rig ready；任一必要圖層失敗須封閉互動舞台。審查頁不產生正式版本或修改原角色 ID。
+
+## 靜態角色包
+
+`contracts/static-avatar.ts` 定義 `static-poses.v1`：4種姿態各有完整5語意表情，frame引用帶SHA／MIME／尺寸／byteSize的PNG asset及有界region；重複ID、缺姿態、缺表情、越界或無引用asset一律拒絕。完整圖格不拆五官，也不表示連續動畫或Puppet已完成。
+
+免費包由 `contracts/builtin-static-poses.json` 綁定原neutral來源SHA。私人包位於本人asset的 `static-poses/v1/{sourceSHA}/`，必須對應舊ready Manifest的sourceImageSha256；PNG按SHA命名，Manifest完成實際物件SHA／尺寸／alpha檢查後才create-only發布，併發相同包冪等，不同內容拒絕覆寫。公開投影只有packageVersion、assets與poses，不含sourceSHA或私人儲存位置。既有五表情Gate保留，已發布私人靜態包缺圖時亦拒絕本人入場。
+
+前端 `StaticAvatarPreload` 全包解碼後才啟用含玩家的Stage；`staticStageActors` 依已授權Shot的role／pose／expression投影完整圖格。原生Image帶當下授權header，不持久化；失權或投影讀取失敗清除舊角色；V3必要素材解碼失敗封閉舞台，舊V2選用靜態圖解碼失敗不阻斷合法五圖回退與聊天。新候選明確製作流程在相容五表情後準備四姿態PNG；進場、重連與既有保存角色不自動生成。
 
 ## D1 schema
+
+舊AI角色補姿態沿用本人foreground adoption metadata，增加可選`savedSource`與確認收據`committedRevision`，不增加D1欄位。保存角色的五表情Manifest／Master保持不變；四張未確認PNG暫存於`private/{owner}/avatar/temp/pose-sheets/{workflow}/{pose}.png`，只有本人workflow可預覽，確認前不放入目前選角能讀取的canonical包。明確review後才發布原sourceSHA的四姿態包、以原revision確認同一選角並清除暫存。到期GC保留仍有有效building／ready引用的預覽，刪除到期孤兒；舊候選收尾不得結束savedSource流程。
 
 Foundation 原六張自有表共 **54 欄**（8＋5＋10＋8＋16＋7），每表首欄為 NOT NULL TEXT PRIMARY KEY，由程式建立小寫 canonical UUIDv7。D1 的 `d1_migrations` 是工具維護表，不計入自有六表。日期欄位使用 Unix epoch **milliseconds INTEGER**；DB row snake_case，公開 DTO camelCase。
 
@@ -116,13 +136,13 @@ Scene／Narrative／EventDefinition／GlobalPool 各有 version／key／SHA；�
 
 免費角色契約為 `contracts/builtin-avatar-packs.json`：16個穩定ID，各有 neutral／smile／surprised／thoughtful／concerned，含內容定址 WebP、SHA／avatarVersion、尺寸、大小、full-body.v1／standing 與 stageAnchors。唯一素材目錄為 frontend/client/public/avatars/full-body.v1，靜態neutral與劇情五表情共用；人工確認結果保存在需求驗證文件，不保存製作JSON或記錄於overview。
 
-## 全身五表情與 R2
+## 全身五表情、靜態製作與 R2
 
-全身候選 prompt 為 `datinghigh-adv-full-body.v2`，保留 portrait.v3 的身份／畫風文字並使用全身取景；表情 prompt 為 `datinghigh-expression-full-body.v2`，以選中候選作來源，使用保留洋紅底，Skia 去背後以透明 WebP 入庫。
+全身候選 prompt 為 `datinghigh-adv-full-body.v2`，保留 portrait.v3 的身份／畫風文字並使用全身取景；表情及靜態製作版本為 `datinghigh-expression-and-static.v3`，以選中候選作唯一來源，使用保留洋紅底；五表情由Skia去背後以透明WebP入庫，四姿態各一張五欄表以透明PNG入庫。姿態請求固定16:9／2K，僅接受已配置的 gemini-3.1-flash-image／gemini-3-pro-image，不切換模型或自動重試；解碼後檢查每欄完整、邊界及重複圖格，仍須本人核對身份、手部與表情品質。
 
 Gemini 衍生圖使用 LosslessWebp，每檔上限2MB、最低600×800且保留3:4比例；來源照片仍為 JPEG／200000 bytes，免費套組每檔上限200000 bytes。Worker 依 RFC9649 驗靜態 VP8X／VP8L alpha，拒動畫、metadata、畫布不符與偽alpha容器；站姿幾何檢查拒明顯缺腿、缺腳／鞋或鞋底裁切，不作身份／畫風核准。
 
-R2 前景狀態為 `private/{owner}/avatar/temp/adoption`；套組為 `private/{owner}/avatar/{asset}/expressions/v1/full-body.v1/{expression}.webp` 與 manifest.json。恰好五表情，驗 owner、來源hash、版本、尺寸、alpha、各圖hash與長度後才 immutable ready；ready 不等於已選。正式選用以 D1 CAS 提交，取消增加既有 Profile revision 作 fence。遊戲入口只驗本人目前採用的正式資產：DB 本人／未刪除／ready、有效 ready Manifest、五物件存在／MIME／長度；另一組 pending 不影響已就緒採用者，不新增 readiness 欄位或 marker。
+R2 前景狀態為 `private/{owner}/avatar/temp/adoption`，可含 `staticRequired`、`poseSheets`、`staticVersion`、`reviewedStaticVersion`；既有 `inFlight` 擴為五表情加四個固定姿態步驟，沿用同一 CAS lock，不建DB欄位。姿態暫存 `pose-{pose}.png` 帶同lease／workflow／source收據，完整後按SHA放入canonical static prefix並驗全部物件；ready保存後移除四張暫存。精確版本review後才允許正式selection；取消後續作保留成功步驟，未知結果須明確重試。canonical檔案及manifest帶到期孤兒metadata，GC只刪無合法owner/ready reference且到期物件，保留已採用包。套組為 `private/{owner}/avatar/{asset}/expressions/v1/full-body.v1/{expression}.webp` 與 manifest.json。恰好五表情，驗 owner、來源hash、版本、尺寸、alpha、各圖hash與長度後才 immutable ready；ready 不等於已選。正式選用以 D1 CAS 提交，取消增加既有 Profile revision 作 fence。遊戲入口只驗本人目前採用的正式資產：DB 本人／未刪除／ready、有效 ready Manifest、五物件存在／MIME／長度；另一組 pending 不影響已就緒採用者，不新增 readiness 欄位或 marker。
 
 生成 pending GC 為兩小時，照片 pending 為三十分鐘；固定表情／Manifest 路徑附 orphanAfter，到期且 D1 非 ready 才清。每帳號可重用 adoption checkpoint 由 CAS 覆用，不無條件刪除，以免刪除新前景鎖。一次性本地清理依具名帳號、精確 key／etag、備份與無 writer 前提操作；執行結果另記驗證文件。
 

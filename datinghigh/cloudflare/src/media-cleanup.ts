@@ -37,8 +37,14 @@ export async function cleanupMedia(env:{DB:D1Database;FILES:R2Bucket},now:number
    const temp=/^private\/[0-9a-f-]{36}\/avatar\/temp\/[0-9a-f-]{36}\/(manifest|[1-4])$/.test(object.key);
    const expiry=Number(object.expiresAt);
    if(temp&&expiry>0&&expiry<=now)await env.FILES.delete(object.key);
-   const formal=/^private\/([0-9a-f-]{36})\/avatar\/([0-9a-f-]{36})(?:\/expressions\/v1\/full-body\.v1\/(?:neutral\.webp|smile\.webp|surprised\.webp|thoughtful\.webp|concerned\.webp|manifest\.json))?$/.exec(object.key);
+   const formal=/^private\/([0-9a-f-]{36})\/avatar\/([0-9a-f-]{36})(?:\/expressions\/v1\/full-body\.v1\/(?:neutral\.webp|smile\.webp|surprised\.webp|thoughtful\.webp|concerned\.webp|pose-(?:stand|sit|read|hold)\.png|manifest\.json)|\/static-poses\/v1\/[0-9a-f]{64}\/(?:[0-9a-f]{64}\.png|manifest\.json))?$/.exec(object.key);
    const orphanAfter=Number(object.orphanAfter);
+   const savedPose=/^private\/([0-9a-f-]{36})\/avatar\/temp\/pose-sheets\/[0-9a-f-]{36}\/(stand|sit|read|hold)\.png$/.exec(object.key);
+   if(savedPose&&orphanAfter>0&&orphanAfter<=now){
+    const active=await env.FILES.get(`private/${savedPose[1]}/avatar/temp/adoption`);let referenced=false;
+    if(active)try{const build=await active.json<{version:number;ownerAccountId:string;savedSource?:boolean;status:string;expiresAt:number;poseSheets?:Record<string,{objectKey:string}>}>();referenced=build.version===1&&build.ownerAccountId===savedPose[1]&&build.savedSource===true&&['building','ready'].includes(build.status)&&build.expiresAt>now&&build.poseSheets?.[savedPose[2]]?.objectKey===object.key;}catch{/* 不合法或已到期metadata不保留孤兒。 */}
+    if(!referenced)await env.FILES.delete(object.key);
+   }
    if(formal&&orphanAfter>0&&orphanAfter<=now){
     const saved=await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar' AND status='ready' AND object_key=?").bind(formal[2],formal[1],`private/${formal[1]}/avatar/${formal[2]}`).first();
     if(!saved)await env.FILES.delete(object.key);

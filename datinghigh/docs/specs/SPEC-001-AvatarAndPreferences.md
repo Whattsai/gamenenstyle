@@ -1,5 +1,7 @@
 # SPEC-001-AvatarAndPreferences: AI／免費化身、真人照與交友資料
 
+**本階段靜態優先**：角色先用已確認靜態姿態／五表情；以下Puppet建檔、連續動作與動作試作不作目前交付前置，未使用的試作程式不保留。本人來源／採用授權、素材SHA／完整性與現行五圖ready防線繼續維持，不能因動態暫緩讓未就緒化身進場；靜態新版本仍須獨立驗證。優先範圍依[SceneEventFramework §3.8.7B](SPEC-001-SceneEventFramework.md)，使用者決策見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+
 ## 2026-11-17 V3-RQ-06 已確認：角色改採 2D Puppet Rig＋少量離線姿態
 
 **使用者最新決策：V3-RQ-06=A＋C**，以 2D Puppet 分層骨架、局部臉部參數與少數一次性預製大幅姿態（坐著閱讀、持書等）作為新版正式化身演出架構。**此節優先於**下方 2026-11-12「固定五張完整全身表情圖片」的*動畫／產圖實作方式*，但保留五種表情語意（`neutral/smile/surprised/thoughtful/concerned`）、角色身份保真、既有免費16款已核准的外觀與 ID、本人照片授權、私人 R2 權限、就緒完整性、防混角、防重產與 Web／Android 品質 Gate。

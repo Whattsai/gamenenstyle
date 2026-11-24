@@ -11,5 +11,6 @@ public interface IAvatarExpressionGenerator
 {
     string Model {get;}
     string ExpressionPromptVersion {get;}
+    bool SupportsStaticPoses {get;}
     Task<CompressedImage> GenerateExpressionAsync(PrivateMediaContent master,string expression,CancellationToken ct=default);
 }

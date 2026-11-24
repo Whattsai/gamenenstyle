@@ -3,7 +3,7 @@ type Region={x:number;y:number;width:number;height:number};
 type Override={layerId:string;assetId?:string;region?:Region;rotation?:number;position?:Point;visible?:boolean};
 export type ActorRigView={
  version:'actor-rig.v1';identityVersion:string;
- assets:{id:string;url:string;width:number;height:number}[];
+ assets:{id:string;url:string;width:number;height:number;headers?:Record<string,string>}[];
  joints:{id:string;parentId:string|null;position:Point}[];
  layers:{id:string;jointId:string;assetId:string;region:Region;position:Point;size:{width:number;height:number};depth:number}[];
  poses:{id:'stand'|'sit'|'read'|'hold';overrides:Override[]}[];

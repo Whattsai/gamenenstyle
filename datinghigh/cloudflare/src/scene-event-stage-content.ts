@@ -1,5 +1,7 @@
 import {z} from 'zod';
 import type {TrackContent} from './scene-event-track-content';
+import {validateStaticNpcAppearance,type StaticNpcAppearance} from '../../contracts/npc-static';
+import {validateSceneHitMask,type SceneHitMask} from '../../contracts/scene-hit-mask';
 
 const id=z.string().regex(/^[a-z][a-z0-9-]{0,63}$/);
 const unit=z.number().min(0).max(1);
@@ -7,7 +9,8 @@ const point=z.strictObject({x:unit,y:unit});
 const size=z.strictObject({width:z.number().positive().max(1),height:z.number().positive().max(1)});
 const expression=z.enum(['neutral','smile','surprised','thoughtful','concerned']);
 export const actorPose=z.enum(['stand','sit','read','hold']);
-export const actorCue=z.strictObject({actorId:id,pose:actorPose,expression,gesture:z.enum(['idle','blink','tear','turn','hold','smile']),position:point,height:z.number().positive().max(2),depth:z.number().int().min(0).max(100),propObjectId:id.optional()});
+export const actorCue=z.strictObject({actorId:id,pose:actorPose,expression,gesture:z.enum(['idle','blink','tear','turn','hold','smile']),position:point,height:z.number().positive().max(2),depth:z.number().int().min(0).max(100),propObjectId:id.optional(),whenFlagEquals:z.strictObject({key:id,value:id}).optional()});
+export const npcHitMasks=z.array(z.strictObject({pose:actorPose,expression,mask:z.custom<SceneHitMask>(v=>{try{validateSceneHitMask(v);return true;}catch{return false;}})})).min(1).max(20).refine(v=>new Set(v.map(m=>m.pose+':'+m.expression)).size===v.length);
 export const hitShape=z.discriminatedUnion('type',[
  z.strictObject({type:z.literal('rect'),x:unit,y:unit,width:z.number().positive().max(1),height:z.number().positive().max(1)}).refine(r=>r.x+r.width<=1&&r.y+r.height<=1),
  z.strictObject({type:z.literal('polygon'),points:z.array(point).min(3).max(16)}).refine(p=>Math.abs(p.points.reduce((sum,a,i)=>{const b=p.points[(i+1)%p.points.length];return sum+a.x*b.y-b.x*a.y;},0))>1e-8),
@@ -16,7 +19,8 @@ const layer=z.strictObject({id,assetId:id,depth:z.number().int().min(0).max(100)
 /** 舞台資料只包含已發布素材與有限演出；私人 Rig、條件及玩家答案不在其中。 */
 export const sceneStageSchema=z.strictObject({
  version:z.literal('scene-stage.v1'),
- areaVisuals:z.array(z.strictObject({areaId:id,backgroundAsset:id,defaultShotId:id,foregroundAsset:id.optional(),layers:z.array(layer).max(32)})).min(1).max(32),
+ areaVisuals:z.array(z.strictObject({areaId:id,backgroundAsset:id,defaultShotId:id,foregroundAsset:id.optional(),layers:z.array(layer).max(32),weatherRegion:z.strictObject({anchor:point,size}).refine(v=>v.anchor.x+v.size.width<=1&&v.anchor.y+v.size.height<=1).optional()})).min(1).max(32),
+ weather:z.strictObject({flagId:id,levels:z.array(z.strictObject({value:id,intensity:z.enum(['steady','heavy','easing','stopped'])})).min(1).max(16).refine(v=>new Set(v.map(l=>l.value)).size===v.length)}).optional(),
  shots:z.array(z.strictObject({id,areaId:id,cameraId:id,actors:z.array(actorCue).max(18),audioCueIds:z.array(id).max(8)})).min(1).max(128),
  embeddedInteractables:z.array(z.strictObject({id,areaId:id,objectId:id,state:id,assetId:id,depth:z.number().int().min(0).max(100),anchor:point,size,hitShape,interactionPreset:z.enum(['inspect','book','npc','pick','place'])})).max(256),
 });
@@ -41,6 +45,7 @@ export function validateStageReferences(c:TrackContent){
   for(const a of b.actions)steps(a.presentationSteps,`${b.bindingId}/${a.role}/${a.actionId}`);
  }
  if(!stage)return;
+ if(stage.weather){const flag=c.scene.sharedFlags.find(f=>f.id===stage.weather!.flagId);if(!flag||stage.weather.levels.some(l=>!flag.publicValues.includes(l.value))||flag.publicValues.some(v=>!stage.weather!.levels.some(l=>l.value===v)))reject('weather','non-public-or-missing-value');}
  const unique=(items:string[],path:string)=>{if(new Set(items).size!==items.length)reject(path,'duplicate-id');};
  const image=(assetId:string,path:string)=>{if(!c.scene.assets.some(a=>a.id===assetId&&a.mimeType.startsWith('image/')))reject(path,assetId);};
  unique(stage.areaVisuals.map(v=>v.areaId),'areaVisuals');unique(stage.shots.map(s=>s.id),'shots');unique(stage.embeddedInteractables.map(s=>s.id),'embeddedInteractables');
@@ -57,13 +62,16 @@ export function validateStageReferences(c:TrackContent){
   unique(shot.actors.map(a=>a.actorId),`shots/${shot.id}/actors`);
   for(const cue of shot.audioCueIds)if(!Object.hasOwn(c.scene.audioCues,cue))reject(`shots/${shot.id}/audioCueIds`,cue);
   for(const actor of shot.actors){
+   if(actor.whenFlagEquals&&!c.scene.sharedFlags.some(f=>f.id===actor.whenFlagEquals!.key&&f.publicValues.includes(actor.whenFlagEquals!.value)))reject(`shots/${shot.id}/actors/whenFlagEquals`,'non-public-value');
    if(!['inviter','acceptor'].includes(actor.actorId)){
-    const appearance=c.scene.npcs.find(n=>n.id===actor.actorId)?.appearance??reject(`shots/${shot.id}/actors`,actor.actorId);
+    const npc=c.scene.npcs.find(n=>n.id===actor.actorId),appearance=npc?.appearance??reject(`shots/${shot.id}/actors`,actor.actorId);
+    if(npc!.dialogueOptions.length&&!npc!.hitMasks)reject(`shots/${shot.id}/actors/hitMasks`,'missing');
+    if(npc!.hitMasks){for(const pose of appearance.poses)for(const face of ['neutral','smile','surprised','thoughtful','concerned'])if(!npc!.hitMasks.some(m=>m.pose===pose.id&&m.expression===face))reject(`shots/${shot.id}/actors/hitMasks`,'incomplete');if(npc!.hitMasks.some(m=>!appearance.poses.some(p=>p.id===m.pose)))reject(`shots/${shot.id}/actors/hitMasks`,'unknown-pose');}
     // Validate all face and pose variants, including expressions not selected in the current Shot.
     for(const pose of appearance.poses)image(pose.assetId,`shots/${shot.id}/actors/${actor.actorId}/poses/${pose.id}`);
-    for(const face of appearance.expressions)image(face.assetId,`shots/${shot.id}/actors/${actor.actorId}/expressions/${face.id}`);
+    if(!('format' in appearance))for(const face of appearance.expressions)image(face.assetId,`shots/${shot.id}/actors/${actor.actorId}/expressions/${face.id}`);
     if(!appearance.poses.some(p=>p.id===actor.pose))reject(`shots/${shot.id}/actors/${actor.actorId}/pose`,actor.pose);
-    if(!appearance.expressions.some(e=>e.id===actor.expression))reject(`shots/${shot.id}/actors/${actor.actorId}/expression`,actor.expression);
+    if(!('format' in appearance)&&!appearance.expressions.some(e=>e.id===actor.expression))reject(`shots/${shot.id}/actors/${actor.actorId}/expression`,actor.expression);
     if(actor.propObjectId&&!appearance.propAnchors?.some(a=>a.id==='right-hand'))reject(`shots/${shot.id}/actors/${actor.actorId}/propAnchors`,'right-hand');
    }
    if(actor.propObjectId){
@@ -81,9 +89,10 @@ export function validateStageReferences(c:TrackContent){
 }
 
 /** 不以五筆重複 neutral 冒充五種表情；姿態 ID 亦不得重複或默默取第一筆。 */
-export const npcAppearanceSchema=z.strictObject({
+const layeredNpcAppearanceSchema=z.strictObject({
  poses:z.array(z.strictObject({id:actorPose,assetId:id})).min(1).max(4).refine(v=>new Set(v.map(p=>p.id)).size===v.length),
  expressions:z.array(z.strictObject({id:expression,assetId:id})).length(5).refine(v=>new Set(v.map(e=>e.id)).size===5),
  faceAnchor:point,faceSize:size,
  propAnchors:z.array(z.strictObject({id:z.literal('right-hand'),position:point})).max(1).optional(),
 });
+export const npcAppearanceSchema=z.union([layeredNpcAppearanceSchema,z.custom<StaticNpcAppearance>(value=>{try{validateStaticNpcAppearance(value);return true;}catch{return false;}})]);

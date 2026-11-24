@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {invoke,nodes,visible,memorySample,reopen} from './support.mjs';
+import {rigReviewAssets} from '../../component-layout/rig-review-assets.mjs';
+import {invoke,nodes,visible,memorySample,reopen,wait} from './support.mjs';
 assert.equal(process.env.DATINGHIGH_ANDROID_DEVICE,'emulator-5556');assert.equal(process.env.DATINGHIGH_ADB_PORT,'5038');
 assert.equal(invoke('shell','getprop','ro.boot.qemu.avd_name').trim(),'DatingHighQA31');
 const root='.local/rig-pilot/android-batch';fs.mkdirSync(root,{recursive:true});
@@ -11,7 +12,7 @@ const adb=path.join(process.env.LOCALAPPDATA,'Android/Sdk/platform-tools/adb.exe
 const sourceFiles=['tests/component-layout/scene-rig-preview.tsx','tests/component-layout/rig-review-catalog.ts','tests/component-layout/server.mjs','frontend/client/src/ActorMotionRenderer.tsx','frontend/client/src/actor-rig-policy.ts','frontend/client/src/scene-browser-lifecycle.ts','frontend/client/metro.config.js','tests/native/rig-entry.tsx'];
 const catalogSource=fs.readFileSync('tests/component-layout/rig-review-catalog.ts','utf8');
 const catalog=JSON.parse(catalogSource.slice(catalogSource.indexOf('['),catalogSource.lastIndexOf(']')+1));
-sourceFiles.push(...catalog.flatMap(e=>(e.sheets??[e]).flatMap(a=>[a,...a.corrections??[]]).map(a=>'.local/rig-pilot/'+a.file)));
+sourceFiles.push('contracts/builtin-static-poses.json','tests/component-layout/rig-review-assets.mjs',...rigReviewAssets(process.cwd(),catalog).map(a=>a.file));
 const sourceFingerprint=()=>createHash('sha256').update(sourceFiles.map(p=>fs.readFileSync(p)).join('\n')).digest('hex');
 const frozenFingerprint=sourceFingerprint();
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -29,7 +30,7 @@ function capture(id,mode){
  const png=execFileSync(adb,['-P','5038','-s','emulator-5556','exec-out','screencap','-p'],{windowsHide:true,encoding:null,timeout:45000,maxBuffer:8*1024*1024});fs.writeFileSync(`${root}/${id}-${mode}.png`,png);
 }
 invoke('reverse','tcp:8092','tcp:8092');
-await reopen(8086,{hideDevTools:true});await sleep(2500);
+await reopen(8086,{hideDevTools:true});await wait('select-female-01',120000,true);
 const ids=[...['female','male'].flatMap(g=>Array.from({length:8},(_,i)=>`${g}-0${i+1}`)),'ai'];
 for(const id of ids){
  press(await control(`select-${id}`,'up'));await sleep(700);

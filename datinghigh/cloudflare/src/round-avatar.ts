@@ -3,7 +3,8 @@ import {executeCommand} from './commands';
 import {readReadyAvatarPack} from './avatar-expression-store';
 import {expressionIds,type AvatarExpressionManifest} from './avatar-expression-manifest';
 import type {PlatformEnv} from './platform';
-import {builtinAvatarPack,type BuiltinAvatarPack} from './builtin-avatar';
+import {builtinAvatarPack,builtinStaticPosePackage,type BuiltinAvatarPack} from './builtin-avatar';
+import {readReadyStaticPosePackage,staticPackageVersion,staticPosePrefix} from './avatar-static-pose';
 
 const id=z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 const hash=z.string().regex(/^[0-9a-f]{64}$/);
@@ -48,7 +49,9 @@ async function load(env:PlatformEnv,auth:Auth,target:Target,time:()=>number){
  let manifest:AvatarExpressionManifest|BuiltinAvatarPack;
  if(source.builtinId){const builtin=builtinAvatarPack(source.builtinId);if(!builtin)throw new AvatarReadError('AVATAR_PACK_NOT_READY',409);if(await version(builtin)!==builtin.avatarVersion)throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);manifest=builtin;}
  else try{manifest=await readReadyAvatarPack(env.FILES,source.owner,source.assetId);}catch{throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);}
- return {source,manifest,avatarVersion:await version(manifest)};
+ let staticPosePackage;
+ try{staticPosePackage=source.builtinId?builtinStaticPosePackage(source.builtinId):await readReadyStaticPosePackage(env.FILES,source.owner,source.assetId,(manifest as AvatarExpressionManifest).sourceImageSha256);}catch{throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);}
+ return {source,manifest,staticPosePackage,avatarVersion:await version(manifest)};
 }
 function targetInput(command:string,input:unknown){
  const own=(p:Auth)=>authSchema.parse({accountId:p.accountId,sessionId:p.sessionId,cv:p.cv,accessExpiresAt:p.accessExpiresAt});
@@ -60,11 +63,12 @@ function targetInput(command:string,input:unknown){
 /** 只投影已正式採用的版本／授權 URL；私人 owner、source、objectKey、provider metadata 留在 Worker。 */
 export async function avatarProjection(command:string,input:unknown,env:PlatformEnv,now:number){
  const {auth,target}=targetInput(command,input),started=Date.now(),time=()=>now+Math.max(0,Date.now()-started);
- const {source,manifest,avatarVersion}=await load(env,auth,target,time);
+ const {source,manifest,staticPosePackage,avatarVersion}=await load(env,auth,target,time);
  const checked=await context(env,auth,target,time());if(checked.fingerprint!==source.fingerprint)throw new AvatarReadError('AVATAR_VERSION_CONFLICT',409);
  const prefix=target.kind==='round-self'?`/api/v1/game-rounds/${target.roundId}/my-avatar`:target.kind==='round'?`/api/v1/game-rounds/${target.roundId}/partner-avatar`:`/api/v1/me/avatar/assets/${source.assetId}/expressions`;
  const expressions=Object.fromEntries(expressionIds.map(e=>{const image=manifest.expressions[e];return [e,{url:`${prefix}/${avatarVersion}/${e}`,sha256:image.sha256,mimeType:image.mimeType,width:image.width,height:image.height,byteSize:image.byteSize}];}));
- return {avatarAssetId:manifest.avatarAssetId,avatarVersion,expressionSpecVersion:manifest.expressionSpecVersion,avatarAssetSpecVersion:manifest.avatarAssetSpecVersion,framing:manifest.framing,pose:manifest.pose,stageAnchors:manifest.stageAnchors,expressions};
+ const staticProjection=staticPosePackage?{schemaVersion:staticPosePackage.schemaVersion,packageVersion:await staticPackageVersion(staticPosePackage),assets:staticPosePackage.assets.map(a=>({...a,url:`${prefix}/${avatarVersion}/static-${a.sha256}`})),poses:staticPosePackage.poses}:undefined;
+ return {avatarAssetId:manifest.avatarAssetId,avatarVersion,expressionSpecVersion:manifest.expressionSpecVersion,avatarAssetSpecVersion:manifest.avatarAssetSpecVersion,framing:manifest.framing,pose:manifest.pose,stageAnchors:manifest.stageAnchors,expressions,...(staticProjection?{staticPosePackage:staticProjection}:{})};
 }
 /** 遊戲入口只驗本人當下採用者；不讀取另一組 pending 化身，也不回傳私人素材 metadata。 */
 export async function currentAvatarReadiness(input:unknown,env:PlatformEnv,now:number){
@@ -76,6 +80,10 @@ export async function currentAvatarReadiness(input:unknown,env:PlatformEnv,now:n
    try{manifest=await readReadyAvatarPack(env.FILES,source.owner,source.assetId);}catch{throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);}
    // 發佈時已驗 SHA；入口以五個不可變物件的存在、大小與 MIME 確認完整性，不下載整組圖片。
    for(const expression of expressionIds){const image=manifest.expressions[expression],object=await env.FILES.head(image.objectKey);if(!object||object.size!==image.byteSize||object.httpMetadata?.contentType!==image.mimeType)throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);}
+   try{
+    const p=await readReadyStaticPosePackage(env.FILES,source.owner,source.assetId,manifest.sourceImageSha256);
+    if(p)for(const image of p.assets){const object=await env.FILES.head(staticPosePrefix(source.owner,source.assetId,p.sourceImageSha256)+image.sha256+'.png');if(!object||object.size!==image.byteSize||object.httpMetadata?.contentType!==image.mimeType)throw new Error('MISSING_STATIC_POSE');}
+   }catch{throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);}
   }
  }finally{
   const checked=await context(env,auth,target,time());if(checked.fingerprint!==source.fingerprint)throw new AvatarReadError('OWN_AVATAR_PACK_NOT_READY',409);
@@ -87,11 +95,13 @@ export async function avatarReadMedia(request:Request,env:PlatformEnv,now:number
  const url=new URL(request.url),parts=url.pathname.split('/');
  if(request.method!=='GET'||url.search||parts.length!==7)throw new AvatarReadError('NOT_FOUND',404);
  const target:Target=parts[3]==='round-self'?{kind:'round-self',roundId:id.parse(parts[4])}:parts[3]==='rounds'?{kind:'round',roundId:id.parse(parts[4])}:parts[3]==='assets'?{kind:'owner',assetId:id.parse(parts[4])}:(()=>{throw new AvatarReadError('NOT_FOUND',404);})();
- const expected=hash.parse(parts[5]),expression=z.enum(expressionIds).parse(parts[6]);
+ const expected=hash.parse(parts[5]),isStatic=/^static-[0-9a-f]{64}$/.test(parts[6]),expression=isStatic?undefined:z.enum(expressionIds).parse(parts[6]);
  const auth=authSchema.parse({accountId:request.headers.get('X-DatingHigh-Media-Account-Id'),sessionId:request.headers.get('X-DatingHigh-Media-Session-Id'),cv:Number(request.headers.get('X-DatingHigh-Media-Cv')),accessExpiresAt:Number(request.headers.get('X-DatingHigh-Media-Expires-At'))});
- const started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),{source,manifest,avatarVersion}=await load(env,auth,target,time);
+ const started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),{source,manifest,staticPosePackage,avatarVersion}=await load(env,auth,target,time);
  if(avatarVersion!==expected)throw new AvatarReadError('AVATAR_VERSION_CONFLICT',409);
- const image=manifest.expressions[expression];let bytes:ArrayBuffer;
+ const staticAsset=isStatic?staticPosePackage?.assets.find(a=>a.sha256===parts[6].slice(7)):undefined;
+ if(isStatic&&!staticAsset)throw new AvatarReadError('AVATAR_VERSION_CONFLICT',409);
+ const image=staticAsset?{...staticAsset,...(source.builtinId?{url:`/avatars/static-poses.v1/${source.builtinId}/${staticAsset.sha256}.png`}:{objectKey:staticPosePrefix(source.owner,source.assetId,staticPosePackage!.sourceImageSha256)+staticAsset.sha256+'.png'})}:manifest.expressions[expression!];let bytes:ArrayBuffer;
  if('objectKey' in image){const object=await env.FILES.get(image.objectKey);if(!object||object.size!==image.byteSize||object.httpMetadata?.contentType!==image.mimeType)throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);bytes=await object.arrayBuffer();}
  else {if(!env.ASSETS)throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);const response=await env.ASSETS.fetch(new Request('https://datinghigh-assets.internal'+image.url));if(!response.ok||response.headers.get('Content-Type')?.split(';')[0]!==image.mimeType)throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);bytes=await response.arrayBuffer();}
  if(bytes.byteLength!==image.byteSize||await digest(bytes)!==image.sha256)throw new AvatarReadError('AVATAR_PACK_UNAVAILABLE',503);

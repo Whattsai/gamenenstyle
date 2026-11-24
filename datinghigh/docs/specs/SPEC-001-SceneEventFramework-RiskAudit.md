@@ -1,5 +1,7 @@
 # SPEC-001-SceneEventFramework — 實作前風險與缺漏稽核（RiskAudit）
 
+**目前範圍調整**：使用者要求靜態優先、角色動態暫緩，且不保留未使用的動作試作程式；依[SceneEventFramework §3.8.7B](SPEC-001-SceneEventFramework.md)執行。以下動畫／完整Puppet專項風險保留作後續追溯，不作靜態路徑前置；身份畫質、靜態姿態／五表情、來源完整性、私有素材授權、跨平台與劇情Gate B風險仍有效。延期不等於風險已驗證解決，執行證據只記[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
+
 **日期**：2026-11-17（V3 RQ 容量選 B、風險 12 項／GAP 10 項閉環；歷史 2026-11-12～16 稽核保留於下方）
 **規劃狀態**：**2026-11-17 V3 Ready for well-done（僅規劃 Phase 5；未實作）**；`SEF-V3-RQ-01=B` 已由使用者確認、12 項風險均有緩解、10 項 GAP 已補入正式 BDD/TDD。V3 70 個 BDD／250 項 TDD 均未實際驗證；舊 V2 測試完成率與 Gate B 不代表 V3 合格。
 **來源**：[MVP-001](../requirements/MVP-001-LoveGameDatingApp.md) → [V3 SDD](SPEC-001-SceneEventFramework.md) → [191 BDD](../bdd/SPEC-001-SceneEventFramework-BDD.md) → [875 TDD](../tdd/SPEC-001-SceneEventFramework-TDD.md)；跨 MVP 相容性：[MVP-005](../requirements/MVP-005-AvatarWithDating.md)

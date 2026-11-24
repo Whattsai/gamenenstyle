@@ -12,6 +12,8 @@ import {StoryAudio} from './StoryAudio';
 import {RealtimeRoomClient,type RoomConnection} from './RealtimeRoomClient';
 import {detectExitIntent,mergeRoundEvents,validStoryMessage,type StoryExperience,type RoundEvent} from './story';
 import {parseStoryAvatar,type StoryAvatarProjection} from './story-avatar';
+import {StaticAvatarPreload} from './StaticAvatarPreload';
+import {staticStageActors} from './static-avatar';
 import {SceneEventActions} from './SceneEventActions';
 import {canPresentPublishedStage} from './scene-stage';
 import {isTrackExperience,trackActionPayload,SceneCueFence,type AvailableSceneEvent,type SceneEventAction,type PresentationStep} from './scene-event-track';
@@ -24,10 +26,12 @@ export function StoryExperienceScreen(){
  const [ownAvatarBlocked,setOwnAvatarBlocked]=useState(false);
  const [stageSpace,setStageSpace]=useState<number|undefined>();
  const [stageMediaUnavailable,setStageMediaUnavailable]=useState(false);
+ const [mediaReload,setMediaReload]=useState(0);
  const [headerHeight,setHeaderHeight]=useState(0);
  useEffect(()=>{const show=Keyboard.addListener('keyboardDidShow',()=>setKeyboard(true)),hide=Keyboard.addListener('keyboardDidHide',()=>setKeyboard(false));return()=>{show.remove();hide.remove();};},[]);
  const [experience,setExperience]=useState<StoryExperience|null>(null),[events,setEvents]=useState<RoundEvent[]>([]),[partner,setPartner]=useState<CandidatePersona|null>(null),[chatOpen,setChatOpen]=useState(false);
  const [ownAvatar,setOwnAvatar]=useState<StoryAvatarProjection|null>(null);
+ const [staticDecoded,setStaticDecoded]=useState<Record<string,boolean>>({});
  const [storySteps,setStorySteps]=useState<PresentationStep[]>([]),[cueSequence,setCueSequence]=useState(0);
  const cueFence=useRef(new SceneCueFence()),latestSnapshot=useRef<StoryExperience|null>(null);
  const [avatar,setAvatar]=useState<StoryAvatarProjection|null>(null),avatarRead=useRef<Promise<void>|undefined>(undefined);
@@ -37,7 +41,7 @@ export function StoryExperienceScreen(){
  const currentSession=api.sessionId;
  const stageSession=useRef<string|undefined>(undefined);
  const snapshotSequence=useRef(0);
- const clearPrivate=()=>{allEvents.current=[];setEvents([]);setPartner(null);setAvatar(null);setOwnAvatar(null);setStorySteps([]);latestSnapshot.current=null;cueFence.current.reset();setPending(null);pendingRef.current=null;setText('');setObject(null);setIntent(false);setConfirm(false);};
+ const clearPrivate=()=>{allEvents.current=[];setEvents([]);setPartner(null);setAvatar(null);setOwnAvatar(null);setStaticDecoded({});setStorySteps([]);latestSnapshot.current=null;cueFence.current.reset();setPending(null);pendingRef.current=null;setText('');setObject(null);setIntent(false);setConfirm(false);};
  const failure=useCallback((error:unknown)=>{
   if(error instanceof ApiFailure&&error.code==='OWN_AVATAR_PACK_NOT_READY'){generation.current++;live.current=false;clearPrivate();setExperience(null);room.current?.stop();setConnection('offline');setOwnAvatarBlocked(true);return;}
   if(error instanceof ApiFailure&&error.status===401){generation.current++;live.current=false;clearPrivate();setExperience(null);room.current?.stop();router.replace('/login');return;}
@@ -51,9 +55,9 @@ export function StoryExperienceScreen(){
    do{
     avatarReadAgain.current=false;
     const results=await Promise.allSettled(['partner-avatar','my-avatar'].map(async channel=>({channel,result:await api.request(`/game-rounds/${roundId}/${channel}`)})));
-    for(const result of results){if(!live.current||run!==generation.current)return;
+    for(const [resultIndex,result] of results.entries()){if(!live.current||run!==generation.current)return;
      if(result.status==='fulfilled'){try{const parsed=parseStoryAvatar(result.value.result,roundId,result.value.channel as 'partner-avatar'|'my-avatar');if(result.value.channel==='my-avatar')setOwnAvatar(parsed);else setAvatar(parsed);}catch{if(result.value.channel==='my-avatar')setOwnAvatar(null);else setAvatar(null);}}
-     else{const error=result.reason;if(error instanceof ApiFailure&&(error.status===401||error.status===403||error.code==='OWN_AVATAR_PACK_NOT_READY')){failure(error);throw error;}if(error instanceof ApiFailure&&error.code==='AVATAR_PACK_NOT_READY')setAvatar(null);}
+     else{const error=result.reason;if(error instanceof ApiFailure&&(error.status===401||error.status===403||error.code==='OWN_AVATAR_PACK_NOT_READY')){failure(error);throw error;}if(resultIndex===1)setOwnAvatar(null);else setAvatar(null);}
     }
    }while(avatarReadAgain.current&&live.current&&run===generation.current);
   })();avatarRead.current=task;
@@ -155,17 +159,37 @@ export function StoryExperienceScreen(){
  const disabled=busy||!!pending||connection!=='connected';const background=asset(experience?.backgroundAsset),audio=asset(experience?.audioAsset);
  const track=isTrackExperience(experience)?experience:undefined;
  const requiredStageShots=track?.stage?[track.stage.currentShotId,...storySteps.filter((s):s is Extract<PresentationStep,{type:'shot'}>=>s.type==='shot').map(s=>s.shotId)]:[];
- const stageAssetReady=!track?.stage||requiredStageShots.every(id=>canPresentPublishedStage(track.stage!,id,track.world.objects,asset));
+ const staticIdentity=(channel:string,p:StoryAvatarProjection|null)=>p?.staticPosePackage?`${channel}:${p.avatarVersion}:${p.staticPosePackage.packageVersion}`:'';
+ const ownStaticId=staticIdentity('my-avatar',ownAvatar),partnerStaticId=staticIdentity('partner-avatar',avatar);
+ const staticHeaders=api.platform==='web'?undefined:{Authorization:`Bearer ${api.access}`};
+ const staticOrigin=api.origin||globalThis.location?.origin;
+ const actorRigsForShot=(shotId:string)=>track?.stage?staticStageActors(track.stage,shotId,{
+  [track.myTrack.role]:staticDecoded[ownStaticId]?ownAvatar?.staticPosePackage:undefined,
+  [track.myTrack.role==='inviter'?'acceptor':'inviter']:staticDecoded[partnerStaticId]?avatar?.staticPosePackage:undefined,
+ },staticOrigin,staticHeaders):{};
+ const stageAssetReady=!track?.stage||requiredStageShots.every(id=>canPresentPublishedStage(track.stage!,id,track.world.objects,asset,actorRigsForShot(id)));
  const stageCameraReady=!track?.stage||requiredStageShots.every(id=>{const shot=track.stage!.shots.find(s=>s.id===id);return !!shot&&!!experience?.scenePresentation?.cameras.some(c=>c.id===shot.cameraId);});
+ const requiredPlayerRoles=new Set(track?.stage?.shots.filter(shot=>requiredStageShots.includes(shot.id)).flatMap(shot=>shot.actors.map(actor=>actor.actorId))??[]);
+ const ownPosesMissing=!!track&&requiredPlayerRoles.has(track.myTrack.role)&&!!ownAvatar&&!ownAvatar.staticPosePackage;
+ const partnerPosesMissing=!!track&&requiredPlayerRoles.has(track.myTrack.role==='inviter'?'acceptor':'inviter')&&!!avatar&&!avatar.staticPosePackage;
  const storyActionsDisabled=disabled||!stageAssetReady||!stageCameraReady||stageMediaUnavailable;
+ const mediaNotice=ownPosesMissing?'你的 AI 角色尚未具備四種姿態，需先補齊目前角色的姿態才能呈現這個場景；劇情進度已保留。':partnerPosesMissing?'另一位旅人的 AI 角色尚未具備四種姿態，請對方補齊後重新確認角色素材；劇情進度已保留。':stageMediaUnavailable?'場景圖片載入失敗；可重新載入場景素材，聊天室仍可使用。':track?.stage&&(!stageAssetReady||!stageCameraReady)?'正在載入場景素材；若畫面停留，可重新載入。':notice;
+ const reloadStageMedia=()=>{
+  if(disabled||!track?.stage)return;
+  cueFence.current.suspend();setStorySteps([]);setStaticDecoded({});setStageMediaUnavailable(false);setMediaReload(value=>value+1);setNotice('');
+  void Promise.all([room.current?.synchronize(),refreshAvatar()]).catch(()=>{});
+ };
  const audioStep=storySteps.findLast(step=>step.type==='audio');
- const ownPortrait=ownAvatar?{name:'你',version:ownAvatar.avatarVersion,source:{uri:new URL(ownAvatar.expressions.neutral.url,api.origin||globalThis.location?.origin).toString(),...(api.platform==='web'?{}:{headers:{Authorization:`Bearer ${api.access}`}})},sources:Object.fromEntries(Object.entries(ownAvatar.expressions).map(([expression,image])=>[expression,{uri:new URL(image.url,api.origin||globalThis.location?.origin).toString(),...(api.platform==='web'?{}:{headers:{Authorization:`Bearer ${api.access}`}})}])) as import('./StoryPortrait').StagePortrait['sources'],anchors:ownAvatar.stageAnchors,expression:experience?.currentNode?.presentation?.expression}:undefined;
+ const failStaticAvatar=(id:string)=>{setStaticDecoded(previous=>({...previous,[id]:false}));if(track?.stage)setStageMediaUnavailable(true);setNotice(track?.stage?'角色圖片載入失敗；請重新進入房間以重新載入。場景操作暫停，聊天室仍可使用。':'角色圖片載入失敗；已保留原有角色顯示，仍可繼續劇情與聊天。');};
+ const staticPortrait=(p:StoryAvatarProjection|null,id:string)=>p?.staticPosePackage&&staticDecoded[id]?{package:p.staticPosePackage,origin:staticOrigin,headers:staticHeaders,onError:()=>failStaticAvatar(id)}:undefined;
+ const ownPortrait=ownAvatar?{name:'你',version:ownAvatar.avatarVersion,staticAvatar:staticPortrait(ownAvatar,ownStaticId),source:{uri:new URL(ownAvatar.expressions.neutral.url,api.origin||globalThis.location?.origin).toString(),...(api.platform==='web'?{}:{headers:{Authorization:`Bearer ${api.access}`}})},sources:Object.fromEntries(Object.entries(ownAvatar.expressions).map(([expression,image])=>[expression,{uri:new URL(image.url,api.origin||globalThis.location?.origin).toString(),...(api.platform==='web'?{}:{headers:{Authorization:`Bearer ${api.access}`}})}])) as import('./StoryPortrait').StagePortrait['sources'],anchors:ownAvatar.stageAnchors,expression:experience?.currentNode?.presentation?.expression}:undefined;
  const isWide=width>=900;
  const mobileDrawerHeight=Math.max(keyboard?148:206,Math.round(height*(keyboard?.27:.29)));
  const floatingDrawerWidth=isWide?356:Math.min(368,Math.max(276,width-12));
  const isFullBleedStage=!!experience?.currentNode&&!keyboard;
  const computedStageHeight=keyboard?Math.max(64,Math.round(height*.20)):(stageSpace??height);
  return <View style={[s.scene,{backgroundColor:'#12071c'}]}>
+  {[{id:ownStaticId,package:ownAvatar?.staticPosePackage},{id:partnerStaticId,package:avatar?.staticPosePackage}].map(p=>p.package&&<StaticAvatarPreload key={`${p.id}:${mediaReload}`} identity={p.id} package={p.package} origin={staticOrigin} headers={staticHeaders} onReady={id=>setStaticDecoded(previous=>({...previous,[id]:true}))} onError={()=>failStaticAvatar(p.id)}/>)}
   {background&&!experience?.currentNode&&<Image source={{uri:background}} resizeMode="cover" style={{position:'absolute',width:'100%',height:'100%'}}/>}
   <View pointerEvents="none" style={{position:'absolute',width:'100%',height:'100%',backgroundColor:'rgba(16,7,26,.72)'}}/>
   <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':'height'} enabled={!isWide}><SafeAreaView style={{flex:1,position:'relative'}}>
@@ -181,21 +205,21 @@ export function StoryExperienceScreen(){
      </View>
      <View style={{flexDirection:'row',gap:6,alignItems:'center',flexWrap:'wrap',paddingHorizontal:6,paddingVertical:3,borderRadius:999,backgroundColor:'rgba(20,8,32,.76)',borderWidth:1,borderColor:'rgba(255,218,235,.22)'}}>
       {!chatOpen&&<PrimaryButton label="展開聊天室" compact secondary onPress={()=>setChatOpen(true)}/>}
-      {audio&&<StoryAudio key={experience?.storySessionId} url={audio} cueUrl={asset(audioStep?.type==='audio'?experience?.audioCues?.[audioStep.cueId]:undefined)} cueId={`${experience?.storySessionId}:${cueSequence}`}/>}
+      {audio&&<StoryAudio key={experience?.storySessionId} url={audio} musicUrl={asset(experience?.musicAsset)} mix={experience?.audioMix?{...experience.audioMix,ambienceGain:experience.audioMix.ambienceGain*(track?.stage?.weather?.intensity==='easing'?.35:track?.stage?.weather?.intensity==='stopped'?0:track?.stage?.weather?.intensity==='steady'?.65:1)}:undefined} cueUrl={asset(audioStep?.type==='audio'?experience?.audioCues?.[audioStep.cueId]:undefined)} cueId={`${experience?.storySessionId}:${cueSequence}`}/>}
       <PrimaryButton label="結束本輪互動" compact secondary disabled={busy} onPress={()=>setConfirm(true)}/>
      </View>
     </View>
    </View>
    <View style={{flex:1,minHeight:0,width:'100%'}}>
     <View style={{flex:1,minHeight:0,width:'100%',position:'relative'}}>
-     <View pointerEvents="box-none" style={isFullBleedStage?{position:'absolute',top:headerHeight,left:0,right:0,zIndex:13}:undefined}><InlineNotice text={notice}/>{pending?.type!=='message.send'&&<StorySubmissionStatus state={pending?.state}/>}{pending?.state==='unknown'&&<PrimaryButton label="以原編號查回結果" secondary disabled={busy||connection!=='connected'} onPress={()=>void recover()}/>}</View>{!experience&&<LoadingOverlay/>}
+     <View pointerEvents="box-none" style={isFullBleedStage?{position:'absolute',top:headerHeight,left:0,right:0,zIndex:13}:undefined}><InlineNotice text={mediaNotice}/>{ownPosesMissing&&<PrimaryButton label="補齊目前角色的姿態" compact disabled={disabled} onPress={()=>router.push('/profile?completeAvatarPoses=1')}/>}{track?.stage&&(stageMediaUnavailable||!stageAssetReady||!stageCameraReady)&&<PrimaryButton label={ownPosesMissing||partnerPosesMissing?'重新確認角色素材':'重新載入場景素材'} compact secondary disabled={disabled} onPress={reloadStageMedia}/>}{pending?.type!=='message.send'&&<StorySubmissionStatus state={pending?.state}/>}{pending?.state==='unknown'&&<PrimaryButton label="以原編號查回結果" secondary disabled={busy||connection!=='connected'} onPress={()=>void recover()}/>}</View>{!experience&&<LoadingOverlay/>}
      <Modal visible={confirm} transparent animationType="fade" onRequestClose={()=>{if(!busy)setConfirm(false);}}><View style={{flex:1,backgroundColor:'rgba(15,6,24,.8)',alignItems:'center',justifyContent:'center',padding:20}}><View style={[s.panel,{width:'100%',maxWidth:480,gap:16}]}><Text style={s.heading}>確定結束本輪互動？</Text><Text style={s.body}>確認後，你們將永久無法再次配對，也無法回讀本輪對話與互動。</Text><PrimaryButton label="確認結束" disabled={busy} onPress={()=>void end()}/><PrimaryButton label="繼續這段相遇" secondary disabled={busy} onPress={()=>setConfirm(false)}/></View></View></Modal>
 
      {experience&&(experience.phase==='playing'||['completed','pending_category_selection'].includes(experience.phase))&&<View style={{flex:1,minHeight:0,width:'100%',position:'relative'}}>
       <View onLayout={event=>{const value=event.nativeEvent.layout.height;if(value>0)setStageSpace(value);}} style={{flex:1,minHeight:0,width:'100%'}}>
        {experience?.phase==='pending_category_selection'&&<ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} style={{flex:1,minHeight:0,paddingHorizontal:14,paddingVertical:12,marginRight:chatOpen&&isWide&&experience.phase==='pending_category_selection'?floatingDrawerWidth+12:0,marginBottom:chatOpen&&!isWide&&experience.phase==='pending_category_selection'?mobileDrawerHeight+8:0}} contentContainerStyle={{alignItems:'center'}}><View style={[s.panel,{maxWidth:720,alignSelf:'center'}]}><Text style={s.heading}>選擇下一場的主題</Text><Text style={s.body}>雙方都選好才開始；選擇不同時，以原邀請方的選擇為主。</Text>{experience.offers?.map(offer=>{const choiceId=offer.categoryId;return <View key={choiceId} style={{gap:8,padding:14,borderWidth:1,borderColor:experience.myVote===choiceId?'#ff7aa2':'#73546f',borderRadius:16}}>{offer.previewUrl&&<Image source={{uri:new URL(offer.previewUrl,api.origin||globalThis.location?.origin).toString()}} resizeMode="cover" style={{width:'100%',height:120,borderRadius:12}}/>}<Text style={s.label}>{offer.rank} · {offer.title}</Text><Text style={s.body}>{offer.summary}</Text><Text style={s.subtleText}>{offer.reason}</Text><PrimaryButton label={`${experience.myVote===choiceId?'已選擇':'選擇'} ${offer.title}`} disabled={disabled} secondary={experience.myVote!==choiceId} onPress={()=>void mutate('story.vote.submit',{episodeSeq:experience.episodeSeq,categoryId:offer.categoryId})}/></View>;})}<Text style={s.body}>{experience.myVote?'等待另一方選擇；結算前可以改選。':experience.partnerHasVoted?'對方已選好，等待你的選擇。':'請選一個你想一起探索的故事。'}</Text></View></ScrollView>}
        {experience.currentNode&&<>
-       <ADVStage interactionsEnabled={experience.chapterStatus!=='completed'} storySessionId={track?`${experience.storySessionId}:${track.myTrack.role}`:experience.storySessionId} track={track?{actorRole:track.myTrack.role,areaId:track.myTrack.areaId,stage:track.stage,asset,world:track.phase==='completed'&&!track.stage?{objects:[],flags:{}}:track.world,steps:storySteps,own:track.partnerPresence.inSameArea?ownPortrait:undefined,onDrop:dropObject,selectedObject:object,disabled:storyActionsDisabled||track.phase==='completed',showSlot:track.availableEvents.some(e=>e.actions.some(a=>!!a.dropSlotId))||track.world.objects.some(o=>o.id===object&&o.previewPlacement?.areaId===track.myTrack.areaId),onStageMediaUnavailable:()=>{if(live.current){setStageMediaUnavailable(true);setNotice('場景圖片載入失敗；請重新進入房間以重新載入。場景操作暫停，聊天室仍可使用。');}}}:undefined} node={experience.currentNode} partner={track&&!track.partnerPresence.inSameArea?undefined:{name:partner?.nickname??'另一位旅人',version:avatar?.avatarVersion,source:portrait(),sources:portraitSources,expression:experience.currentNode.presentation?.expression,anchors:avatar?.stageAnchors}} scene={{presentation:experience.scenePresentation,background,foreground:asset(experience.scenePresentation?.foregroundAsset)}} onInspect={setObject} stageHeight={computedStageHeight} narrativeContentStyle={chatOpen?(isWide?{paddingRight:floatingDrawerWidth+20}:{paddingBottom:mobileDrawerHeight+12}):undefined} disabled={storyActionsDisabled} >
+       <ADVStage interactionsEnabled={experience.chapterStatus!=='completed'} storySessionId={track?`${experience.storySessionId}:${track.myTrack.role}`:experience.storySessionId} track={track?{mediaReload,books:track.books,allowBookPreview:track.phase==='completed'&&!storyActionsDisabled,actorRole:track.myTrack.role,areaId:track.myTrack.areaId,stage:track.stage,asset,actorRigsForShot,world:track.phase==='completed'&&!track.stage?{objects:[],flags:{}}:track.world,steps:storySteps,own:track.partnerPresence.inSameArea?ownPortrait:undefined,onDrop:dropObject,selectedObject:object,disabled:storyActionsDisabled||track.phase==='completed',showSlot:track.availableEvents.some(e=>e.actions.some(a=>!!a.dropSlotId))||track.world.objects.some(o=>o.id===object&&o.previewPlacement?.areaId===track.myTrack.areaId),onStageMediaUnavailable:()=>{if(live.current){setStageMediaUnavailable(true);setNotice('場景圖片載入失敗；請重新進入房間以重新載入。場景操作暫停，聊天室仍可使用。');}}}:undefined} node={experience.currentNode} partner={track&&!track.partnerPresence.inSameArea?undefined:{name:partner?.nickname??'另一位旅人',version:avatar?.avatarVersion,staticAvatar:staticPortrait(avatar,partnerStaticId),source:portrait(),sources:portraitSources,expression:experience.currentNode.presentation?.expression,anchors:avatar?.stageAnchors}} scene={{presentation:experience.scenePresentation,background,foreground:asset(experience.scenePresentation?.foregroundAsset)}} onInspect={setObject} stageHeight={computedStageHeight} narrativeContentStyle={chatOpen?(isWide?{paddingRight:floatingDrawerWidth+20}:{paddingBottom:mobileDrawerHeight+12}):undefined} disabled={storyActionsDisabled} >
        {track&&<>{experience.selectionReason&&<Text style={[s.subtleText,{fontSize:11}]}>{experience.selectionReason}</Text>}<SceneEventActions experience={track} disabled={storyActionsDisabled} onSubmit={submitTrackAction} onPreviewDrop={dropObject} selectedObject={object}/>{object&&<PrimaryButton label="收起物件預覽" compact secondary onPress={()=>setObject(null)}/>}</>}
        {experience.phase==='completed'&&<View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8,paddingHorizontal:14,paddingVertical:8,borderRadius:16,backgroundColor:'rgba(28,12,40,.84)',borderWidth:1,borderColor:'rgba(255,210,122,.38)'}}><View style={{flex:1,minWidth:200}}><Text style={[s.label,{fontSize:13}]}>這一章已經收尾，下一段由你們一起決定。</Text><Text style={[s.body,{fontSize:12,lineHeight:18}]}>{experience.partnerAgreedNext?'對方已同意開始下一場。':'等待對方決定；你們仍可繼續聊天。'}</Text></View><PrimaryButton label={experience.myAgreedNext?'撤回下一場同意':'一起開始下一場'} compact secondary={experience.myAgreedNext} disabled={disabled} onPress={()=>void mutate('story.next.requested',{completedEpisodeSeq:experience.episodeSeq,agree:!experience.myAgreedNext})}/></View>}
        <View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6,paddingHorizontal:4}}>

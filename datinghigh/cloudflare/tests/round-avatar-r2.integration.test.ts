@@ -6,6 +6,8 @@ import {executeCommand} from '../src/commands';
 import {expressionIds,avatarExpressionPrefix} from '../src/avatar-expression-manifest';
 import {publishReadyAvatarPack} from '../src/avatar-expression-store';
 import builtinCatalog from '../../contracts/builtin-avatar-packs.json';
+import staticCatalog from '../../contracts/builtin-static-poses.json';
+import {publishStaticPosePackage,readReadyStaticPosePackage,staticPosePrefix} from '../src/avatar-static-pose';
 let mf:Miniflare,env:PlatformEnv;
 const now=1800000000000,id=(n:number)=>`019a281e-0000-7000-8000-${String(n).padStart(12,'0')}`,round=id(50),asset=id(22);
 const auth=(who=1)=>({accountId:id(who),sessionId:id(who+100),cv:1,accessExpiresAt:now+3600000});
@@ -41,6 +43,41 @@ beforeEach(async()=>{
 });
 afterAll(async()=>{await mf?.dispose();});
 const current=(who=2,target=env)=>dispatch(new Request('http://platform.internal/v1/commands/avatar.current.readiness',{method:'POST',body:JSON.stringify(auth(who))}),target,now);
+it('SEF-IT-149/150 static boundary: private immutable publication rejects incomplete uploads, concurrent writes converge and missing sheets block readiness',async()=>{
+ // 正式虛構免費圖作儲存 fixture；不假稱已由真人 AI 首次採用流程生成。
+ const p={...structuredClone(staticCatalog.packs['female-01']),sourceImageSha256:'a'.repeat(64)},prefix=staticPosePrefix(id(2),asset,p.sourceImageSha256);
+ for(const a of p.assets.slice(0,3))await env.FILES.put(prefix+a.sha256+'.png',readFileSync(new URL(`../../frontend/client/public/avatars/static-poses.v1/female-01/${a.sha256}.png`,import.meta.url)),{httpMetadata:{contentType:'image/png'}});
+ await expect(publishStaticPosePackage(env.FILES,id(2),asset,p.sourceImageSha256,p)).rejects.toThrow('AVATAR_PACK_UNAVAILABLE');
+ expect(await readReadyStaticPosePackage(env.FILES,id(2),asset,p.sourceImageSha256)).toBeUndefined();
+ const last=p.assets[3];await env.FILES.put(prefix+last.sha256+'.png',readFileSync(new URL(`../../frontend/client/public/avatars/static-poses.v1/female-01/${last.sha256}.png`,import.meta.url)),{httpMetadata:{contentType:'image/png'}});
+ const published=await Promise.all([publishStaticPosePackage(env.FILES,id(2),asset,p.sourceImageSha256,p),publishStaticPosePackage(env.FILES,id(2),asset,p.sourceImageSha256,p)]);
+ expect(published[0]).toEqual(published[1]);
+ await expect(publishStaticPosePackage(env.FILES,id(2),asset,p.sourceImageSha256,{...p,poses:[...p.poses].reverse()})).rejects.toThrow('AVATAR_PACK_IMMUTABLE');
+ const result=await(await call()).json()as any;expect(result.staticPosePackage.assets).toHaveLength(4);
+ expect(JSON.stringify(result)).not.toContain('sourceImageSha256');expect(JSON.stringify(result)).not.toContain('private/');
+ const image=await media(result.avatarVersion,1,'static-'+last.sha256);expect(image.status).toBe(200);expect(image.headers.get('Cache-Control')).toBe('no-store');
+ expect((await media(result.avatarVersion,3,'static-'+last.sha256)).status).toBe(403);
+ expect((await current()).status).toBe(200);
+ await env.FILES.delete(prefix+last.sha256+'.png');
+ expect((await current()).status).toBe(409);
+ expect((await media(result.avatarVersion,1,'static-'+last.sha256)).status).toBe(503);
+});
+it('SEF static: builtin pose sheets use the existing authorized channel, immutable hashes and post-I/O membership checks',async()=>{
+ await env.DB.prepare("UPDATE user_profiles SET selected_avatar_type='builtin',selected_avatar_ref='male-02' WHERE account_id=?").bind(id(2)).run();
+ const p=await(await call()).json()as any;
+ expect(p.staticPosePackage?.poses).toHaveLength(4);
+ const image=p.staticPosePackage.assets.find((a:any)=>a.id==='hold-smile-correction');
+ expect(image.url).toBe(`/api/v1/game-rounds/${round}/partner-avatar/${p.avatarVersion}/static-${image.sha256}`);
+ const assets={fetch:async(request:Request)=>new Response(new Uint8Array(readFileSync(new URL('../..'+new URL(request.url).pathname.replace('/avatars/','/frontend/client/public/avatars/'),import.meta.url))),{headers:{'Content-Type':'image/png'}})} as Fetcher;
+ const target={...env,ASSETS:assets};
+ expect((await media(p.avatarVersion,1,`static-${image.sha256}`,target)).status).toBe(200);
+ expect((await media(p.avatarVersion,3,`static-${image.sha256}`,target)).status).toBe(403);
+ expect((await media(p.avatarVersion,1,`static-${'f'.repeat(64)}`,target)).status).toBe(409);
+ const corrupt={...target,ASSETS:{fetch:async()=>new Response(new Uint8Array([1]),{headers:{'Content-Type':'image/png'}})} as unknown as Fetcher};
+ expect((await media(p.avatarVersion,1,`static-${image.sha256}`,corrupt)).status).toBe(503);
+ const ended={...target,ASSETS:{fetch:async(r:Request)=>{const response=await assets.fetch(r);await executeCommand(env.DB,'game.round.end',{...auth(),roundId:round},now);return response;}} as Fetcher};
+ expect((await media(p.avatarVersion,1,`static-${image.sha256}`,ended)).status).toBe(403);
+});
 it('SEF two-avatar stage: same-round own pack uses current caller adoption and rechecks membership and version for binary reads',async()=>{
  const own=(who=2)=>dispatch(new Request('http://platform.internal/v1/commands/avatar.round.self-projection',{method:'POST',body:JSON.stringify({...auth(who),roundId:round})}),env,now);
  const response=await own();expect(response.status).toBe(200);const p=await response.json()as any;expect(p.avatarAssetId).toBe(asset);for(const e of expressionIds)expect(p.expressions[e].url).toBe(`/api/v1/game-rounds/${round}/my-avatar/${p.avatarVersion}/${e}`);

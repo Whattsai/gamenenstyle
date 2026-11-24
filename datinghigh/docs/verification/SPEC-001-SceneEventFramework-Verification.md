@@ -2,6 +2,192 @@
 
 ## V3 開發與角色逐款審查
 
+### 首場 V3 劇本、原創試讀與技術回放：2026-11-23
+
+本輪實作目標是 `rain-bookshop-before-rain-stops/v1`、`rain-bookshop/v3`，來源為 [正式作者資料](../../contracts/rain-bookshop-before-rain-stops.json)。包含35個個人節點、39個Binding、44個Shot、7個獨立視角、4本原創書籍、店員站立／持書的各五種完整身體表情、互補清單、安全救書、三咖啡結局與撤離後備。這是首場的實作與技術證據，不代表其餘九場、全部V3規劃、素材人工核准或Gate B完成。預設發布索引已改V3並發布到default local；未操作production或remote，也未改其他專案。
+
+[完整身體NPC契約](../../contracts/npc-static.ts)、[舞台發布校驗](../../cloudflare/src/scene-event-stage-content.ts)、[NPC解析](../../frontend/client/src/scene-stage.ts)共用純校驗，整張身體圖格切換五表情，不重疊臉片；缺姿態、表情、實體素材或合法引用即拒絕。舊NPC格式及V2內容保留相容。公開NPC不能被私人玩家Rig覆蓋。
+
+[SceneBookProjection](../../backend/src/DatingHigh.Application/SceneBookProjection.cs)只回目前Area可見書籍與已宣告副本的原創閱讀欄位；[SceneBook](../../frontend/client/src/SceneBook.tsx)從書本原位展開，顯示原書封、書脊、雙頁、翻頁與合回，只有本地頁碼。實際Web回放先揭露兩項問題：MouseEvent缺原生locationX/Y，及敘事操作層擋住翻頁。均先補失敗測試再修復；Web座標改依同一Pressable邊界換算，閱讀時暫收敘事層，關閉或素材不可用時恢復。預覽沒有故事提交，completed可在仍授權且素材就緒時閱讀桌上書籍。
+
+[SceneEventStageProjection](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs)過濾不在該Area的真人，已提交跨Area分鏡可見該鏡位的公開物件，未投影的私人物件不會加入。結局最後Shot成為重連的持久鏡位，撤離不回到室內舊圖。[SceneWeather](../../frontend/client/src/SceneWeather.tsx)依公開flag呈現雨層強度，範圍限於Area宣告的窗景／戶外，不在室內全畫面下雨。可選對話不再被僅顯示主線／物件操作的清單規則隱藏；只有本人點選才提交。
+
+公開書架曾使用會提示清單答案的「預留書」標籤與專用ID；反例先失敗後改用一般書本實體，正確書只能在A明確分享清單、I比對後合法拿取。尚未把此修正當作所有私有資訊／猜測／WS／快取案例均已覆核。
+
+三種搭話各有不同站位／姿態／表情的Shot，A只得到I實際提交的那一種做法。面紙由hidden→offered，A另行明確接受或婉拒，有限桌面位置切換不冒充手部骨架動畫；收下面紙不會提交聊天回應，仍可選decline。錯誤比對三種書皆不完成必要find、不移動書籍，可返回比對再合法拿取。店員透明遮罩命中只開本地選取，實際問話仍需本人按選項；公共雨勢變化後不保留已離開的NPC。
+
+[SceneAreaObservation](../../backend/src/DatingHigh.Application/SceneAreaObservation.cs)收集本次條件讀取的Area，固定D1命令同批重驗角色／revision／位置，不對另一人的Progress寫入。真Miniflare先驗帶guard的合法提交，再驗對方已移動時所有事實與receipt均不變；原本未支援讀取guard的反例已Red→Green。只查過往節點不增加對方目前進度依賴。結局相機亦有真HTTP反例：原回傳window，修正後以結局最後Shot的coffee-talk等正式cameraId持久投影。
+
+個人動作即使不改世界，也須重驗本次合法條件／安全收尾讀過的共享revision；內部`observedSharedRevision`只作D1讀取guard，不增加Shared revision。真Miniflare已驗合法提交、world變更後舊回應整批拒絕、無receipt，以及已成功request在world改變後精確重播仍冪等。此欄位只由Application產生，公開payload未擴充。
+
+Android回放曾在乾燥收納區停留、操作停用且無請求送出；原生根因不能只由截圖推定。另以完整Screen單元反例證明：素材失敗提示會被後續同步清掉，造成無說明的持續封閉。已補持續提示與本人明確「重新載入場景素材」；只重新讀授權投影、掛載圖片及解碼，清除舊視覺Cue，不提交進度、不呼叫生成。只重掛圖片層，保留微動選擇；整個ADV重掛會重啟微動的反例亦已Red→Green。Web真圖片失敗／重載與Android完整回放另驗，不能把單元恢復當作原生根因已消失。
+
+後續QA31在登入前呈現空白，RAM讀取的系統日誌包含PackageManager的`FATAL EXCEPTION IN SYSTEM PROCESS`及`failed to set system property`，不是React錯誤的證據。僅重啟Android後，內建服務仍多次ANR，UiAutomator以137終止，native帳號沒有送出登入請求；這次不計遊戲通過或失敗。已確認實際AVD位於本專案`.local/android-avd/`，再僅重啟DatingHighQA31模擬器程序、保留原userdata、不wipe，也未停止其他AVD或預設ADB服務。完整回放結果另列下表。
+
+`SceneAudioProjection`與`StoryAudio`共用目前授權鏡位的混音，新增12秒原創WAV音樂，雨聲／音樂均需本人開啟，360ms有限漸變；背景／失焦／離場停止，返回不自動播放。Web已直接觀察真HTMLAudio的currentTime、paused及音量，沒有替換播放器或以播放推進故事。原創音樂檔只保留正式使用成品，沒有生成服務呼叫。
+
+[有限狀態圖](../../cloudflare/src/scene-event-track-graph.ts)保留將影響未來動作的事實，不把純呈現差異膨脹成重複狀態；互斥組已消耗及物件隱含所有權仍入signature，避免漏掉死路。已補反例證明沒有world effect的互斥分支也必須保留。按binding狀態與flag快取相關欄位集合，實際世界／提交值仍分開；50,000狀態上限未降低或略過。正式V3發布檢查在完成提交事實的存活分析後約8.2秒，並行負載下約15秒（本機離散單次量測，非產品效能承諾）。冷啟動同步圖驗證後讓出一次事件迴圈，真Miniflare曾出現的失效連線ECONNRESET已在發布回歸轉綠；沒有自動重送已發出的資料變更。
+
+[首場發布政策](../../tools/rain-bookshop-v3-policy.mjs)除通用DSL／可達性外，鎖定完整Scene／Narrative／Pool與必要範圍。V3可獨立準備；原子發布時退休舊Narrative的抽選索引，保留歷史R2位元組及已釘選Session。其餘主線必須有新版首場精確版本／SHA的使用者Gate B，舊V2核准不能放行。真Miniflare D1／R2已覆核退休、歷史不變、冷載入只選新版及舊核准拒絕。
+
+`npm run content:publish:local` 已經固定wrapper成功發布default local：Category／Scene／Narrative各1筆，29個內容／素材物件，180個私人R2物件完整指紋不變。發布前後原7帳號、7Profile、6媒體資料、1房間、1Session與66事件筆數不變，Catalog由1變2。首場已釘選：Narrative SHA `74b4d9cf41ef5ff869698f309bd6603956b058d2fc58c6130218d23b3026b873`，Scene SHA `aab0bac5c13b69728e66e50af4c2614d3d26bc39cc15a51ac75c7cd17d54ba33`。這些immutable位元組已正式寫入本地R2，後續內容修正必須升版，不可重算同版本後覆寫。V2隔離回歸已明確固定舊Catalog IDs，不跟隨預設索引誤換版本。
+
+本地平台由既有WSL／Docker wrapper重新啟動，Release Container建置通過，`/health/live`與`/health/ready`均實際200；沒有重啟Docker或其他專案。後續live回歸只建立本工具自己的隨機測試帳號／房間，憑證留RAM並結束測試Session，不能視為人工Gate B。
+
+目前已取得的技術結果：
+
+| 驗證 | 精確範圍／結果 |
+|---|---|
+| `.NET SceneEventV3EndpointTests` | 最後共享讀取guard與V3鏡位版整合，V3的18項及兩組既有場景API合計41/41通過；另2/2通過：在I已評估後、D1提交前，插入A真正的HTTP移動或雨情提交，I舊操作409且本人Track、EventInstance及receipt不變。V3共20項不同用例有證據，非完整並行競態矩陣。另含9種最終意願組合、安全撤離、NPC、3種搭話與獨立面紙意願、相機持久化。錯書個案曾把最後斷言誤寫held-inviter，已按state=held、holderRole=inviter修正並重跑通過。 |
+| `.NET 既有API／單元／Integration` | 既有API220/220、完整Unit378/378、Integration32/32通過；最後讀取guard再驗Scene相關API41/41，不能把單純HTTP fixture充作SQL證據，也不把重複回歸數相加冒充唯一案例。 |
+| Worker | 完整33檔401/401通過；最後共享世界讀取guard與正式發布兩檔36/36通過（真D1 19、發布17），不相加當同版全套437。測試數不等於875項規劃均已覆核。 |
+| 工具政策／內容 | 完整73/73；最後推薦結局鏡位修正後，正式V3內容／政策6/6通過。 |
+| 前端 | 最新完整38檔326/326通過，含素材故障後同步不抹除提示、明確重載須重新解碼、無故事提交／生成、保持微動設定。先前續作文案期待值已對齊九步共用的「這一步」，不改不確定結果禁止重送的行為。 |
+| Chrome正式Screen | 三結局3/3通過：雙人真登入／配對／HTTP／D1／R2／Room DO、原創書預覽不改revision、真音訊、收下面紙仍婉拒、錯書可重試、完整安全救書、結局與重連／completed翻書。實際畫面覆核發現推薦近鏡裁到上下緣，新增DOM舞台邊界反例Red後調整該Shot，3/3全角色上下緣均在畫面內。最後素材恢復UI再單獨重跑獨處結局1/1：中斷一次正式收納區圖片請求，提示持續可見，本人明確重載後圖片重新解碼，D1進度不變，並完成救書、結局與重連翻書。2026-11-24另把最後一步改為本人按UI選項、不先重新整理，再聊結局1/1通過，實際舞台與completed翻書均可用；最新 `.local/evidence/scene-v3-web.json` 僅含這次再聊單項，不能當先前獨處恢復測試的JSON。三結局畫面為 `scene-v3-*-ending.png`，書籍畫面為 `scene-v3-original-book.png`。技術回放不是Gate B。 |
+| Android | QA31／ADB5038、A真原生UI＋I授權HTTP，首場三種結局均有完整操作技術回放：登入配對、獨立進場、原創書翻頁／合回不改D1、收下面紙仍婉拒、清單分享／錯書重試、互補救書與本人最終意願。兩人Session均completed、無自動聊天。獨處輪於UTC 2026-11-23T11:33:23Z通過；2026-11-24再聊／推薦輪另加入「結局實體書已可用」斷言才擷取，最終舞台均實際顯示；先前兩張載入中截圖不足作驗收，不能將測試等待修正宣稱為應用程式根因修復。這三輪明確素材重載次數依序0／1／0，再聊輪的載圖故障重載前後D1事實一致，偶發載圖錯誤根因尚待查。證據 `.local/evidence/scene-v3-{full,more-talk,book-recommendation}-android.json` 與 `scene-v3-book-android-*-ending.png`。完整44鏡位取景／遮擋、雙原生裝置、真機效能仍未驗。 |
+| Android音訊 | [實際播放器檢查](../../tests/e2e/android/scene-event-v3-book.mjs:18)於推薦輪觀察本App的Android播放狀態：本人開啟前0、開啟後2、明確靜音後0，D1事實不變。原始dumpsys僅RAM，證據只留player／state／time。這是雨聲與原創音樂接線的播放狀態證據，不代表實體裝置聽感、所有Cue、音量／混音與背景恢復完整矩陣。 |
+| 編譯／文件 | Web export（918 modules）、E2E host build與兩側TypeScript通過；最後追溯1102列及docs／overview本地連結檢查通過，`git diff --check`通過。 |
+| default local真bridge | `npm run test:live` 3/3通過，涵蓋真Worker／Linux Release Container／D1／R2與認證；`npm run test:story:live` 1/1通過，實際新V3內容、雙向WS聊天與精確request重播、本人搭話／面紙婉拒、錯書重試／互補救書、自然收尾、下一場雙方同意／撤回／重播及安全end。證據 `.local/evidence/scene-framework-story-live.json`，不外推staging／production或人工Gate B。 |
+
+素材均為正式作者資料實際引用的單一檔案，不保留repo內製作副本。`contracts/story-assets/rain-bookshop-{street,entrance,shelves,corner,counter,window,storage}-v3.png`是七張獨立鏡位；`rain-bookshop-clerk-{stand,hold}-v3.png`是兩張透明五欄PNG；`rain-bookshop-book-{love,growth,family,life}-v3.png`及box／coffee／water／tissue四張PNG為原創程式繪製成品。原創文案、書名、摘要及試讀均存於正式Manifest，不引用出版書內文。生成服務只用於本輪離線製作，遊戲運行期沒有生成請求。
+
+原生直向舞台採橫向取景，截圖可見角色在畫面左右緣或需左右景導覽；本次未驗全部44鏡位的直向取景／遮擋，不把完整操作通過當作全部畫面核准。收納截圖是在D1提交後、畫面仍顯示同步中的離散樣本，不能作完成後物件位置的斷言。結局畫面另已等實際結局標題再擷取。三輪結局後離散PSS為458930／472575／458515 KiB，development emulator累計3229 frames／2364 janky；不列release或真機效能達標。原生XML與系統診斷僅RAM處理，登入頁未保存截圖，影片／trace關閉。
+
+圖像工具為內建 `image_gen`。提示詞組要點：固定同一獨立書店的深胡桃木、紫色雨街與櫻花、酒紅椅、琥珀玻璃吊燈、常春藤、右側木櫃檯及留聲機；依入口、書架、閱讀角、櫃檯、窗邊、乾燥收納區與街道各自生成相應視角，無人／無字、不裁同一張全景。店員固定短赤褐髮、鼠尾草綠上衣、棕圍裙、米色長褲與棕鞋；每姿態五欄同一完整身體、自然／微笑／驚訝／思考／擔心、透明底；持書姿態雙手將兩本書抱於胸前。最後局部修圖僅把window／storage誤生的金屬保險庫門改為同位置胡桃木儲物門，保留相機、桌椅、書架與照明。生成原檔留在 `C:/Users/kola-/.codex/generated_images/01a20475-9cef-7333-8a10-623cd02b2bf8/`；最後兩張修圖為 `exec-2598a559-b960-45e6-bf1a-6abd96f679d5.png`、`exec-32f4cba4-a9a8-483d-8e95-a28788aff930.png`。這些工具產物不等於使用者已核准美術。
+
+Overview已整合閱讀DTO、NPC格式、公開雨層、舞台投影、模組與發布操作。定位、四層邊界、套件／DI依賴、環境變數與DB migration未變；未在非需求文件追加本輪進度或故障流水帳。仍需依下方逐項矩陣覆核完整斷言；本段測試數不直接換算V3完成數。
+
+本輪按實際證據更新對應列的partial狀態／缺項；重新索引1102列，749 verified（68.0%）、complete=false。TDD仍610/875（69.7%）完整覆核；原V3 250項中86 partial／164 pending，BDD仍118/191（61.8%）完整覆核；V3 70場中41 partial／29 pending。完整V3仍0/250、0/70，不把技術回放、靜態素材核准或新測試函式換算成整列完成。以下較早批次的計數保留為當時證據，現況以上方矩陣為準。
+
+### AI 私人靜態建檔、檢視與採用：2026-11-23
+
+本輪接續已確認的靜態優先範圍，完成新AI候選的私人靜態製作鏈：public begin要求完整靜態套組，沿用相容五表情，再依序準備 stand／sit／read／hold 四張五欄PNG。九個步驟都只讀同一已選Master，不重新傳送照片，不建立背景job，不在進場、換表情或重連時生成。已保存的舊角色與既有五圖仍維持合法讀取；不為這些角色自動補生新包。
+
+`avatar-pose-contract.ts`／`avatar-pose-adoption.ts` 共用既有R2 adoption CAS與單一in-flight。成功步驟重入不取得新provider lease；圖片已存而進度回覆遺失時，依同owner／asset／workflow／source／request收據與SHA查回。取消前亦先查回已成功的收據，續作保留成功姿態並拒絕舊workflow遲到回覆。未知結果不自動重試，仍由本人明確接受可能的額外用量。四姿態全部完成後驗實際PNG，發布同source的create-only canonical包；ready保存後清除四張暫存，清理中斷可在下次查回補償。GC只刪到期且無合法ready reference的孤兒，保留本人正式包；沒有新增D1表、欄位、Trigger、marker或公開command。
+
+.NET沿用固定Gemini adapter及有界binary bridge。`AvatarStaticPoseImage` 安全解碼、去背、檢查五欄完整／安全邊界及重複圖格；這些機器檢查不代替本人核對臉部、衣裝、手部和五情緒。姿態請求固定16:9／2K，使用現行允許的3.1 Flash Image／3 Pro Image；不支援完整姿態的配置在begin建立鎖與扣額度前拒絕，不偷偷換模型。模型能力依[Google官方圖片文件](https://ai.google.dev/gemini-api/docs/image-generation)核對；本輪未發送真供應商請求，沒有量測真AI品質或成本。
+
+`AvatarStaticReview` 全部四張PNG解碼後才可確認，提供4姿態／5表情切換；可見圖或預載失敗立即停用採用，明確重載會重新掛載失敗圖片，不重生。本人按最終確認後先review精確packageVersion，再以原selection CAS採用；離開前景不續送下一步或自動提交。GET本人workflow姿態預覽沿用Session、候選來源及IO後重驗；他人有效帳號讀不到此workflow，讀圖期間撤銷亦不得回PNG。原生授權header只用於當次Image請求，不另存token。
+
+Red→Green包含：缺少pose模組與next selector、五表情完成卻提前ready、未review或錯版採用、同姿態搶lease、丟失progress寫入、重複pose PNG、既存Manifest卻未重驗毀損PNG、孤兒未清理、可見圖片重載未重掛、ready後暫存清理失敗未補償，以及取消時丟棄已存收據。這些反例已逐一補測並修復，真R2／D1與HTTP fixture證據分開。供應商不支援2K時，先由失敗測試證明原本會發送請求，再補adapter與begin能力防線。整合回歸中的兩個舊所有權fixture也改走九步與review；歷史五圖故事回放只在隔離fixture內明確走legacy契約，不開放產品繞過新採用Gate。
+
+| 驗證命令 | 本輪結果與邊界 |
+|---|---|
+| `npm test` | 工具67/67通過 |
+| `npm --prefix cloudflare test` | 全套33檔385/385通過；最後新增取消收據反例後，R2／D1／legacy三檔17/17通過，兩次不相加冒稱同版全套402項 |
+| `dotnet build backend/DatingHigh.slnx --no-restore --verbosity quiet` | 最終建置0警告／0錯誤 |
+| `dotnet test backend/DatingHigh.slnx --no-build --no-restore --verbosity quiet` | 最終Unit370/370、Integration32/32、API220/220均通過，exit 0；API含HTTP及既有真D1用例，單純HTTP fixture不充SQL證據 |
+| `npm --prefix frontend/client test` | 全套34檔313/313通過；最後提示文案調整後三檔8/8及TypeScript通過 |
+| `npm --prefix cloudflare run typecheck` | 最終通過 |
+| `npm --prefix frontend/client run export:web` | 最終正式Web匯出通過，914 modules |
+| `npx playwright test --config tests/playwright.config.ts avatar-static-adoption.spec.ts static-avatar.spec.ts` | 最終版Chrome 2/2通過：九步、20狀態、故障封閉／重載、明確review、重新載入0生成，以及正式Screen同輪PNG接線與已發布V2回歸 |
+| `npm run test:scene:web -- --grep "authorized avatar swap\|real two-player e01"` | 最終Chrome 2/2通過：完整e01三次交會／自然收尾／聊天／下一場，以及合法換角／對方不可用回歸；不外推正式V3 |
+| `DATINGHIGH_ANDROID_DEVICE=emulator-5556 DATINGHIGH_ADB_PORT=5038 node tests/e2e/android/avatar-static-adoption.mjs` | 最終build QA31／ADB5038通過，UTC 2026-11-23T00:16:06.744Z：九步、四PNG解碼、明確採用與重開0重生；不外推實體機或release效能 |
+| `node tools/audit-story-traceability.mjs`、`git diff --check` | 1102列完整唯一追溯通過；749 verified、complete=false；4423個本地連結與22份新增文字檔格式掃描通過 |
+
+Web證據 `.local/evidence/ai-static-adoption-web.json` 與 `ai-static-adoption-review.png`：新候選後恰九次next，review前selection=0，最終review=1／selection=1；載圖故障本地重載及重新進頁無新生成。PNG使用正式虛構角色在RAM組成受控provider回應，R2／D1／Application／HTTP／正式UI是真實流程，不能當真人AI身份品質。該fixture的五張幾何WebP合計28450 bytes、四張正式虛構姿態PNG合計5880310 bytes；兩者畫質不等價，亦未含Master／Manifest，**不得**計為真人新版總R2、壓縮率、成本或品質相當的容量比較。真供應商完整成本、重試及總R2基線仍待實測，沒有擅設容量比例或價格上限。
+
+Android證據 `.local/evidence/ai-static-adoption-android.json` 為QA31／ADB5038、專用8084 development fixture、真.NET／D1／R2；四姿態各切換、五表情切換及全包解碼、最終明確採用、App重開同一已保存化身且0重生。這不是20種原生組合全矩陣、雙實體裝置或真Gemini品質。最終重開後單一PSS樣本323023 KiB與development jank只作診斷，不作連續峰值或release達標。XML僅在記憶體、影片與trace關閉，未保存來源照片畫面。首跑兩次遇runner導覽時序，另一次fixture未先設定既有角色；已修正為等候實際個資入口及明確建立原選角基線。建置曾與執行中.NET測試重疊造成Windows鎖檔，停止本輪已知舊測試後依序建置；不以鎖檔當產品通過或修改其他專案程序。
+
+追溯重算仍為歷史完整範圍749/1102 verified（68.0%）、TDD610/875（69.7%）、BDD118/191（61.8%）；V3原250 TDD有35項partial／215項pending、70 BDD有16項partial／54項pending，沒有新增完整勾選。機器可驗的本機首次靜態採用鏈已接上，**整包仍未100%**：真Gemini本人品質／成本、跨裝置與低記憶體完整矩陣、首場正式V3六區／NPC／原位書籍／三結局仍待完成。Puppet及連續角色動作延期，不改記通過。其餘九場仍須使用者實際試玩首場Gate B後製作；本輪未發布production或改換default local既有採用資料。
+
+Overview矩陣已同步runtime、模組、既有provider能力相依、HTTP、R2 metadata／暫存生命週期、測試入口與模型設定。整體定位、四層邊界、啟動middleware、DI註冊／套件及D1 schema無新變更，不追加README／AGENTS進度文件。
+
+### 正式靜態包與既有劇情接線：2026-11-23
+
+本輪依已確認靜態優先決策，將16款免費角色的四姿態／五表情及male-02持書微笑單格修正接到正式共用來源；65份PNG逐一驗SHA後從忽略的審查目錄移至 `frontend/client/public/avatars/static-poses.v1/`，不改像素、不重畫、不留該批圖片副本。必要正式索引為 `contracts/builtin-static-poses.json`；原80張WebP仍供選角、舊五圖ready與尚無靜態包的相容路徑。已確認的虛構AI四份成品仍是本機測資，未放進公開目錄或冒作真人AI採用。
+
+`contracts/static-avatar.ts` 全包校驗4姿態各5表情、資產引用及region；Worker `avatar-static-pose.ts` 驗來源SHA、PNG／byteSize、create-only不可變發布與缺圖，`round-avatar.ts` 沿用原Session／同輪／目前採用檢查，固定 `static-{sha256}` selector只讀目前包內素材且IO後重驗權限。.NET深層白名單不回來源SHA／owner／R2 key，binary bridge只接受selector對應MIME及有界大小。無新D1表、欄位、Trigger、公開寫入路由、套件或生圖呼叫。
+
+`StoryExperienceScreen` 全包解碼後依已授權Shot的role／pose／expression交給共用舞台；讀取投影失敗清除過期角色；必需角色的V3舞台素材失敗則停用故事操作且聊天室可用。舊V2僅選用靜態包載入失敗時保留合法舊五圖顯示，劇情與聊天仍可用。`StoryPortrait` 亦讓既有已發布V2舞台使用新包的站姿／五表情，句尾安全點才換套，下一句不退回舊圖；無新包者維持舊五圖路徑。姿態內已繪製的書**不等於**任意世界物件已綁定正式手錨，缺手錨的物件Cue仍拒絕，不以固定假錨點宣稱完成。
+
+Red→Green證據：新增Worker／client包校驗與預載測試先因缺模組失敗；真D1/R2通道先缺static投影，後通過；刪除已發布私人包最後一圖時readiness原回200，新增反例後改回409；HTTP深層白名單及句尾靜態換套測試均先失敗再通過。最後逐一重現重複SHA與重複圖格仍被放行的兩個Red，補全包唯一性校驗後通過，16款正式metadata亦逐一通過共用校驗。另以失敗測試重現舊V2的選用靜態圖錯誤誤鎖故事操作，修為只有需該素材的V3舞台才封閉，V2可保留合法舊五圖繼續。Chrome完整通道初次遇隔離測試bridge仍只允許WebP，補固定PNG媒體白名單後通過，未放寬正式授權。
+
+驗證：工具67/67、Worker32檔379/379、.NET Unit364/364、API219/219均通過。client33檔309/309通過；最後V2選用素材失敗回歸另加入1項，相關3檔42/42通過；共享校驗最後補強後另重跑Worker16項／client9項均通過。Web正式匯出、兩側TypeScript與 `git diff --check` 通過。Chrome靜態審查20/20；正式Screen的真D1／R2／DO／HTTP通道案例已通過：9份PNG解碼、fixture V3舞台讀書圖格，再移除fixture回到真已發布V2雙人櫃檯、兩人各一份正式靜態站姿，生成請求0。證據 `.local/evidence/static-avatar-web.json`、`static-avatar-authorized-stage.png`、`static-avatar-published-v2.png`。Stage配置fixture不算正式V3內容驗收。另執行 `npm run test:scene:web -- --grep "authorized avatar swap|real two-player e01"`，真雙人三次交會、e01自然結局、聊天、下一場、永久end與換角／對方未就緒回歸2/2通過；不擴推其餘V2測試或V3劇本。
+
+本輪可重跑命令與證據範圍：
+
+| 命令 | 結果／範圍 |
+|---|---|
+| `npm test` | 67項工具政策／內容檢查通過；最後素材／追溯精查4項另通過 |
+| `npm run test:worker` | 32檔379項通過；最後靜態校驗／真D1-R2目標16項另通過 |
+| `dotnet test backend/tests/DatingHigh.Unit.Tests/DatingHigh.Unit.Tests.csproj --no-restore --verbosity quiet` | 364項通過 |
+| `dotnet test backend/tests/DatingHigh.Api.Tests/DatingHigh.Api.Tests.csproj --no-restore --verbosity quiet` | 219項通過，HTTP fixture不充SQL證據 |
+| `npm run test:client` | 33檔309項通過；最後新增V2失敗反例後，相關UI 42項通過，未以相加數冒充全套函式數 |
+| `npm --prefix frontend/client run typecheck`、`npm --prefix cloudflare run typecheck` | 最終通過 |
+| `npm --prefix frontend/client run export:web`、`npm run build:e2e-host` | 建置通過 |
+| `npx playwright test --config tests/scene-rig.playwright.config.ts` | Chrome素材審查20項通過 |
+| `npx playwright test --config tests/playwright.config.ts static-avatar.spec.ts` | 正式Screen／API／PNG與已發布V2共場1項通過；Stage配置fixture範圍另列 |
+| `npm run test:scene:web -- --grep "authorized avatar swap\|real two-player e01"` | V2完整e01／換角回歸2項通過 |
+| `node tests/e2e/android/scene-rig-pilot.mjs` | 明確QA31／ADB5038、8086 profile；17款姿態／表情與Home返回通過 |
+| `node tools/audit-story-traceability.mjs`、`git diff --check` | 完整索引1102列、749 verified／complete=false；格式檢查通過 |
+
+Android搬移後首跑在固定2.5秒等待後找不到控制項；確認App稍後已完整載入，runner改等已知控制項，未以加長固定sleep冒稱ready。測試僅QA31／ADB5038、8086 development profile、8092 loopback，原生XML只在記憶體。重跑於UTC 2026-11-22 18:49:16 exit 0：17款各四姿態／五表情、實際解碼及Home返回通過，來源fingerprint `9e44524ec47b85be05cd5de817cd563588df0aedcc6095eff745fa7735ea4674`，證據 `.local/rig-pilot/android-batch-result.json`。四個離散PSS樣本259632／309683／311390／313813 KiB；development emulator累計渲染含大量jank，不列release效能達標，不作連續峰值。這是正式免費圖片搬移後的同源審查，仍不外推正式PNG授權通道或實體機性能。
+
+仍未完成：真AI首次靜態建檔producer／本人採用／跨裝置恢復、合法私人重試與孤兒／成本矩陣、首場正式V3六區／NPC／原位書籍／三結局及完整雙平台驗證。其餘九場仍須本人試玩Gate B後才能製作；本輪沒有發布production或更換本地既有採用資料。原Puppet／連續站坐／眨眼／流淚角色動作延期，不記通過。原875是歷史完整規劃清單，仍不能直接當本階段靜態完成率分母；保留每列完整／partial／pending證據，不以測試函式數補勾。
+
+逐列追溯重新計算：歷史完整範圍仍 **749/1102 verified、complete=false**；TDD完整覆核610/875、BDD118/191未因本輪局部實作增加。V3的250個原規劃TDD有31項partial、219項pending；70個BDD有14項partial、56項pending。所有混合案例保留未完成，不把延期動畫或新測試函式當成完整案例通過。
+
+Overview矩陣已核對並同步模組入口、共享contracts／Metro相依、正式素材放置、載入流程、HTTP及資料契約與Web匯出操作。定位／主要模組分層、啟動middleware、DI／套件、D1與環境變數均無新變更，不改README／AGENTS或新增進度旁支文件。
+
+免費正式靜態PNG實際共 **108232701 bytes**；以下為每角色正式PNG總量與原五張WebP基線，不是私人R2／Gemini成本或可動Puppet容量結果。套組以共用正式檔一份存放，不依玩家複製：
+
+| 角色 | 原五張WebP bytes | 正式靜態PNG bytes |
+|---|---:|---:|
+| female-01 | 884798 | 7382309 |
+| female-02 | 758194 | 5937120 |
+| female-03 | 874544 | 7423945 |
+| female-04 | 932898 | 6978330 |
+| female-05 | 786102 | 5962406 |
+| female-06 | 974396 | 7550036 |
+| female-07 | 794056 | 6090062 |
+| female-08 | 861942 | 6761657 |
+| male-01 | 794392 | 6583098 |
+| male-02 | 730224 | 7330776 |
+| male-03 | 870200 | 7062104 |
+| male-04 | 907644 | 7063082 |
+| male-05 | 741450 | 6324680 |
+| male-06 | 846680 | 7064004 |
+| male-07 | 772012 | 6066325 |
+| male-08 | 867414 | 6652767 |
+
+### 靜態優先與撤回未使用動作程式：2026-11-22
+
+使用者明確指示「跳過動作試作，先用靜態就好，動態動作不是現在重點」，並要求「我不要留下現在還不會用到的程式」。本階段以已逐款確認的17款角色、四種靜態姿態與五種表情繼續場景整合；連續站坐／眨眼／流淚／取書動畫、完整Puppet與動作試作暫緩，不再作當前靜態交付的前置Gate。身份／衣裝／五官品質、實際姿態、SHA／完整性／授權、跨平台靜態顯示、舊ready安全防線與劇情Gate B不取消。此決策優先於下方先做動作試作的歷史順序，未把延期的動作案例改記通過。
+
+已逐檔回復本輪renderer／policy／stage／審查入口／server／測試設定及overview的動作專用diff，刪除新增的動作取樣模組、動作單元測試、試作資料／頁面、Web／Android動作runner及忽略目錄中的臨時runner；不保留未啟用的動作開關、scaffold或未來程式。已確認靜態catalog、17款成品與正式80張WebP不變。下節311項／22項等為**撤回前的歷史測試**，不是目前程式現況；動作頁入口已移除，不再要求使用者確認動作或製作AI動作試作。
+
+批次git回復／清理命令及另外四張本機動作PNG的刪除均被自動審查拒絕，僅回覆`blocked by policy`。程式已改用逐檔反向diff與apply_patch安全回復及刪除完成；四張PNG仍留在忽略的`.local/rig-pilot/`，但不在目前server白名單、catalog、import或測試引用中。未以其他shell或腳本繞過圖片刪除限制。原動作QA截圖／結果只保留為下節歷史證據，不作目前驗收；不修改Codex預設生成目錄。
+
+撤回後驗證：client **30檔／304項通過**、Chrome靜態審查 **20/20通過**，涵蓋17款各20狀態、總覽及male-02持書微笑修正保留；client TypeScript通過，正式Web匯出完成，20個JS／HTML檔均不含已移除的動作模組／入口識別字。QA31／ADB5038、8086 development profile重新確認female-01靜態素材已解碼，且不存在動作審查入口；此項僅為撤回後入口與解碼檢查，不擴推17款新的Android品質驗收或實體機效能。原生XML僅記憶體處理。前端／測試／overview相對HEAD無內容diff，剩餘變更僅8份需求／驗證文件；overview已回到靜態基線，無新的架構或契約影響。`git diff --check`通過，唯讀追溯仍 **749/1102 verified、complete=false**，不把延期案例記為通過。
+
+### female-01 單款動作試作與播放防線：2026-11-22
+
+> 本節為已撤回試作的歷史證據；目前靜態優先與程式移除狀態以上節為準，以下程式／入口敘述不代表仍存在。
+
+使用者確認「先做female-01實際動作示範」後回覆「好 繼續」。本輪只處理female-01動作品質試作；17款已接受的外觀catalog、四姿態五表情來源SHA、male-02單格修正及正式80張WebP維持不變，未擴充AI／其餘角色動作、未發布R2或其餘九場。入口：`http://localhost:8092/?scene-rig=1&motion=1&platform=web`；Android既有8086 development profile的「開啟female-01動作審查」可進同版元件。
+
+新增共用`actor-motion-clips.ts`取樣與`ActorRigView.motions`，先寫失敗測試：缺blink／tear仍放原圖、未選中clip圖格越界／時間逆序／未知圖層未被拒絕；初次因缺模組失敗，再實測缺動作及未選中clip兩項Red，並校正RN Web圖像外層style讀取。修正後指定三檔27/27通過，第一輪client 31檔／310項通過。播放自查又發現不同圖格間提早內插尺寸造成取書前人物縮小，新增1項Red反例重現，再修為不同asset／region與其尺寸／位置同格原子切換，只有同圖格的數值變換可連續內插。Renderer另支援有界關鍵格、明確重播key、受控逐格取樣、暫停與完成通知。瀏覽器blur／App背景取消時間軸，focus不自動續播；舞台預檢亦依Shot gesture檢查所需clip，缺眨眼／流淚不再假顯示成功。以上為client內部呈現型別，沒有HTTP、D1、授權或正式ready契約變更。
+
+本款示範順序為眨眼→五個髖膝坐下關鍵姿態→拿書／開書／低頭閱讀→抬頭→眼眶積淚／淚痕→合書持書；有整段重播、暫停、各段選取、下一關鍵格與五官放大。素材先全部解碼才可播放。頭頸與上胸使用同一連續圖格，接縫置於衣裝；眨眼只切這個區域，下半身來源不變。初次局部眼帶出現色塊，改用完整頭頸後又發現直式圖的衣裝接縫，最後內建imagegen依原橫向sheet鎖定畫幅／位置重做閉眼，放大檢視已無該色塊與接縫；未用程式修圖或移動眼口像素。失敗直式來源不再留作工作區素材，工具預設生成原檔保留原處。其他姿態與受控層次演出不等於完整網格骨架／真道具掛載已通過。
+
+| 成品（`.local/rig-pilot/`，皆1774×887透明PNG） | SHA256 | bytes |
+|---|---|---:|
+| `female-01-sit-motion.png` | `5bcb6c1a4922282d797de3de0201f311f0536f78814b394b198f43e64b6d61db` | 1589242 |
+| `female-01-read-motion.png` | `9a4b668d14873154d3bf93e6b192ce15010d66150262cb9a5ee7ac7f06f81768` | 1861918 |
+| `female-01-book-motion.png` | `1b4400c9a984b275a00ea0e6454ab75b8dfa809732249f496c815d0b7368731d` | 1773737 |
+| `female-01-blink-motion-v2.png` | `e345b1e84a243c2e513e13311219ac1cc94a2917e505eb7bc460aad915c52596` | 1890183 |
+
+使用內建imagegen共5次，選定4份成品複製入工作區，無CLI/API fallback、無Python或其他程式圖像編輯。最終提示詞組：`identity-preserve; approved female-01 neutral identity, chestnut wavy hair / pearl earrings / cream cardigan / pink bow blouse / brown pleated skirt / brown low heels; exact clothing and face landmarks; whole head-neck-shoulders continuous; genuine alpha gutters`。坐下指定`five distinct anatomical phases, fixed feet baseline, same head size/camera, hips and knees bend, seated head naturally lower, no translated standing substitute`；閱讀指定`same seated body/book, down gaze -> look forward -> tears well -> slim tear tracks -> calm`；拿書指定`hands on lap -> lift closed book -> half open -> read open -> seated closed-book hold`；閉眼最終指定`edit same five-column landscape sheet in place, exact framing/scale/positions and costume, only gently closed eyelids, no portrait/recomposition`。裁切僅為runtime取樣，不重寫圖像。新4份PNG共7115080 bytes，加沿用外觀4份7382309 bytes，本機示範實際8份來源共14497389 bytes；原正式五張WebP基線884798 bytes。這是試作PNG來源量測，不是正式壓縮後Rig/R2成本或容量驗收，完整bytes及SHA見 `female-01-motion-review/integrity-result.json`。
+
+Chrome完整審查套件 **22/22通過**：新增本款關鍵格及整段／背景中止2項，既有17款各20狀態、總覽與male-02單格來源回歸仍通過；另在動作案例加入播放期間Gemini／generation／next-expression請求為0的斷言，指定2/2通過。已檢視Web開眼、閉眼放大、坐下中間／坐妥、閱讀、抬頭、淚痕放大與持書畫面。證據 `.local/rig-pilot/female-01-motion-review/web-result.json`。Client TypeScript及包含審查頁的額外TypeScript編譯通過；正式Web export成功，匯出20個JS／HTML文本未含動作審查入口或本機素材URL，development入口沒有漏進正式匯出。
+
+QA31首次runner早於新bundle載入完成，未找到審查入口而失敗；改為有界等待已知入口，不以固定3.5秒冒充ready。最終縮放修正版client **31檔／311項全通過**、Chrome **22/22通過**、client TypeScript與正式Web export通過。同版QA31／ADB5038、8086 profile、8092 loopback以正式測試路徑 `node tests/e2e/android/scene-rig-motion.mjs` 於 UTC 2026-11-22 11:46:42 exit 0：8份素材實際解碼、7個關鍵狀態、整段完成及Home返回保持停止。sourceFingerprint `210954992dba426c8cf7305dd13eef5d3ce9b7e4c3ed36a875854e2b4af9241c`，證據同目錄 `android-result.json`；已檢視原生閉眼、坐妥、閱讀、流淚與持書。原生XML僅記憶體，影片／trace關閉，不擴推真機或release效能。
+
+**本款動作仍待使用者品質確認**。示範仍使用有限預製關鍵姿態，書本繪在手部姿態內；尚未完成獨立書本錨點、完整Puppet網格／遮擋、不可變ActorRigPackage ready、AI本人授權／採用／跨裝置恢復、真雙人V3與實體機效能。因此SEF-UT-535／536／537、SEF-ET-100等完整案例仍partial／未勾選，唯讀追溯仍749/1102 verified；未將311個測試函式或22個Web案例當作V3完整驗收。下一款AI動作及其他角色擴充仍依使用者逐款確認與SPEC首輪品質Gate執行，劇情Gate B限制不變。
+
+Overview矩陣：更新模組地圖、檔案放置、播放執行流程、client內部資料契約與審查工作流。沒有新增套件／DI、HTTP、DB schema、部署環境變數或正式啟動入口，其他overview無新增影響。
+
 ### 全17款外觀確認與後續執行順序：2026-11-22
 
 使用者於AI本款交付後回覆「沒問題 接下來做什麼」，接受下節AI四份固定SHA成品；female-01～08、male-01～08及AI共17款的本機完整圖格外觀均已逐款確認。此決策不代表正式Puppet動作、ActorRigPackage ready、私人R2授權或劇情Gate B通過；749/1102的完整斷言覆核比例不變。
@@ -1563,15 +1749,15 @@ Web 最初 7 項都在 `story-avatar-pack` 初始化失敗；安全診斷查到�
 
 Android 僅操作本工作區 `.local/android-avd/DatingHighQA31.avd`、ADB5038／emulator-5556；不操作其他專案 AVD。沒有呼叫真 Gemini。XML 仍只在 RAM，影片／trace 關閉。新 `warmNativeMetro` 先驗固定本機 manifest 及 Android bundle 都可讀，拒絕別的 host／port，工具測試 2/2；不能僅因預熱測試通過就把 Android UI 標為成功。
 
-## 暫停範圍與下次入口
+## V2 早期暫停與交接紀錄（歷史，現況見文首）
 
-依使用者決策，首條主要流程與本人化身入口已完成上述最終回歸，現在暫停，不製作其餘九條。正式內容仍只有 `rain-bookshop-lost-note/v1`，SHA `7963336873df5730802a85225450e1c12c87cc7ce42201bbcce2e7b294b44130`。其餘 Category、線性主線、hidden／global／RNG 內容僅存在隔離測試，不能計為正式內容或人工驗收。
+當時依使用者決策，在首條主要流程與本人化身入口回歸後暫停，不製作其餘九條。當時正式內容為 `rain-bookshop-lost-note/v1`，SHA `7963336873df5730802a85225450e1c12c87cc7ce42201bbcce2e7b294b44130`；這是舊內容快照，並非目前default local版本。新版首場的發布與驗證以文首V3紀錄為準。當時其餘 Category、線性主線、hidden／global／RNG 內容僅存在隔離測試，不能計為正式內容或人工驗收。
 
 尚未完成整份 SPEC／BDD／TDD 逐項全清單與深度結案稽核；上述百分比只列完整追溯的項目。原 StoryDialogueAndExit／AvatarAndPreferences Gate B 及 B1 各自保留原狀；使用者試玩「變化不大」並不等於核准首條 Gate B。未來明確要求恢復時，先讀本紀錄及剩餘 TDD，再處理回饋與人工 Gate，不自行啟動九條內容。
 
 Overview 影響矩陣已檢查：架構、runtime、模組／依賴、檔案放置、API／資料及本地升級／發布契約均已按主題整合；本人入口再同步 runtime／API／角色模組及資料契約。入口不新增套件、表／欄、外部服務或設定，其他 overview 無新增影響。沒有發布 production。所有本地、模擬器及測試供應商證據都不能擴推雲端、實體低階手機或真人 Gate。
 
-收尾已關閉本工作區 QA31 模擬器及測試 Metro／隔離 Host；本機 Web8081 與 default Worker8787 保持可用且 health ready 200。GameNenStyle 工作階段結束回報因既有租約過期遭拒；重新查詢又回 `Invalid UUID at sessionId` 的外掛輸出驗證錯誤，未重新取得租約或恢復開發。程式、文件及驗證證據均已保留本機；後續若使用此外掛恢復工作，須先修復工作階段查詢，不影響本次產品測試結果。
+該次收尾已關閉本工作區 QA31 模擬器及測試 Metro／隔離 Host；當時本機 Web8081 與 default Worker8787 保持可用且 health ready 200。GameNenStyle 工作階段結束回報因既有租約過期遭拒；重新查詢又回 `Invalid UUID at sessionId` 的外掛輸出驗證錯誤，該次未重新取得租約或恢復開發。程式、文件及驗證證據均保留本機；後續若使用此外掛恢復工作，須先修復工作階段查詢，不影響該次產品測試結果。
 
 
 ## V3 逐 ID 覆核索引
@@ -1580,335 +1766,335 @@ Overview 影響矩陣已檢查：架構、runtime、模組／依賴、檔案放�
 
 | ID | 覆核 | 來源 | 目前證據與精確界限 |
 |---|---|---|---|
-| SEF-UT-367 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3561) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-368 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3566) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-369 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3571) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-078 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3576) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-370 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3586) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-371 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3591) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-372 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3596) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-079 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3601) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-373 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3611) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-374 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3616) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-375 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3621) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-054 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3626) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-376 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3636) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-377 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3641) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-378 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3646) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-130 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3651) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-379 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3661) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-380 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3666) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-381 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3671) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-131 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3676) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-382 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3686) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-383 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3691) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-384 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3696) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-080 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3701) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-385 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3711) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-386 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3716) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-387 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3721) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-132 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3726) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-388 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3736) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-389 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3741) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-390 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3746) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-055 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3751) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-391 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3761) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-392 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3766) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-393 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3771) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-081 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3776) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-394 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3786) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-395 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3791) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-396 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3796) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-133 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3801) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-397 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3811) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-398 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3816) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-399 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3821) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-056 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3826) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-400 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3836) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-401 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3841) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-402 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3846) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-082 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-403 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3861) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-404 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3866) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-405 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3871) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-083 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3876) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-406 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3886) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-407 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3891) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-408 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3896) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-134 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3901) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-409 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3911) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-410 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3916) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-411 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3921) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-057 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3926) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-412 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3936) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-413 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3941) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-414 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3946) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-135 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3951) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-415 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3961) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-416 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3966) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-417 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3971) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-084 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3976) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-418 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3986) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-419 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3991) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-420 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3996) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-058 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4001) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-421 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4011) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-422 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4016) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-423 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4021) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-136 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4026) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-424 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4036) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-425 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4041) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-426 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4046) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-085 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4051) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-427 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4061) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-428 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4066) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-429 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4071) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-137 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4076) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-430 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4086) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-431 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4091) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-432 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4096) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-086 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4101) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-433 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4111) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-434 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4116) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-435 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4121) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-138 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4126) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-436 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4136) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-437 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4141) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-438 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4146) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-059 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4151) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-439 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4161) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-440 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4166) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-441 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4171) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-060 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4176) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-442 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4186) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-443 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4191) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-444 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4196) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-087 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4201) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-445 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4211) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-446 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4216) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-447 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4221) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-088 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4226) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-448 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4236) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-449 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4241) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-450 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4246) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-089 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4251) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-451 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4261) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-452 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4266) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-453 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4271) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-061 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4276) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-454 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4286) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-455 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4291) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-456 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4296) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-139 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4301) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-457 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4311) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-458 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4316) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-459 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4321) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-090 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4326) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-460 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4336) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-461 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4341) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-462 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4346) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-062 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4351) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-463 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4361) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-464 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4366) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-465 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4371) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-140 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4376) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-466 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4386) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-467 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4391) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-468 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4396) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-141 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4401) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-469 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4411) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-470 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4416) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-471 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4421) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-091 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4426) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-472 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4436) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-473 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4441) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-474 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4446) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-142 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4451) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-475 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4461) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-476 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4466) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-477 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4471) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-063 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4476) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-478 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4486) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-479 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4491) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-480 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4496) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-092 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4501) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-481 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4511) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-482 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4516) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-483 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4521) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-143 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4526) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-484 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4536) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-485 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4541) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-486 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4546) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-064 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4551) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-487 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4561) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-488 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4566) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-489 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4571) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-093 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4576) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-490 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4586) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-491 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4591) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-492 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4596) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-094 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4601) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-493 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4611) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-494 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4616) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-495 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4621) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-144 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4626) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-496 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4636) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-497 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4641) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-498 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4646) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-065 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4651) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-499 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4661) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-500 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4666) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-501 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4671) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-145 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4676) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-502 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4686) | [NPC 公開姿態／表情 Rig](../../frontend/client/src/scene-stage.ts:41)、[Worker 全資產檢核](../../cloudflare/src/scene-event-stage-content.ts:62)、[測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:72) 已補正最小 Shot／NPC／道具與五表情連結；未製作全部正式 Entry、共享事件、三咖啡結局 Shot 矩陣，維持 partial。 |
-| SEF-UT-503 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4691) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-504 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4696) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-146 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4701) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-505 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4711) | [Publisher](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向測試](../../cloudflare/tests/scene-event-v3-content.test.ts:64) 新增未選中 NPC 姿態／表情素材缺失、無手錨或非法手錨時拒發的 Red-Green；完整正式內容／未知 gesture／全 Ending／真 R2 無異動稽核未完成。 |
-| SEF-UT-506 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4716) | [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[缺材／錯誤測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:100)：未知圖片、NPC Rig、未選中表情仍阻斷互動畫面，不偷換文字成功；但正式 Publisher 全分支、真解碼和 Android／Web 授權尚未覆核。 |
-| SEF-UT-507 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4721) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-066 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4726) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-508 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4736) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-509 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4741) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-510 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4746) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-095 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4751) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-511 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4761) | [V3 微動與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：關閉雨光循環仍保留真實書脊、相機控制與 Stage；需補正式拿書、店員端杯之 Web／Android 真播放及略過序列，故 partial。 |
-| SEF-UT-512 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4766) | [V3 互動位置不變](../../frontend/client/tests/unit/story-stage.test.tsx:14)、[舞台權威預檢](../../frontend/client/src/scene-stage.ts:68)：關閉微動不自行改變書的權威位置、提交或權限。尚需真回合 CAS 失敗、跨裝置恢復與必要 StoryMotion 互斥操作證據，故 partial。 |
-| SEF-UT-513 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4771) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-096 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4776) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-514 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4786) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-515 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4791) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-516 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4796) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-067 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4801) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-517 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4811) | [V3 共鏡頭 Area 視野](../../frontend/client/src/StoryStage.tsx:58)、[測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 已驗縮放平移時背景與原位書同座標；六區獨立真背景、遮擋、光影及一致空間人工驗收未完成。 |
-| SEF-UT-518 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4816) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-519 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4821) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-097 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4826) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-520 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4836) | [正式實體圖像演出](../../frontend/client/src/SceneStoryMotion.tsx:33)、[角色與書本測試](../../frontend/client/tests/unit/scene-story-motion.test.tsx:18) 已用釘選圖像替代 V3 舊向量假書，演出無進度提交；未覆核完整開／關／返回以及 Web／Android 真實書冊動畫。 |
-| SEF-UT-521 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4841) | [缺書封禁止假圖](../../frontend/client/src/SceneStoryMotion.tsx:33)、[Red→Green](../../frontend/client/tests/unit/scene-story-motion.test.tsx:25)：V3 有 assetId 但無已解析圖源時，顯示素材未就緒而不回退不相關向量封面；完整業務連結、重複點擊與跨平台驗收仍未完成。 |
-| SEF-UT-522 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4846) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-098 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-523 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4861) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-524 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4866) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-525 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4871) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-099 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4876) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-526 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4886) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
-| SEF-UT-527 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4891) | [舞台解碼失敗即封閉](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[局部測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:127)：錯誤圖層不會讓舊書繼續可互動；真 Cache/雙端權威修訂、原生解碼與重新連線仍未驗。 |
-| SEF-UT-528 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4896) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-147 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4901) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-529 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4911) | [V3 鏡頭同步](../../frontend/client/src/StoryStage.tsx:58)、[平移測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 已檢查書與背景變換一致及復位；真 Web/Android 手勢、邊界 hitShape、快速連點和 API 授權矩陣未覆核。 |
-| SEF-UT-530 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4916) | [實作](../../frontend/client/src/scene-stage.ts:34)；[呼叫端](../../frontend/client/src/EmbeddedSceneStage.tsx:18)；[測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)：上層透明 Pressable 的矩形遮擋下層合法物件之反例先失敗；改用共同 viewport／hitShape 選擇實際最上層本體後，前端 286/286 及 TypeScript 通過。此為單元層局部補強，尚缺正式 V3 素材、雙平台真點擊與 CAS／快速重按完整覆核，仍維持 partial。 |
-| SEF-UT-531 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4921) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
-| SEF-API-068 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4926) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-532 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4936) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-533 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4941) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-534 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4946) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-069 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4951) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-535 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4961) | [共用 Rig 驗證](../../frontend/client/src/actor-rig-policy.ts:15)、[NPC 真姿勢組裝](../../frontend/client/src/scene-stage.ts:41) 和 [舞台測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:58) 局部通過；免費／AI 完整來源身份、視覺品質、自然動畫、獲准正式 Rig Ready 尚未完成。 |
-| SEF-UT-536 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4966) | [Rig 全套必要資料預檢](../../frontend/client/src/actor-rig-policy.ts:18)、[三項 Red→Green 反例](../../frontend/client/tests/unit/actor-motion-renderer.test.tsx:9)、[舞台 Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:16)：中性表情可用但缺第五表情、未選中 pose/face atlas 破損、骨架孤兒／循環，均拒絕呈現。真正式 ActorRigPackage ready／owner／R2 SHA、自然動作和 Web／Android 人工品質仍未完整驗收，故 partial。 |
-| SEF-UT-537 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4971) | [持書圖片解碼錯誤傳播](../../frontend/client/src/ActorMotionRenderer.tsx:26)、[Negative 測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:116)：有手錨且來源合法時可呈現，一旦道具圖解碼失敗立即關閉整個 Shot 並通知宿主；需真 Web／Android 導致的記憶體圖層卸載、手部自然姿態與成功開合完整驗證，故 partial。 |
-| SEF-ET-100 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4976) | 四姿態／五表情共用元件可審查；完整動作／正式ready管線未驗。 |
-| SEF-UT-538 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4986) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-539 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4991) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-540 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4996) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-101 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5001) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-541 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5011) | [已發布 NPC 優先共用身份](../../frontend/client/src/scene-stage.ts:68)、[拒絕私人覆寫](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:85) 已局部驗證公開 NPC Rig 不被同名私人 Rig 替換；跨玩家共用素材去重、私人 master/R2 owner 與兩部裝置協作仍待真測，故 partial。 |
-| SEF-UT-542 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5016) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-543 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5021) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-148 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5026) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-544 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5036) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-545 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5041) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-546 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5046) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-102 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5051) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-149 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5183) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-IT-150 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5193) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-API-070 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5203) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-547 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5213) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
-| SEF-IT-151 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5223) | 真D1安全收尾／缺通知rollback已驗；最終意願、危險、Room end並發全矩陣未驗。 |
-| SEF-ET-103 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5233) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-UT-548 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5243) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
-| SEF-API-071 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5253) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-104 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5263) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-ET-105 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5273) | 16款免費角色及AI首輪的SHA／原圖對照已整合；11/22 Chrome2/2與QA31同版17款四姿態五表情／解碼／Home返回已通過，見本節最新結果及本機審查入口。整批本人品質核准、正式ready與實體裝置證據仍缺，不標verified。 |
-| SEF-BDD-122 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1814) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-123 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1829) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-124 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1844) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-125 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1859) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-126 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1874) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-127 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1889) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-128 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1904) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-129 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1919) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-130 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1934) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-131 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1949) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-132 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1964) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-133 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1979) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-134 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1994) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-135 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2009) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-136 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2024) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-137 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2039) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-138 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2054) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-139 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2069) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-140 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2084) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-141 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2099) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-142 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2114) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-143 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2129) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-144 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2144) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-145 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2159) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-146 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2174) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-147 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2189) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-148 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2204) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-149 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2219) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-150 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2234) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-151 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2249) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-152 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2264) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-153 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2279) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-154 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2294) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-155 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2309) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-156 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2324) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-157 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2339) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-158 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2354) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-159 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2369) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-160 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2384) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-161 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2399) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-162 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2414) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-163 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2429) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-164 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2444) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-165 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2459) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-166 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2474) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-167 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2489) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-168 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2504) | [Publisher 所有 NPC 引用檢查](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向回歸](../../cloudflare/tests/scene-event-v3-content.test.ts:64)、[Runtime 防半套舞台](../../frontend/client/src/EmbeddedSceneStage.tsx:12) 有局部證據；正式整個 V3／所有 Ending／未知 Cue／真 R2 原子拒發與雙平台仍未完成。 |
-| SEF-BDD-169 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2519) | [場景不可用時禁故事提交](../../frontend/client/src/StoryExperienceScreen.tsx:158)、[正式 Screen 回歸](../../frontend/client/tests/unit/story-dialogue-ui.test.tsx:47)：缺公開 Stage 素材禁提交而聊天室可用，新授權快照恢復後不自動重播；[圖片失敗邊界](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:92) 有單元證據；仍缺雙端真 CAS 敗回滾與權威事件進度，故 partial。 |
-| SEF-BDD-170 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2534) | [環境與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：環境雨光可獨立關閉、書本與鏡頭仍可用；完整 NPC 端杯、正式持書動作及 Web／Android E2E 未經驗，故 partial。 |
-| SEF-BDD-171 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2549) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-172 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2564) | [分區舞台](../../frontend/client/src/EmbeddedSceneStage.tsx:10)、[V3 一致 cameraFrame](../../frontend/client/src/StoryStage.tsx:58) 及 [幾何測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 局部通過；6區正式各異圖片、NPC遮擋、人工整體美術 Gate 尚未完成。 |
-| SEF-BDD-173 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2579) | [原位實體圖像演出](../../frontend/client/src/SceneStoryMotion.tsx:33)、[負向缺封面測試](../../frontend/client/tests/unit/scene-story-motion.test.tsx:25) 局部通過；書的原位觸控→開啟→翻頁→關閉→原位置返回及雙平台截圖仍未完成。 |
-| SEF-BDD-174 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2594) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-175 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2609) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-176 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2624) | [V3 Camera+物件共座標](../../frontend/client/src/StoryStage.tsx:58)、[按外框/真多邊形測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)、[狹長平移回歸](../../frontend/client/tests/unit/story-stage.test.tsx:14) 局部通過；API 拒越權、真 Web／Android 手勢/遮擋/尺寸矩陣仍未完成。 |
-| SEF-BDD-177 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2639) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-178 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2654) | [分層 Renderer](../../frontend/client/src/ActorMotionRenderer.tsx:10)、[五表情](../../frontend/client/tests/unit/actor-motion-renderer.test.tsx:7) 局部通過；Android 17款目前 failed-visual-review，正式5種表情自然品質、AI/免費坐姿、面部一致性與人工 Gate 尚未通過。 |
-| SEF-BDD-179 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2669) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-180 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2684) | [公開 NPC Rig 防私人覆蓋](../../frontend/client/src/scene-stage.ts:68)、[單元測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:85) 只證明前端舞台身份隔離；正式 R2 同源去重、私人 owner／sourceHash／跨玩家授權未做完，故 partial。 |
-| SEF-BDD-181 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2699) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-182 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2739) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-183 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2753) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-184 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2767) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-185 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2781) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| SEF-BDD-186 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2795) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-187 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2809) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-188 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2823) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| SEF-BDD-189 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2837) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-190 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2851) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| SEF-BDD-191 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2865) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| V3-AC-01 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:258) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-02 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:259) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-03 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:260) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-04 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:261) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-05 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:262) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-06 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:263) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-07 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:264) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| V3-AC-08 | pending | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:265) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
-| V3-AC-09 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:266) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| V3-AC-10 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:267) | [Worker 舞台驗證](../../cloudflare/src/scene-event-stage-content.ts:78)、[NPC Red→Green](../../cloudflare/tests/scene-event-v3-content.test.ts:55) 和 [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:13) 已有局部證據；正式 V3 全可達 Shot／Ending／素材與雙平台仍未完成。 |
-| V3-AC-11 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:268) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
-| V3-AC-12 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:269) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| SEF-UT-367 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3563) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-UT-368 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3568) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-369 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3573) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-078 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3578) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-UT-370 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3588) | [真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已觀察真HTMLAudio雨聲／音樂需本人開啟、入店混音與靜音；V3雙端門鈴順序、背景恢復及Android音訊尚未完整覆核。 |
+| SEF-UT-371 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3593) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-372 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3598) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-079 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3603) | [真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已觀察真HTMLAudio雨聲／音樂需本人開啟、入店混音與靜音；V3雙端門鈴順序、背景恢復及Android音訊尚未完整覆核。 |
+| SEF-UT-373 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3613) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-374 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3618) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-375 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3623) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-054 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3628) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-376 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3638) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-UT-377 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3643) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-378 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3648) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-130 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3653) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-UT-379 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3663) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-380 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3668) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-381 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3673) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-131 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3678) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-382 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3688) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-383 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3693) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-384 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3698) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-080 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3703) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-385 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3713) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-386 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3718) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-387 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3723) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-132 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3728) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-388 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3738) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-389 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3743) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-390 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3748) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-055 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3753) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-391 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3763) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-392 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3768) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-393 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3773) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-081 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3778) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-394 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3788) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-395 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3793) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-396 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3798) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-133 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3803) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-397 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3813) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-398 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3818) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-399 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3823) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-056 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3828) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-400 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3838) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-401 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3843) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-402 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3848) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-082 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3853) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-403 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3863) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-404 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3868) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-405 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3873) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-083 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3878) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-406 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3888) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-407 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3893) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-408 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3898) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-134 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3903) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-409 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3913) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-410 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3918) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-411 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3923) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-057 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3928) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-412 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3938) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-UT-413 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3943) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-414 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3948) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-135 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3953) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-UT-415 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3963) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-416 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3968) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-417 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3973) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-084 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3978) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-418 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3988) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-419 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3993) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-420 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:3998) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-058 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4003) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-421 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4013) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-UT-422 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4018) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-423 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4023) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-136 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4028) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-UT-424 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4038) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-425 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4043) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-426 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4048) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-085 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4053) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-UT-427 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4063) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-428 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4068) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-429 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4073) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-137 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4078) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-430 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4088) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-431 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4093) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-432 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4098) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-086 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4103) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-433 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4113) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-434 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4118) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-435 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4123) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-138 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4128) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-436 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4138) | [真雙人讀取／提交競態](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:34)驗證讀取位置／world的舊個人回應不會提交；Unit所列全部邊界仍未覆核。 |
+| SEF-UT-437 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4143) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-438 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4148) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-059 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4153) | [真雙人讀取／提交競態](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:34)兩種實際競態通過，結局9組及精確重播另有證據；完整本列並發／斷線矩陣未全驗。 |
+| SEF-UT-439 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4163) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-440 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4168) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-441 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4173) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-060 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4178) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-442 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4188) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-UT-443 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4193) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-444 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4198) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-087 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4203) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-UT-445 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4213) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-UT-446 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4218) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-447 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4223) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-088 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4228) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-UT-448 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4238) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-449 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4243) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-450 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4248) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-089 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4253) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-451 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4263) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-452 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4268) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-453 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4273) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-061 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4278) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-454 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4288) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-455 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4293) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-456 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4298) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-139 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4303) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-457 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4313) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-UT-458 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4318) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-459 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4323) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-090 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4328) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-UT-460 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4338) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-461 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4343) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-462 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4348) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-062 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4353) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-463 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4363) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-UT-464 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4368) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-465 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4373) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-140 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4378) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-UT-466 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4388) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-467 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4393) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-468 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4398) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-141 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4403) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-469 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4413) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-470 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4418) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-471 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4423) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-091 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4428) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-472 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4438) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-473 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4443) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-474 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4448) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-142 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4453) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-475 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4463) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-476 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4468) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-477 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4473) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-063 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4478) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-478 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4488) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-479 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4493) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-480 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4498) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-092 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4503) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-481 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4513) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-482 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4518) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-483 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4523) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-143 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4528) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-484 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4538) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-485 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4543) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-486 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4548) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-064 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4553) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-487 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4563) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-488 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4568) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-489 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4573) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-093 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4578) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-490 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4588) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-491 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4593) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-492 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4598) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-094 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4603) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-493 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4613) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-494 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4618) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-495 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4623) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-144 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4628) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-496 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4638) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-497 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4643) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-498 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4648) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-065 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4653) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-UT-499 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4663) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-500 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4668) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-501 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4673) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-145 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4678) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-502 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4688) | [NPC 公開姿態／表情 Rig](../../frontend/client/src/scene-stage.ts:41)、[Worker 全資產檢核](../../cloudflare/src/scene-event-stage-content.ts:62)、[測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:72) 已補正最小 Shot／NPC／道具與五表情連結；未製作全部正式 Entry、共享事件、三咖啡結局 Shot 矩陣，維持 partial。 |
+| SEF-UT-503 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4693) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-504 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4698) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-146 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4703) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-505 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4713) | [Publisher](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向測試](../../cloudflare/tests/scene-event-v3-content.test.ts:64) 新增未選中 NPC 姿態／表情素材缺失、無手錨或非法手錨時拒發的 Red-Green；完整正式內容／未知 gesture／全 Ending／真 R2 無異動稽核未完成。 |
+| SEF-UT-506 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4718) | [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[缺材／錯誤測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:100)：未知圖片、NPC Rig、未選中表情仍阻斷互動畫面，不偷換文字成功；但正式 Publisher 全分支、真解碼和 Android／Web 授權尚未覆核。 |
+| SEF-UT-507 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4723) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-066 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4728) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-508 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4738) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-509 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4743) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-510 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4748) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-095 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4753) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-511 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4763) | [V3 微動與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：關閉雨光循環仍保留真實書脊、相機控制與 Stage；需補正式拿書、店員端杯之 Web／Android 真播放及略過序列，故 partial。 |
+| SEF-UT-512 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4768) | [V3 互動位置不變](../../frontend/client/tests/unit/story-stage.test.tsx:14)、[舞台權威預檢](../../frontend/client/src/scene-stage.ts:68)：關閉微動不自行改變書的權威位置、提交或權限。尚需真回合 CAS 失敗、跨裝置恢復與必要 StoryMotion 互斥操作證據，故 partial。 |
+| SEF-UT-513 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4773) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-096 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4778) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-514 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4788) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-515 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4793) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-516 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4798) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-API-067 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4803) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-517 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4813) | [正式V3發布驗證](../../tools/tests/rain-bookshop-v3.test.mjs:34)釘選七個獨立背景與完整作者資料，[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有正式Screen流程；全部鏡位的Android配準／效能及人工美術核准仍未驗。 |
+| SEF-UT-518 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4818) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-519 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4823) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-097 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4828) | [正式V3發布驗證](../../tools/tests/rain-bookshop-v3.test.mjs:34)釘選七個獨立背景與完整作者資料，[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有正式Screen流程；全部鏡位的Android配準／效能及人工美術核准仍未驗。 |
+| SEF-UT-520 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4838) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-521 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4843) | [缺書封禁止假圖](../../frontend/client/src/SceneStoryMotion.tsx:33)、[Red→Green](../../frontend/client/tests/unit/scene-story-motion.test.tsx:25)：V3 有 assetId 但無已解析圖源時，顯示素材未就緒而不回退不相關向量封面；完整業務連結、重複點擊與跨平台驗收仍未完成。 |
+| SEF-UT-522 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4848) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-098 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4853) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-UT-523 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4863) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-524 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4868) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-525 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4873) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-099 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4878) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-526 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4888) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-527 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4893) | [舞台解碼失敗即封閉](../../frontend/client/src/EmbeddedSceneStage.tsx:12)、[局部測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:127)：錯誤圖層不會讓舊書繼續可互動；真 Cache/雙端權威修訂、原生解碼與重新連線仍未驗。 |
+| SEF-UT-528 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4898) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-147 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4903) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-UT-529 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4913) | [V3 鏡頭同步](../../frontend/client/src/StoryStage.tsx:58)、[平移測試](../../frontend/client/tests/unit/story-stage.test.tsx:14) 已檢查書與背景變換一致及復位；真 Web/Android 手勢、邊界 hitShape、快速連點和 API 授權矩陣未覆核。 |
+| SEF-UT-530 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4918) | [實作](../../frontend/client/src/scene-stage.ts:34)；[呼叫端](../../frontend/client/src/EmbeddedSceneStage.tsx:18)；[測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)：上層透明 Pressable 的矩形遮擋下層合法物件之反例先失敗；改用共同 viewport／hitShape 選擇實際最上層本體後，前端 286/286 及 TypeScript 通過。此為單元層局部補強，尚缺正式 V3 素材、雙平台真點擊與 CAS／快速重按完整覆核，仍維持 partial。 |
+| SEF-UT-531 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4923) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-API-068 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4928) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-532 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4938) | [靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[姿態生成與壞圖拒絕](../../backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarStaticPoseGeneratorTests.cs:19)、[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)已有受控首次靜態製作與本人版本確認證據；真Gemini身份品質、完整正式V3／跨裝置尚缺，partial。 |
+| SEF-UT-533 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4943) | [同版確認](../../cloudflare/src/avatar-pose-adoption.ts:73)、[真D1採用／授權／GC](../../cloudflare/tests/avatar-adoption-d1.integration.test.ts:32)拒半套、錯版及未review採用；[解碼失敗封閉及重載](../../frontend/client/tests/unit/avatar-static-review.test.tsx:10)拒圖片失敗。完整新角色實際品質仍未核證，partial。 |
+| SEF-UT-534 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4948) | [真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)、[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)驗取消續作、遲到回覆拒絕、丟失寫入收據查回與圖片重載不重生；完整真人／跨裝置及正式場景矩陣仍缺，partial。 |
+| SEF-API-069 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4953) | [真D1採用／授權／GC](../../cloudflare/tests/avatar-adoption-d1.integration.test.ts:32)與[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)已走正式.NET／真D1-R2；別人預覽404、讀圖途中撤銷401、review前不選用。真Gemini身份與完整正式V3仍缺，partial。 |
+| SEF-UT-535 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4963) | [靜態完整圖格投影](../../frontend/client/src/static-avatar.ts:13)、[20狀態測試](../../frontend/client/tests/unit/static-avatar.test.ts:19) 與正式Screen雙角色接線已驗；17款外觀已有本人確認。真Gemini首次建檔品質、正式手錨／桌椅遮擋及完整雙平台仍缺；連續角色動態延期，維持partial。 |
+| SEF-UT-536 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4968) | [全包靜態校驗](../../contracts/static-avatar.ts:12)、[缺姿態／表情／越界反例](../../cloudflare/tests/avatar-static-pose.test.ts:8)、[解碼防線](../../frontend/client/tests/unit/static-avatar-preload.test.tsx:12) 已驗；受控首次採用已接線，真Gemini品質與跨平台完整Gate尚未閉環，維持partial。 |
+| SEF-UT-537 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4973) | [持書圖片解碼錯誤傳播](../../frontend/client/src/ActorMotionRenderer.tsx:26)、[Negative 測試](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:116)：有手錨且來源合法時可呈現，一旦道具圖解碼失敗立即關閉整個 Shot 並通知宿主；需真 Web／Android 導致的記憶體圖層卸載、手部自然姿態與成功開合完整驗證，故 partial。 |
+| SEF-ET-100 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4978) | 四姿態／五表情共用元件可審查；完整動作／正式ready管線未驗。 |
+| SEF-UT-538 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4988) | [只讀圖格投影](../../frontend/client/src/static-avatar.ts:13)、[20狀態](../../frontend/client/tests/unit/static-avatar.test.ts:19)、[Web真通道](../../tests/e2e/web/static-avatar.spec.ts:13) 無生成請求；完整重選／重連／新場及真Gemini品質及跨裝置尚未全驗，partial。 |
+| SEF-UT-539 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4993) | [靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)已驗同包完成步驟重入不取新lease；[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)重載無生成。跨裝置首次建檔完整矩陣未驗，partial。 |
+| SEF-UT-540 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:4998) | [同版及同用途URL校驗](../../frontend/client/src/static-avatar.ts:6)、[拒外站／錯channel／未選中frame破損](../../frontend/client/tests/unit/static-avatar.test.ts:8)、[正式Screen舊包清除](../../frontend/client/tests/unit/story-static-actors.test.tsx:22) 已驗；完整跨裝置／新場恢復仍缺，partial。 |
+| SEF-ET-101 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5003) | [Chrome真授權讀圖與正式V2共場](../../tests/e2e/web/static-avatar.spec.ts:13) 無生圖請求，角色切換／重連全矩陣及正式Android通道未完成，partial。 |
+| SEF-UT-541 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5013) | [免費公用索引](../../cloudflare/src/builtin-avatar.ts:21)、[既有授權通道](../../cloudflare/src/round-avatar.ts:63)、[真D1/R2讀取](../../cloudflare/tests/round-avatar-r2.integration.test.ts:46) 已驗。私人static fixture仍不等於真AI本人生成及採用，完整案例維持partial。 |
+| SEF-UT-542 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5018) | [免費唯一來源](../../cloudflare/src/builtin-avatar.ts:21)、[16款65檔完整性](../../tools/tests/static-avatar-assets.test.mjs:8) 已驗；不按玩家複製公用成品。受控私人首次建檔已接線，整個公用／私人來源去重及跨裝置矩陣尚未覆核，partial。 |
+| SEF-UT-543 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5023) | [深層白名單](../../backend/src/DatingHigh.Application/AvatarReadService.cs:32)、[HTTP拒私人欄位](../../backend/tests/DatingHigh.Api.Tests/AvatarExpressionEndpointTests.cs:12)、[真R2／同輪授權](../../cloudflare/tests/round-avatar-r2.integration.test.ts:46) 已驗；受控首次採用已接線，真Gemini品質與完整跨裝置矩陣尚缺，partial。 |
+| SEF-IT-148 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5028) | [R2／公用素材授權](../../cloudflare/tests/round-avatar-r2.integration.test.ts:46) 與 [正式Screen雙角色](../../frontend/client/tests/unit/story-static-actors.test.tsx:22) 有證據；受控producer／首次採用已驗，真Gemini品質與所有共用素材去重未完整驗，partial。 |
+| SEF-UT-544 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5038) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-545 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5043) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-546 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5048) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-102 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5053) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-IT-149 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5185) | [靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)及[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)已驗單一lease、完成重入、receipt查回及九步一次生成；雙實體裝置／真Gemini完整併發未驗，partial。 |
+| SEF-IT-150 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5195) | [真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)及[真D1採用／授權／GC](../../cloudflare/tests/avatar-adoption-d1.integration.test.ts:32)已驗失敗續作、遲到拒絕、ready暫存清理失敗後補償、孤兒刪除且保留合法ready；真供應商成本與完整矩陣未驗，partial。 |
+| SEF-API-070 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5205) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-547 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5215) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-IT-151 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5225) | 真D1安全收尾／缺通知rollback已驗；最終意願、危險、Room end並發全矩陣未驗。 |
+| SEF-ET-103 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5235) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-UT-548 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5245) | 通用舞台／Rig局部實作與最小fixture已有單元證據；正式內容、完整斷言與跨平台仍未覆核。 |
+| SEF-API-071 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5255) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-104 | pending | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5265) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-ET-105 | partial | [完整斷言](../tdd/SPEC-001-SceneEventFramework-TDD.md:5275) | [16款正式索引／65檔SHA](../../tools/tests/static-avatar-assets.test.mjs:8) 與 [Chrome20狀態審查](../../tests/component-layout/scene-rig.spec.ts:42) 已驗，17款外觀本人確認已記錄；完整正式Android／實體機與V3故事未核證，partial。 |
+| SEF-BDD-122 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1816) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-BDD-123 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1831) | [真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已觀察真HTMLAudio雨聲／音樂需本人開啟、入店混音與靜音；V3雙端門鈴順序、背景恢復及Android音訊尚未完整覆核。 |
+| SEF-BDD-124 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1846) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-125 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1861) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已保存雙人獨立開場與實際Area移動；[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:87)已有A原生獨立入場至獨處結局、I授權HTTP夥伴；雙原生裝置與完整入場／導覽矩陣尚未覆核。 |
+| SEF-BDD-126 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1876) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-127 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1891) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-BDD-128 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1906) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-BDD-129 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1921) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-130 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1936) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-BDD-131 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1951) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-132 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1966) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-133 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1981) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-134 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:1996) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-135 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2011) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-136 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2026) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-137 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2041) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-BDD-138 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2056) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-BDD-139 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2071) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-BDD-140 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2086) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有無搭話或婉拒後仍能完成救書，零自動真人聊天；再次合法接觸與完整雙平台邊界尚未覆核。 |
+| SEF-BDD-141 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2101) | [本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)覆核三個實際搭話Shot、正確回應白名單、面紙接受獨立於decline；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)實際點收面紙後仍婉拒。[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:105)亦通過收面紙仍婉拒；另兩種原生搭話與道具完整呈現尚未驗，不改記整列通過。 |
+| SEF-BDD-142 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2116) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-143 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2131) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-144 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2146) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-145 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2161) | [真雙人讀取／提交競態](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:34)已在真HTTP／D1插入對方實際提交，舊位置／world讀取409且無本人receipt或Progress寫入。完整相同SharedRevision並發／斷線矩陣仍未全驗。 |
+| SEF-BDD-146 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2176) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-147 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2191) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-BDD-148 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2206) | [舞台投影](../../backend/src/DatingHigh.Application/SceneEventStageProjection.cs:7)、[本人搭話與回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開NPC雙姿態五表情、透明遮罩命中、本人按對話及公共雨勢離場；完整走位／遮擋與AndroidNPC對話仍未驗。 |
+| SEF-BDD-149 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2221) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-150 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2236) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-151 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2251) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-152 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2266) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-BDD-153 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2281) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-154 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2296) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)及[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有公開雨勢／入口水位與安全後備，安全撤離不端咖啡；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:106)完成A安全救書至獨處結局；原生安全撤離、雙端同步競態及完整畫面斷言尚未驗。 |
+| SEF-BDD-155 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2311) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-156 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2326) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-157 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2341) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-BDD-158 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2356) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-BDD-159 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2371) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-BDD-160 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2386) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-BDD-161 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2401) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-162 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2416) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-BDD-163 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2431) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-BDD-164 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2446) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-BDD-165 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2461) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已驗9種最終意願組合、單方不結算、唯一Ending及原request重播；[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)三結局均已回放，[Android完整回放](../../tests/e2e/android/scene-event-v3-book.mjs:112)另完成獨處結局；三種結局均已有Android操作與舞台可用證據；全部鏡位取景、雙原生裝置與完整結局呈現矩陣尚未核證。 |
+| SEF-BDD-166 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2476) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-167 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2491) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-168 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2506) | [Publisher 所有 NPC 引用檢查](../../cloudflare/src/scene-event-stage-content.ts:62)、[負向回歸](../../cloudflare/tests/scene-event-v3-content.test.ts:64)、[Runtime 防半套舞台](../../frontend/client/src/EmbeddedSceneStage.tsx:12) 有局部證據；正式整個 V3／所有 Ending／未知 Cue／真 R2 原子拒發與雙平台仍未完成。 |
+| SEF-BDD-169 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2521) | [場景不可用時禁故事提交](../../frontend/client/src/StoryExperienceScreen.tsx:158)、[正式 Screen 回歸](../../frontend/client/tests/unit/story-dialogue-ui.test.tsx:47)：缺公開 Stage 素材禁提交而聊天室可用，新授權快照恢復後不自動重播；[圖片失敗邊界](../../frontend/client/tests/unit/embedded-scene-stage.test.tsx:92) 有單元證據；仍缺雙端真 CAS 敗回滾與權威事件進度，故 partial。 |
+| SEF-BDD-170 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2536) | [環境與必要演出分離](../../frontend/client/src/StoryStage.tsx:63)、[單元測試](../../frontend/client/tests/unit/story-stage.test.tsx:14)：環境雨光可獨立關閉、書本與鏡頭仍可用；完整 NPC 端杯、正式持書動作及 Web／Android E2E 未經驗，故 partial。 |
+| SEF-BDD-171 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2551) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-172 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2566) | [正式V3發布驗證](../../tools/tests/rain-bookshop-v3.test.mjs:34)釘選七個獨立背景與完整作者資料，[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有正式Screen流程；全部鏡位的Android配準／效能及人工美術核准仍未驗。 |
+| SEF-BDD-173 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2581) | [書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:5)、[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)與[Android原創書pilot](../../tests/e2e/android/scene-event-v3-book.mjs:94)已有原創書原位展開／翻頁／合回，且不改D1進度；四書全頁、快速連點／重連／素材故障與各平台完整斷言尚未全驗。 |
+| SEF-BDD-174 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2596) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-175 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2611) | [真HTTP／D1／R2](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)與[真雙人Web](../../tests/e2e/web/scene-event-v3.spec.ts:34)已有A私有清單明確分享、I比對取書入箱及A核對放高；Web錯書可重試，公開架上沒有預留答案標籤；[Android回放](../../tests/e2e/android/scene-event-v3-book.mjs:108)亦完成A分享、核對與放高，I走授權HTTP錯書重試。完整猜測／競態／雙平台所有權呈現尚未全驗。 |
+| SEF-BDD-176 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2626) | [V3 Camera+物件共座標](../../frontend/client/src/StoryStage.tsx:58)、[按外框/真多邊形測試](../../frontend/client/tests/unit/scene-v3-stage.test.ts:18)、[狹長平移回歸](../../frontend/client/tests/unit/story-stage.test.tsx:14) 局部通過；API 拒越權、真 Web／Android 手勢/遮擋/尺寸矩陣仍未完成。 |
+| SEF-BDD-177 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2641) | [靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[同版確認](../../cloudflare/src/avatar-pose-adoption.ts:73)、[姿態生成與壞圖拒絕](../../backend/tests/DatingHigh.Unit.Tests/Infrastructure/AvatarStaticPoseGeneratorTests.cs:19)及[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)完成受控首次靜態建檔、檢視及明確採用；真Gemini身份品質／正式V3與跨裝置仍缺，partial；Puppet延期不改記通過。 |
+| SEF-BDD-178 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2656) | [靜態圖格投影](../../frontend/client/src/static-avatar.ts:13)、[正式Screen](../../frontend/client/tests/unit/story-static-actors.test.tsx:22) 有證據；17款外觀本人已確認。新靜態包Web通道、雙角色已有局部證據，真Gemini品質、真手錨／桌椅遮擋與完整雙平台仍缺；連續動作延期，partial。 |
+| SEF-BDD-179 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2671) | [只讀靜態元件](../../frontend/client/src/static-avatar.ts:13)、[Web無生成請求](../../tests/e2e/web/static-avatar.spec.ts:13) 已驗；完整重選、重連、新場及Android矩陣仍缺，partial。 |
+| SEF-BDD-180 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2686) | [正式公用索引](../../cloudflare/src/builtin-avatar.ts:21)、[私人與公用同輪讀取](../../cloudflare/tests/round-avatar-r2.integration.test.ts:46) 及深層白名單已有證據；受控首次採用已驗；真Gemini品質／來源去重與雙裝置完整矩陣未完成，partial。 |
+| SEF-BDD-181 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2701) | [Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)記錄受控九步、等待、舊五圖及新PNG bytes；這不是品質相當的真人成本基線，仍缺總R2／實際成本／release記憶體與真AI品質，partial。 |
+| SEF-BDD-182 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2741) | [靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)、[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)已有同一跨Worker lease、完整重入不重生及不變版本review；真雙裝置並發及實際Gemini次數未驗，partial。 |
+| SEF-BDD-183 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2755) | [真R2失敗與續作](../../cloudflare/tests/avatar-static-adoption.integration.test.ts:27)、[真D1採用／授權／GC](../../cloudflare/tests/avatar-adoption-d1.integration.test.ts:32)完成部分上傳查回、取消續作、失敗暫存清理補償及合法孤兒GC；真供應商成本／完整故障矩陣仍缺，partial。 |
+| SEF-BDD-184 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2769) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-185 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2783) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| SEF-BDD-186 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2797) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-187 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2811) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-188 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2825) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| SEF-BDD-189 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2839) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-190 | pending | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2853) | 尚無本列完整實作與斷言證據；不繼承V2／首輪素材核准。 |
+| SEF-BDD-191 | partial | [完整斷言](../bdd/SPEC-001-SceneEventFramework-BDD.md:2867) | [16款來源SHA與穩定ID](../../tools/tests/static-avatar-assets.test.mjs:8) 與全部外觀確認已有證據；正式包跨平台、實體機及完整V3未核證，partial。 |
+| V3-AC-01 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:260) | [首場作者資料](../../contracts/rain-bookshop-before-rain-stops.json)、[真雙人開場](../../tests/e2e/web/scene-event-v3.spec.ts:38)及實際音訊已有證據；完整Android、重連／跨機及本列其餘禁止／邊界斷言尚未全驗，維持partial。 |
+| V3-AC-02 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:261) | [原創書籍投影](../../backend/src/DatingHigh.Application/SceneBookProjection.cs:6)、[Web原位閱讀](../../tests/e2e/web/scene-event-v3.spec.ts:38)及Android書籍pilot已有證據；四類全部選項／快取及邊界尚未全驗。 |
+| V3-AC-03 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:262) | [本人選書及私有共鳴](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:21)已包含角色虛構原因及中性原因，沒有改Profile或自動公開；私有快取／淚光／全部跨平台斷言仍未全驗。 |
+| V3-AC-04 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:263) | [三種搭話與獨立回應](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:64)、Web及live均有收下面紙仍婉拒；完整Android三分鏡／全部邊界尚未全驗。 |
+| V3-AC-05 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:264) | [真雙人讀取／提交競態](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:34)及真雙人Web／default live已有獨立進度與真人合作、自然收尾／下一場證據；完整Android、重連／跨機及本列其餘禁止／邊界斷言尚未全驗，維持partial。 |
+| V3-AC-06 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:265) | [NPC完整身體與透明命中](../../contracts/npc-static.ts:1)、[實際點身體再問話](../../tests/e2e/web/scene-event-v3.spec.ts:24)已有證據；走位／咖啡道具與Android全部畫面／遮擋未全驗。 |
+| V3-AC-07 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:266) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-08 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:267) | [正式互補任務](../../backend/tests/DatingHigh.Api.Tests/SceneEventV3EndpointTests.cs:80)、Web及live含分享、錯書重試、兩人取放與D1權威；全錯書／所有權競態／雙平台呈現未全驗。 |
+| V3-AC-09 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:268) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-10 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:269) | [Worker 舞台驗證](../../cloudflare/src/scene-event-stage-content.ts:78)、[NPC Red→Green](../../cloudflare/tests/scene-event-v3-content.test.ts:55) 和 [Runtime Fail-Closed](../../frontend/client/src/EmbeddedSceneStage.tsx:13) 已有局部證據；正式 V3 全可達 Shot／Ending／素材與雙平台仍未完成。 |
+| V3-AC-11 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:270) | 已有相關通用元件／安全規則；完整正式內容及本列全部斷言尚未覆核。 |
+| V3-AC-12 | partial | [完整斷言](../specs/SPEC-001-SceneEventFramework.md:271) | 17款已確認外觀及16款正式素材已接線；[靜態producer](../../cloudflare/src/avatar-pose-adoption.ts:38)、[真D1採用／授權／GC](../../cloudflare/tests/avatar-adoption-d1.integration.test.ts:32)、[Web九步與20狀態](../../tests/e2e/web/avatar-static-adoption.spec.ts:8)新增受控私人首次建檔與明確採用。真AI品質、跨裝置、手錨／桌椅遮擋、首場正式V3與完整雙平台未完成；動畫延期不冒稱通過。 |

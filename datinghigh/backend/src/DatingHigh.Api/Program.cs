@@ -253,6 +253,9 @@ api.MapPut("/me/avatar/selection",async(HttpContext c,AvatarService service,Canc
     Results.Ok(await service.SelectAsync(c.CurrentPlatformUser(),(JsonObject)c.Items["avatarPayload"]!,ct))).RequireAuthorization("PlatformAccess");
 api.MapPost("/me/avatar/expressions/{action}",async(string action,HttpContext c,AvatarExpressionService service,CancellationToken ct)=>
     Results.Ok(await service.ExecuteAsync(c.CurrentPlatformUser(),action,(JsonObject)c.Items["storyPayload"]!,ct))).RequireAuthorization("PlatformAccess");
+api.MapGet("/me/avatar/expressions/{workflow}/poses/{pose}",async(string workflow,string pose,HttpContext c,AvatarExpressionService service,CancellationToken ct)=>{
+    c.Payload().Only();var image=await service.PreviewAsync(c.CurrentPlatformUser(),workflow,pose,ct);c.Response.Headers["X-Content-Type-Options"]="nosniff";return Results.Bytes(image.Bytes.ToArray(),image.MimeType);
+}).RequireAuthorization("PlatformAccess");
 api.MapGet("/me/avatar/expressions",async(HttpContext c,AvatarExpressionService service,CancellationToken ct)=>{
     c.Payload().Only();return Results.Ok(await service.ExecuteAsync(c.CurrentPlatformUser(),"status",new JsonObject(),ct));
 }).RequireAuthorization("PlatformAccess");

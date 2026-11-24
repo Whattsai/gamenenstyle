@@ -2,15 +2,17 @@
 
 ## 化身與場景
 
-Gemini全身候選／五表情：`Media/GeminiAvatarImageGenerator.cs`；受控背景解碼／去背：`Media/AvatarChromaMask.cs`（Infrastructure既有Skia）。免費圖片由 contracts/builtin-avatar-packs.json 對應 public 目錄中的正式 WebP。
+Gemini全身候選／五表情／四姿態表：`Media/GeminiAvatarImageGenerator.cs`；受控背景解碼／去背：`Media/AvatarChromaMask.cs`；五欄PNG完整解碼、邊界及重複圖格檢查為 `Media/AvatarStaticPoseImage.cs`（Infrastructure既有Skia）。免費圖片由 contracts/builtin-avatar-packs.json 對應 public 目錄中的正式 WebP。
 
 本人目前採用化身的遊戲入口由 `StoryDialogueService` 呼叫 Worker `round-avatar.ts` 的固定 `avatar.current.readiness` 驗證；此檢查涵蓋入口、恢復、票券及共用遊戲命令，畫面拒絕狀態由 `StoryExperienceScreen` 呈現。
 
 角色讀取與演出模組：Application `AvatarReadService.cs`、Domain `SceneEventTrackPolicy.cs`、Infrastructure `Media/AvatarReadStore.cs`；Worker `round-avatar.ts`／`avatar-notification.ts`／`builtin-avatar.ts`；client `StoryStage.tsx`／`StoryPortrait.tsx`／`story-stage-geometry.ts`／`story-avatar.ts`。`tools/generate-builtin-avatar-assets.mjs` 依正式目錄與SHA重建16張neutral的選角import，直接匯入同一public來源。書店分層背景／透明前景在 `contracts/story-assets/`，prompt留同目錄provenance。`tools/avatar-reset-policy.mjs` 與既有local wrapper提供具名清單預覽／重試，沒有玩家公開重置API。
 
-表情製作用例位於 Application `AvatarExpressionService.cs`／`Media/AvatarExpressionStore.cs`（介面），Infrastructure `Media/AvatarExpressionStore.cs`／既有 Gemini adapter 表情方法；Worker `avatar-adoption.ts`、`avatar-expression-manifest.ts`、`avatar-expression-store.ts`、`transparent-webp.ts`；client `avatar-adoption.ts` 接 `DatingProfileScreen`，ADVStage 接收單一 partner 參數；測試留在對應模組與跨系統測試目錄。
+表情製作用例位於 Application `AvatarExpressionService.cs`／`Media/AvatarExpressionStore.cs`（介面），Infrastructure `Media/AvatarExpressionStore.cs`／既有 Gemini adapter 表情方法；Worker `avatar-adoption.ts`、`avatar-pose-contract.ts`／`avatar-pose-adoption.ts`（姿態狀態／收據／發布與本人review）、`avatar-expression-manifest.ts`、`avatar-expression-store.ts`、`transparent-webp.ts`；client `avatar-adoption.ts` 接 `DatingProfileScreen`／`AvatarStaticReview.tsx`（全包解碼與本人確認），ADVStage 接收單一 partner 參數；測試留在對應模組與跨系統測試目錄。
 
 atlas 分層元件為 client `ActorMotionRenderer.tsx`，純 Rig 型別／姿態／表情與手錨校驗在 `actor-rig-policy.ts`（不依賴 React Native，供舞台預檢與 renderer 共用）；審查入口為 `tests/component-layout/scene-rig-preview.tsx` 與 `rig-review-catalog.ts`，Web 由 `server.mjs` 供應固定白名單素材，Android 由 development-only `tests/native/rig-entry.tsx` 掛載。此入口不寫正式角色目錄或 ready 狀態。
+
+靜態角色正式路徑：`contracts/static-avatar.ts`（共用完整性）、`builtin-static-poses.json`（免費索引）、Worker `avatar-static-pose.ts`／`builtin-avatar.ts`／`round-avatar.ts`（不可變包與授權媒體）、Application／Infrastructure既有 `AvatarReadService`／`AvatarReadStore`（白名單與binary bridge）、client `static-avatar.ts`／`StaticAvatarPreload.tsx`／`StoryExperienceScreen.tsx`（解碼與角色投影），`StoryPortrait.tsx` 在既有舞台使用同包站姿並維持句尾換套。免費成品存public的static-poses.v1單一來源，審查server與native fingerprint由 `rig-review-assets.mjs` 指向同一檔案。
 
 ## 劇情與即時通訊
 
@@ -27,6 +29,7 @@ atlas 分層元件為 client `ActorMotionRenderer.tsx`，純 Rig 型別／姿態
 | 正式內容／發布／本地升級 | `contracts/scene-event-content.json`、`contracts/rain-bookshop-last-order.json`、`contracts/story-assets/`、`tools/scene-event-content-policy.mjs`、`scene-event-publish-policy.mjs`、`scene-event-local-policy.mjs`、`local.mjs` |
 | 事件演出安全覆寫 | `frontend/client/src/scene-event-track.ts`、`scene-browser-lifecycle.ts`、既有 `ADVStage.tsx`／`StoryAudio.tsx` |
 | 多 Area 舞台契約／安全投影／原位命中 | `cloudflare/src/scene-event-stage-content.ts`（所有 NPC 資產／持物手錨 fail-closed）、`backend/src/DatingHigh.Application/SceneEventStageProjection.cs`、`frontend/client/src/scene-stage.ts`（公開 NPC Rig 組裝）、`EmbeddedSceneStage.tsx`（錯誤圖片關閉互動）、`SceneStoryMotion.tsx`（釘選書本圖像演出） |
+| 原創書籍／公開雨勢／完整身體 NPC／區域音樂 | `contracts/npc-static.ts`、`contracts/scene-hit-mask.ts`、`Application/SceneBookProjection.cs`、`SceneAudioProjection.cs`、`SceneAreaObservation.cs`、`frontend/client/src/SceneBook.tsx`、`SceneWeather.tsx`、`StoryAudio.tsx`；首場 V3 內容為 `contracts/rain-bookshop-before-rain-stops.json`，正式範圍鎖定於 `tools/rain-bookshop-v3-policy.mjs`，發布來源由 `scene-event-content.json` 選取 |
 | 真D1／DO／HTTP／UX證據 | `cloudflare/tests/story-dialogue-*.test.ts`、`backend/tests/DatingHigh.Api.Tests/StoryDialogueEndpointTests.cs`、`frontend/client/tests/unit/story-dialogue*`、`tests/e2e/{web,android}/scene-event-framework.*`、`tests/integration/story-dialogue-live.test.mjs` |
 
 ## 配對與邀請

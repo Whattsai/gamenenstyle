@@ -1,4 +1,6 @@
+import {poseBuildSteps,isPoseStep,posePngDimensions,publishAvatarPose,readAvatarPosePreview,reviewAvatarPoses} from './avatar-pose-adoption';
 import {z} from 'zod';
+import {beginSavedAvatarPoses,assertSavedAvatarSource} from './avatar-saved-poses';
 import {executeCommand} from './commands';
 import type {PlatformEnv} from './platform';
 import {beginAvatarAdoption,avatarAdoptionStatus,avatarAdoptionContext,assertAvatarSelectionUnlocked,acquireAvatarExpression,failAvatarExpression,cancelAvatarAdoption,readyAvatarAdoption,completeAvatarAdoption,publishAvatarExpression} from './avatar-adoption';
@@ -64,7 +66,7 @@ async function closeCommittedAdoption(env:PlatformEnv,auth:Auth,current:{state:M
  const saved=await env.DB.prepare("SELECT asset_id FROM user_media_assets WHERE asset_id=? AND account_id=? AND kind='generated_avatar' AND status='ready'").bind(asset,auth.accountId).first();
  if(!saved)return;
  const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,now);
- if(progress?.assetId===asset)await completeAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId);
+ if(progress?.assetId===asset&&!progress.savedSource&&progress.attemptId===current.state.attemptId)await completeAvatarAdoption(env.FILES,auth.accountId,progress.clientRequestId);
  if(current.state.status==='closed')return;
  current.state.status='closed';
  try{current.etag=await cas(env,auth,current.state,current.etag);}catch(error){
@@ -79,18 +81,19 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
  if(command.startsWith('avatar.attempt.expression.')){
   const action=command.slice('avatar.attempt.expression.'.length);
   if(action==='begin'){
-   const input=authSchema.extend({attemptId:id,index:z.number().int().min(1).max(4),proposedAssetId:id,clientRequestId:id,expectedRevision:z.number().int().positive(),generatorModel:z.string().min(1).max(128),promptVersion:z.string().min(1).max(128)}).parse(payload);
+   const common=authSchema.extend({proposedAssetId:id,clientRequestId:id,expectedRevision:z.number().int().positive(),generatorModel:z.string().min(1).max(128),promptVersion:z.string().min(1).max(128),staticRequired:z.boolean().optional()});
+   const input=z.union([common.extend({attemptId:id,index:z.number().int().min(1).max(4)}),common.extend({assetId:id})]).parse(payload);
    const auth=authSchema.parse(Object.fromEntries(Object.keys(authSchema.shape).map(k=>[k,(input as Record<string,unknown>)[k]])));
-   await authorize(env,auth,currentTime());const current=await load(env,auth,input.attemptId,currentTime());await ensureRoundSources(env,auth,current);
+   await authorize(env,auth,currentTime());if('assetId' in input){const result=await beginSavedAvatarPoses(env,auth,input,currentTime());await authorize(env,auth,currentTime());return result;}const current=await load(env,auth,input.attemptId,currentTime());await ensureRoundSources(env,auth,current);
    if(current.state.avatarAssetSpecVersion!=='full-body.v1')throw new AvatarError('AVATAR_FULL_BODY_REQUIRED');
    if(!['open','uncertain'].includes(current.state.status))throw new AvatarError('AVATAR_ATTEMPT_CLOSED');
    const result=current.state.results.find(r=>r.index===input.index);if(!result)throw new AvatarError('AVATAR_CANDIDATE_NOT_FOUND',404);
    const row=(await executeCommand(env.DB,'profile.read',auth,currentTime())).rows[0] as {revision:number}|undefined;
    if(row?.revision!==input.expectedRevision)throw new AvatarError('PROFILE_VERSION_CONFLICT');
-   const progress=await beginAvatarAdoption(env.FILES,{ownerAccountId:auth.accountId,assetId:input.proposedAssetId,attemptId:input.attemptId,index:input.index,requestId:input.clientRequestId,expectedRevision:input.expectedRevision,sourceImageSha256:result.digest,expiresAt:current.state.expiresAt,generatorModel:input.generatorModel,promptVersion:input.promptVersion},currentTime());
+   const progress=await beginAvatarAdoption(env.FILES,{ownerAccountId:auth.accountId,assetId:input.proposedAssetId,attemptId:input.attemptId,index:input.index,requestId:input.clientRequestId,expectedRevision:input.expectedRevision,sourceImageSha256:result.digest,expiresAt:current.state.expiresAt,generatorModel:input.generatorModel,promptVersion:input.promptVersion,staticRequired:input.staticRequired},currentTime());
    await authorize(env,auth,currentTime());return progress;
   }
-  const input=authSchema.extend({clientRequestId:id.optional(),workflowId:id.optional(),expression:z.enum(expressionIds).optional(),lease:z.string().max(128).optional(),uncertain:z.boolean().optional(),retryUncertain:z.boolean().optional()}).parse(payload);
+  const input=authSchema.extend({clientRequestId:id.optional(),workflowId:id.optional(),expression:z.enum([...expressionIds,...poseBuildSteps]).optional(),packageVersion:z.string().regex(/^[0-9a-f]{64}$/).optional(),lease:z.string().max(128).optional(),uncertain:z.boolean().optional(),retryUncertain:z.boolean().optional()}).parse(payload);
   const auth=authSchema.parse(Object.fromEntries(Object.keys(authSchema.shape).map(k=>[k,(input as Record<string,unknown>)[k]])));
   await authorize(env,auth,currentTime());
   if(action==='status'){if(Object.keys(input).length!==4)throw new AvatarError('INVALID_REQUEST',400);return {adoption:await avatarAdoptionStatus(env.FILES,auth.accountId,currentTime())};}
@@ -99,21 +102,29 @@ export async function avatarCommand(command:string,payload:unknown,env:PlatformE
    const build=await avatarAdoptionContext(env.FILES,auth.accountId,input.workflowId);
    if(build.inFlight&&build.inFlight.until>currentTime())throw new AvatarError('AVATAR_ADOPTION_IN_PROGRESS');
    const selected=async()=>((await executeCommand(env.DB,'profile.read',auth,currentTime())).rows[0] as {selected_avatar_ref:string}|undefined)?.selected_avatar_ref===build.assetId;
-   if(await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
+   if((!build.savedSource||build.reviewedStaticVersion===build.staticVersion&&!!build.staticVersion)&&await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
    // 真 D1 revision fence 排在 R2 取消之前；晚到的舊採用不能穿過已確認取消。
-   await executeCommand(env.DB,'profile.avatar.cancel-build',{...auth,expectedRevision:build.expectedRevision},currentTime());
-   if(await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
+   const row=(await executeCommand(env.DB,'profile.read',auth,currentTime())).rows[0] as {revision:number}|undefined;
+   if(!build.savedSource||row?.revision===build.expectedRevision)await executeCommand(env.DB,'profile.avatar.cancel-build',{...auth,expectedRevision:build.expectedRevision},currentTime());
+   if((!build.savedSource||build.reviewedStaticVersion===build.staticVersion&&!!build.staticVersion)&&await selected()){await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId);return {cancelled:false,committed:true};}
    const result=await cancelAvatarAdoption(env.FILES,auth.accountId,input.workflowId,currentTime());
    const attempt=await load(env,auth,build.attemptId,currentTime()).catch(()=>null);
    if(attempt?.state.status==='adopting'){attempt.state.status='open';attempt.state.selectedIndex=null;attempt.state.selectedAssetId=null;await cas(env,auth,attempt.state,attempt.etag);}
    await authorize(env,auth,currentTime());return result;
   }
+  if(action==='review'){
+   if(!input.packageVersion||Object.keys(input).length!==6)throw new AvatarError('INVALID_REQUEST',400);
+   const build=await avatarAdoptionContext(env.FILES,auth.accountId,input.workflowId);if(build.savedSource&&build.status==='committed'&&build.reviewedStaticVersion===input.packageVersion)return {assetId:build.assetId,status:'committed',savedSource:true,revision:build.committedRevision};const verify=async()=>{if(build.savedSource)await assertSavedAvatarSource(env,auth,build,currentTime());else await ensureRoundSources(env,auth,await load(env,auth,build.attemptId,currentTime()));};await verify();
+   const result=await reviewAvatarPoses(env.FILES,auth.accountId,input.workflowId,input.packageVersion,currentTime());await authorize(env,auth,currentTime());await verify();
+   if(build.savedSource){const selected=await executeCommand(env.DB,'profile.avatar.generated',{...auth,assetId:build.assetId,expectedRevision:build.expectedRevision},currentTime());if(selected.rows.length!==1)throw new AvatarError('PROFILE_VERSION_CONFLICT');await completeAvatarAdoption(env.FILES,auth.accountId,input.workflowId,(selected.rows[0] as {revision:number}).revision);return {...result,status:'committed',savedSource:true,revision:(selected.rows[0] as {revision:number}).revision};}
+   return result;
+  }
   if(action==='next'){
    if(!input.expression||!input.clientRequestId)throw new AvatarError('INVALID_REQUEST',400);
    const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,currentTime());if(!progress||progress.clientRequestId!==input.workflowId)throw new AvatarError('AVATAR_ADOPTION_NOT_FOUND',404);
-   const source=await load(env,auth,progress.attemptId,currentTime());await ensureRoundSources(env,auth,source);
+   const build=await avatarAdoptionContext(env.FILES,auth.accountId,input.workflowId);if(build.savedSource)await assertSavedAvatarSource(env,auth,build,currentTime());else await ensureRoundSources(env,auth,await load(env,auth,progress.attemptId,currentTime()));
    const result=await acquireAvatarExpression(env.FILES,auth.accountId,input.workflowId,input.expression,input.clientRequestId,currentTime(),input.retryUncertain??false);
-   await authorize(env,auth,currentTime());return result;
+   await authorize(env,auth,currentTime());return build.savedSource?{...result,savedSource:true,assetId:build.assetId,sourceImageSha256:build.sourceImageSha256}:result;
   }
   if(action==='fail'){
    if(!input.clientRequestId||!input.lease||input.uncertain===undefined)throw new AvatarError('INVALID_REQUEST',400);
@@ -344,18 +355,26 @@ export async function avatarMedia(request:Request,env:PlatformEnv,now:number):Pr
 /** 只有 Container 內部可存表情；有效 Session／候選來源在讀 binary 前後重驗。 */
 export async function avatarExpressionMedia(request:Request,env:PlatformEnv,now:number):Promise<Response>{
  const started=Date.now(),time=()=>now+Math.max(0,Date.now()-started),url=new URL(request.url),parts=url.pathname.split('/');
- if(request.method!=='PUT'||url.search||parts.length!==6||request.headers.get('Content-Type')!=='image/webp')throw new AvatarError('INVALID_REQUEST',400);
- const workflow=id.parse(parts[4]),expression=z.enum(expressionIds).parse(parts[5]);
+ if(!['GET','PUT'].includes(request.method)||url.search||parts.length!==6)throw new AvatarError('INVALID_REQUEST',400);
+ const workflow=id.parse(parts[4]),expression=z.enum([...expressionIds,...poseBuildSteps]).parse(parts[5]),pose=isPoseStep(expression)?expression.slice(5) as 'stand':undefined;
  const auth=authSchema.parse({accountId:request.headers.get('X-DatingHigh-Media-Account-Id'),sessionId:request.headers.get('X-DatingHigh-Media-Session-Id'),cv:Number(request.headers.get('X-DatingHigh-Media-Cv')),accessExpiresAt:Number(request.headers.get('X-DatingHigh-Media-Expires-At'))});
- const requestId=id.parse(request.headers.get('X-DatingHigh-Avatar-Request-Id')),lease=request.headers.get('If-Match');if(!lease)throw new AvatarError('INVALID_REQUEST',400);
  await authorize(env,auth,time());const progress=await avatarAdoptionStatus(env.FILES,auth.accountId,time());
  if(!progress||progress.clientRequestId!==workflow)throw new AvatarError('AVATAR_ADOPTION_NOT_FOUND',404);
- const source=await load(env,auth,progress.attemptId,time());await ensureRoundSources(env,auth,source);
+ const context=await avatarAdoptionContext(env.FILES,auth.accountId,workflow);const verify=async()=>{if(context.savedSource)await assertSavedAvatarSource(env,auth,context,time());else await ensureRoundSources(env,auth,await load(env,auth,progress.attemptId,time()));};await verify();
+ if(request.method==='GET'){
+  if(!pose)throw new AvatarError('INVALID_REQUEST',400);
+  const build=await avatarAdoptionContext(env.FILES,auth.accountId,workflow),bytes=await readAvatarPosePreview(env.FILES,build,pose);
+  await authorize(env,auth,time());await verify();
+  const checked=await avatarAdoptionContext(env.FILES,auth.accountId,workflow);if(checked.status==='cancelled'||checked.staticVersion!==build.staticVersion)throw new AvatarError('AVATAR_PACK_NOT_READY');
+  return new Response(bytes,{headers:{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+ }
+ const mime=pose?'image/png':'image/webp';if(request.headers.get('Content-Type')!==mime)throw new AvatarError('INVALID_REQUEST',400);
+ const requestId=id.parse(request.headers.get('X-DatingHigh-Avatar-Request-Id')),lease=request.headers.get('If-Match');if(!lease)throw new AvatarError('INVALID_REQUEST',400);
  const reader=request.body?.getReader();if(!reader)throw new AvatarError('INVALID_IMAGE',400);const chunks:Uint8Array[]=[];let length=0;
- try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>2000000){await reader.cancel();throw new AvatarError('IMAGE_TOO_LARGE',413);}chunks.push(value);}}finally{reader.releaseLock();}
+ try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>(pose?20000000:2000000)){await reader.cancel();throw new AvatarError('IMAGE_TOO_LARGE',413);}chunks.push(value);}}finally{reader.releaseLock();}
  const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
- let dimensions;try{dimensions=transparentWebpDimensions(bytes);}catch{throw new AvatarError('INVALID_IMAGE',400);}
- await authorize(env,auth,time());await ensureRoundSources(env,auth,source);
- const result=await publishAvatarExpression(env.FILES,auth.accountId,workflow,expression,requestId,lease,bytes,dimensions,time());
+ let dimensions;try{dimensions=pose?posePngDimensions(bytes):transparentWebpDimensions(bytes);}catch{throw new AvatarError('INVALID_IMAGE',400);}
+ await authorize(env,auth,time());await verify();
+ const result=pose?await publishAvatarPose(env.FILES,auth.accountId,workflow,pose,requestId,lease,bytes,time()):await publishAvatarExpression(env.FILES,auth.accountId,workflow,expression as typeof expressionIds[number],requestId,lease,bytes,dimensions,time());
  await authorize(env,auth,time());return Response.json(result,{headers:{'Cache-Control':'no-store'}});
 }

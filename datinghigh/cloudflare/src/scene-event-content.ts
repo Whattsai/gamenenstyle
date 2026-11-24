@@ -35,7 +35,12 @@ export async function readPinnedSceneEventContent(bucket:R2Bucket,input:unknown)
     if(manifest.eventId!==ref.eventId||manifest.version!==ref.version)fail();
     definitions.set(ref.key,{reference:ref,manifest});
    }
-   return {...validateTrackContent({narrative,scene,pool,eventDefinitions:[...definitions.values()],pins}),pins};
+   const verified=validateTrackContent({narrative,scene,pool,eventDefinitions:[...definitions.values()],pins});
+   // 冷啟動的完整有限狀態圖可能佔用較久的同步 CPU。交還一次事件迴圈，
+   // 讓 binding transport 處理已關閉的連線，再由呼叫端重驗成員並讀寫 D1；
+   // 不重試已送出的資料變更，也不延長任何授權期限。
+   await new Promise<void>(resolve=>setTimeout(resolve,0));
+   return {...verified,pins};
   }
  }catch{throw new Error('INVALID_STORY_CONTENT');}
 }

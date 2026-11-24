@@ -120,7 +120,7 @@
 
 ### 3.8 首條「雨聲書店」V3 互動故事 SDD（本版取代 V2 首條敘事）
 
-**本節狀態：SDD 六項決策及容量 B 已確認；BDD／TDD／RiskAudit 已完成規劃與 Phase 5 交接。新 V3 尚未實作、發布或通過人工 Gate B。** 2026-11-17 使用者要求**完全重新設計**雨聲書店，並明確接受先整理新 SDD 的方向。舊 §3.8「被雨打亂的最後一單」第 27 號取書單、I01～I08／A01～A08／S01～S03／E01～E02 **不再是目標劇情與未來人工驗收基線**；已發佈的 V2 及其技術回歸證據只屬現有產品歷史事實，不可宣稱 V3 已完成。其餘 Scene／Narrative 抽選、雙 Track、同意下一場、聊天與退出等通用契約繼續有效；既有 SDD 的 V2 特定節點、結局與演出引述，均以本節為新內容設計的優先依據。
+**本節是已確認的規劃基線：SDD 六項決策及容量 B 已確認，BDD／TDD／RiskAudit 已完成 Phase 5 交接；實作、發布與平台證據以[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)為權威，人工 Gate B 仍須使用者試玩。** 2026-11-17 使用者要求**完全重新設計**雨聲書店，並明確接受先整理新 SDD 的方向。舊 §3.8「被雨打亂的最後一單」第 27 號取書單、I01～I08／A01～A08／S01～S03／E01～E02 **不再是目標劇情與未來人工驗收基線**；已發佈的 V2 及其技術回歸證據只屬現有產品歷史事實，不可宣稱 V3 已完成。其餘 Scene／Narrative 抽選、雙 Track、同意下一場、聊天與退出等通用契約繼續有效；既有 SDD 的 V2 特定節點、結局與演出引述，均以本節為新內容設計的優先依據。
 
 #### 3.8.1 故事定位、固定角色與公開／私有資訊
 
@@ -233,6 +233,8 @@
 - **可重用 Renderer 與 Gate**：以通用 Area Stage、Embedded Interactable、Animation Preset 配置，未知圖層／動作／資產拒發；真 Web/Android 驗每區點擊精準、開闔回位、角色遮擋、背景無殘影、素材與鏡頭一致，不寫雨聲書店專屬 React 分支。
 
 #### 3.8.7B 玩家與 NPC 姿勢／表情可重用化（V3-RQ-06=A＋C，使用者已確認）
+
+**本階段執行範圍：靜態優先、動態暫緩。** 依使用者最新決策，先使用已確認的四種靜態姿態與五種表情整合人物、NPC與場景；本節後述Puppet、連續站坐／眨眼／流淚／取書動畫及動作試作改列後續，不作當前靜態交付前置，也不保留目前不用的試作程式。靜態角色身份／五官／衣裝／姿態品質、素材SHA與完整性、私人授權、現行ready防線及Web／Android與劇情Gate B仍須驗證，不以延期動畫放寬資料安全或宣稱新套組已ready。動態案例延期不等於通過，混合案例仍依靜態部分逐項核對；決策與回復證據見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md)。
 
 目前 `StoryPortrait` 主要切換五張完整角色圖片、`StoryStage` 以平移角色呈現動作；缺少真坐姿／閱讀／端杯／持書。建議抽象 `ActorMotionRenderer`，玩家及 NPC 都透過 `actorId + rigVersion` 和可宣告 `pose/expression/gesture/lookAt/propAttachment/position` 的 Cue 演出；劇本無需按劇情反覆生圖。
 
@@ -521,18 +523,18 @@ Content-Type: application/json
 
 | MVP 新增驗收 | 本 SPEC 專屬驗收 | 原 V3 BDD | RiskAudit BDD（有增補者） | TDD 對應落點／狀態 |
 |---|---|---|---|---|
-| `AC-005-24` | `V3-AC-01` | `SEF-BDD-122～126` | 無新增 | `SEF-UT-367～381`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-25` | `V3-AC-02` | `SEF-BDD-127～131` | 無新增 | `SEF-UT-382～396`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-26` | `V3-AC-03` | `SEF-BDD-132～136` | `SEF-BDD-184` | `SEF-UT-397～411`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-27` | `V3-AC-04` | `SEF-BDD-137～141` | 無新增 | `SEF-UT-412～426`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-28` | `V3-AC-05` | `SEF-BDD-142～146` | 無新增 | `SEF-UT-427～441`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-29` | `V3-AC-06` | `SEF-BDD-147～151` | 無新增 | `SEF-UT-442～456`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-30` | `V3-AC-07` | `SEF-BDD-152～156` | `SEF-BDD-185` | `SEF-UT-457～471`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-31` | `V3-AC-08` | `SEF-BDD-157～161` | 無新增 | `SEF-UT-472～486`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-32` | `V3-AC-09` | `SEF-BDD-162～166` | `SEF-BDD-186` | `SEF-UT-487～501`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-33` | `V3-AC-10` | `SEF-BDD-167～171` | `SEF-BDD-188` | `SEF-UT-502～516`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-34` | `V3-AC-11` | `SEF-BDD-172～176` | `SEF-BDD-187` | `SEF-UT-517～531`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
-| `AC-005-35` | `V3-AC-12` | `SEF-BDD-177～181` | `SEF-BDD-182、183、189～191` | `SEF-UT-532～546`＋相同 BDD 的真 Integration／API／E2E；全部未實作 |
+| `AC-005-24` | `V3-AC-01` | `SEF-BDD-122～126` | 無新增 | `SEF-UT-367～381`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-25` | `V3-AC-02` | `SEF-BDD-127～131` | 無新增 | `SEF-UT-382～396`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-26` | `V3-AC-03` | `SEF-BDD-132～136` | `SEF-BDD-184` | `SEF-UT-397～411`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-27` | `V3-AC-04` | `SEF-BDD-137～141` | 無新增 | `SEF-UT-412～426`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-28` | `V3-AC-05` | `SEF-BDD-142～146` | 無新增 | `SEF-UT-427～441`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-29` | `V3-AC-06` | `SEF-BDD-147～151` | 無新增 | `SEF-UT-442～456`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-30` | `V3-AC-07` | `SEF-BDD-152～156` | `SEF-BDD-185` | `SEF-UT-457～471`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-31` | `V3-AC-08` | `SEF-BDD-157～161` | 無新增 | `SEF-UT-472～486`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-32` | `V3-AC-09` | `SEF-BDD-162～166` | `SEF-BDD-186` | `SEF-UT-487～501`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-33` | `V3-AC-10` | `SEF-BDD-167～171` | `SEF-BDD-188` | `SEF-UT-502～516`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-34` | `V3-AC-11` | `SEF-BDD-172～176` | `SEF-BDD-187` | `SEF-UT-517～531`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
+| `AC-005-35` | `V3-AC-12` | `SEF-BDD-177～181` | `SEF-BDD-182、183、189～191` | `SEF-UT-532～546`＋相同 BDD 的真 Integration／API／E2E；完整覆核見[Verification](../verification/SPEC-001-SceneEventFramework-Verification.md) |
 
 補強 ID：`GAP-01～10` → `SEF-BDD-182～191` → `SEF-IT-149～151`、`SEF-API-070～071`、`SEF-UT-547～548`、`SEF-ET-103～105`，完整一對一細節以 [RiskAudit](SPEC-001-SceneEventFramework-RiskAudit.md) 與 [TDD Phase 5](../tdd/SPEC-001-SceneEventFramework-TDD.md) 為準。**本表是規劃追溯 12/12，不是 12 項實際驗收通過**。
 

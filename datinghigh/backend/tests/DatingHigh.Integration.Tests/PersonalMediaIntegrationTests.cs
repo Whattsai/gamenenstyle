@@ -182,7 +182,9 @@ public sealed class PersonalMediaIntegrationTests
         Assert.Equal(before,await Snapshot());Assert.NotEmpty((await avatars.ReadCandidateAsync(owner,attempt,1)).Bytes.ToArray());
         var expressions=new AvatarExpressionService(platform,new AvatarCandidateStore(http),new AvatarExpressionStore(http),provider,new RateLimiter(platform,platform.Options,platform.Clock));
         var workflow=EntityId.New();await expressions.ExecuteAsync(owner,"begin",new JsonObject{["attemptId"]=attempt,["index"]=1L,["expectedRevision"]=1L,["clientRequestId"]=workflow});
-        foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned"})await expressions.ExecuteAsync(owner,"next",new JsonObject{["workflowId"]=workflow,["expression"]=expression,["clientRequestId"]=EntityId.New()});
+        JsonNode progress=new JsonObject();foreach(var expression in new[]{"neutral","smile","surprised","thoughtful","concerned","pose-stand","pose-sit","pose-read","pose-hold"})progress=await expressions.ExecuteAsync(owner,"next",new JsonObject{["workflowId"]=workflow,["expression"]=expression,["clientRequestId"]=EntityId.New()});
+        Assert.Equal("AVATAR_PACK_NOT_READY",(await Assert.ThrowsAsync<DomainException>(()=>avatars.SelectAsync(owner,new JsonObject{["type"]="generated",["attemptId"]=attempt,["index"]=1L,["expectedRevision"]=1L}))).Code);
+        await expressions.ExecuteAsync(owner,"review",new JsonObject{["workflowId"]=workflow,["packageVersion"]=progress["staticPosePackage"]!.Text("packageVersion")});
         temporary["expectedRevision"]=1L;var adopted=await avatars.SelectAsync(owner,temporary);var asset=adopted.Text("assetId");before=await Snapshot();
         var reader=new AvatarReadService(platform,new AvatarReadStore(http));
         var projection=await reader.ProjectionAsync(owner,AvatarReadScope.Own,asset);
@@ -201,10 +203,12 @@ public sealed class PersonalMediaIntegrationTests
     private sealed class OneImageProvider(bool lossless=false):IAvatarImageGenerator,IAvatarExpressionGenerator
     {
         public int Calls;
+        public bool SupportsStaticPoses=>true;
         public string Model=>"controlled-expression-fixture";
         public string ExpressionPromptVersion=>"controlled.v1";
         public async Task<CompressedImage> GenerateExpressionAsync(PrivateMediaContent master,string expression,CancellationToken ct=default)
         {
+            if(expression.StartsWith("pose-",StringComparison.Ordinal))return AvatarStaticPoseFixture.Sheet(expression[5..]);
             using var bitmap=new SKBitmap(600,800);using(var canvas=new SKCanvas(bitmap)){canvas.Clear(SKColors.Transparent);using var paint=new SKPaint{Color=SKColors.Coral};canvas.DrawRect(180,40,240,720,paint);}
             using var image=SKImage.FromBitmap(bitmap);using var png=image.Encode(SKEncodedImageFormat.Png,100);using var input=new MemoryStream(png.ToArray());
             var result=await new ImageCompressionService().CompressAsync(input,2000000,new("image/png",PreserveTransparency:true,MinimumWidth:600,MinimumHeight:800,LosslessWebp:lossless),ct);

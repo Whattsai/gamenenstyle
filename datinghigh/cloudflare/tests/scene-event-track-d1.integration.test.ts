@@ -34,6 +34,25 @@ it('SEF-IT-123: stale second submission keeps the first real answer, receipt, bo
  await expect(executeTrackAction(db,second,now)).rejects.toThrow();expect(await facts()).toEqual(before);
  const saved=JSON.parse(before.game_event_instances[0].state_json);expect(saved.submissions.inviter.submit.params.optionId).toBe('hold');expect(saved.submissions.acceptor).toBeUndefined();expect(before.game_event_instances[0].status).toBe('active');
 });
+it('an observed partner area is guarded in the real batch without changing that partner progress',async()=>{
+ const p=command();p.areaGuards=[{accountId:id(1),role:'acceptor',revision:1,areaId:'counter'}];
+ const peer=await rows('SELECT * FROM game_story_participant_progress WHERE account_id=?',id(1));
+ await executeTrackAction(db,p,now);expect(await rows('SELECT * FROM game_story_participant_progress WHERE account_id=?',id(1))).toEqual(peer);
+});
+it('a partner moving after area observation rejects every submitted fact and receipt',async()=>{
+ const p=command();p.areaGuards=[{accountId:id(1),role:'acceptor',revision:1,areaId:'counter'}];
+ await db.prepare("UPDATE game_story_participant_progress SET current_area_id='shelves',revision=revision+1 WHERE account_id=?").bind(id(1)).run();
+ const before=await facts();await expect(executeTrackAction(db,p,now)).rejects.toThrow();expect(await facts()).toEqual(before);
+});
+it('a personal action can guard a world read without advancing shared revision, including exact receipt replay',async()=>{
+ const p=command();p.sharedChanged=false;p.expectedSharedRevision=null;p.observedSharedRevision=1;p.instance.trackScope='inviter';
+ await executeTrackAction(db,p,now);expect((await rows('SELECT shared_revision FROM game_story_sessions'))[0].shared_revision).toBe(1);
+ await db.prepare('UPDATE game_story_sessions SET shared_revision=2').run();const saved=await facts();await executeTrackAction(db,p,now);expect(await facts()).toEqual(saved);
+});
+it('a changed world rejects a personal response evaluated against the old rain state without writing its receipt',async()=>{
+ const p=command();p.sharedChanged=false;p.expectedSharedRevision=null;p.observedSharedRevision=1;p.instance.trackScope='inviter';
+ await db.prepare('UPDATE game_story_sessions SET shared_revision=2').run();const before=await facts();await expect(executeTrackAction(db,p,now)).rejects.toThrow();expect(await facts()).toEqual(before);
+});
 it('SEF-IT-124: zero-row failures in event, progress, world or receipt roll back every fact in the same real D1 batch',async()=>{
  await executeTrackAction(db,command(),now);const before=await facts();
  for(const target of ['game_event_instances','game_story_participant_progress','game_story_sessions','game_round_events']){

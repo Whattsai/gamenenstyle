@@ -6,4 +6,5 @@ namespace DatingHigh.Application.Media;
 public interface IAvatarExpressionStore
 {
     Task<JsonNode> PublishAsync(CurrentUser user,string workflow,string expression,string requestId,string lease,CompressedImage image,CancellationToken ct=default);
+    Task<PrivateMediaContent> PreviewAsync(CurrentUser user,string workflow,string pose,CancellationToken ct=default);
 }

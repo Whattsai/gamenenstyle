@@ -9,21 +9,26 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {readFileSync} from 'node:fs';import {createInterface} from 'node:readline';
 import {dispatch,ready,probeKey,probeText} from '../../cloudflare/src/platform';
 // Test-only private stdin/stdout IPC. No listening socket, persisted DB or application endpoint.
+let startupPhase='compile';
 async function main(){
  const root=process.argv[2];
  const compiled=await build({stdin:{contents:`import {DurableObject} from 'cloudflare:workers';import {GameRoomSocket} from './src/room-socket';import {serveStoryAsset} from './src/story-content';export {GameRoomSocket};
  export class TestApiGateway extends DurableObject {async fetch(r){const u=new URL(r.url);if(u.pathname==='/_configure'){await this.ctx.storage.put('origin',await r.json());return new Response('ok');}const cfg=await this.ctx.storage.get('origin');if(!cfg)return new Response(null,{status:503});const headers=new Headers(r.headers);headers.set('X-DatingHigh-Test-Control',cfg.key);return fetch(new Request(cfg.origin+'/_test/round-command',{method:r.method,headers,body:r.body,redirect:'manual'}));}}
  export default {async fetch(r,env){const u=new URL(r.url);const round=u.pathname.match(/^\\/api\\/v1\\/game-rounds\\/([0-9a-f-]+)\\/ws$/)?.[1];if(round)return env.GAME_ROOMS.get(env.GAME_ROOMS.idFromName(round)).fetch(r);if(u.pathname.startsWith('/story-content/'))return serveStoryAsset(r,env);return new Response(null,{status:404});}};`,resolveDir:root+'/cloudflare',loader:'ts'},bundle:true,write:false,format:'esm',platform:'neutral',external:['cloudflare:workers'],conditions:['workerd','worker','browser']});
  const mf=new Miniflare(convertV4MiniflareOptions({modules:true,script:compiled.outputFiles[0].text,compatibilityDate:'2026-10-24',d1Databases:{DB:'isolated-application-test'},r2Buckets:{FILES:'isolated-application-files',STORY_CONTENT:'isolated-story-content'},durableObjects:{GAME_ROOMS:{className:'GameRoomSocket',useSQLite:true},API:{className:'TestApiGateway',useSQLite:true}},bindings:{ROUND_TICKET_HMAC_KEY:'isolated-test-only-realtime-secret-32-bytes',WEB_ORIGIN:'http://localhost:8081',APP_ENV:'local'}}));
- const db=await mf.getD1Database('DB') as unknown as D1Database;const files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
+ try{
+ startupPhase='bindings';const db=await mf.getD1Database('DB') as unknown as D1Database;const files=await mf.getR2Bucket('FILES') as unknown as R2Bucket;
  const storyContent=await mf.getR2Bucket('STORY_CONTENT') as unknown as R2Bucket;const rooms=await mf.getDurableObjectNamespace('GAME_ROOMS');const gateway=await mf.getDurableObjectNamespace('API');
- for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql','0006_scene_event_framework.sql','0007_scene_event_tracks.sql']){
+ startupPhase='migrations';for(const name of ['0001_foundation.sql','0002_avatar_preferences.sql','0003_profile_gender_card_visibility.sql','0004_matching_sessions.sql','0005_story_dialogue_exit.sql','0006_scene_event_framework.sql','0007_scene_event_tracks.sql']){
   const sql=readFileSync(`${root}/cloudflare/migrations/${name}`,'utf8');await db.batch(sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s)));
  }
  await db.prepare('CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY,name TEXT)').run();await db.prepare('INSERT INTO d1_migrations(name) VALUES(?)').bind('0007_scene_event_tracks.sql').run();await files.put(probeKey,probeText);
- const content=JSON.parse(readFileSync(root+'/contracts/rain-bookshop-last-order.json','utf8'));
+ const storyV3=process.argv[3]==='story-v3';
+ const content=JSON.parse(readFileSync(root+'/contracts/'+(storyV3?'rain-bookshop-before-rain-stops':'rain-bookshop-last-order')+'.json','utf8'));
  const definition=JSON.parse(readFileSync(root+'/contracts/scene-event-content.json','utf8')).stories[0];
- await publishSceneEventBundles(db,storyContent,[buildSceneEventTrackBundle(content,root,definition)],{validationRoot:root});
+ if(storyV3){definition.sceneCatalogId='019a281e-0000-7000-8000-000000005011';definition.narrativeCatalogId='019a281e-0000-7000-8000-000000005012';}
+ else{definition.sceneCatalogId='019a281e-0000-7000-8000-000000005001';definition.narrativeCatalogId='019a281e-0000-7000-8000-000000005002';}
+ startupPhase='publication';await publishSceneEventBundles(db,storyContent,[buildSceneEventTrackBundle(content,root,definition)],{validationRoot:root});
  let matchingFault:string|null=null;const savedStoryContent=new Map<string,{bytes:ArrayBuffer;httpMetadata:R2HTTPMetadata}>();
  const faultDb=new Proxy(db,{get(target,property){
   if(property==='prepare')return(sql:string)=>{
@@ -37,7 +42,7 @@ async function main(){
   const value=Reflect.get(target,property,target);return typeof value==='function'?value.bind(target):value;
  }});
  // 與正式 ASSETS 同責任；只讀本專案已產製的固定角色／hash 路徑，不接受任意檔案。
- const assets={fetch:async(request:Request)=>{const url=new URL(request.url);if(url.search||!/^\/avatars\/full-body\.v1\/(?:male|female)-0[1-8]\/[0-9a-f]{64}\.webp$/.test(url.pathname))return new Response(null,{status:404});try{return new Response(new Uint8Array(readFileSync(root+'/frontend/client/public'+url.pathname)),{headers:{'Content-Type':'image/webp'}});}catch{return new Response(null,{status:404});}}} as unknown as Fetcher;
+ const assets={fetch:async(request:Request)=>{const url=new URL(request.url);if(url.search||!/^\/avatars\/(?:full-body\.v1\/(?:male|female)-0[1-8]\/[0-9a-f]{64}\.webp|static-poses\.v1\/(?:male|female)-0[1-8]\/[0-9a-f]{64}\.png)$/.test(url.pathname))return new Response(null,{status:404});try{return new Response(new Uint8Array(readFileSync(root+'/frontend/client/public'+url.pathname)),{headers:{'Content-Type':url.pathname.endsWith('.png')?'image/png':'image/webp'}});}catch{return new Response(null,{status:404});}}} as unknown as Fetcher;
  const env={DB:faultDb,FILES:files,STORY_CONTENT:storyContent,ASSETS:assets,GAME_ROOMS:rooms as unknown as DurableObjectNamespace,ROUND_TICKET_HMAC_KEY:'isolated-test-only-realtime-secret-32-bytes',WEB_ORIGIN:'http://localhost:8081',APP_ENV:'local',EmailDeliveryMode:'Log',EXPECTED_MIGRATION:'0007_scene_event_tracks.sql'};
  let socketOrigin:string|null=null;
  let providerMode='success',providerCalls=0,templatesValid=true,mailCode='000001';
@@ -45,8 +50,8 @@ async function main(){
   providerCalls++;templatesValid=templatesValid&&message.from==='verified@test.invalid'&&message.to==='owner@example.com'&&['心動迴路：驗證 Email','心動迴路：重設密碼'].includes(message.subject)&&message.text===`您的驗證碼為 ${mailCode}。有效期限 10 分鐘。若非本人操作，請忽略此信。`;
   if(providerMode==='timeout')await new Promise(resolve=>setTimeout(resolve,11000));if(providerMode!=='success')throw new Error('provider-private');return{messageId:'controlled-provider-message'};
  }}};
- process.stdout.write('{"ready":true}\n');
- try{for await(const line of createInterface({input:process.stdin,crlfDelay:Infinity})){
+ startupPhase='ready';process.stdout.write('{"ready":true}\n');
+ for await(const line of createInterface({input:process.stdin,crlfDelay:Infinity})){
   try{const {command,payload,now}=JSON.parse(line);let result;
    if(command==='$test-realtime-origin'){const origin=new URL(payload.origin);if(!['127.0.0.1','localhost'].includes(origin.hostname))throw new Error('Invalid test origin');await gateway.get(gateway.idFromName('api-v1')).fetch(new Request('http://test/_configure',{method:'POST',body:JSON.stringify({origin:origin.origin,key:payload.key})}));socketOrigin=(await mf.ready).origin;result={origin:socketOrigin};}
    else if(command==='$test-arm-matching-fault'){if(!['accept-second-participant','profile-projection-zero','accept-zero'].includes(payload.mode))throw new Error('Invalid matching fault');matchingFault=payload.mode;result={armed:true};}
@@ -103,7 +108,7 @@ async function main(){
    else if(command==='$test-r2-list'){const page=await files.list({prefix:'private/',limit:1000});result={keys:page.objects.map(object=>object.key),truncated:page.truncated};}
    else if(command==='$test-media'){
     const path=payload.path??`/v1/media/personal-photos/${payload.assetId}`;
-    if(!/^\/v1\/(?:media\/(?:personal-photos|assets)\/[0-9a-f-]+|avatar\/candidates\/[0-9a-f-]+(?:\/[1-4])?|avatar\/expressions\/[0-9a-f-]+\/(?:neutral|smile|surprised|thoughtful|concerned)|avatar\/(?:assets|rounds|round-self)\/[0-9a-f-]+\/[0-9a-f]{64}\/(?:neutral|smile|surprised|thoughtful|concerned))$/.test(path))throw new Error('Invalid private test media path');
+    if(!/^\/v1\/(?:media\/(?:personal-photos|assets)\/[0-9a-f-]+|avatar\/candidates\/[0-9a-f-]+(?:\/[1-4])?|avatar\/expressions\/[0-9a-f-]+\/(?:neutral|smile|surprised|thoughtful|concerned|pose-(?:stand|sit|read|hold))|avatar\/(?:assets|rounds|round-self)\/[0-9a-f-]+\/[0-9a-f]{64}\/(?:neutral|smile|surprised|thoughtful|concerned|static-[0-9a-f]{64}))$/.test(path))throw new Error('Invalid private test media path');
     const response=await dispatch(new Request(`http://platform.internal${path}`,{
      method:payload.method,headers:payload.headers,
      ...(payload.content===null?{}:{body:Buffer.from(payload.content,'base64')})
@@ -121,4 +126,9 @@ async function main(){
   }catch(error){const code=error instanceof Error&&['INVALID_STORY_CONTENT','CONTENT_PUBLICATION_CONFLICT','FIRST_STORY_GATE_REQUIRED','IMMUTABLE_CONTENT_CONFLICT'].includes(error.message)?error.message:'DEPENDENCY_UNAVAILABLE';process.stdout.write(JSON.stringify({error:{code,status:503}})+'\n');}
  }}finally{await mf.dispose();}
 }
-main().catch(()=>{process.stderr.write('Isolated platform test runner failed\n');process.exitCode=1;});
+main().catch(error=>{
+ const publicCodes=['INVALID_STORY_CONTENT','FIRST_STORY_GATE_REQUIRED','IMMUTABLE_CONTENT_CONFLICT'];
+ const frames=error instanceof Error?error.stack?.split('\n').slice(1,5).map(line=>/\bat ([A-Za-z0-9_.$]+)/.exec(line)?.[1]??'unknown'):[];
+ const detail=error instanceof TypeError?error.message.replace(/https?:\/\/\S+|[A-Za-z]:[\\/]\S+/g,'[local-endpoint]').slice(0,180):undefined;
+ process.stderr.write(JSON.stringify({failure:'isolated-platform-runner',phase:startupPhase,code:error instanceof Error&&publicCodes.includes(error.message)?error.message:'DEPENDENCY_UNAVAILABLE',type:error instanceof Error?error.name:'unknown',detail,frames})+'\n');process.exitCode=1;
+});

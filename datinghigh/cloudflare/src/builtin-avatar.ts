@@ -1,5 +1,7 @@
 import {z} from 'zod';
 import catalog from '../../contracts/builtin-avatar-packs.json';
+import staticCatalog from '../../contracts/builtin-static-poses.json';
+import {validateStaticPosePackage} from './avatar-static-pose';
 import {expressionIds} from './avatar-expression-manifest';
 
 const hash=z.string().regex(/^[0-9a-f]{64}$/),id=z.string().regex(/^(male|female)-0[1-8]$/);
@@ -14,4 +16,12 @@ export function builtinAvatarPack(id:string):BuiltinAvatarPack|undefined{
  const neutral=value.expressions.neutral;
  if(value.avatarAssetId!==id||value.stageAnchors.head.y>=value.stageAnchors.feet.y||expressionIds.some(e=>{const i=value.expressions[e];return i.url!==`/avatars/full-body.v1/${id}/${i.sha256}.webp`||i.width!==neutral.width||i.height!==neutral.height||Math.abs(i.width/i.height-.75)>.015;}))throw new Error('INVALID_BUILTIN_AVATAR_PACK');
  return value;
+}
+/** 正式免費姿態一份共用；來源必須仍是相同已採用角色的 neutral。 */
+export function builtinStaticPosePackage(id:string){
+ const original=builtinAvatarPack(id);if(!original)return;
+ const value=(staticCatalog.packs as Record<string,unknown>)[id];if(!value)return;
+ const p=validateStaticPosePackage(value);
+ if(p.sourceImageSha256!==original.expressions.neutral.sha256)throw new Error('INVALID_STATIC_AVATAR_SOURCE');
+ return p;
 }
