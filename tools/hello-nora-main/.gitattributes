@@ -1,0 +1,4 @@
+# 工具文字檔在 Windows checkout 亦固定 LF；圖片與字型保留原始位元組。
+* text=auto eol=lf
+*.png -text
+*.ttf -text

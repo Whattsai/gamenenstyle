@@ -1,0 +1,42 @@
+.DS_Store
+**/.DS_Store
+
+# 敏感設定檔（含真實 Token，不進版本控制）
+**/meta-config.md
+**/google-config.md
+**/line-config.md
+**/cloudinary-config.md
+**/wordpress-config.md
+**/credentials/
+skills/_brand*/
+!skills/_brand/
+skills/_brand/*
+!skills/_brand/account-safety.md
+!skills/_brand/asset-inventory.md
+!skills/_brand/brand-guide.md
+!skills/_brand/competitor-watchlist.md
+!skills/_brand/faq.md
+!skills/_brand/funnel-content-matrix.md
+!skills/_brand/icp.md
+!skills/_brand/industry-knowledge.md
+!skills/_brand/marketing-log.md
+!skills/_brand/product-info.md
+!skills/_brand/task-board.md
+!skills/_brand/voice-profile.md
+!skills/_brand/meta-config.example.md
+!skills/_brand/google-config.example.md
+!skills/_brand/line-config.example.md
+!skills/_brand/cloudinary-config.example.md
+!skills/_brand/wordpress-config.example.md
+
+# 個人資料（用戶稱呼，每個學員自己的，不進版本控制）
+**/user-profile.md
+
+# 30 prompts（另外發放，不進 repo）
+resources/30-marketing-prompts.md
+
+# 維護驗證與私有備份
+__pycache__/
+*.pyc
+.maintenance/backups/
+!skills/leon-design/assets/OFL-NotoSansTC.txt
