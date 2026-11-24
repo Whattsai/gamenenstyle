@@ -55,7 +55,7 @@ for(const ending of [
   await b.getByRole('button',{name:'合上《週日的第二碗湯》',exact:true}).click();await expect(b.getByTestId('scene-open-book')).toHaveCount(0);
   await action(b,'av3-book','family');await action(b,'av3-resonance','family-neutral');await action(b,'av3-walk','reading-corner');await action(b,'av3-sit');await action(b,'av3-read');
   await action(a,'iv3-walk','reading-corner');await a.bringToFront();await a.reload();await expect(a.getByRole('button',{name:'留意閱讀角的旅人',exact:true})).toBeEnabled({timeout:60000});await a.getByRole('button',{name:'留意閱讀角的旅人',exact:true}).click();await expect.poll(async()=>(await snapshot(a)).myTrack.nodeId).toBe('iv3-04');await action(a,'iv3-pause');await action(a,'iv3-approach');await action(a,'iv3-greeting','tissue');await action(b,'av3-see-greeting');await b.reload();
-  await expect(b.getByRole('button',{name:'收下面紙（聊天仍由我決定）',exact:true})).toBeEnabled({timeout:60000});await b.getByRole('button',{name:'收下面紙（聊天仍由我決定）',exact:true}).click();await expect.poll(async()=>(await snapshot(b)).world.objects.find((o:any)=>o.id==='tissue')?.state).toBe('accepted');await expect(b.getByTestId('embedded-tissue-accepted')).toBeVisible();
+  await expect(b.getByRole('button',{name:'「謝謝你……」接過面紙',exact:true})).toBeEnabled({timeout:60000});await b.getByRole('button',{name:'「謝謝你……」接過面紙',exact:true}).click();await expect.poll(async()=>(await snapshot(b)).world.objects.find((o:any)=>o.id==='tissue')?.state).toBe('accepted');await expect(b.getByTestId('embedded-tissue-accepted')).toBeVisible();
   await action(b,'av3-response','decline');await action(a,'iv3-understand','respect');
   let mediaRecovery=false;
   if(ending.wish==='quiet-rest'){
@@ -64,7 +64,7 @@ for(const ending of [
   }
   console.log('V3 Web: starting shared rain and rescue');await action(a,'sv3-weather');await action(b,'sv3-weather');for(const [p,prefix]of [[a,'iv3'],[b,'av3']]as const){await action(p,prefix+'-walk','shelves');await action(p,prefix+'-walk','safe-storage');
    if(prefix==='av3'&&ending.wish==='quiet-rest'){
-    await expect(b.getByText(/場景圖片載入失敗/)).toBeVisible({timeout:60000});const beforeReload=await snapshot(b);await b.getByRole('button',{name:'重新載入場景素材',exact:true}).click();await expect(b.getByRole('button',{name:'沿乾燥動線到收納區',exact:true})).toBeEnabled({timeout:60000});const restored=await snapshot(b);expect(restored.myTrack.revision).toBe(beforeReload.myTrack.revision);expect(restored.sharedRevision).toBe(beforeReload.sharedRevision);mediaRecovery=true;
+    await expect(b.getByText(/場景圖片載入失敗/)).toBeVisible({timeout:60000});const beforeReload=await snapshot(b);await b.getByRole('button',{name:'重新載入場景素材',exact:true}).click();await expect(b.getByRole('button',{name:'快步跟上，前往後面的倉庫',exact:true})).toBeEnabled({timeout:60000});const restored=await snapshot(b);expect(restored.myTrack.revision).toBe(beforeReload.myTrack.revision);expect(restored.sharedRevision).toBe(beforeReload.sharedRevision);mediaRecovery=true;
    }
    await action(p,prefix+'-safety');}
   await action(a,'sv3-help');await action(b,'sv3-help');await action(b,'av3-list');expect((await snapshot(a)).knownClues.some((c:any)=>c.id==='private-list')).toBe(false);await action(b,'av3-share-list');await action(a,'iv3-walk','shelves');await action(a,'iv3-find','try-love');expect((await snapshot(a)).myTrack.nodeId).toBe('iv3-recheck');await action(a,'iv3-find','compare');await action(a,'iv3-pick');await action(a,'iv3-walk','safe-storage');await action(a,'iv3-box');await action(b,'av3-check');await action(b,'av3-pick-box');await action(b,'av3-store');

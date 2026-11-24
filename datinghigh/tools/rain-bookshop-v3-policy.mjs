@@ -22,5 +22,5 @@ export function validateRainBookshopV3(bundle){
  for(const id of ['iv3-enter','av3-enter','av3-resonance','iv3-greeting','av3-response','iv3-understand','sv3-weather','sv3-help','av3-share-list','iv3-pick','iv3-box','av3-pick-box','av3-store','sv3-final-wish'])if(!bindings.some(b=>b.bindingId===id))refuse();
  // 鎖定完整 scene／narrative／pool，包含原創書文、私有線索、意願分支、
  // 世界狀態與演出；不可只替換台詞或刪除必經救書／安全步驟。
- if(bundle.scene.sha256!=='aab0bac5c13b69728e66e50af4c2614d3d26bc39cc15a51ac75c7cd17d54ba33'||bundle.narrative.sha256!=='74b4d9cf41ef5ff869698f309bd6603956b058d2fc58c6130218d23b3026b873'||bundle.pool.sha256!=='0e74f5f0b33f6d175c123705e2635d938e57590e4e3470eacf10d7b98e68868a')refuse();
+ if(bundle.scene.sha256!=='5966270984973faacb4e0a06960f08920ca709565d299757bc576f174ad14d32'||bundle.narrative.sha256!=='9b5c0b9aa19e68fd18a8aac6854a21e086e1b948701b0b329fa89164674a293a'||bundle.pool.sha256!=='0e74f5f0b33f6d175c123705e2635d938e57590e4e3470eacf10d7b98e68868a')refuse();
 }
