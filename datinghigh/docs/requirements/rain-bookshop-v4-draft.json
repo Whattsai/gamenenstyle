@@ -1,0 +1,2245 @@
+{
+  "_draftMeta": {
+    "status": "v4-content-draft",
+    "purpose": "《雨聲書店》V4 完整定稿文案與互動劇本結構草案（16 本真實公有領域經典名著＋4 本牛皮紙盲書，真實散落於書店 5 個區域）。所有書本全文、匿名讀者字條、阿澄手寫卡與動態對白、彩蛋、2 組跨區 90 秒救書題組、動態聊天建議、4 結局、借閱小票彩蛋印章與全部 UI 文案皆已 100% 定稿，開發可直接套用。",
+    "derivedFrom": "contracts/rain-bookshop-before-rain-stops.json (rain-bookshop/v3 + rain-bookshop-before-rain-stops/v1)",
+    "proposedSchemaVersion": "scene-event.v3-draft",
+    "targetVersions": {
+      "sceneId": "rain-bookshop",
+      "sceneVersion": "v4",
+      "narrativeId": "rain-bookshop-before-rain-stops",
+      "narrativeVersion": "v2"
+    },
+    "lastUpdated": "2026-11-24",
+    "includedEnhancementsChecklist": [
+      "徹底去按鈕化：門把／傘桶／橫滑書牆／撕盲書封條／擦霧雨窗／拖放面紙／上滑傳書／鎖扣順序，搭配可收合手繪小地圖與左右極簡方向切換。",
+      "探索零盲點：首次進入區域對可互動物件呈現一次柔和邊緣呼吸光、支援長按掃視可互動物件輪廓、小地圖標示未探索彩蛋與新事件暖金光點（嚴守無漂浮星號卡片）。",
+      "16 本真實公有領域經典名著＋4 本牛皮紙盲書＝20 本完整書籍，真實散落於入口展示台、主木質書牆、閱讀角低櫃、櫃檯平台、落地窗台 5 個區塊，與背景陰影融圖呈現。",
+      "20 本書全數附帶：阿澄手寫吐槽推薦卡、3–4 頁合法原創自譯／現代試讀全文、最後一頁夾入「上一位匿名讀者手寫字條」、3 句書籤金句、專屬 3 選 1 共鳴選項與內心獨白、救書誤抽吐槽。",
+      "依本人 Profile 興趣標籤（不洩漏對方私密興趣）對對應書籍顯示溫柔的「好像很對你頻率」小貼紙。",
+      "完整非阻塞等待彩蛋：同步切歌黑膠唱片機（3 首）、訪客留言冊（5 則含淹水伏筆）、起霧雨窗（3 階段街景＋4 符號）、櫃檯今日雨天特調小黑板、阿澄 3 話題閒聊。",
+      "雙向破冰主動權：同書命運／異書反差分支、拖放面紙遠／近分寸、I 選留白時先幫對方輕扶桌角書籤後退開，並開放 A 反客為主搭話；徹底修正被拒還跳假聊天的 Bug。",
+      "4 題「雨天提問卡」同時揭曉同頻／反差默契互動。",
+      "導演主動觸發暴雨進水過場＋Ready Gate 手電筒就位＋90 秒即時水位倒數（含 15 秒斷線／閒置水位暫緩保護）＋2 組跨區 4 本絕版書雙向反轉救書題組＋舞台快捷呼喊泡泡。",
+      "S／A／B 三級結算（倒數歸零水位破警戒線強制撤離至屋簷雨廊結局）；結局夾書籤支援自選 3 句或親筆 20 字短語（選填、受純文字安全過濾），並於《留下一本書的名字》結局後可直接翻閱對方放上桌的書。",
+      "24 句動態情境聊天建議＋零個資《雨聲書店・今日借閱小票》（含 4 種拍檔稱號＋4 枚隱藏彩蛋印章＋結局進度 X/4）。"
+    ],
+    "authoringNotes": [
+      "16 本經典名著之作者全數逝世逾 70 年，屬公有領域；內文均為原創重新撰寫之意象精選自譯，絕不複製受現代著作權保護之商業譯本。",
+      "本檔放於 docs/requirements/ 不干擾 contracts/ 現行 V3 測試；待 perfect-plan 確認正式 scene-event.v3 Schema 並完成新圖／新音檔後，僅須補入真實 sha256、byteLength、座標與 hitMasks 即可發布。"
+    ]
+  },
+  "scene": {
+    "sceneId": "rain-bookshop",
+    "version": "v4",
+    "title": "雨聲書店",
+    "time": "雨勢漸大的傍晚",
+    "place": "街角獨立書店",
+    "event": "雨停之前",
+    "locale": "zh-TW",
+    "categoryCodes": [
+      "romance",
+      "healing"
+    ],
+    "sceneCapabilities": [
+      "bookshop",
+      "multi-zone-books",
+      "shelf-closeup",
+      "vinyl-sync",
+      "foggy-window",
+      "chalkboard",
+      "director-interrupt",
+      "timed-coop-rescue"
+    ],
+    "interestBadgeCopy": {
+      "note": "僅依「登入本人」已儲存 Profile 興趣標籤（或雙方公開共同興趣）在符合書本上顯示溫柔貼紙，絕不洩漏對方未公開興趣。",
+      "selfMatchLabel": "阿澄剛進的選書，好像很對你的頻率",
+      "sharedPublicMatchLabel": "剛好跟你們都喜歡的話題有點共鳴"
+    },
+    "areas": [
+      {
+        "id": "street-view",
+        "title": "雨中的街道",
+        "subtitle": "傍晚六點半，雨點打在騎樓招牌上",
+        "cameraId": "wide-rain",
+        "backgroundAsset": "bg-street-view",
+        "adjacent": [
+          "entrance"
+        ],
+        "audioMix": {
+          "ambienceGain": 1.0,
+          "musicGain": 0.0
+        },
+        "mapHint": "門外正下著滂沱大雨",
+        "bookZoneSummary": null
+      },
+      {
+        "id": "entrance",
+        "title": "書店入口與展台",
+        "subtitle": "木門擋住風雨，門邊矮展台擺著「雨天特選」",
+        "cameraId": "warm-entry",
+        "backgroundAsset": "bg-entrance",
+        "adjacent": [
+          "street-view",
+          "shelves",
+          "reading-corner",
+          "counter"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.55,
+          "musicGain": 0.45
+        },
+        "mapHint": "玻璃門把、傘桶、今日雨天特選展台（3 本經典）；暴雨時低窪門檻會進水",
+        "bookZoneSummary": "入口內側乾燥木展台：3 本真實經典（《少爺》《變形記》《咆哮山莊》）"
+      },
+      {
+        "id": "shelves",
+        "title": "主木質書牆",
+        "subtitle": "整面暖黃木架排滿經典書脊與牛皮紙盲書箱",
+        "cameraId": "shelf-browse",
+        "backgroundAsset": "bg-shelves",
+        "closeupAsset": "bg-shelves-closeup-v4",
+        "adjacent": [
+          "entrance",
+          "reading-corner",
+          "counter",
+          "safe-storage"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.35,
+          "musicGain": 0.65
+        },
+        "mapHint": "點擊書牆近距橫滑逛書：6 本經典文學＋2 本盲書",
+        "bookZoneSummary": "主木質書牆：6 本真實經典＋2 本牛皮紙盲書"
+      },
+      {
+        "id": "reading-corner",
+        "title": "閱讀角與低書櫃",
+        "subtitle": "酒紅沙發、木桌檯燈、靠牆低櫃與訪客留言冊",
+        "cameraId": "corner-intimate",
+        "backgroundAsset": "bg-reading-corner",
+        "adjacent": [
+          "entrance",
+          "shelves",
+          "window",
+          "counter"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.35,
+          "musicGain": 0.65
+        },
+        "mapHint": "閱讀沙發、低書櫃（3 本經典）、訪客留言冊與雨天提問卡盒",
+        "bookZoneSummary": "閱讀角低書櫃：3 本真實經典（《簡愛》《小婦人》《道林・格雷的畫像》）"
+      },
+      {
+        "id": "counter",
+        "title": "櫃檯與黑膠區",
+        "subtitle": "咖啡香、今日特調小黑板、黑膠唱片機與盲書架",
+        "cameraId": "warm-entry",
+        "backgroundAsset": "bg-counter",
+        "adjacent": [
+          "entrance",
+          "shelves",
+          "reading-corner",
+          "window",
+          "safe-storage"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.3,
+          "musicGain": 0.75
+        },
+        "mapHint": "找店長阿澄閒聊、看特調黑板、換全店黑膠、逛櫃檯書架（2 本經典＋2 本盲書）",
+        "bookZoneSummary": "櫃檯側邊平台：2 本真實經典（《湖濱散記》《羅生門》）＋2 本牛皮紙盲書"
+      },
+      {
+        "id": "window",
+        "title": "起霧落地窗邊",
+        "subtitle": "玻璃凝著水氣，窗台擺著詩集與遠行故事",
+        "cameraId": "warm-entry",
+        "backgroundAsset": "bg-window",
+        "adjacent": [
+          "reading-corner",
+          "counter"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.5,
+          "musicGain": 0.55
+        },
+        "mapHint": "手指擦霧看雨勢與留符號、翻窗台選書（2 本經典）",
+        "bookZoneSummary": "落地窗邊木書台：2 本真實經典（《漂鳥集》《海底兩萬里》）"
+      },
+      {
+        "id": "safe-storage",
+        "title": "乾燥後方高架區",
+        "subtitle": "遠離門檻與電源的乾燥高櫃與防潮收納箱",
+        "cameraId": "warm-entry",
+        "backgroundAsset": "bg-safe-storage",
+        "adjacent": [
+          "shelves",
+          "counter"
+        ],
+        "audioMix": {
+          "ambienceGain": 0.3,
+          "musicGain": 0.55
+        },
+        "mapHint": "乾燥高架書庫（90 秒救書防潮箱收納處）",
+        "bookZoneSummary": null
+      },
+      {
+        "id": "eaves-corridor",
+        "title": "屋簷雨廊",
+        "subtitle": "二樓遮雨屋簷下，夜雨垂成一道銀簾",
+        "cameraId": "eaves-shelter",
+        "backgroundAsset": "bg-eaves-corridor-v4",
+        "adjacent": [],
+        "audioMix": {
+          "ambienceGain": 0.9,
+          "musicGain": 0.2
+        },
+        "mapHint": "高處安全避雨廊道（水位破警戒線強制撤離專用）",
+        "bookZoneSummary": null
+      }
+    ],
+    "cameras": [
+      { "id": "wide-rain", "scale": 1.0, "focus": { "x": 0.5, "y": 0.5 }, "tint": "#5d739b", "tintOpacity": 0.18 },
+      { "id": "warm-entry", "scale": 1.05, "focus": { "x": 0.5, "y": 0.5 }, "tint": "#f2b880", "tintOpacity": 0.14 },
+      { "id": "shelf-browse", "scale": 1.16, "focus": { "x": 0.52, "y": 0.48 }, "tint": "#e8b87d", "tintOpacity": 0.1 },
+      { "id": "corner-intimate", "scale": 1.24, "focus": { "x": 0.5, "y": 0.54 }, "tint": "#9d7bb8", "tintOpacity": 0.15 },
+      { "id": "storm-crisis", "scale": 1.15, "focus": { "x": 0.5, "y": 0.52 }, "tint": "#2f4b7c", "tintOpacity": 0.28 },
+      { "id": "coffee-talk", "scale": 1.18, "focus": { "x": 0.48, "y": 0.56 }, "tint": "#ff9ebb", "tintOpacity": 0.14 },
+      { "id": "coffee-books", "scale": 1.32, "focus": { "x": 0.51, "y": 0.57 }, "tint": "#ffd27a", "tintOpacity": 0.12 },
+      { "id": "eaves-shelter", "scale": 1.08, "focus": { "x": 0.5, "y": 0.5 }, "tint": "#546e99", "tintOpacity": 0.22 }
+    ],
+    "assetManifestPlan": [
+      { "id": "avatar-player-static-poses", "category": "character", "kind": "image-set", "reuseFromV3": true, "sourceHint": "contracts/builtin-static-poses.json（免費 16 款四姿態×五表情）與 AI 私人靜態 4 姿態包，V4 沿用不重畫" },
+      { "id": "clerk-stand", "category": "npc", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-clerk-stand-v3.png（店長阿澄站立五表情）" },
+      { "id": "clerk-hold", "category": "npc", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-clerk-hold-v3.png（店長阿澄持書五表情）" },
+      { "id": "bg-street-view", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-street-v3.png" },
+      { "id": "bg-entrance", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-entrance-v3.png" },
+      { "id": "bg-shelves", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-shelves-v3.png" },
+      { "id": "bg-reading-corner", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-corner-v3.png" },
+      { "id": "bg-counter", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-counter-v3.png" },
+      { "id": "bg-window", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-window-v3.png" },
+      { "id": "bg-safe-storage", "category": "background", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-storage-v3.png" },
+      { "id": "bg-eaves-corridor-v4", "category": "background", "kind": "image", "reuseFromV3": false, "description": "V4 新增：胡桃木屋簷雨廊與暖光燈籠、大雨夜街景（B 級強制撤離結局專用）" },
+      { "id": "bg-shelves-closeup-v4", "category": "background", "kind": "image", "reuseFromV3": false, "description": "V4 新增：第一人稱可橫滑木書牆特寫基底（含層板陰影與空位底圖，供書籍無縫嵌入抽出）" },
+      { "id": "prop-display-shadow-v4", "category": "background-layer", "kind": "image", "reuseFromV3": false, "description": "V4 新增：散落 5 區塊（入口展台／閱讀角低櫃／櫃檯平台／窗邊木台）之統一融圖接地陰影與木質托架遮罩層" },
+      { "id": "book-cover-little-prince-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《小王子》深藍燙金星夜與小狐狸壓紋書封＋立體書脊" },
+      { "id": "book-cover-no-longer-human-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《人間失格》霧灰深墨布紋直排書封＋立體書脊" },
+      { "id": "book-cover-pride-prejudice-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《傲慢與偏見》復古酒紅厚皮精裝燙金角書封＋立體書脊" },
+      { "id": "book-cover-great-gatsby-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《大亨小傳》墨綠硬殼爵士金線書封＋立體書脊" },
+      { "id": "book-cover-kokoro-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《心》米白和紙靛青傳統線裝書封＋立體書脊" },
+      { "id": "book-cover-prophet-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《先知》暖沙色亞麻布面葉脈線條書封＋立體書脊" },
+      { "id": "book-cover-botchan-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《少爺》芥末黃復古和風平裝書封＋立體書脊（入口展台）" },
+      { "id": "book-cover-metamorphosis-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《變形記》煙燻炭黑幾何壓紋精裝書封＋立體書脊（入口展台）" },
+      { "id": "book-cover-wuthering-heights-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《咆哮山莊》暴風雨灰紫燙銀荒原書封＋立體書脊（入口展台）" },
+      { "id": "book-cover-jane-eyre-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《簡愛》典雅深靛銀線布面書封＋立體書脊（閱讀角低櫃）" },
+      { "id": "book-cover-little-women-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《小婦人》暖杏格紋溫馨精裝書封＋立體書脊（閱讀角低櫃）" },
+      { "id": "book-cover-dorian-gray-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《道林・格雷的畫像》孔雀綠燙金古典畫框書封＋立體書脊（閱讀角低櫃）" },
+      { "id": "book-cover-walden-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《湖濱散記》森林苔綠手作棉紙書封＋立體書脊（櫃檯平台）" },
+      { "id": "book-cover-rashomon-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《羅生門》硃砂墨韻古風平裝書封＋立體書脊（櫃檯平台）" },
+      { "id": "book-cover-stray-birds-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《漂鳥集》奶油白壓花水彩飛鳥書封＋立體書脊（窗邊書台）" },
+      { "id": "book-cover-twenty-thousand-leagues-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：《海底兩萬里》深海藍銅金羅盤精裝書封＋立體書脊（窗邊書台）" },
+      { "id": "prop-blind-kraft-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：牛皮紙麻繩盲書包裝封套與可撕虛線封條動畫圖層（4 本盲書共用未撕態）" },
+      { "id": "book-cover-blind-its-okay-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：盲書 1 撕封後《今天不用當懂事的大人》暖橘活版印刷書封" },
+      { "id": "book-cover-blind-unsent-goodbye-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：盲書 2 撕封後《留在草稿匣裡的晚安》暮紫信封壓紋書封" },
+      { "id": "book-cover-blind-rainy-escape-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：盲書 3 撕封後《臨時取消計畫也沒關係》灰藍雨滴手繪書封" },
+      { "id": "book-cover-blind-quieter-kindness-v4", "category": "book", "kind": "image", "reuseFromV3": false, "description": "V4 新增：盲書 4 撕封後《慢半拍也沒關係的頻率》鼠尾草綠柔霧書封" },
+      { "id": "prop-tissue", "category": "prop", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-tissue-v3.png（面紙小包，支援拖放遠／近）" },
+      { "id": "prop-box", "category": "prop", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-box-v3.png（乾燥收納防潮箱基底）" },
+      { "id": "prop-coffee", "category": "prop", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-coffee-v3.png（窗邊熱咖啡杯）" },
+      { "id": "prop-water", "category": "prop", "kind": "image", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-water-v3.png（基礎門縫積水，搭配 V4 多階段水位層）" },
+      { "id": "prop-umbrella-stand-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：入口木質傘桶與濕傘（A 開場點擊收傘用）" },
+      { "id": "prop-handwritten-card-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：阿澄手寫書店推薦小卡基底貼圖（20 本書共用）" },
+      { "id": "prop-reader-note-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：夾在書本末頁的「上一位匿名讀者手寫便條紙」復古便箋貼圖（20 本書共用）" },
+      { "id": "prop-chalkboard-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：櫃檯立式粉筆「今日雨天特調小黑板」特寫視圖" },
+      { "id": "prop-vinyl-player-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：櫃檯旁復古黑膠唱片機與三張不同色標黑膠唱片（同步換曲互動）" },
+      { "id": "prop-guestbook-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：閱讀角硬殼「雨聲書店訪客留言冊」翻頁視圖" },
+      { "id": "prop-fog-overlay-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：落地窗可擦拭霧氣圖層＋4 種霧氣小符號貼圖（☔／☕／🐱／☺）" },
+      { "id": "prop-question-card-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：閱讀角「雨天提問卡盒」與正反翻牌卡片樣式" },
+      { "id": "prop-flashlight-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：阿澄遞出的防水手電筒道具與暴雨停電暗景光束遮罩（Ready Gate＋救書畫面）" },
+      { "id": "prop-water-levels-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：90 秒倒數 4 階段動態擴展地板水痕與水位警戒線圖層" },
+      { "id": "prop-wet-booklist-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：被雨淋濕暈開書名的古書展絕版書清單（A 端線索介面）" },
+      { "id": "prop-storage-rule-note-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：阿澄貼於書架夾層的「高櫃擺放與防潮鎖扣順序便條」（I 端後半反轉線索）" },
+      { "id": "prop-moisture-bag-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：透明夾鏈防潮袋與高櫃上下格位視覺層（A 端拖曳裝袋上架）" },
+      { "id": "prop-box-latches-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：防潮箱三態鎖扣（左扣／右扣／壓條封口，未鎖與已扣緊狀態）" },
+      { "id": "prop-pudding-coffee-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：S 級慶功限定手沖咖啡與手工焦糖布丁組合" },
+      { "id": "prop-towel-latte-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：A 級搶救慰勞用熱拿鐵與折疊乾毛巾組合" },
+      { "id": "prop-thermos-towel-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：B 級屋簷撤離結局用保溫瓶熱茶與乾毛巾" },
+      { "id": "prop-bookmark-v4", "category": "prop", "kind": "image", "reuseFromV3": false, "description": "V4 新增：牛皮紙夾頁書籤道具（結局 2 翻開對方桌上書滑出，支援印上自選或 20 字手寫短語）" },
+      { "id": "ui-bookshop-minimap-v4", "category": "ui", "kind": "image", "reuseFromV3": false, "description": "V4 新增：可收合「雨聲書店手繪平面小地圖」基底＋暖金微光圓點提示圖層" },
+      { "id": "ui-memory-receipt-v4", "category": "ui", "kind": "image", "reuseFromV3": false, "description": "V4 新增：結局《雨聲書店・今日借閱小票》復古紙質收據背景與鋸齒邊框" },
+      { "id": "ui-receipt-badges-v4", "category": "ui", "kind": "image", "reuseFromV3": false, "description": "V4 新增：借閱小票 4 枚隱藏彩蛋復古橡皮印章圖示（同書／黑膠／雨窗／慢熟戰友）" },
+      { "id": "rain-steady", "category": "audio-ambience", "kind": "audio", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-v1.wav（細雨環境音）" },
+      { "id": "rain-heavy", "category": "audio-ambience", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：傾盆大雨拍打玻璃環境音" },
+      { "id": "rain-easing", "category": "audio-ambience", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：雨勢轉小、屋簷滴水環境音" },
+      { "id": "vinyl-jazz", "category": "audio-bgm", "kind": "audio", "reuseFromV3": true, "sourceHint": "contracts/story-assets/rain-bookshop-music-v3.wav（黑膠曲目 1：雨夜慢爵士）" },
+      { "id": "vinyl-guitar", "category": "audio-bgm", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：黑膠曲目 2：溫暖木吉他" },
+      { "id": "vinyl-piano", "category": "audio-bgm", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：黑膠曲目 3：深夜獨奏鋼琴" },
+      { "id": "bgm-rescue-tension", "category": "audio-bgm", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：90 秒雙人救書緊湊微俏皮弦樂" },
+      { "id": "fx-doorbell", "category": "audio-sfx", "kind": "audio", "reuseFromV3": true, "sourceHint": "contracts/story-assets/doorbell-v2.wav（推門鈴聲）" },
+      { "id": "fx-page-turn", "category": "audio-sfx", "kind": "audio", "reuseFromV3": true, "sourceHint": "contracts/story-assets/page-turn-v1.wav（翻書頁聲）" },
+      { "id": "fx-umbrella-drop", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：收傘放進木桶聲" },
+      { "id": "fx-book-pull", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：從書牆或展台抽出紙本書摩擦聲" },
+      { "id": "fx-paper-tear", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：沿虛線撕開牛皮紙盲書封條聲" },
+      { "id": "fx-glass-wipe", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：手指擦開落地窗霧氣聲" },
+      { "id": "fx-vinyl-crackle", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：黑膠唱針落下微沙聲" },
+      { "id": "fx-card-flip", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：雨天提問卡翻牌揭曉聲" },
+      { "id": "fx-thunder-flash", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：閃電炸雷與吊燈跳電聲" },
+      { "id": "fx-water-seep", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：雨水從門縫湧進地板聲" },
+      { "id": "fx-countdown-tick", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：最後 15 秒緊迫倒數節拍提醒音" },
+      { "id": "fx-box-snap", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：防潮箱鎖扣清脆扣上聲" },
+      { "id": "fx-cup-clink", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：陶瓷咖啡杯輕放木桌聲" },
+      { "id": "fx-receipt-print", "category": "audio-sfx", "kind": "audio", "reuseFromV3": false, "description": "V4 新增：結局《雨聲書店・今日借閱小票》輕脆出紙聲" }
+    ],
+    "audio": {
+      "defaultAmbience": "rain-steady",
+      "defaultVinylTrackId": "vinyl-jazz",
+      "vinylTracks": [
+        {
+          "id": "vinyl-jazz",
+          "title": "雨夜慢爵士",
+          "subtitle": "帶一點微醺薩克斯風與黑膠底噪",
+          "assetId": "vinyl-jazz",
+          "partnerSyncNotice": "唱片機的針輕輕落下，店裡換成微醺的《雨夜慢爵士》。"
+        },
+        {
+          "id": "vinyl-guitar",
+          "title": "木質暖吉他",
+          "subtitle": "像壁爐旁慢慢撥動的溫柔指彈",
+          "assetId": "vinyl-guitar",
+          "partnerSyncNotice": "不知是誰換了唱片，溫暖的《木質暖吉他》在雨聲裡散開。"
+        },
+        {
+          "id": "vinyl-piano",
+          "title": "深夜獨奏鋼琴",
+          "subtitle": "清澈克制、適合慢慢翻書的琴音",
+          "assetId": "vinyl-piano",
+          "partnerSyncNotice": "櫃檯旁傳來唱針落下的微響，旋律切換成清澈的《深夜獨奏鋼琴》。"
+        }
+      ]
+    },
+    "books": [
+      {
+        "id": "classic-little-prince",
+        "kind": "classic",
+        "objectId": "book-classic-little-prince",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆中層偏左，深藍星夜書脊斜靠著黃銅書擋",
+        "interestTags": ["reading", "art"],
+        "coverAssetId": "book-cover-little-prince-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "小王子",
+        "author": "安東尼・德・聖修伯里",
+        "publicDomainNote": "作者 1944 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "深藍底、燙金星星與小狐狸壓紋精裝",
+        "clerkHandwrittenCard": "小時候當童話讀，長大後在加班的公車上翻到狐狸那頁，直接破防。",
+        "summary": "關於馴養、等待，以及為什麼某朵玫瑰會變得無可取代。",
+        "pages": [
+          "狐狸望著他說：「對我而言，你原本只是十萬個路過的人裡普通的一個。我不需要你，你也不需要我。」",
+          "「但如果你馴養了我，我們就會彼此需要。對我來說，你將是這世界上獨一無二的；對你來說，我也一樣。」",
+          "「你每天最好在同一個時間來。譬如說，你如果下午四點來，那麼從三點開始，我就會覺得很快樂。時間越近，我就越快樂。」",
+          "「正因為你在你的玫瑰身上花費了時間，你的玫瑰才變得如此重要。」"
+        ],
+        "previousReaderNote": "夾在末頁的鉛筆字條：「今天下午四點，我還是提前十五分鐘到了。如果下一個翻到這頁的你也正在等誰，祝你不用等太久。」",
+        "bookmarkQuote": "如果你下午四點來，從三點起，我就會開始覺得幸福。",
+        "altBookmarkQuotes": [
+          "正因為你在玫瑰身上花費了時間，它才變得如此重要。",
+          "真正重要的東西，用眼睛是看不見的，得用心才行。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "lp-wait",
+            "label": "想起「為了某個約定，提前一小時就開始期待」的感覺",
+            "monologue": "已經很久沒有為了誰，從三點鐘就開始期待四點鐘了。這幾行字輕輕的，卻剛好落在心口最軟的地方。"
+          },
+          {
+            "id": "lp-rose",
+            "label": "覺得自己也曾經很認真地，把時間花在某段關係上",
+            "monologue": "原來讓人放不下的，不只是那朵玫瑰本身，而是那些自己真的花過心思的傍晚與對話。"
+          },
+          {
+            "id": "lp-neutral",
+            "label": "沒什麼特別的私事，純粹覺得狐狸這段話寫得太溫柔了",
+            "monologue": "沒有對應到什麼具體的回憶，只是單純被這段文字的溫度打動。長大以後再讀，果然完全不一樣。"
+          }
+        ],
+        "wrongRescueFeedback": "這是主書牆上的《小王子》，深藍星夜封面配小狐狸——先核對一下現在清單上的描述喔！"
+      },
+      {
+        "id": "classic-no-longer-human",
+        "kind": "classic",
+        "objectId": "book-classic-no-longer-human",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆中層中央，霧灰布紋書脊夾在兩本深色精裝之間",
+        "interestTags": ["reading", "music"],
+        "coverAssetId": "book-cover-no-longer-human-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "人間失格",
+        "author": "太宰治",
+        "publicDomainNote": "作者 1948 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "霧灰深墨布紋封面、極簡直排書名",
+        "clerkHandwrittenCard": "給所有白天很會搞笑、回家累到不想說話的社畜。看完別難過，你只是太怕冷場了。",
+        "summary": "習慣戴上笑臉逗人開心的人，心底最真實的疲憊與渴望被理解。",
+        "pages": [
+          "我對人群始終懷著說不出口的緊張，於是早早學會用滑稽的笑話與過度體貼的微笑，作為向世界求饒的最後一道防線。",
+          "只要大家還笑得出來，哪怕心裡早已精疲力竭，我也會把這場獨角戲演完——只怕空氣突然安靜下來，被人看見真正的我。",
+          "其實我並不是真的冷漠，只是不知道該怎麼卸下武裝，好好對誰說一句：「我今天其實有點撐不住了。」"
+        ],
+        "previousReaderNote": "夾在末頁的藍筆便條：「讀給所有在聚餐上拼命找話題的人：下次試著安靜五分鐘，真正喜歡你的人不會因此走掉。」",
+        "bookmarkQuote": "其實我並不是真的擅長逗人笑，只是害怕沉默而已。",
+        "altBookmarkQuotes": [
+          "不必每場聚會都當負責炒熱氣氛的人，今晚你可以安靜一下。",
+          "承認自己也有點累，其實一點都不可恥。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "nlh-clown",
+            "label": "超有感，平常在社交場合也常硬著頭皮搞笑怕冷場",
+            "monologue": "平常總怕氣氛尷尬、怕當句點王，結果每次聚完都像電量歸零。原來不是只有我會這樣。"
+          },
+          {
+            "id": "nlh-mask",
+            "label": "突然很想找一個不用假裝開朗也能相處的人",
+            "monologue": "如果這世界上有一個人，在他面前不講笑話、安靜待著也不會覺得愧疚，那該有多輕鬆。"
+          },
+          {
+            "id": "nlh-neutral",
+            "label": "純粹被文字的坦白震了一下，並沒有代入自己",
+            "monologue": "太宰治把人心的尷尬寫得太赤裸了。雖然不是在說自己，卻還是忍不住多停了幾秒。"
+          }
+        ],
+        "wrongRescueFeedback": "這本《人間失格》寫滿了社畜的苦笑，清單上現在要搶的不是它喔，快去別格找找！"
+      },
+      {
+        "id": "classic-pride-prejudice",
+        "kind": "classic",
+        "objectId": "book-classic-pride-prejudice",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆下層偏右，酒紅色厚皮精裝最顯眼",
+        "interestTags": ["reading", "coffee"],
+        "coverAssetId": "book-cover-pride-prejudice-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "傲慢與偏見",
+        "author": "珍・奧斯汀",
+        "publicDomainNote": "作者 1817 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "復古酒紅精裝厚皮、燙金書角邊框",
+        "clerkHandwrittenCard": "兩個人從互看不順眼到真香的始祖。別急著靠第一印象替誰貼標籤，慢熱的人通常最誠實。",
+        "summary": "當初見的防備被一場大雨與一封真誠的信拆開，重新認識彼此的開始。",
+        "pages": [
+          "初見那天，他過於克制疏離的眉眼，與她不肯退讓半步的倔強，讓兩個人各自把對方放進了「絕不會深交」的名單裡。",
+          "我們總以為三秒鐘的印象就足以看穿一個人，卻忘了每張看似冷淡的臉背後，都可能只是不擅長在陌生人面前表現熱絡。",
+          "直到一場大雨與一封沒有修飾的長信，拆開了彼此假裝從容的外殼——原來願意推翻第一印象的勇氣，才是心動真正開始的地方。"
+        ],
+        "previousReaderNote": "夾在末頁的淡粉便條：「我跟我現在最好的朋友第一次見面時，其實覺得對方超難相處。好險當時沒有直接封鎖哈哈。」",
+        "bookmarkQuote": "我們常常太快替一個人下結論，卻忘了給彼此第二次認識的機會。",
+        "altBookmarkQuotes": [
+          "慢熱不是冷漠，只是想把真心留給願意多聊兩句的人。",
+          "真正的好感，常常發生在放下第一印象之後。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "pp-first",
+            "label": "覺得現在滑卡看臉太快了，常常三秒就錯過有趣的人",
+            "monologue": "現在認識人總是三秒定生死，好像慢半拍就沒機會了。書裡那種慢慢拆掉成見的節奏，其實挺迷人的。"
+          },
+          {
+            "id": "pp-slow",
+            "label": "自己就是偏慢熱的人，很懂那種外冷內熱的尷尬",
+            "monologue": "其實不是難相處，只是剛見面不知道手腳要放哪。如果有人願意多留一點耐心就好了。"
+          },
+          {
+            "id": "pp-neutral",
+            "label": "純粹喜歡珍・奧斯汀幽默又犀利的筆法",
+            "monologue": "兩百年前寫的人際誤會，放到現在看還是一樣好笑又精準，文字讀起來真過癮。"
+          }
+        ],
+        "wrongRescueFeedback": "這是酒紅精裝厚皮的《傲慢與偏見》！先核對一下現在清單描述的是不是它喔。"
+      },
+      {
+        "id": "classic-great-gatsby",
+        "kind": "classic",
+        "objectId": "book-classic-great-gatsby",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆上層右側，墨綠金線書封在暖燈下微微反光",
+        "interestTags": ["reading", "music", "coffee"],
+        "coverAssetId": "book-cover-great-gatsby-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "大亨小傳",
+        "author": "F. 史考特・費茲傑羅",
+        "publicDomainNote": "作者 1940 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "墨綠硬殼封面、復古爵士金線紋飾",
+        "clerkHandwrittenCard": "繁華散場之後，你還記得對岸那盞綠光嗎？配今晚的爵士黑膠剛剛好。",
+        "summary": "在喧囂派對裡守著一盞隔海綠光，關於執著、遺憾與時間的溫柔嘆息。",
+        "pages": [
+          "整個夏夜，庭院裡流瀉著香檳氣泡與爵士樂，賓客來去如潮，卻幾乎沒有人真的認識站在樓梯口微笑的主人。",
+          "散場後的碼頭安靜得只剩潮水聲。他伸出手，望向海灣對岸那一點幾乎要被霧氣吞沒的微弱綠光。",
+          "所有看似張揚的熱鬧，說穿了，不過是為了等一個很久以前沒能好好道別的人，偶爾願意回頭看一眼。"
+        ],
+        "previousReaderNote": "夾在末頁的墨綠字條：「試著去櫃檯把黑膠切到《雨夜慢爵士》再讀第三頁，氛圍直接變成 1920 年代老電影。」",
+        "bookmarkQuote": "有些光就算隔著一整片海，你還是一眼就能認出來。",
+        "altBookmarkQuotes": [
+          "熱鬧散場後還能陪你聽雨的人，比整場派對都珍貴。",
+          "願你往前走的時候，心裡永遠留著一盞不會熄的微光。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "gg-crowd",
+            "label": "很有共鳴——有時候人越多的地方，反而越覺得孤單",
+            "monologue": "聚會越熱鬧、笑聲越大，回家的路就越安靜。反而像這樣只有雨聲的小書店，才讓人真的放鬆。"
+          },
+          {
+            "id": "gg-light",
+            "label": "被那份明知時間流逝、卻還是想伸手碰觸微光的執著打動",
+            "monologue": "就算知道有些事情回不去，心裡還是會替那份笨拙的認真留一個位置。"
+          },
+          {
+            "id": "gg-neutral",
+            "label": "純粹沉醉在書裡的爵士氛圍和畫面感裡",
+            "monologue": "像在看一場微醺的老電影，配著外面的雨聲，畫面美得讓人捨不得合上。"
+          }
+        ],
+        "wrongRescueFeedback": "這是墨綠金線封面的《大亨小傳》——先確認現在清單上寫的是不是『綠光與派對』喔！"
+      },
+      {
+        "id": "classic-kokoro",
+        "kind": "classic",
+        "objectId": "book-classic-kokoro",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆中層右側，米白和紙線裝書脊低調而乾淨",
+        "interestTags": ["reading", "art"],
+        "coverAssetId": "book-cover-kokoro-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "心",
+        "author": "夏目漱石",
+        "publicDomainNote": "作者 1916 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "米白和紙質感、靛青傳統線裝書脊",
+        "clerkHandwrittenCard": "有些話藏得太久，久到連自己都忘了怎麼開口。翻完這本，記得多跟在乎的人說句實話。",
+        "summary": "關於沉默的陪伴、難以啟齒的孤獨，以及最終交出信任的重量。",
+        "pages": [
+          "先生總是安靜地走在前方半步，待人溫和有禮，背影卻像隔著一層薄薄的雨霧，怎麼也走不進他真正的世界。",
+          "我們活在訊息秒回的時代裡，心事卻越藏越深；不是不想被人懂，只是怕坦白之後會打破好不容易維持的平靜。",
+          "直到最後提筆把深藏多年的秘密寫給那個願意傾聽的年輕人，他才明白：承認自己脆弱，原來比假裝堅強更需要勇氣。"
+        ],
+        "previousReaderNote": "夾在末頁的宣紙字條：「去年把這本書看完那天，我終於傳了訊息給冷戰半年的朋友。幸好，他回得很快。」",
+        "bookmarkQuote": "人與人之間最難的，不是靠近，是承認自己也想被理解。",
+        "altBookmarkQuotes": [
+          "有些話不必一次說完，留給願意慢慢聽你說的人就好。",
+          "在安靜裡彼此陪伴，本身就是最溫柔的坦白。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "kk-unsaid",
+            "label": "想到自己也常把心裡話咽回去，怕造成別人負擔",
+            "monologue": "總是想著「算了不說了，說了對方也幫不上忙」，結果越忍越習慣一個人扛。"
+          },
+          {
+            "id": "kk-trust",
+            "label": "覺得能遇到一個願意安靜聽完故事的人非常難得",
+            "monologue": "不急著給建議、不急著評判，只是安靜坐在對面聽——這大概是最奢侈的溫柔吧。"
+          },
+          {
+            "id": "kk-neutral",
+            "label": "只是欣賞夏目漱石細膩克制的文字節奏",
+            "monologue": "沒有大起大落的狗血情節，卻像細雨一樣慢慢滲進心裡，後勁真強。"
+          }
+        ],
+        "wrongRescueFeedback": "這本米白線裝是夏目漱石的《心》，跟清單現在的描述對不上，快換一本找找！"
+      },
+      {
+        "id": "classic-prophet",
+        "kind": "classic",
+        "objectId": "book-classic-prophet",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆與視線齊平處，暖沙色亞麻布面觸感溫潤",
+        "interestTags": ["reading", "travel"],
+        "coverAssetId": "book-cover-prophet-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "先知",
+        "author": "卡里・紀伯倫",
+        "publicDomainNote": "作者 1923 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "經典文學・主書牆",
+        "coverVisual": "暖沙色亞麻布面、簡約燙棕葉脈線條",
+        "clerkHandwrittenCard": "論愛、論陪伴、論留白。這本我放在最順手的位置——最舒服的關係，從來不是綁在一起。",
+        "summary": "獻給成熟靈魂的溫柔詩篇：相愛卻彼此獨立，靠近卻保有呼吸空間。",
+        "pages": [
+          "把彼此的杯子斟滿，但別只共飲同一只杯；分享你們的麵包，卻別只吃同一塊。",
+          "一起歡唱起舞吧，也要讓彼此保有獨處的空間；就像魯特琴的弦各自獨立，卻為同一首樂曲微微顫動。",
+          "站在彼此身旁，但別靠得太近；因為神殿的廊柱各自佇立，橡樹與柏樹也不在彼此的陰影裡生長。"
+        ],
+        "previousReaderNote": "夾在末頁的米色卡片：「如果有一天遇到讓我敢把這頁畫線送給他的人，那應該就是對的人了吧。」",
+        "bookmarkQuote": "站在彼此身旁，但別靠得太近；橡樹與柏樹不在彼此的陰影裡生長。",
+        "altBookmarkQuotes": [
+          "琴弦各自獨立，卻能為同一首樂曲共振。",
+          "最舒服的陪伴，是連各自的沉默都能安心安放。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "pr-space",
+            "label": "超認同「留白」的重要，靠太緊反而會喘不過氣",
+            "monologue": "以前總覺得親近就是黏在一起，現在才懂，兩個人能各自發光又互相照應，才是最長久的樣子。"
+          },
+          {
+            "id": "pr-strings",
+            "label": "很喜歡「琴弦各自獨立卻共鳴同一首歌」這個比喻",
+            "monologue": "不用變成一模一樣的人，只要頻率對了，待在同一個空間裡就已經很舒服。"
+          },
+          {
+            "id": "pr-neutral",
+            "label": "單純覺得這段詩句寫得非常美，讀起來很平靜",
+            "monologue": "像一杯溫度剛好的熱茶，沒有多餘的糖，喝下去整個人都靜了下來。"
+          }
+        ],
+        "wrongRescueFeedback": "這是暖沙亞麻布面的《先知》！快對照一下現在目標書的線索是不是『橡樹與柏樹』喔。"
+      },
+      {
+        "id": "classic-botchan",
+        "kind": "classic",
+        "objectId": "book-classic-botchan",
+        "areaId": "entrance",
+        "placementHint": "入口內側乾燥木展台左側，芥末黃復古封面斜立在木架上",
+        "interestTags": ["reading", "food"],
+        "coverAssetId": "book-cover-botchan-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "少爺",
+        "author": "夏目漱石",
+        "publicDomainNote": "作者 1916 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "雨天展台・入口內側",
+        "coverVisual": "芥末黃復古和風平裝、手繪天婦羅蕎麥麵小插圖",
+        "clerkHandwrittenCard": "今天在公司受氣了嗎？翻開這本看一百年前的直男新人怎麼怒懟假掰主管，解氣度 100 分。",
+        "summary": "衝動又單純的年輕老師闖進人情世故滿點的鄉下學校，既好笑又讓人想起還沒變圓滑的自己。",
+        "pages": [
+          "我從小就是個不懂轉彎的愣頭青，最受不了那些嘴上客客氣氣、背後卻愛給人穿小鞋的大人。",
+          "才到鄉下報到沒幾天，不過吃了四碗天婦羅蕎麥麵就被全校取綽號，同事還個個戴著笑臉互相試探。",
+          "大人總說圓滑才不會吃虧，可我覺得，寧可笨拙地替真誠出頭，也不要變成自己以前最討厭的那種人。"
+        ],
+        "previousReaderNote": "夾在末頁的便條紙：「剛被主管甩鍋完走進來翻這本，看到少爺氣呼呼的樣子突然笑出來，氣消了一半！」",
+        "bookmarkQuote": "就算被說太天真也沒關係，至少沒變成自己以前最討厭的大人。",
+        "altBookmarkQuotes": [
+          "偶爾直來直往一次，其實比整天猜心爽快多了。",
+          "人生已經夠累了，下班後就多吃一碗自己喜歡的麵吧。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "bt-work",
+            "label": "超解氣！職場上真的每天都在演這種表面微笑的荒謬劇",
+            "monologue": "一百年前的辦公室政治跟今天簡直一模一樣，邊看邊覺得又好氣又好笑。"
+          },
+          {
+            "id": "bt-pure",
+            "label": "有點懷念以前那個想說什麼就說、還沒那麼顧忌的自己",
+            "monologue": "長大以後太會察言觀色了，偶爾還真羨慕這種橫衝直撞的坦率。"
+          },
+          {
+            "id": "bt-neutral",
+            "label": "純粹覺得這本節奏超輕快幽默，下雨天看心情變好好",
+            "monologue": "嘴角完全壓不住，沒想到百年前的經典竟然這麼像現代喜劇。"
+          }
+        ],
+        "wrongRescueFeedback": "這是入口展台的芥末黃《少爺》！很解氣沒錯，但清單現在要找的不是它喔！"
+      },
+      {
+        "id": "classic-metamorphosis",
+        "kind": "classic",
+        "objectId": "book-classic-metamorphosis",
+        "areaId": "entrance",
+        "placementHint": "入口內側乾燥木展台中央，煙燻炭黑壓紋平放展示",
+        "interestTags": ["reading", "puzzle"],
+        "coverAssetId": "book-cover-metamorphosis-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "變形記",
+        "author": "法蘭茲・卡夫卡",
+        "publicDomainNote": "作者 1924 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "雨天展台・入口內側",
+        "coverVisual": "煙燻炭黑幾何壓紋精裝、銀灰細線邊框",
+        "clerkHandwrittenCard": "最恐怖的社畜寓言：主角醒來變成大甲蟲，第一個念頭竟然是『完蛋了趕不上七點火車要遲到了』。",
+        "summary": "一覺醒來變成異類後，才看清自己原本只被當成『必須永遠有用的齒輪』。",
+        "pages": [
+          "清晨從不安的夢中醒來，他發現自己躺在床上變成了一隻巨大的甲蟲。外頭正下著細雨，打在鐵皮窗沿上令人發悶。",
+          "荒謬的是，面對這副陌生的硬殼身體，他第一個恐慌的念頭竟然不是自己怎麼了，而是「再不起床就要趕不上五點的火車、會被經理罵」。",
+          "原來在變成蟲子以前，他早就因為日復一日的疲憊與討好，一點一點失去了作為「一個人」被溫柔對待的權利。"
+        ],
+        "previousReaderNote": "夾在末頁的摺角便利貼：「週一早上看到這段差點笑中帶淚。朋友，今晚下班記得先當回人類，別再當齒輪了。」",
+        "bookmarkQuote": "如果連醒來變成甲蟲第一件事都在擔心遲到，那我們真的太需要放假了。",
+        "altBookmarkQuotes": [
+          "你的價值從來不只是「有用」，休息的時候你也一樣值得被喜歡。",
+          "今晚別管待辦清單，先讓自己好好當回一個人吧。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "mt-burnout",
+            "label": "笑著笑著就破防了……生病請假時我也常先擔心工作怎麼辦",
+            "monologue": "明明已經累得像外殼快碎掉了，腦袋還在算明天簡報怎麼做。被百年前的卡夫卡精準吐槽到無話可說。"
+          },
+          {
+            "id": "mt-value",
+            "label": "希望身邊的人喜歡的是真實的我，而不是「很有用的我」",
+            "monologue": "卸下頭銜和效率之後，還願意坐下來跟你聊聊天的人，才是最想珍惜的。"
+          },
+          {
+            "id": "mt-neutral",
+            "label": "單純覺得卡夫卡荒誕又犀利的開場實在太經典了",
+            "monologue": "短短幾頁就把現代人的荒謬演到極致，難怪過了一百年大家還在讀。"
+          }
+        ],
+        "wrongRescueFeedback": "這是煙燻炭黑封面的《變形記》——清單上的描述跟甲蟲或趕火車不一樣喔，快去別處看！"
+      },
+      {
+        "id": "classic-wuthering-heights",
+        "kind": "classic",
+        "objectId": "book-classic-wuthering-heights",
+        "areaId": "entrance",
+        "placementHint": "入口內側乾燥木展台右側，暴風雨灰紫精裝立於窗光下",
+        "interestTags": ["reading", "movie"],
+        "coverAssetId": "book-cover-wuthering-heights-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "咆哮山莊",
+        "author": "艾蜜莉・勃朗特",
+        "publicDomainNote": "作者 1848 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "雨天展台・入口內側",
+        "coverVisual": "暴風雨灰紫燙銀荒原輪廓精裝",
+        "clerkHandwrittenCard": "外頭雨越狂越適合讀這本。兩個人愛得像荒原暴風雨一樣猛，看完會更珍惜溫柔的相處。",
+        "summary": "荒原狂風裡最熾烈也最執拗的愛恨交鋒，像一場永不停歇的雷陣雨。",
+        "pages": [
+          "荒原上的風捲著雨水猛敲窗欞，整棟老石屋彷彿孤獨地浮在夜色與雷聲中央。",
+          "她望向遠方被雲霧吞沒的山坡說：「不論我們的靈魂是用什麼做成的，他的和我，始終是同一種質地。」",
+          "然而太過驕傲又不肯示弱的深情，終究像一場來不及收住的暴風雨——讀完才明白，原來願意好好說話，有多珍貴。"
+        ],
+        "previousReaderNote": "夾在末頁的灰藍字條：「高中讀覺得好轟轟烈烈，出社會再翻只覺得：兩位冷靜一點，坐下來喝杯熱咖啡好好溝通行不行哈哈！」",
+        "bookmarkQuote": "不論我們的靈魂是用什麼做成的，總有一個人與你屬於同一種頻率。",
+        "altBookmarkQuotes": [
+          "轟轟烈烈很迷人，但願意在雨夜裡好好說話更難得。",
+          "別讓驕傲替你說出相反的話。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "wh-soul",
+            "label": "被那句「靈魂是同一種質地」狠狠戳了一下",
+            "monologue": "如果真的能遇見一個不用解釋太多、頻率天生相同的人，好像連暴風雨夜都會變得值得期待。"
+          },
+          {
+            "id": "wh-gentle",
+            "label": "覺得激情固然動人，但現在更嚮往情緒穩定、好好說話的關係",
+            "monologue": "看書裡折騰成這樣，反而覺得平靜、體貼、互相尊重的相處才是頂級浪漫。"
+          },
+          {
+            "id": "wh-neutral",
+            "label": "純粹覺得這本荒原風雨的氣氛跟今天外面天氣絕配",
+            "monologue": "聽著門外嘩啦啦的雨聲翻這一段，沉浸感強得像身臨荒原。"
+          }
+        ],
+        "wrongRescueFeedback": "這是入口展台的暴風雨灰紫《咆哮山莊》！先核對一下清單上的封面顏色跟關鍵字喔。"
+      },
+      {
+        "id": "classic-jane-eyre",
+        "kind": "classic",
+        "objectId": "book-classic-jane-eyre",
+        "areaId": "reading-corner",
+        "placementHint": "閱讀角靠牆低書櫃上層左側，深靛銀線布面觸感溫雅",
+        "interestTags": ["reading", "art"],
+        "coverAssetId": "book-cover-jane-eyre-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "簡愛",
+        "author": "夏綠蒂・勃朗特",
+        "publicDomainNote": "作者 1855 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "閱讀角低櫃・心動與獨立",
+        "coverVisual": "典雅深靛藍布面、銀線玫瑰花紋精裝",
+        "clerkHandwrittenCard": "戀愛裡最帥氣的一段告白不在於依附誰，而在於『我的靈魂跟你一樣平等自由』。",
+        "summary": "不卑不亢、不因孤單而將就，只在靈魂平等處交付真心的經典戀愛宣言。",
+        "pages": [
+          "她沒有顯赫的出身，也沒有迎合世俗的圓滑，卻始終守著心底最後一塊不被任何人踩踏的尊嚴。",
+          "在暮色四合的花園裡，她直視著對方說：「別以為我平凡渺小就沒有靈魂與熱血——當我們彼此對望時，我們的靈魂是完全平等的。」",
+          "愛從來不是委屈自己縮成對方喜歡的形狀，而是兩隻各自有翅膀的鳥，依然選擇停在同一根枝頭。"
+        ],
+        "previousReaderNote": "夾在末頁的深藍便條：「送給每一個在感情裡差點委屈自己的女生：先喜歡原本的自己，再遇見喜歡你本來樣子的人。」",
+        "bookmarkQuote": "我們在彼此面前，從來都是完全平等且自由的靈魂。",
+        "altBookmarkQuotes": [
+          "好的關係不會要你縮小自己，而是讓你更像你自己。",
+          "我不是飛進籠裡的鳥，我是帶著自由選擇留在你身邊的人。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "je-equal",
+            "label": "超喜歡那種不卑不亢、靈魂平等的相處感",
+            "monologue": "真正讓人心動的從來不是單方面討好，而是兩個人平視著彼此、既獨立又互相欣賞。"
+          },
+          {
+            "id": "je-true",
+            "label": "不想再為了迎合誰而偽裝，只想自然做自己",
+            "monologue": "如果一定要演成另一個人才會被喜歡，那寧可像現在這樣安安靜靜做自己。"
+          },
+          {
+            "id": "je-neutral",
+            "label": "純粹覺得簡愛這段台詞氣場太強，百看不厭",
+            "monologue": "每次讀到這一段都還是會忍不住在心裡幫她鼓掌，太帥氣了。"
+          }
+        ],
+        "wrongRescueFeedback": "這是閱讀角低櫃的深靛銀線《簡愛》，先確認現在目標清單描述的是不是這一本喔！"
+      },
+      {
+        "id": "classic-little-women",
+        "kind": "classic",
+        "objectId": "book-classic-little-women",
+        "areaId": "reading-corner",
+        "placementHint": "閱讀角靠牆低書櫃中層，暖杏格紋精裝緊靠著小檯燈",
+        "interestTags": ["reading", "food", "family"],
+        "coverAssetId": "book-cover-little-women-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "小婦人",
+        "author": "露意莎・梅・奧爾柯特",
+        "publicDomainNote": "作者 1888 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "閱讀角低櫃・心動與獨立",
+        "coverVisual": "暖杏格紋溫馨布面精裝、焦糖色書背",
+        "clerkHandwrittenCard": "像冬夜裡的一碗熱湯。四姊妹吵吵鬧鬧又互相撐腰，看完會突然想打電話給閨蜜或家人。",
+        "summary": "在日常柴米與各自夢想之間磕磕絆絆長大，卻永遠替彼此留一盞暖燈的成長故事。",
+        "pages": [
+          "閣樓外飄著雪，四姊妹擠在老地毯上分食烤蘋果，一邊為了誰先寫完故事爭執，一邊替彼此縫補磨破的手套。",
+          "長大並不是一夕之間變厲害，而是在跌倒、羨慕別人、懷疑自己的夜晚過後，還願意牽起身邊人的手繼續走。",
+          "喬望著窗外寫下：「我並不害怕暴風雨，因為我正在學習怎麼掌好屬於自己的船。」"
+        ],
+        "previousReaderNote": "夾在末頁的暖黃便條：「讀完立刻傳訊息約了兩個月沒見的閨蜜吃早午餐！希望翻到這頁的你也有隨時能靠岸的朋友。」",
+        "bookmarkQuote": "我並不害怕暴風雨，因為我正在學習掌好屬於自己的船。",
+        "altBookmarkQuotes": [
+          "長大的路上難免磕絆，但有人一起分享熱茶就不孤單。",
+          "溫柔與勇敢從來不衝突，你可以同時擁有。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "lw-friend",
+            "label": "突然想起那些吵吵鬧鬧卻總在背後撐住自己的朋友與家人",
+            "monologue": "生活偶爾很煩，但只要想到有幾個可以隨時講廢話的人在，心裡就會暖起來。"
+          },
+          {
+            "id": "lw-storm",
+            "label": "很喜歡喬說『正在學著掌好自己的船』的那份獨立與熱血",
+            "monologue": "雖然對未來還是會有點迷惘，但慢慢摸索方向的過程，好像也沒那麼可怕了。"
+          },
+          {
+            "id": "lw-neutral",
+            "label": "純粹被書裡暖呼呼的氛圍療癒到了",
+            "monologue": "這本書自帶一種烤蘋果跟木頭壁爐的暖意，下雨天翻起來特別舒服。"
+          }
+        ],
+        "wrongRescueFeedback": "這是閱讀角低櫃的暖杏格紋《小婦人》，不在目前搶救清單的這一步喔，快換一本！"
+      },
+      {
+        "id": "classic-dorian-gray",
+        "kind": "classic",
+        "objectId": "book-classic-dorian-gray",
+        "areaId": "reading-corner",
+        "placementHint": "閱讀角靠牆低書櫃右側，孔雀綠燙金古典書封神秘優雅",
+        "interestTags": ["reading", "art", "movie"],
+        "coverAssetId": "book-cover-dorian-gray-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "道林・格雷的畫像",
+        "author": "奧斯卡・王爾德",
+        "publicDomainNote": "作者 1900 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "閱讀角低櫃・心動與獨立",
+        "coverVisual": "孔雀綠燙金古典畫框精裝、翡翠暗紋",
+        "clerkHandwrittenCard": "如果這世界只剩一張修到完美的皮囊，裡面卻空無一物，那有什麼好玩？王爾德一百年前就吐槽過外貌焦慮了。",
+        "summary": "一幅替主人承擔歲月與心靈痕跡的肖像，犀利拷問「皮囊與靈魂」哪一個才是真實的自己。",
+        "pages": [
+          "畫室裡光影交錯，年輕人望著畫布上近乎完美的自己，突然生出一股荒唐的焦慮——要是青春與好看的皮囊能永遠定格就好了。",
+          "於是他把真實的喜怒、傷痕與良心鎖進了閣樓布簾後的畫像裡，只留給世界一張無懈可擊卻漸漸空洞的笑臉。",
+          "直到最後他才明白，真正讓人心動且記住一輩子的，從來不是零瑕疵的濾鏡，而是靈魂真實活過的紋理。"
+        ],
+        "previousReaderNote": "夾在末頁的翡翠色字條：「滑交友軟體滑到外貌焦慮的時候翻了這本，瞬間清醒——比起修圖修到像假人，我還是喜歡有真實靈魂的人。」",
+        "bookmarkQuote": "真正讓人記住一輩子的，從來不是完美的皮囊，而是靈魂活過的紋理。",
+        "altBookmarkQuotes": [
+          "關掉完美濾鏡之後，反而更能看見一個人的迷人之處。",
+          "好看的臉能留住三秒，有趣的靈魂才能聊一整晚。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "dg-filter",
+            "label": "超戳！現在到處都是精修照跟外貌焦慮，看久了好累",
+            "monologue": "如果可以先透過聊天和一起玩遊戲認識靈魂，不用一上來就被顏值打分數，真的輕鬆太多了。"
+          },
+          {
+            "id": "dg-real",
+            "label": "覺得有點小缺點、帶點真實情緒的人反而最有魅力",
+            "monologue": "完美無瑕反而有距離感；真實、坦率、會一起笑場的人才有溫度啊。"
+          },
+          {
+            "id": "dg-neutral",
+            "label": "單純迷上王爾德華麗又帶點暗黑機鋒的敘事魅力",
+            "monologue": "每一句都像在閃著微光的寶石，帶著一點點壞心眼的幽默，讀起來超上癮。"
+          }
+        ],
+        "wrongRescueFeedback": "這是閱讀角低櫃的孔雀綠燙金《道林・格雷的畫像》！先核對一下現在目標清單上的線索喔！"
+      },
+      {
+        "id": "classic-walden",
+        "kind": "classic",
+        "objectId": "book-classic-walden",
+        "areaId": "counter",
+        "placementHint": "櫃檯左側木托架上，森林苔綠手作紙封就擺在咖啡手沖壺旁",
+        "interestTags": ["reading", "outdoor", "coffee"],
+        "coverAssetId": "book-cover-walden-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "湖濱散記",
+        "author": "亨利・大衛・梭羅",
+        "publicDomainNote": "作者 1862 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "櫃檯選書・生活與微光",
+        "coverVisual": "森林苔綠手作棉紙封、極簡湖面波紋線條",
+        "clerkHandwrittenCard": "不用真的辭職搬去森林搭木屋——偶爾把手機反扣在桌上喝完一杯手沖，也算偷到半小時瓦爾登湖。",
+        "summary": "暫時離開擁擠的日常喧囂，在湖水、松風與雨聲裡重新聽見自己心跳的速度。",
+        "pages": [
+          "我走進樹林裡，是因為我想清醒地生活，只面對生命最本質的風景，免得走到盡頭時，才發現自己從未真正活過。",
+          "下雨的午後坐在窗前，聽松針與水面回應著雲朵的節奏，忽然覺得人其實不需要那麼多塞滿行事曆的雜音。",
+          "如果你覺得某個人走得跟大家節拍不同，也許只是因為他正聽著遠方另一面屬於自己的鼓聲。"
+        ],
+        "previousReaderNote": "夾在末頁的苔綠小紙片：「每次覺得生活太吵就來這裡坐半小時。如果能把手機放口袋聊完一個晚上，感覺超奢侈。」",
+        "bookmarkQuote": "如果有人走得跟別人節拍不同，也許只是他正聽著屬於自己的鼓聲。",
+        "altBookmarkQuotes": [
+          "不需要逃到森林裡，在雨天的小店裡放空半小時也很棒。",
+          "慢慢走沒關係，醒著感受當下比趕路更重要。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "wl-pace",
+            "label": "好喜歡「每個人聽著不同鼓聲」這句，瞬間沒那麼焦慮了",
+            "monologue": "滑社群看大家好像都走得好快，其實照自己的步調走，根本不需要急著跟誰比賽。"
+          },
+          {
+            "id": "wl-calm",
+            "label": "突然很渴望一場沒有手機通知干擾的慢步調小旅行",
+            "monologue": "找個安靜的地方喝杯咖啡、看雨看風景，如果身邊剛好有聊得來的人，應該滿幸福的。"
+          },
+          {
+            "id": "wl-neutral",
+            "label": "單純覺得這段文字好清澈，像剛下過雨的森林空氣",
+            "monologue": "字句裡沒有一點火氣，讀著讀著整個人都降溫放鬆了下來。"
+          }
+        ],
+        "wrongRescueFeedback": "這是櫃檯旁森林苔綠封面的《湖濱散記》！快再核對一下清單現在要搶的是哪一本喔！"
+      },
+      {
+        "id": "classic-rashomon",
+        "kind": "classic",
+        "objectId": "book-classic-rashomon",
+        "areaId": "counter",
+        "placementHint": "櫃檯左側木托架旁，硃砂墨韻平裝壓在復古銅鎮紙下",
+        "interestTags": ["reading", "puzzle", "movie"],
+        "coverAssetId": "book-cover-rashomon-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "羅生門",
+        "author": "芥川龍之介",
+        "publicDomainNote": "作者 1927 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "櫃檯選書・生活與微光",
+        "coverVisual": "硃砂與濃墨渲染古風平裝、雨簾壓紋",
+        "clerkHandwrittenCard": "經典的『傍晚大雨躲在屋簷下等雨停』始祖——放心，我們店裡有暖氣跟熱咖啡，比羅生門舒服多了。",
+        "summary": "一場傍晚不停的雨，把迷惘的旅人困在城門下，映照出人心在困境裡的猶豫與反轉。",
+        "pages": [
+          "某個傍晚，一個失業又無處可去的年輕人，站在傾盆大雨的羅生門下，百無聊賴地等著這場雨停下來。",
+          "雨勢絲毫沒有轉小的意思，門樓上吹過冷風，他在「守住底線」與「向現實妥協」之間反覆拉扯，怎麼也下不了決定。",
+          "原來一場突如其來的雨，總會把平常藏在陽光底下的真實想法，一點一點照得無所遁形。"
+        ],
+        "previousReaderNote": "夾在末頁的墨色小籤：「誰會在大雨天在書店把《羅生門》擺在櫃檯啦哈哈哈，阿澄店長你真的很懂黑色幽默！」",
+        "bookmarkQuote": "一場突如其來的雨，總會讓人看見平常藏在日常底下的真實樣貌。",
+        "altBookmarkQuotes": [
+          "同一件事，不同視角看出去完全是兩個故事。",
+          "幸好今晚我們躲雨的地方有熱咖啡，而不是冰冷的城門。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "rs-perspective",
+            "label": "覺得超有道理，人跟人之間常常只是站的角度不同而已",
+            "monologue": "同一場雨，有人覺得掃興、有人覺得剛好喘口氣。多聽對方視角講一遍，事情往往變得很有趣。"
+          },
+          {
+            "id": "rs-rain",
+            "label": "在雨夜裡讀到「躲在屋簷下等雨停」，莫名覺得好應景",
+            "monologue": "好險我們今晚待的是暖呼呼的雨聲書店，還有黑膠跟咖啡作伴。"
+          },
+          {
+            "id": "rs-neutral",
+            "label": "純粹佩服芥川龍之介短短幾千字就能把張力拉到最滿",
+            "monologue": "氣氛營造得太神了，每一行字都像帶著雨氣一樣有畫面感。"
+          }
+        ],
+        "wrongRescueFeedback": "這是櫃檯旁硃砂墨韻封面的《羅生門》！先核對看看清單上寫的顏色與線索對不對喔。"
+      },
+      {
+        "id": "classic-stray-birds",
+        "kind": "classic",
+        "objectId": "book-classic-stray-birds",
+        "areaId": "window",
+        "placementHint": "起霧落地窗邊木書台左側，奶油白壓花水彩書封浸在街燈微光中",
+        "interestTags": ["reading", "art", "photography"],
+        "coverAssetId": "book-cover-stray-birds-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "漂鳥集",
+        "author": "羅賓德拉納特・泰戈爾",
+        "publicDomainNote": "作者 1941 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "窗邊選書・詩句與遠方",
+        "coverVisual": "奶油白壓花水彩飛鳥書封、淡金書腰",
+        "clerkHandwrittenCard": "沒有耐心看長篇小說的人直接翻這本！隨手翻開任何一頁，都是能直接當限動文案的神級短詩。",
+        "summary": "三百多首像雨滴般輕巧卻發光的短詩，接住每一次抬頭看天空的心動瞬間。",
+        "pages": [
+          "夏天的飛鳥飛到我窗前歌唱，又飛去了；秋天的黃葉沒有歌聲，只是嘆息一聲，悄悄飄落。",
+          "世界對著它的愛人，把浩瀚的面具摘了下來——它變得好小，小得像一首歌，小得像一個永恆的微笑。",
+          "使生如夏花之絢爛；如果你因錯過太陽而流淚，那麼你也會錯過頭頂的群星。"
+        ],
+        "previousReaderNote": "夾在末頁的奶油白小卡：「如果你今天過得不太順，送你這頁——錯過太陽沒關係，說不定今晚雨停會有星星。」",
+        "bookmarkQuote": "如果你因錯過太陽而流淚，那麼你也會錯過頭頂的群星。",
+        "altBookmarkQuotes": [
+          "世界摘下面具後，其實小得像一個溫柔的微笑。",
+          "每一次偶然停下來的傍晚，都可能藏著一份溫柔。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "sb-stars",
+            "label": "被「錯過太陽也會錯過群星」溫柔地安慰到了",
+            "monologue": "以前總抓著錯過的事反覆懊惱，現在想想，抬起頭看看眼前的人和風景，或許更值得。"
+          },
+          {
+            "id": "sb-mask",
+            "label": "好喜歡「摘下浩瀚面具、變得小小溫柔」的畫面",
+            "monologue": "在外頭撐了一整天，好像只有在卸下防備的那一刻，心才會真的輕下來。"
+          },
+          {
+            "id": "sb-neutral",
+            "label": "純粹驚嘆泰戈爾一句話就能寫出整個宇宙的詩意",
+            "monologue": "不用長篇大論，兩行字就讓窗外的雨夜變得好美。"
+          }
+        ],
+        "wrongRescueFeedback": "這是窗邊書台的奶油白水彩《漂鳥集》！先核對一下現在清單上要找的是不是它喔！"
+      },
+      {
+        "id": "classic-twenty-thousand-leagues",
+        "kind": "classic",
+        "objectId": "book-classic-twenty-thousand-leagues",
+        "areaId": "window",
+        "placementHint": "起霧落地窗邊木書台右側，深海藍銅金羅盤精裝靜置於雨窗倒影前",
+        "interestTags": ["reading", "travel", "outdoor"],
+        "coverAssetId": "book-cover-twenty-thousand-leagues-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "海底兩萬里",
+        "author": "儒勒・凡爾納",
+        "publicDomainNote": "作者 1905 年逝世，屬公有領域；以下為原創自譯意象摘錄",
+        "category": "窗邊選書・詩句與遠方",
+        "coverVisual": "深海藍精裝、銅金羅盤與鸚鵡螺線條壓紋",
+        "clerkHandwrittenCard": "討厭外面人擠人嗎？躲進鸚鵡螺號的巨型觀景窗吧——跟今晚躲在雨聲書店落地窗邊一樣，世界在外面，平靜在裡面。",
+        "summary": "登上神秘潛艇鸚鵡螺號，穿過發光珊瑚與沉沒古城，在寂靜深海裡展開最自由的冒險。",
+        "pages": [
+          "鐵板緩緩拉開，巨大的圓形觀景窗外亮起幽藍海水——沒有陸地上的紛擾與催促，只有無數發光游魚安靜掠過玻璃。",
+          "船長望著窗外說：「大海不會屬於任何暴君，在海面下三十呎，一切陸地的喧囂都再也追不上我們。」",
+          "原來最迷人的冒險，不只在於去到多遠的地方，而在於身邊有誰願意跟你一起透過同一扇窗，看見未知的風景。"
+        ],
+        "previousReaderNote": "夾在末頁的深海藍便條：「小時候好想搭鸚鵡螺號逃離考卷，現在好想找個頻率對的旅伴，一起去沒去過的海邊發呆。」",
+        "bookmarkQuote": "最迷人的冒險，是有人願意和你透過同一扇窗，看見未知的風景。",
+        "altBookmarkQuotes": [
+          "把地面的喧囂關在窗外，今晚這裡就是我們的鸚鵡螺號。",
+          "世界很大，有個聊得來的旅伴一起探索會更有趣。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "tl-escape",
+            "label": "超想有一扇把所有煩心事隔在門外的觀景窗",
+            "monologue": "望著雨滴滑過玻璃，突然覺得這間書店今晚真的有點像一艘安靜停泊的潛艇。"
+          },
+          {
+            "id": "tl-partner",
+            "label": "很憧憬跟一個合拍的旅伴一起看沒見過的風景",
+            "monologue": "一個人旅行很自由，但有些壯觀的時刻，還是會希望旁邊有人能同時說一句「你看那裡！」"
+          },
+          {
+            "id": "tl-neutral",
+            "label": "純粹覺得百年前的科幻想像力帥呆了",
+            "monologue": "光想像深海玻璃窗外游過發光魚群的畫面，心情瞬間就開闊起來。"
+          }
+        ],
+        "wrongRescueFeedback": "這是窗邊書台的深海藍銅金羅盤《海底兩萬里》！先核對一下現在清單的關鍵字喔！"
+      },
+      {
+        "id": "blind-its-okay",
+        "kind": "blind",
+        "objectId": "book-blind-its-okay",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆旁木製盲書箱左側，牛皮紙包著麻繩與手寫標籤",
+        "interestTags": ["reading", "coffee"],
+        "coverAssetId": "book-cover-blind-its-okay-v4",
+        "sealedAssetId": "prop-blind-kraft-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "今天不用當懂事的大人",
+        "author": "雨聲書店獨立選輯",
+        "publicDomainNote": "全原創內容",
+        "category": "牛皮紙盲書・主書牆盲書箱",
+        "coverVisual": "牛皮紙麻繩包裝，撕開後為暖橘手工活版印刷封面",
+        "blindTags": [
+          "#給總是在說沒關係的大人",
+          "#下班後的沉默",
+          "#允許今天不堅強"
+        ],
+        "blindSealedPrompt": "沿著牛皮紙虛線往右滑，撕開今晚的盲書",
+        "clerkHandwrittenCard": "撕開這本的人，通常今天已經夠努力了。進門就把『懂事』寄放在我櫃檯吧。",
+        "summary": "一封寫給總是替別人著想、卻忘了照顧自己的大人的晚安手札。",
+        "pages": [
+          "你習慣在訊息最後多加一個笑臉，習慣把「我沒事、都可以」說得比「你好」還順口，久了連自己都差點信了。",
+          "傍晚搭車回家看著車窗上滑落的雨滴，突然發現一整天裡，沒有人問過你「累不累」，而你也忘了問自己。",
+          "如果這場不講理的大雨剛好把你留在這間小店裡，今晚就先放自己兩個小時的假，別當那個永遠靠譜的大人了吧。"
+        ],
+        "previousReaderNote": "夾在末頁的暖橘小紙片：「謝謝你把這本拆開。不管今天發生了什麼，你已經做得夠好了，真的。」",
+        "bookmarkQuote": "說「沒關係」說久了，別忘了你其實有資格說「今天好累」。",
+        "altBookmarkQuotes": [
+          "把「我應該」先放旁邊，今晚只聽「我想要」。",
+          "不用永遠當接住別人的那個人，偶爾也可以被接住。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "bio-work",
+            "label": "太準了……最近真的把「沒關係」說到有點麻木",
+            "monologue": "明明剛才還在硬撐，結果一撕開包裝就被這三行字戳中，眼眶突然有點熱熱的。"
+          },
+          {
+            "id": "bio-rest",
+            "label": "覺得能有個地方暫時卸下「靠譜大人」的殼真好",
+            "monologue": "有時候不是想抱怨什麼，只是想找個角落，安安靜靜喘口氣。"
+          },
+          {
+            "id": "bio-neutral",
+            "label": "純粹覺得阿澄挑的盲書文案很暖，像被輕輕拍了拍肩",
+            "monologue": "撕開牛皮紙的那一刻還挺療癒的，果然獨立書店最會藏這種小驚喜。"
+          }
+        ],
+        "wrongRescueFeedback": "這本是牛皮紙盲書《今天不用當懂事的大人》，古書展清單要搶救的是 4 本真實經典絕版書喔！"
+      },
+      {
+        "id": "blind-unsent-goodbye",
+        "kind": "blind",
+        "objectId": "book-blind-unsent-goodbye",
+        "areaId": "shelves",
+        "placementHint": "主木質書牆旁木製盲書箱右側，牛皮紙封套貼著暮紫紙膠帶",
+        "interestTags": ["reading", "music"],
+        "coverAssetId": "book-cover-blind-unsent-goodbye-v4",
+        "sealedAssetId": "prop-blind-kraft-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "留在草稿匣裡的晚安",
+        "author": "雨聲書店獨立選輯",
+        "publicDomainNote": "全原創內容",
+        "category": "牛皮紙盲書・主書牆盲書箱",
+        "coverVisual": "牛皮紙麻繩包裝，撕開後為暮紫信封壓紋封面",
+        "blindTags": [
+          "#如果能重來一次的道別",
+          "#沒按送出的訊息",
+          "#雨天後遺症"
+        ],
+        "blindSealedPrompt": "沿著牛皮紙虛線往右滑，拆開這封沒寄出的書",
+        "clerkHandwrittenCard": "手機草稿匣裡都住著幾句話吧？讀完這本，把沒寄出的道別留在雨聲裡就好。",
+        "summary": "那些打完又刪掉的句子，原來都是為了教會我們下一次更勇敢。",
+        "pages": [
+          "手機裡總有一兩則打完又刪掉的話，當時覺得「改天再說吧」，沒想到一轉身就沒有改天了。",
+          "下雨的傍晚特別容易想起那種未完成的結尾——不是還想重來，只是覺得如果當時好好說一句保重，好像會更圓滿一點。",
+          "後來你把那句沒寄出的道別折進記憶裡，慢慢明白，有些錯過不是失敗，只是為了讓你在下一次相遇時，更懂得開口。"
+        ],
+        "previousReaderNote": "夾在末頁的淡紫小紙片：「以前總怕顯得太主動而把訊息刪掉，現在覺得，想說晚安的時候就直接說吧。」",
+        "bookmarkQuote": "後來我們沒再見面，但那個下雨的傍晚，我還是祝你一路順風。",
+        "altBookmarkQuotes": [
+          "沒寄出的話就留在昨天吧，今天適合開啟新的對話。",
+          "願下一次想說的話，都能好好按出送出鍵。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "bug-miss",
+            "label": "腦中閃過一個曾經以為會有「改天」的人",
+            "monologue": "已經不會難過了，只是這種下著雨的傍晚，偶爾還是會被那種淡淡的遺憾輕輕晃一下。"
+          },
+          {
+            "id": "bug-brave",
+            "label": "提醒自己以後遇到聊得來的人，別再把話全吞回草稿匣",
+            "monologue": "既然錯過教會了我們珍惜，那下一次遇到頻率不錯的人，就大方一點吧。"
+          },
+          {
+            "id": "bug-neutral",
+            "label": "沒特別想起誰，單純喜歡這篇文字帶點電影感的氛圍",
+            "monologue": "像是一部剛剛好結束在雨聲裡的短片，讀完心裡靜靜的。"
+          }
+        ],
+        "wrongRescueFeedback": "這是盲書《留在草稿匣裡的晚安》，不是古書展要搶的經典絕版書喔，快換一區找！"
+      },
+      {
+        "id": "blind-rainy-escape",
+        "kind": "blind",
+        "objectId": "book-blind-rainy-escape",
+        "areaId": "counter",
+        "placementHint": "櫃檯右側盲書小架上，牛皮紙封套夾著雨滴貼紙",
+        "interestTags": ["reading", "travel", "food"],
+        "coverAssetId": "book-cover-blind-rainy-escape-v4",
+        "sealedAssetId": "prop-blind-kraft-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "臨時取消計畫也沒關係",
+        "author": "雨聲書店獨立選輯",
+        "publicDomainNote": "全原創內容",
+        "category": "牛皮紙盲書・櫃檯盲書架",
+        "coverVisual": "牛皮紙麻繩包裝，撕開後為灰藍雨滴手繪封面",
+        "blindTags": [
+          "#適合下雨天短暫逃跑的指南",
+          "#手機靜音兩小時",
+          "#計畫通通取消"
+        ],
+        "blindSealedPrompt": "沿著牛皮紙虛線往右滑，領取今晚的逃跑指南",
+        "clerkHandwrittenCard": "獻給行程表排太滿的人。大雨是老天爺幫你按下的強制暫停鍵，別客氣。",
+        "summary": "計畫泡湯的傍晚，反而藏著意想不到的鬆弛與好運氣。",
+        "pages": [
+          "行事曆上排滿了該做的事，結果一場不講理的傍晚大雨，直接替你把所有行程一筆勾銷。",
+          "原本有點懊惱，坐下來聞到熱咖啡跟舊紙張的味道後，卻突然覺得「被雨困住」其實也沒那麼糟。",
+          "世界不會因為你把手機靜音兩小時就失控；有時候最好的運氣，就是一場讓你理直氣壯發呆的雨。"
+        ],
+        "previousReaderNote": "夾在末頁的灰藍紙條：「計畫取消那天我誤打誤撞發現巷口超好吃的布丁店！願你今晚也能撿到意外好運。」",
+        "bookmarkQuote": "偶爾把世界關在門外兩小時，人生不會因為你停下來一下就失控。",
+        "altBookmarkQuotes": [
+          "計畫被打亂的時候，通常才是奇遇開始的時候。",
+          "今晚合法逃跑兩小時，其餘明天再說。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "bre-relief",
+            "label": "被說中了，其實行程取消的那一刻心裡竟然有點爽",
+            "monologue": "哈哈，嘴上說好討厭下雨，其實心底偷偷慶幸今晚終於有個正當理由什麼都不做。"
+          },
+          {
+            "id": "bre-detour",
+            "label": "突然很期待「計畫被打亂後」會遇見什麼意外插曲",
+            "monologue": "既然回不去了，不如把這個沒在行程表上的傍晚，當成多賺到的一段小旅行吧。"
+          },
+          {
+            "id": "bre-neutral",
+            "label": "純粹覺得這篇口吻好可愛，讀完嘴角忍不住上揚",
+            "monologue": "把下雨寫成老天爺發的偷懶許可證，這間書店的店長品味真不錯。"
+          }
+        ],
+        "wrongRescueFeedback": "這是櫃檯盲書《臨時取消計畫也沒關係》，雖然很適合現在看，但清單上要搶的是經典絕版書喔！"
+      },
+      {
+        "id": "blind-quieter-kindness",
+        "kind": "blind",
+        "objectId": "book-blind-quieter-kindness",
+        "areaId": "counter",
+        "placementHint": "櫃檯右側盲書小架下格，牛皮紙封套別著乾燥小葉片",
+        "interestTags": ["reading", "coffee", "music"],
+        "coverAssetId": "book-cover-blind-quieter-kindness-v4",
+        "sealedAssetId": "prop-blind-kraft-v4",
+        "cardAssetId": "prop-handwritten-card-v4",
+        "readerNoteAssetId": "prop-reader-note-v4",
+        "title": "慢半拍也沒關係的頻率",
+        "author": "雨聲書店獨立選輯",
+        "publicDomainNote": "全原創內容",
+        "category": "牛皮紙盲書・櫃檯盲書架",
+        "coverVisual": "牛皮紙麻繩包裝，撕開後為鼠尾草綠柔霧封面",
+        "blindTags": [
+          "#其實你比自己想的更溫柔",
+          "#慢熟人類使用說明",
+          "#安靜也能同頻"
+        ],
+        "blindSealedPrompt": "沿著牛皮紙虛線往右滑，拆開給慢熟靈魂的信",
+        "clerkHandwrittenCard": "不愛尬聊不是你的錯。真正合拍的人，連一起發呆都不會尷尬。",
+        "summary": "給討厭無效尬聊的慢熟靈魂：不必五分鐘變熟，能一起聽完一場雨已足夠難得。",
+        "pages": [
+          "這個世界老是催人三秒破冰、十分鐘熟絡，好像話少一點、慢熱一點就是不夠熱情。",
+          "但其實最讓人安心的相處，往往發生在兩個人誰都沒急著找話題、卻也不想離開的安靜裡。",
+          "不用在五分鐘內交出整個人生故事，能一起安穩聽完一場雨，就已經是很難得的緣分。"
+        ],
+        "previousReaderNote": "夾在末頁的淺綠紙條：「給同樣是慢熱型的你：不用勉強自己當 E 人，你安靜認真的樣子就已經很討喜了。」",
+        "bookmarkQuote": "不用急著在五分鐘內變熟，能一起聽完一場雨，已經是很難得的事。",
+        "altBookmarkQuotes": [
+          "討厭尬聊沒關係，真正同頻的人連沉默都很舒服。",
+          "慢一點沒關係，好的相遇從來不趕時間。"
+        ],
+        "resonanceOptions": [
+          {
+            "id": "bqk-introvert",
+            "label": "完全寫進心坎裡！我真的超討厭硬找話題的尬聊",
+            "monologue": "每次遇到一直逼問『你在幹嘛、吃飽沒』的聊天就覺得好累。能這樣慢吞吞地相處，才叫舒服啊。"
+          },
+          {
+            "id": "bqk-warm",
+            "label": "覺得「一起安穩聽完一場雨」聽起來莫名讓人心動",
+            "monologue": "不需要多華麗的開場白，只要覺得這個人讓人安心，好像就能自然聊下去。"
+          },
+          {
+            "id": "bqk-neutral",
+            "label": "純粹喜歡這段溫柔不催促的節奏，很有這間書店的味道",
+            "monologue": "光是看著這幾行字，呼吸都跟著放慢了半拍。"
+          }
+        ],
+        "wrongRescueFeedback": "這是櫃檯盲書《慢半拍也沒關係的頻率》，先記在心裡，快去搶救清單上那 4 本絕版經典！"
+      }
+    ],
+    "ambientInteractables": {
+      "dailyChalkboard": {
+        "id": "obj-daily-chalkboard",
+        "areaId": "counter",
+        "assetId": "prop-chalkboard-v4",
+        "label": "今日雨天特調小黑板",
+        "header": "雨聲書店・今日看天喝什麼",
+        "items": [
+          { "name": "深焙雨夜手沖", "note": "帶一點黑可可尾韻，專治下班眼神死" },
+          { "name": "焦糖海鹽熱拿鐵", "note": "奶泡打得特別厚，適合被大雨打亂行程的人" },
+          { "name": "無咖啡因溫熱洋甘菊", "note": "怕晚上睡不著點這杯，一樣不趕人" },
+          { "name": "限量手工焦糖布丁", "note": "今日售罄（※店長私藏兩顆，留給奇蹟發生時）" }
+        ],
+        "footerNote": "小黑板角落畫著一隻撐傘的小貓，旁邊寫著：「沒有低消，雨停前隨便坐。」"
+      },
+      "vinylPlayer": {
+        "id": "obj-vinyl-player",
+        "areaId": "counter",
+        "assetId": "prop-vinyl-player-v4",
+        "label": "復古黑膠唱片機",
+        "gestureHint": "點擊轉盤，換一張今晚想聽的黑膠（對方也會同步聽見）",
+        "selfSwitchedNotice": "你輕輕放下唱針，店裡流瀉出《{{trackTitle}}》。"
+      },
+      "guestbook": {
+        "id": "obj-guestbook",
+        "areaId": "reading-corner",
+        "assetId": "prop-guestbook-v4",
+        "label": "雨聲書店訪客留言冊",
+        "intro": "木桌角落擺著一本被翻到起毛邊的硬殼筆記本，裡面寫滿了曾被大雨困在這裡的旅人短記。",
+        "entries": [
+          { "id": "gb-01", "author": "逃跑中的設計師", "tag": "週二・小雨", "text": "連續三天加班，今天決定跟主管請兩小時假躲進來。阿澄店長的咖啡跟老爵士救了我一命。" },
+          { "id": "gb-02", "author": "週四躲雨路人", "tag": "週四・陣雨", "text": "撕到一張寫著『允許今天不堅強』的盲書，差點在角落哭出來，好險旁邊沒人看到（應該吧）。" },
+          { "id": "gb-03", "author": "被困過一次的常客", "tag": "上個月・豪雨", "text": "強烈建議阿澄修一下入口門檻！上次暴雨排水溝倒灌，水差點淹到我新買的白鞋！但咖啡太好喝還是會來啦。" },
+          { "id": "gb-04", "author": "匿名", "tag": "週六・細雨", "text": "跟一個剛認識的人在這裡一起聽完了一整張鋼琴黑膠。原來兩個人都不愛尬聊，反而最自在。" },
+          { "id": "gb-05", "author": "阿澄店長本尊", "tag": "補註", "text": "樓上那位穿白鞋的，我有買防水擋板了好嗎！而且下次雨太大記得直接去後方高架區，別站門口看熱鬧。" }
+        ]
+      },
+      "foggyWindow": {
+        "id": "obj-foggy-window",
+        "areaId": "window",
+        "assetId": "prop-fog-overlay-v4",
+        "label": "起霧落地雨窗",
+        "gestureHint": "手指滑動擦開玻璃上的霧氣",
+        "stageViews": {
+          "act1": "擦開一片圓圓的霧氣，街燈在柏油路面的水窪裡晃成金黃色，雨絲看起來沒有要停的意思。",
+          "act2": "剛才擦過的地方又快起霧了。外面雨勢明顯轉大，街角排水孔開始冒起細碎的水花。",
+          "postStorm": "窗外的暴雨終於轉成細細的雨絲，路面積水慢慢退去，夜晚的空氣看起來清澈了不少。"
+        },
+        "doodlePrompt": "要不要趁霧氣還沒散，在窗上點留一個小記號？（對方路過窗邊時看得到）",
+        "doodles": [
+          { "id": "umbrella", "symbol": "☔", "label": "畫把小雨傘", "selfText": "你在霧氣上畫了一把歪歪的小雨傘。", "partnerText": "窗玻璃的霧氣上，有人剛畫了一把小小歪歪的雨傘 ☔。" },
+          { "id": "coffee", "symbol": "☕", "label": "畫杯熱咖啡", "selfText": "你在霧氣上畫了一杯冒著三道彎彎熱氣的咖啡。", "partnerText": "起霧的玻璃上留著一杯剛畫好的熱咖啡 ☕，熱氣畫得特別捲。" },
+          { "id": "cat", "symbol": "🐱", "label": "畫隻圓臉貓", "selfText": "你在窗上隨手畫了一隻圓滾滾的小貓臉。", "partnerText": "霧氣裡冒出一隻剛畫上去的圓臉小貓 🐱，看起來心情挺放鬆的。" },
+          { "id": "smile", "symbol": "☺", "label": "畫個淺微笑", "selfText": "你在玻璃上點了一個小小的微笑記號。", "partnerText": "落地窗的霧氣上，留著一個剛點上去的小小微笑 ☺。" }
+        ]
+      }
+    },
+    "npcs": [
+      {
+        "id": "clerk",
+        "name": "阿澄",
+        "speakerLabel": "阿澄・店長",
+        "areaId": "counter",
+        "persona": "怪癖老派、愛放黑膠、喜歡寫歪扭推薦卡、嘴硬心軟又極懂人際邊界的獨立書店店長。",
+        "casualDialogues": [
+          {
+            "id": "why-name",
+            "promptLabel": "問這間店為什麼叫「雨聲書店」",
+            "lines": [
+              { "speaker": "阿澄・店長", "expression": "smile", "text": "為什麼叫雨聲書店喔？因為剛開店那個月連下二十天雨，半個客人都沒有。" },
+              { "speaker": "阿澄・店長", "expression": "thoughtful", "text": "整天一個人坐在櫃檯聽雨聲，心想乾脆改叫這名字算了——沒想到後來還真變成躲雨專賣店。" }
+            ]
+          },
+          {
+            "id": "tonight-coffee",
+            "promptLabel": "問阿澄今晚推薦喝什麼",
+            "lines": [
+              { "speaker": "阿澄・店長", "expression": "smile", "text": "我這裡沒印固定菜單，我都看今天的天氣寫在小黑板上。" },
+              { "speaker": "阿澄・店長", "expression": "neutral", "text": "像今晚這種不講理的大雨，等等有空沖壺帶點可可尾韻的深焙，喝起來最暖胃。" }
+            ]
+          },
+          {
+            "id": "shop-rules",
+            "promptLabel": "問這裡有沒有什麼特別規矩",
+            "lines": [
+              { "speaker": "阿澄・店長", "expression": "smile", "text": "沒低消、不限時、不強迫推銷，唯一規矩是別把水打翻在我散放在店裡那批古書展寄賣的絕版書上。" },
+              { "speaker": "阿澄・店長", "expression": "concerned", "text": "喔對了，還有一條——外頭雨要是越下越大，記得離低窪門口遠一點，這條巷子排水有時候挺任性的。" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "narrative": {
+    "narrativeId": "rain-bookshop-before-rain-stops",
+    "version": "v2",
+    "title": "雨聲書店・雨停之前",
+    "summary": "一場突如其來的傍晚大雨，把兩個節奏不同的旅人留進了獨立書店。在五個角落翻找 16 本真實經典與 4 本牛皮紙盲書、同步換黑膠、擦霧留暗號，再到一場跨區 90 秒暴雨搶救絕版書戰——在雨停之前，看看你們之間會長出什麼樣的頻率。",
+    "tracks": {
+      "inviter": {
+        "entry": "iv4-01",
+        "nodes": [
+          {
+            "id": "iv4-01",
+            "title": "下班後的雨夜街角",
+            "areaId": "street-view",
+            "cameraId": "wide-rain",
+            "gesturePrompt": "點擊書店玻璃門把推門進店",
+            "lines": [
+              { "speaker": "旁白", "text": "傍晚六點半，難得準時下班。外面正下著不講理的大雨，你放慢腳步，停在最熟悉的那間街角書店門前。" }
+            ]
+          },
+          {
+            "id": "iv4-02",
+            "title": "熟客的避難所",
+            "areaId": "entrance",
+            "cameraId": "warm-entry",
+            "npcCue": { "actorId": "clerk", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "推開木門，風雨聲立刻被隔在身後。烘焙咖啡豆與舊紙張的暖香湧上來，緊繃一整天的肩膀終於鬆開。" },
+              { "speaker": "阿澄・店長", "text": "稀客喔，今天居然準時下班？太陽打西邊出來，外面才會下成這樣吧。" }
+            ],
+            "choiceBindingId": "iv4-greet-clerk"
+          },
+          {
+            "id": "iv4-03",
+            "title": "散落暖光的書店角落",
+            "areaId": "shelves",
+            "cameraId": "shelf-browse",
+            "gesturePrompt": "逛逛入口展台、主書牆、閱讀角低櫃、櫃檯與窗邊書台（共 16 本真實經典＋4 本盲書），選定一本今晚帶在身邊的書",
+            "lines": [
+              { "speaker": "旁白", "text": "暖黃燈光散落在書店各個角落——入口展台、主書牆、櫃檯旁、閱讀角低櫃和落地窗台都擺著不同主題的書與盲書，還夾著阿澄歪扭的手寫小卡。四處晃晃，挑一本今晚最對頻率的吧。" }
+            ],
+            "choiceBindingId": "iv4-pick-book"
+          },
+          {
+            "id": "iv4-04-same",
+            "title": "意外重疊的書封",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "acceptor", "pose": "read", "expression": "concerned" },
+            "lines": [
+              { "speaker": "旁白", "text": "抱著書走到內側閱讀角，你腳步微微一頓——窗邊坐著另一位躲雨的旅人，正低頭讀著書，眼角微微泛著淚光。" },
+              { "speaker": "旁白", "text": "更巧的是，整間書店二十本書裡，對方手裡捧著的那本，竟然跟你剛才挑中的《{{selectedBookTitle}}》一模一樣。" }
+            ],
+            "choiceBindingId": "iv4-approach-act"
+          },
+          {
+            "id": "iv4-04-diff",
+            "title": "閱讀角的雨聲",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "acceptor", "pose": "read", "expression": "concerned" },
+            "lines": [
+              { "speaker": "旁白", "text": "走到內側閱讀角，你看見窗邊沙發坐著另一位避雨的旅人，正低頭讀著書，眼角似乎微微泛著淚光。" },
+              { "speaker": "旁白", "text": "大概是被書裡的某句話戳中了吧。店裡只剩黑膠與雨聲，你想怎麼做？" }
+            ],
+            "choiceBindingId": "iv4-approach-act"
+          },
+          {
+            "id": "iv4-wait-tissue-near",
+            "title": "桌角的一包面紙",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "你放輕腳步，把一包面紙輕輕擺在對方手邊觸手可及的桌角，再安靜退後半步，不急著打擾。" }
+            ]
+          },
+          {
+            "id": "iv4-wait-tissue-far",
+            "title": "留了分寸的體貼",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "你把面紙悄悄留在桌子外側邊緣，留出剛剛好的距離，不讓對方有任何被盯著看的壓力。" }
+            ]
+          },
+          {
+            "id": "iv4-wait-book-same",
+            "title": "同一本書的暗號",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "你輕輕晃了晃手裡那本一模一樣的書，放柔聲音：「二十本書裡居然挑到同一本，真巧……是不是剛好讀到最戳人的那一段？」" }
+            ]
+          },
+          {
+            "id": "iv4-wait-book-diff",
+            "title": "以書為名的開場",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "你抱著自己剛挑的《{{inviterBookTitle}}》，輕鬆開口：「不好意思打擾一下，那本真的這麼好哭嗎？我剛晃過書架時差點也拿它。」" }
+            ]
+          },
+          {
+            "id": "iv4-give-space",
+            "title": "輕扶書籤後的留白",
+            "areaId": "shelves",
+            "cameraId": "warm-entry",
+            "lines": [
+              { "speaker": "旁白", "text": "你決定不打斷這份沉浸。經過桌邊時，你只是悄悄替對方把快滑落桌緣的一張書籤輕輕推回桌面，朝對方無聲點了個頭，便轉身走回書牆與黑膠機之間。" }
+            ]
+          },
+          {
+            "id": "iv4-receive-a-init-book",
+            "title": "意外的反向問候",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "acceptor", "pose": "sit", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "剛在書牆旁翻了兩頁，身後忽然傳來輕輕的腳步聲。剛剛在閱讀角的旅人合上書走過來，笑著謝你替他扶住書籤，還主動聊起了你手裡的封面。" }
+            ]
+          },
+          {
+            "id": "iv4-receive-a-init-music",
+            "title": "同一張黑膠的默契",
+            "areaId": "counter",
+            "cameraId": "warm-entry",
+            "partnerCue": { "role": "acceptor", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "剛剛在角落看書的旅人走了過來，望向正轉動的黑膠唱片微笑致意：「剛剛這首很好聽，謝謝你剛才幫我推回書籤也沒有打擾我。」氣氛一下就鬆了下來。" }
+            ]
+          },
+          {
+            "id": "iv4-warm",
+            "title": "微醺同頻的傍晚",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "acceptor", "pose": "sit", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "聊完書頁和提問卡，原本屬於陌生人的客氣淡了許多。店裡的暖光配著外頭的雨聲，竟讓人有點捨不得這場雨太快停。" }
+            ]
+          },
+          {
+            "id": "iv4-respect",
+            "title": "溫柔的分寸感",
+            "areaId": "counter",
+            "cameraId": "warm-entry",
+            "lines": [
+              { "speaker": "旁白", "text": "你微笑點頭退開一步，把安靜的閱讀角留給對方。各自在喜歡的角落翻翻別區的書、聽聽黑膠和雨聲，沒說話也一點都不尷尬。" }
+            ]
+          },
+          {
+            "id": "iv4-after-coffee",
+            "title": "雨勢轉小的窗邊",
+            "areaId": "window",
+            "cameraId": "warm-entry",
+            "npcCue": { "actorId": "clerk", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "緊急狀況終於穩住。外頭傾盆雷雨不知何時化成了細雨，剛才停住的黑膠重新響起，窗邊木桌上冒著熱飲的香氣。" }
+            ]
+          }
+        ]
+      },
+      "acceptor": {
+        "entry": "av4-01",
+        "nodes": [
+          {
+            "id": "av4-01",
+            "title": "被大雨打亂的傍晚",
+            "areaId": "street-view",
+            "cameraId": "wide-rain",
+            "gesturePrompt": "點擊推開書店木門，並點傘桶收好雨傘",
+            "lines": [
+              { "speaker": "旁白", "text": "下午放假出門逛街，傍晚一場毫無預警的大雨卻徹底打亂了計畫。轉角亮著暖黃燈光的小書店，成了你唯一的避風港。" }
+            ]
+          },
+          {
+            "id": "av4-02",
+            "title": "不趕人的小書店",
+            "areaId": "entrance",
+            "cameraId": "warm-entry",
+            "npcCue": { "actorId": "clerk", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "把滴水的傘放進門邊木桶，店裡安靜得只聽見老黑膠和紙頁翻動的聲音。櫃檯後的店長隨手遞來一張乾爽的擦手紙。" },
+              { "speaker": "阿澄・店長", "text": "傘放那兒就好。別客氣，我這沒低消、也不推銷，只有一條規矩——雨停前不趕人。" }
+            ],
+            "choiceBindingId": "av4-greet-clerk"
+          },
+          {
+            "id": "av4-03",
+            "title": "久違的書店漫步",
+            "areaId": "shelves",
+            "cameraId": "shelf-browse",
+            "gesturePrompt": "在入口展台、主書牆、閱讀角低櫃、櫃檯或窗邊逛逛，挑一本經典或撕開一本牛皮紙盲書",
+            "lines": [
+              { "speaker": "旁白", "text": "好久沒有像這樣不滑手機、純粹在書店裡一個角落接一個角落慢慢挑書了。從 16 本真實經典和 4 本神秘盲書裡，選一本今晚最吸引你的吧。" }
+            ],
+            "choiceBindingId": "av4-pick-book"
+          },
+          {
+            "id": "av4-04",
+            "title": "被句子接住的瞬間",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "你在內側酒紅沙發坐下，翻開剛才選中的《{{acceptorBookTitle}}》。在微醺的燈光與雨聲裡，有一段文字連同末頁夾著的陌生讀者字條，忽然精準落在心上。" }
+            ],
+            "choiceBindingId": "av4-resonance"
+          },
+          {
+            "id": "av4-05",
+            "title": "微微發熱的眼眶",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "{{selectedResonanceMonologue}}" },
+              { "speaker": "旁白", "text": "不知不覺讀得太入迷，眼眶微微有些發熱。你輕輕垂下眼，窗外雨滴正細細敲打著玻璃。" }
+            ]
+          },
+          {
+            "id": "av4-06-tissue-near",
+            "title": "手邊的一包面紙",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "inviter", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "視線邊緣悄悄多了一包乾淨的面紙，就擺在你手邊觸手可及的桌角。那位剛路過的旅人退後半步，眼神溫和、沒有一絲唐突的探聽。" }
+            ],
+            "choiceBindingId": "av4-reply-approach"
+          },
+          {
+            "id": "av4-06-tissue-far",
+            "title": "遠遠放下的體貼",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "inviter", "pose": "stand", "expression": "neutral" },
+            "lines": [
+              { "speaker": "旁白", "text": "木桌外側邊緣安靜多了一包面紙。對方刻意留了點距離，只輕輕點了個頭，把進退的決定權完全交給你。" }
+            ],
+            "choiceBindingId": "av4-reply-approach"
+          },
+          {
+            "id": "av4-06-book-same",
+            "title": "二十分之一的巧合",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "inviter", "pose": "hold", "expression": "surprised" },
+            "lines": [
+              { "speaker": "旁白", "text": "身旁傳來帶著笑意的輕聲問候：「二十本書裡居然挑到同一本，真巧……是不是剛好讀到最戳人的那一段？」你抬起頭，對方手裡拿的竟然跟你一模一樣。" }
+            ],
+            "choiceBindingId": "av4-reply-approach"
+          },
+          {
+            "id": "av4-06-book-diff",
+            "title": "輕鬆聊起一本書",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "inviter", "pose": "hold", "expression": "thoughtful" },
+            "lines": [
+              { "speaker": "旁白", "text": "抱著《{{inviterBookTitle}}》的旅人停在桌旁兩步外，語氣輕鬆無壓力：「不好意思打擾一下，那本真的這麼好哭嗎？我剛晃過書架時差點也拿它。」" }
+            ],
+            "choiceBindingId": "av4-reply-approach"
+          },
+          {
+            "id": "av4-06-space",
+            "title": "輕推回桌面的書籤",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "剛才有人經過桌邊，卻沒有出聲打斷你，只悄悄把差點滑落桌緣的書籤輕輕推回桌面，無聲點個頭就退回了書牆與黑膠機那頭。此刻，你想維持安靜，還是反過來主動打個招呼？" }
+            ],
+            "choiceBindingId": "av4-reverse-initiate"
+          },
+          {
+            "id": "av4-warm",
+            "title": "自然散開的拘謹",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "partnerCue": { "role": "inviter", "pose": "sit", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "聊完書頁和提問卡，原本屬於陌生人的戒心鬆開了許多。雨聲把整個世界隔在門外，這一角暖光意外讓人安心。" }
+            ]
+          },
+          {
+            "id": "av4-quiet",
+            "title": "安心的獨處時刻",
+            "areaId": "reading-corner",
+            "cameraId": "corner-intimate",
+            "lines": [
+              { "speaker": "旁白", "text": "對方很有分寸地沒有追問。你安心把視線落回書頁，偶爾抬頭聽聽店裡的黑膠和外頭漸急的雨聲，覺得這間書店真是來對了。" }
+            ]
+          },
+          {
+            "id": "av4-after-coffee",
+            "title": "雨勢轉小的窗邊",
+            "areaId": "window",
+            "cameraId": "warm-entry",
+            "npcCue": { "actorId": "clerk", "pose": "stand", "expression": "smile" },
+            "lines": [
+              { "speaker": "旁白", "text": "慌亂的雨夜插曲終於落幕。窗外暴雨化為細雨，黑膠重新輕輕轉動，木桌上的熱飲正散著溫柔香氣。" }
+            ]
+          }
+        ]
+      }
+    },
+    "personalBindings": [
+      {
+        "bindingId": "iv4-greet-clerk",
+        "role": "inviter",
+        "interactionType": "floating-choice",
+        "actions": [
+          { "optionId": "humor", "label": "逃離加班的戰利品，今天只想徹底放空。", "clerkReply": "阿澄笑著把杯子倒扣好：「行，整間店五個角落隨你挑當避難所，慢慢晃。」", "nextNode": "iv4-03" },
+          { "optionId": "rain", "label": "外面雨聲太好聽了，想躲進來聽個夠。", "clerkReply": "阿澄望了眼窗外：「那你挑對日子了，這場雨看起來一時半會停不了。」", "nextNode": "iv4-03" },
+          { "optionId": "habit", "label": "說起來也巧，只要下這種雨腳就會自己走來這裡。", "clerkReply": "阿澄忍不住笑：「那我這小破店算是你的雨天固定副本了，隨便翻。」", "nextNode": "iv4-03" }
+        ]
+      },
+      {
+        "bindingId": "av4-greet-clerk",
+        "role": "acceptor",
+        "interactionType": "floating-choice",
+        "actions": [
+          { "optionId": "detour", "label": "原本逛街的計畫全泡湯了，只好先來躲躲雨。", "clerkReply": "阿澄微笑：「計畫泡湯的時候，通常最容易遇見對胃口的書。」", "nextNode": "av4-03" },
+          { "optionId": "pause", "label": "其實有點喜歡這種被迫按暫停鍵的時刻。", "clerkReply": "阿澄點點頭：「懂喔，大雨就是老天爺發的合法偷懶許可。」", "nextNode": "av4-03" },
+          { "optionId": "nostalgia", "label": "好久沒走進這種小書店了，味道讓人一下就慢下來。", "clerkReply": "阿澄指指四周：「入口展台、書牆、窗邊和櫃檯都有放書，看到喜歡的直接帶去沙發坐。」", "nextNode": "av4-03" }
+        ]
+      },
+      {
+        "bindingId": "iv4-pick-book",
+        "role": "inviter",
+        "interactionType": "multi-zone-book-select",
+        "gestureHint": "可在入口展台、主書牆、閱讀角低櫃、櫃檯與窗邊自由翻閱全部 20 本書（預覽不限次，按下確認才選定）",
+        "confirmButtonLabel": "拿著《{{bookTitle}}》繼續逛"
+      },
+      {
+        "bindingId": "av4-pick-book",
+        "role": "acceptor",
+        "interactionType": "multi-zone-book-select",
+        "gestureHint": "從書店五區 16 本真實經典或 4 本撕封盲書中選定一本帶去閱讀角",
+        "confirmButtonLabel": "帶著《{{bookTitle}}》去閱讀角坐下",
+        "nextNode": "av4-04"
+      },
+      {
+        "bindingId": "av4-resonance",
+        "role": "acceptor",
+        "interactionType": "floating-choice-from-book",
+        "note": "選項直接讀取所選書籍之 books[].resonanceOptions（20 本書各自專屬 3 選 1，必含中性款），提交後進入 av4-05。"
+      },
+      {
+        "bindingId": "iv4-approach-act",
+        "role": "inviter",
+        "interactionType": "scene-direct-gesture",
+        "actions": [
+          { "optionId": "tissue-near", "gesture": "drag-drop-near", "label": "把面紙輕放在對方手邊", "nextNode": "iv4-wait-tissue-near" },
+          { "optionId": "tissue-far", "gesture": "drag-drop-far", "label": "把面紙留在桌角外側，保留距離", "nextNode": "iv4-wait-tissue-far" },
+          { "optionId": "approach-book", "gesture": "tap-partner-book", "label": "舉起手裡的書，輕聲從書本聊起", "nextNodeIfSameBook": "iv4-wait-book-same", "nextNodeIfDiffBook": "iv4-wait-book-diff" },
+          { "optionId": "give-space", "gesture": "tap-tuck-bookmark-and-leave", "label": "悄悄替對方推回滑落的書籤，先不打擾", "nextNode": "iv4-give-space" }
+        ]
+      },
+      {
+        "bindingId": "av4-tissue-decision",
+        "role": "acceptor",
+        "optional": true,
+        "condition": "inviter chose tissue-near or tissue-far",
+        "note": "獨立於是否願意聊天的物件互動：收下面紙絕不視同答應聊天。",
+        "actions": [
+          { "optionId": "accept-tissue", "gesture": "tap-tissue", "label": "輕聲說「謝謝」，收下面紙" },
+          { "optionId": "decline-tissue", "gesture": "tap-tissue", "label": "微笑搖頭：「不用了，謝謝你」" }
+        ]
+      },
+      {
+        "bindingId": "av4-reply-approach",
+        "role": "acceptor",
+        "interactionType": "floating-choice",
+        "actions": [
+          { "optionId": "open-up", "label": "笑著擦乾眼角，聊聊剛剛讀到那段的感觸", "partnerCueText": "對方微微笑了，願意跟你聊聊剛才那段文字觸動人的地方。", "route": "warm-track" },
+          { "optionId": "books-only", "label": "「這本寫得滿不錯的。」先把話題輕鬆留在書上", "partnerCueText": "對方笑著翻開封面，跟你輕鬆聊起了這本書的內容。", "route": "warm-track" },
+          { "optionId": "decline", "label": "禮貌微笑：「謝謝你，我想先自己安靜把這段看完。」", "partnerCueText": "對方禮貌微笑致謝，想先留一段安靜獨處的閱讀時間。", "route": "quiet-track", "acceptorNextNode": "av4-quiet", "inviterNextNode": "iv4-respect" }
+        ]
+      },
+      {
+        "bindingId": "av4-reverse-initiate",
+        "role": "acceptor",
+        "condition": "inviter chose give-space",
+        "interactionType": "floating-choice",
+        "actions": [
+          { "optionId": "a-initiate-book", "label": "覺得對方很有分寸，主動走過去謝他扶回書籤並聊書", "route": "warm-track", "inviterNextNode": "iv4-receive-a-init-book" },
+          { "optionId": "a-initiate-music", "label": "順著店裡的黑膠旋律，主動走過去道謝搭話", "route": "warm-track", "inviterNextNode": "iv4-receive-a-init-music" },
+          { "optionId": "a-stay-quiet", "label": "很享受這份互不打擾的默契，繼續安靜看書", "route": "quiet-track", "acceptorNextNode": "av4-quiet", "inviterNextNode": "iv4-respect" }
+        ]
+      }
+    ],
+    "sharedModules": {
+      "questionCard": {
+        "bindingId": "sv4-question-card",
+        "assetId": "prop-question-card-v4",
+        "triggerNote": "僅當第二幕進入 warm-track 時開啟；從 4 題題庫由伺服器依場次種子隨機抽 1 題，兩人私密提交後同時翻牌揭曉。",
+        "introLine": "木桌角落擺著一盒阿澄手寫的「雨天閒聊卡」。你們順手抽了一張，決定默契測試一下：",
+        "waitingLine": "你的卡片已蓋牌，等對方選好後一起翻開！",
+        "pool": [
+          {
+            "id": "q-battery",
+            "question": "被大雨困住的夜晚，你寧願手機徹底沒電完全放空，還是只剩最後 3% 剛好夠傳一則訊息給某個人？",
+            "optionA": { "id": "offline", "label": "徹底沒電，合法消失兩小時" },
+            "optionB": { "id": "last-msg", "label": "留著 3%，把想說的話傳出去" },
+            "matchReveal": "翻牌瞬間，兩張卡片竟然一模一樣！你們忍不住互看一眼笑了出來，拘謹一下散了大半。",
+            "diffReveal": "兩張卡片剛好相反！反而冒出一句「原來你會選這個喔？」的好奇，空氣裡多了點有趣的火花。"
+          },
+          {
+            "id": "q-rainy-day-off",
+            "question": "如果明天突然多出一天大雨特休假，你會怎麼浪費這一天？",
+            "optionA": { "id": "bed-binge", "label": "窩在被窩追劇睡到自然醒" },
+            "optionB": { "id": "rainy-feast", "label": "趁雨天沒人，去吃平常大排長龍的名店" },
+            "matchReveal": "一翻開居然神同步！看來下次真的放暴雨假，你們連行程都會撞車。",
+            "diffReveal": "一個宅家充電、一個冒雨覓食——這種剛好的反差，聽起來好像還挺互補的。"
+          },
+          {
+            "id": "q-story-ending",
+            "question": "看書或看電影的時候，你比較偏愛哪一種結局？",
+            "optionA": { "id": "warm-predict", "label": "猜得到但暖呼呼的安心感" },
+            "optionB": { "id": "plot-twist", "label": "最後一頁狠狠反轉的驚喜感" },
+            "matchReveal": "你們對故事口味意外合拍！剛才那點初次見面的客氣，在笑聲裡悄悄融化了。",
+            "diffReveal": "一個愛安心收尾、一個愛神反轉——難怪你們看同一件事的角度會這麼好玩。"
+          },
+          {
+            "id": "q-first-impression",
+            "question": "認識一個新朋友時，哪一個瞬間最容易讓你覺得「這個人好像滿合得來的」？",
+            "optionA": { "id": "humor-click", "label": "隨口開個爛梗，對方居然接得住" },
+            "optionB": { "id": "silence-ease", "label": "兩個人不講話發呆，也完全不尷尬" },
+            "matchReveal": "翻開的瞬間竟然選中同一題答案！這大概就是傳說中的靈魂頻率吧。",
+            "diffReveal": "一個靠接梗、一個靠安心的沉默——好像兩種都有點讓人心動呢。"
+          }
+        ],
+        "onCompleteNodes": { "inviter": "iv4-warm", "acceptor": "av4-warm" }
+      },
+      "directorFloodInterrupt": {
+        "bindingId": "sv4-director-flood",
+        "triggerType": "server-driven-interrupt",
+        "triggerCondition": "inviter reached (iv4-warm | iv4-respect) AND acceptor reached (av4-warm | av4-quiet)",
+        "presentationSequence": [
+          { "type": "flash", "color": "#eef6ff", "durationMs": 220 },
+          { "type": "audio", "cueId": "fx-thunder-flash" },
+          { "type": "camera", "cameraId": "storm-crisis", "durationMs": 450 },
+          { "type": "music", "action": "vinyl-scratch-stop" },
+          { "type": "ambience", "assetId": "rain-heavy" },
+          { "type": "audio", "cueId": "fx-water-seep" },
+          { "type": "world", "objectId": "waterline", "state": "seeping" }
+        ],
+        "lines": [
+          { "speaker": "旁白", "text": "轟隆——！一道慘白閃電突然劃破落地窗，店裡吊燈劇烈閃了兩下暗成微光，黑膠唱針「滋」地停住，門縫瞬間湧進一大片急促的雨水！" },
+          { "speaker": "阿澄・店長", "expression": "concerned", "text": "糟糕！外面排水溝倒灌了，水直接往門檻裡衝！" },
+          { "speaker": "阿澄・店長", "expression": "concerned", "text": "我得立刻去門口頂住防水閘板，順便切掉入口那側的總電源——你們千萬別靠近門口有水的地方！" },
+          { "speaker": "阿澄・店長", "expression": "concerned", "text": "拜託幫我一個大忙！明天古書展要寄賣的 4 本絕版經典還散放在裡頭四個乾燥書台的低層，水氣快逼近了！手電筒跟這張被雨淋濕的清單交給你們，幫我搶到後方高櫃鎖進防潮箱！" },
+          { "speaker": "旁白", "text": "阿澄一把塞來兩支防水手電筒和淋花字跡的清單，轉身衝去門口死死抵住門板。店裡瞬間只剩兩束手電筒光與你們彼此。" }
+        ]
+      },
+      "rescueReadyGate": {
+        "bindingId": "sv4-rescue-ready",
+        "assetId": "prop-flashlight-v4",
+        "gesturePrompt": "點擊接過防水手電筒（雙方就位後啟動 90 秒倒數）",
+        "actionLabel": "接過手電筒，準備搶救！",
+        "waitingPartnerCopy": "你的手電筒已經點亮！等另一位夥伴就位，90 秒跨區搶救戰立刻開始。",
+        "bothReadyCopy": "兩束燈光同時亮起——90 秒倒數開始，跨區搶救 4 本絕版經典！"
+      },
+      "timedCoopRescue": {
+        "bindingId": "sv4-rescue-coop",
+        "durationSeconds": 90,
+        "bgmAssetId": "bgm-rescue-tension",
+        "assetIds": [
+          "prop-wet-booklist-v4",
+          "prop-storage-rule-note-v4",
+          "prop-water-levels-v4",
+          "prop-moisture-bag-v4",
+          "prop-box-latches-v4",
+          "prop-box"
+        ],
+        "rotationRule": "為提升重玩樂趣，每場由伺服器自 targetSets（2 組不同跨區 4 本題組）隨機釘選 1 組，4 本絕版書真實散落於主書牆、閱讀角低櫃、櫃檯平台與窗邊書台四個乾燥區域（絕不要求進入積水門檻）。",
+        "roles": {
+          "inviter": {
+            "roleTitle": "跨區乾燥書台搜救位",
+            "instructions": "聽對方給的清單線索與區域提示，快速切往各區乾燥書架找出對應的絕版經典，向上滑動傳給對方；後半段留意拾獲的阿澄防潮規則卡，記得反過來提醒對方！"
+          },
+          "acceptor": {
+            "roleTitle": "高架清單與防潮收納位",
+            "instructions": "你拿著被雨水暈開書名的清單！點選把線索傳給對方（或點側邊泡泡喊話），接到傳來的書後拖進防潮袋並放到乾燥高櫃正確格位！"
+          }
+        },
+        "disconnectProtection": {
+          "idleGraceSeconds": 15,
+          "slowBreathModeLabel": "慢節奏呼吸保護中",
+          "pausedNotice": "偵測到另一位夥伴暫時離開或連線波動，水位已自動進入暫緩保護——等對方回來再一起衝刺！"
+        },
+        "waterlineAnnouncements": [
+          { "remainingSeconds": 75, "waterStage": 1, "text": "門口水痕越擴越寬，阿澄在門邊大喊：「擋板先撐住了，四個書台那四本拜託你們！」" },
+          { "remainingSeconds": 50, "waterStage": 2, "text": "外頭又是一陣狂風暴雨！水線正朝低處慢慢逼近，快互相報線索！" },
+          { "remainingSeconds": 30, "waterStage": 3, "text": "只剩最後 30 秒！地板反光已經快貼近警戒線，加把勁！" },
+          { "remainingSeconds": 15, "waterStage": 4, "cueId": "fx-countdown-tick", "text": "最後 15 秒！阿澄急喊：「水快漫過安全線了，能搶幾本算幾本，時間到立刻撤！」" }
+        ],
+        "quickCallouts": {
+          "acceptor": [
+            { "id": "a-c1", "text": "快看我剛傳給你的清單線索！" },
+            { "id": "a-c2", "text": "這本好像不在主書牆，去別區找找！" },
+            { "id": "a-c3", "text": "接到了！下一個線索馬上給你！" },
+            { "id": "a-c4", "text": "厚精裝這本要放高櫃哪一層？" },
+            { "id": "a-c5", "text": "防潮箱鎖扣順序是什麼？" },
+            { "id": "a-c6", "text": "快傳給我，水快漫過來了啦！" }
+          ],
+          "inviter": [
+            { "id": "i-c1", "text": "找到了，滑給你接住！" },
+            { "id": "i-c2", "text": "這本好像不對，再給我一個提示！" },
+            { "id": "i-c3", "text": "厚精裝放高櫃【最下層】墊底！" },
+            { "id": "i-c4", "text": "鎖扣順序：【左扣 → 右扣 → 下壓封條】！" },
+            { "id": "i-c5", "text": "我拿到最後一本了，準備封箱！" },
+            { "id": "i-c6", "text": "撐住！剩最後幾秒衝啊！" }
+          ]
+        },
+        "targetSets": [
+          {
+            "setId": "set-a-starlight",
+            "title": "古書展清單 A：星光與靈魂",
+            "targets": [
+              {
+                "step": 1,
+                "targetBookId": "classic-little-prince",
+                "targetAreaId": "shelves",
+                "acceptorWetListText": "【絕版清單 #1｜主書牆】深藍色燙金星星封面……殘留關鍵字：「馴養、下午四點、玫瑰」。",
+                "acceptorShareCardText": "線索 #1（主書牆）：深藍星星封面，跟「馴養、下午四點、玫瑰」有關！",
+                "storageRule": "any-dry-slot",
+                "stepSuccessToast": "第一本《小王子》從主書牆安全救出並裝袋上架！（1 / 4）"
+              },
+              {
+                "step": 2,
+                "targetBookId": "classic-dorian-gray",
+                "targetAreaId": "reading-corner",
+                "acceptorWetListText": "【絕版清單 #2｜閱讀角低櫃】孔雀綠燙金畫框封面……備註寫著：「鎖在閣樓替主人變老的肖像」。",
+                "acceptorShareCardText": "線索 #2（閱讀角低櫃）：孔雀綠燙金封面，關於「閣樓裡的肖像畫」！",
+                "storageRule": "any-dry-slot",
+                "stepSuccessToast": "第二本《道林・格雷的畫像》從閱讀角順利傳進高櫃！（2 / 4）"
+              },
+              {
+                "step": 3,
+                "targetBookId": "classic-pride-prejudice",
+                "targetAreaId": "shelves",
+                "acceptorWetListText": "【絕版清單 #3｜主書牆】酒紅色復古厚皮精裝……阿澄眉批：「先別靠第一印象貼標籤的戀愛始祖」。",
+                "acceptorShareCardText": "線索 #3（主書牆）：酒紅復古精裝，關於「推翻第一印象的戀愛經典」！",
+                "inviterReverseClue": {
+                  "foundNotice": "你在書牆旁拾獲阿澄的【高櫃擺放規則卡】：酒紅色厚皮精裝太重，一定要放高櫃「最下層」墊底，放上層會壓壞平裝書！",
+                  "shareCardText": "反轉線索：酒紅厚精裝一定要放高櫃【最下層】墊底！"
+                },
+                "storageRule": "bottom-shelf-slot",
+                "wrongSlotFeedback": "哎呀！厚皮精裝放上層會壓到其他書，快看對方撿到的擺放規則，移到最下層試試！",
+                "stepSuccessToast": "第三本《傲慢與偏見》穩穩墊底上架！剩最後一本！（3 / 4）"
+              },
+              {
+                "step": 4,
+                "targetBookId": "classic-twenty-thousand-leagues",
+                "targetAreaId": "window",
+                "acceptorWetListText": "【絕版清單 #4｜落地窗邊書台】深海藍銅金羅盤精裝……紅筆星號：「鸚鵡螺號、海面下三十呎的觀景窗」。",
+                "acceptorShareCardText": "線索 #4（窗邊書台）：深海藍銅金羅盤封面，關於「鸚鵡螺號與深海觀景窗」！",
+                "inviterReverseClue": {
+                  "foundNotice": "窗台書擋下壓著防潮箱【封箱鎖扣順序】：放好最後一本後，必須依序點擊「左扣 → 右扣 → 下壓封條」才能氣密鎖緊！",
+                  "shareCardText": "反轉線索：鎖箱順序是【左扣 → 右扣 → 下壓封條】！"
+                },
+                "storageRule": "top-shelf-and-lock-sequence",
+                "lockSequence": ["left-latch", "right-latch", "seal-strip"],
+                "wrongLockFeedback": "卡扣好像反了沒辦法密合！再確認一下對方手上的「左→右→封條」順序！",
+                "stepSuccessToast": "啪嗒！防潮箱完美氣密鎖緊！四本跨區絕版書全員生還！（4 / 4）"
+              }
+            ]
+          },
+          {
+            "setId": "set-b-rainlight",
+            "title": "古書展清單 B：雨夜與微光",
+            "targets": [
+              {
+                "step": 1,
+                "targetBookId": "classic-great-gatsby",
+                "targetAreaId": "shelves",
+                "acceptorWetListText": "【絕版清單 #1｜主書牆】墨綠色金線硬殼封面……殘留關鍵字：「喧囂派對、隔海望向對岸的綠光」。",
+                "acceptorShareCardText": "線索 #1（主書牆）：墨綠金線封面，關於「派對與對岸的綠光」！",
+                "storageRule": "any-dry-slot",
+                "stepSuccessToast": "第一本《大亨小傳》從主書牆搶救成功！（1 / 4）"
+              },
+              {
+                "step": 2,
+                "targetBookId": "classic-rashomon",
+                "targetAreaId": "counter",
+                "acceptorWetListText": "【絕版清單 #2｜櫃檯側邊平台】硃砂墨韻古風平裝……阿澄眉批：「傍晚大雨困在城門下等雨停的始祖」。",
+                "acceptorShareCardText": "線索 #2（櫃檯平台）：硃砂墨韻平裝，寫著「大雨困在城門下等雨停」！",
+                "storageRule": "any-dry-slot",
+                "stepSuccessToast": "第二本《羅生門》從櫃檯順利送進防潮袋！（2 / 4）"
+              },
+              {
+                "step": 3,
+                "targetBookId": "classic-jane-eyre",
+                "targetAreaId": "reading-corner",
+                "acceptorWetListText": "【絕版清單 #3｜閱讀角低櫃】深靛藍銀線厚布精裝……評語：「我們的靈魂完全平等且自由」。",
+                "acceptorShareCardText": "線索 #3（閱讀角低櫃）：深靛銀線精裝，寫著「靈魂完全平等且自由」！",
+                "inviterReverseClue": {
+                  "foundNotice": "你在閱讀角低櫃發現阿澄的【高櫃擺放規則卡】：深靛藍精裝書很沉，一定要放高櫃「最下層」墊底，否則會壓壞下方的平裝本！",
+                  "shareCardText": "反轉線索：深靛精裝一定要放高櫃【最下層】墊底！"
+                },
+                "storageRule": "bottom-shelf-slot",
+                "wrongSlotFeedback": "厚精裝放上層會把平裝書壓凹！快看對方傳來的擺放規則，移到最下層！",
+                "stepSuccessToast": "第三本《簡愛》穩穩墊底上架！衝最後一本！（3 / 4）"
+              },
+              {
+                "step": 4,
+                "targetBookId": "classic-stray-birds",
+                "targetAreaId": "window",
+                "acceptorWetListText": "【絕版清單 #4｜落地窗邊書台】奶油白壓花水彩封面……紅筆星號：「錯過太陽別哭，免得也錯過頭頂群星」。",
+                "acceptorShareCardText": "線索 #4（窗邊書台）：奶油白水彩飛鳥封面，寫著「錯過太陽與群星」！",
+                "inviterReverseClue": {
+                  "foundNotice": "窗邊壓著防潮箱【封箱鎖扣順序】：放好最後一本後，必須依序點擊「左扣 → 右扣 → 下壓封條」才能氣密鎖緊！",
+                  "shareCardText": "反轉線索：鎖箱順序是【左扣 → 右扣 → 下壓封條】！"
+                },
+                "storageRule": "top-shelf-and-lock-sequence",
+                "lockSequence": ["left-latch", "right-latch", "seal-strip"],
+                "wrongLockFeedback": "卡扣順序反了扣不緊！照對方傳來的「左→右→封條」試一次！",
+                "stepSuccessToast": "啪嗒！防潮箱氣密鎖緊！四本跨區絕版書全員生還！（4 / 4）"
+              }
+            ]
+          }
+        ],
+        "settlements": {
+          "gradeS": {
+            "condition": "rescuedCount == 4 && remainingSeconds > 0",
+            "title": "完美搶救成功！",
+            "lines": [
+              { "speaker": "旁白", "text": "防潮箱「啪」地一聲扣緊的瞬間，閃爍的吊燈恢復了暖黃光芒。你們手裡還握著手電筒，隔著木架相視一笑，胸口還帶著剛才衝刺的微喘。" }
+            ]
+          },
+          "gradeA": {
+            "condition": "rescuedCount >= 2 && rescuedCount <= 3 && remainingSeconds == 0",
+            "title": "關鍵珍本保住了！",
+            "lines": [
+              { "speaker": "阿澄・店長", "expression": "concerned", "text": "時間到，水線快貼上來了！夠了夠了，最重要那幾本都上高架了，快退上木台階！" },
+              { "speaker": "旁白", "text": "你們急忙收手退到高處，袖口沾了一點水珠，看著彼此略顯狼狽的樣子，反而不約而同笑出了聲。" }
+            ]
+          },
+          "gradeB": {
+            "condition": "rescuedCount <= 1 && remainingSeconds == 0",
+            "title": "水位突破警戒線・強制安全撤離",
+            "forceEndingId": "ev4-04-eaves-shelter",
+            "lines": [
+              { "speaker": "阿澄・店長", "expression": "concerned", "text": "水漫過門檻警戒線、快碰到門口電箱了！別管書了，人平安最重要，跟我從後面樓梯撤到二樓屋簷雨廊！" },
+              { "speaker": "旁白", "text": "沒有半秒猶豫，你們放下手邊的東西，跟著阿澄快步撤離到高處的遮雨屋簷下。" }
+            ]
+          }
+        }
+      },
+      "clerkAftermath": {
+        "S_warm": [
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "（端來兩杯手沖咖啡與剛剛小黑板寫「私藏留給奇蹟」的手工焦糖布丁）我原本還擔心兩位手忙腳亂，結果滿場找書配合得比我以前請的工讀生還默契。" },
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "這壺私藏深焙加上兩顆壓箱寶布丁算店裡請客！外頭雨勢小多了，慢慢喝。" }
+        ],
+        "S_quiet": [
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "（輕輕將兩杯熱咖啡與焦糖布丁放上窗邊木桌）本來以為今晚大家都只想安靜各自待著，沒想到一場大雨，兩位竟然默默救了這間破店一命。" },
+          { "speaker": "阿澄・店長", "expression": "neutral", "text": "咖啡跟私藏布丁放這兒，想聊就聊、想繼續各自翻書都隨意。" }
+        ],
+        "A_warm": [
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "（遞來兩條乾毛巾與兩杯熱拿鐵）辛苦啦！袖口都沾到水了吧？先擦擦手暖暖胃，至少最珍貴的那幾本沒泡湯。" },
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "這場雨加上剛才那一陣滿店跑的狼狽，應該夠你們記好一陣子了。" }
+        ],
+        "A_quiet": [
+          { "speaker": "阿澄・店長", "expression": "smile", "text": "（安靜放上熱拿鐵與乾毛巾）剛剛真是太謝謝你們出手幫忙，保住了好幾本買不回來的絕版書。" },
+          { "speaker": "阿澄・店長", "expression": "neutral", "text": "外面水勢已經穩住、雨也變小了。趁熱喝點東西喘口氣吧，我不打擾你們。" }
+        ]
+      },
+      "bookmarkRitual": {
+        "bindingId": "sv4-bookmark-pick",
+        "assetId": "prop-bookmark-v4",
+        "prompt": "阿澄順手遞來兩張空白牛皮書籤。把剛剛陪你度過雨夜的書放到窗邊木桌，選一句最想夾進書頁的句子（也能親手寫一句 20 字內的短語，選填不強迫）：",
+        "customNotePlaceholder": "（選填）也可以自己留一句 20 字內的短語給對方…",
+        "customNoteMaxLength": 20,
+        "customNoteRule": "純文字 trim 後 1–20 Unicode scalar，套用與聊天室相同之控制字元與安全過濾，留空則直接使用所選書籤金句。",
+        "partnerPlacedNotice": "對方把一本夾著牛皮書籤的書輕輕放在了木桌上。"
+      },
+      "finalWish": {
+        "bindingId": "sv4-final-wish",
+        "prompt": "雨聲漸漸輕了下來。在這一夜畫下逗點之前，你現在最想要的是哪一種收尾？（對方提交前看不見你的選擇）",
+        "waitingPartnerCopy": "你的心意已輕輕收好。等對方選完，今晚的雨聲書店就會迎來屬於你們的收尾——這段時間也能隨時打開聊天室。",
+        "options": [
+          { "id": "keep-talking", "label": "趁雨還沒完全停，再一起多聊一會" },
+          { "id": "share-books", "label": "把話題留在書裡，看看彼此放上桌的那本書" },
+          { "id": "quiet-rest", "label": "維持這樣剛剛好的距離，安靜聽雨歇一會" }
+        ]
+      }
+    },
+    "endings": [
+      {
+        "id": "ev4-01-more-talk",
+        "endingNumber": 1,
+        "title": "雨停之前，再聊一會",
+        "cameraId": "coffee-talk",
+        "areaId": "window",
+        "conditions": "grade in (S, A) AND inviter.finalWish == 'keep-talking' AND acceptor.finalWish == 'keep-talking'",
+        "lines": [
+          { "speaker": "旁白", "text": "黑膠重新流瀉出溫柔的旋律，兩杯熱飲在暖玫瑰色的檯燈光下升起細細熱氣。你們不約而同往木桌前傾身了一些，剛才並肩搶救書本的緊繃，化成了桌邊最鬆弛的笑意。" },
+          { "speaker": "阿澄・店長", "text": "外頭雨聲變小囉，今晚這張窗邊木桌，就借你們慢慢聊到不想走吧。" }
+        ],
+        "tableHighlight": "桌上擺著熱飲（S 級附私藏手工焦糖布丁／A 級附熱拿鐵與毛巾）與雙方剛才留下的書，順勢彈出專屬續聊引子。"
+      },
+      {
+        "id": "ev4-02-book-recommendation",
+        "endingNumber": 2,
+        "title": "留下一本書的名字",
+        "cameraId": "coffee-books",
+        "areaId": "window",
+        "conditions": "grade in (S, A) AND neither chose 'quiet-rest' AND at least one chose 'share-books'",
+        "lines": [
+          { "speaker": "旁白", "text": "兩本剛才陪伴彼此的書並排留在窗邊木桌上，書頁間露出一角牛皮書籤。沒有急著探問過多私事，只是交換了一個書名與一句心動的句子——有時候，懂一本書的頻率，就已經懂了一個人一半。" },
+          { "speaker": "旁白", "text": "點擊木桌上對方留下的那本書，可以親自翻開看看對方夾在裡面的書籤金句。" }
+        ],
+        "postEndingInteraction": {
+          "allowOpenPartnerBook": true,
+          "bookmarkRevealBanner": "書頁翻開，一張寫著這句話的牛皮書籤輕輕滑了出來："
+        }
+      },
+      {
+        "id": "ev4-03-gentle-distance",
+        "endingNumber": 3,
+        "title": "剛剛好的距離",
+        "cameraId": "warm-entry",
+        "areaId": "window",
+        "conditions": "grade in (S, A) AND (inviter.finalWish == 'quiet-rest' OR acceptor.finalWish == 'quiet-rest')",
+        "lines": [
+          { "speaker": "旁白", "text": "有些雨天適合並肩長談，有些雨天適合在同一個屋簷下，各自安靜翻完手裡那一章。" },
+          { "speaker": "旁白", "text": "你們隔著一張木桌，聽著同一張黑膠與漸漸變小的雨聲。這份不被催促、不被打擾的自在，本身就剛剛好。" }
+        ]
+      },
+      {
+        "id": "ev4-04-eaves-shelter",
+        "endingNumber": 4,
+        "title": "雨夜屋簷下的並肩",
+        "cameraId": "eaves-shelter",
+        "areaId": "eaves-corridor",
+        "conditions": "grade == B (90 秒倒數歸零、水位破警戒線強制撤離)",
+        "lines": [
+          { "speaker": "旁白", "text": "水勢終究漫過了門檻警戒線。你們跟著阿澄快步退到二樓的遮雨屋簷下，外頭依舊大雨滂沱，兩人有點狼狽地扶著欄杆喘氣，互看一眼卻忍不住同時笑了出來。" },
+          { "speaker": "阿澄・店長", "text": "（拎著保溫瓶與兩條乾毛巾跑過來，喘著氣苦笑）書沒全搶完沒關係，人平安最要緊！來，先喝口熱茶壓壓驚——下次雨沒這麼瘋的時候，再回來幫我補考一次吧。" },
+          { "speaker": "旁白", "text": "沒喝成窗邊咖啡，卻多了一場一起逃離淹水書店的荒謬記憶。夜雨在屋簷外垂成一道銀簾，而屬於你們的對話才正要開始。" }
+        ]
+      }
+    ],
+    "dynamicChatSuggestions": {
+      "act1_browse": [
+        { "id": "s-b1", "label": "聊逛哪一區", "text": "你現在在逛哪個角落？我剛在窗邊發現超喜歡的書！" },
+        { "id": "s-b2", "label": "聊盲書", "text": "牛皮紙盲書的標籤寫得也太準了吧，你有撕開嗎？" },
+        { "id": "s-b3", "label": "聊讀者字條", "text": "每本書最後一頁居然還夾著上一個讀者的紙條，超可愛欸" }
+      ],
+      "act1_vinyl_changed": [
+        { "id": "s-v1", "label": "讚美歌單", "text": "剛剛這首黑膠是你換的嗎？品味很不錯欸！" },
+        { "id": "s-v2", "label": "聊雨天音樂", "text": "下雨天配這個旋律直接不想回家了" },
+        { "id": "s-v3", "label": "聊特調黑板", "text": "你有看到櫃檯小黑板寫限量布丁留給奇蹟發生嗎哈哈" }
+      ],
+      "act2_same_book": [
+        { "id": "s-sb1", "label": "太巧了吧", "text": "二十本書裡我們竟然挑到同一本也太扯了吧！" },
+        { "id": "s-sb2", "label": "聊最愛段落", "text": "你剛才最被書裡哪一句或那張紙條戳到？" },
+        { "id": "s-sb3", "label": "平時閱讀", "text": "你平常就愛看這類書，還是今天剛好被封面吸過去？" }
+      ],
+      "act2_diff_book": [
+        { "id": "s-db1", "label": "交換書名", "text": "你挑的那本好看嗎？我剛晃過那個角落差點也拿它！" },
+        { "id": "s-db2", "label": "不急著聊", "text": "慢慢看沒關係，這間店連安靜待著都很舒服" },
+        { "id": "s-db3", "label": "阿澄推薦", "text": "阿澄寫在書架上的吐槽小卡也太真實了吧哈哈" }
+      ],
+      "act2_after_card": [
+        { "id": "s-qc1", "label": "追問答案", "text": "沒想到你提問卡會選這個答案哈哈，為什麼？" },
+        { "id": "s-qc2", "label": "慶祝默契", "text": "剛才提問卡竟然神同步，我們頻率好像滿合的欸！" },
+        { "id": "s-qc3", "label": "聊雨天日常", "text": "現實中如果真的放暴雨假，你會先做什麼？" }
+      ],
+      "act3_rescue": [
+        { "id": "s-r1", "label": "對區域線索", "text": "你那邊濕掉的清單寫哪個區域、什麼顏色或關鍵字？" },
+        { "id": "s-r2", "label": "喊準備接書", "text": "我在那個書台翻到了，滑給你囉準備接！" },
+        { "id": "s-r3", "label": "緊張搞笑", "text": "救命水線漲好快啊哈哈，撐住！" }
+      ],
+      "act4_coffee": [
+        { "id": "s-c1", "label": "誇獎默契", "text": "剛剛我們滿場跑救書配合得意外超罩欸！" },
+        { "id": "s-c2", "label": "聊咖啡廳", "text": "如果真的下雨躲進咖啡廳，你通常都會點什麼？" },
+        { "id": "s-c3", "label": "聊書籤", "text": "我剛翻開你放上桌的書，那張書籤上的句子我很喜歡" }
+      ],
+      "act4_eaves": [
+        { "id": "s-e1", "label": "笑場復盤", "text": "剛剛差一點點就搶完了超可惜哈哈！" },
+        { "id": "s-e2", "label": "荒謬回憶", "text": "人生第一次跟人一起逃離淹水書店，這記憶點太強了😂" },
+        { "id": "s-e3", "label": "約補考", "text": "阿澄都說要補考了，下次要不要再挑戰一次把四本全救出來？" }
+      ]
+    },
+    "memoryReceipt": {
+      "assetId": "ui-memory-receipt-v4",
+      "badgeSheetAssetId": "ui-receipt-badges-v4",
+      "headerTitle": "雨 聲 書 店  RAINY BOOKSHOP",
+      "headerSubtitle": "今日雨夜借閱小票",
+      "privacyNote": "僅包含本場虛構劇情紀錄，絕不顯示真實姓名、Email、照片或私密 Profile 欄位。",
+      "fields": [
+        { "key": "vinyl", "label": "今晚黑膠" },
+        { "key": "books", "label": "你們挑的書" },
+        { "key": "rescueStats", "label": "暴雨搶救" },
+        { "key": "partnerTitle", "label": "拍檔稱號" },
+        { "key": "endingProgress", "label": "解鎖結局" },
+        { "key": "easterEggBadges", "label": "今晚暗號印章" }
+      ],
+      "partnerTitles": {
+        "S_fast": "★ 光速搶書神隊友 ★",
+        "S_normal": "★ 暴雨中的天選救書拍檔 ★",
+        "A": "★ 微狼狽但很罩的雨夜戰友 ★",
+        "B": "★ 一起逃出淹水書店的共犯 ★"
+      },
+      "hiddenEasterEggBadges": [
+        {
+          "id": "badge-same-book",
+          "condition": "inviterBookId == acceptorBookId",
+          "stampTitle": "平行時空的同一頁",
+          "caption": "在 20 本書裡不約而同挑中了同一本"
+        },
+        {
+          "id": "badge-vinyl-sync",
+          "condition": "vinylChangedAtLeastOnce",
+          "stampTitle": "同一捲雨夜黑膠",
+          "caption": "曾替這間書店換過屬於今晚的旋律"
+        },
+        {
+          "id": "badge-foggy-doodle",
+          "condition": "foggyWindowDoodleSeenByPartner",
+          "stampTitle": "起霧玻璃上的秘密",
+          "caption": "在落地雨窗的霧氣裡交換過小小記號"
+        },
+        {
+          "id": "badge-quiet-allies",
+          "condition": "act2Route == 'quiet-track' AND rescueGrade in ('S', 'A')",
+          "stampTitle": "從安靜到並肩的戰友",
+          "caption": "哪怕前半場各自看書，危機時依然默契十足"
+        }
+      ],
+      "clerkFootnotesByEnding": {
+        "ev4-01-more-talk": "「這場雨停了，下一句想聊什麼？」",
+        "ev4-02-book-recommendation": "「交換過書名的人，下次見面就不算陌生人囉。」",
+        "ev4-03-gentle-distance": "「能安靜待在同一個屋簷下，本身就是很難得的默契。」",
+        "ev4-04-eaves-shelter": "「人平安最重要！下次雨小一點再回來補考吧。」"
+      }
+    },
+    "uiCopy": {
+      "mapToggleLabel": "書店平面圖",
+      "mapGlowLegend": "暖金光點代表該區有新互動或未探索彩蛋",
+      "edgeNavLeft": "向左逛",
+      "edgeNavRight": "向右逛",
+      "sceneGuidance": {
+        "firstEnterBreathingGlowNote": "首次進入任一區域時，對可互動物件播放 1 次柔和邊緣呼吸光（不常駐、不使用漂浮星號卡片）。",
+        "longPressScanHint": "長按畫面空白處，可短暫掃視此區可互動的書與物件",
+        "shelfHint": "左右滑動逛書牆，點書背抽出來翻閱；別忘了翻到最後一頁看看讀者字條"
+      },
+      "waitingPartnerGentle": "對方還在自己的步調裡逛書店；你可以去別區翻書、換張黑膠、看小黑板、擦開雨窗或翻留言冊。",
+      "chapterCompletedBanner": "今晚的《雨聲書店》已收尾，但聊天室依然亮著燈。",
+      "nextEpisodeInvite": "再開啟下一場相遇",
+      "nextEpisodeWithdraw": "先收回下一場邀請",
+      "partnerAgreedNext": "對方已經點了「下一場」，準備好隨時可以出發。",
+      "exitConfirmTitle": "確定要結束這段相遇嗎？",
+      "exitConfirmBody": "確認結束後，本輪聊天與互動紀錄將無法回讀，你們也不會再重新配對到彼此。",
+      "exitConfirmPrimary": "確認結束本輪",
+      "exitConfirmCancel": "先留著這段相遇"
+    }
+  }
+}
