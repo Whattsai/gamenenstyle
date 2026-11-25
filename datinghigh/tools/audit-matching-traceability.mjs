@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 // 2026-11-06逐一讀完Given／When／Then及斷言後明列的對照；本工具不執行測試，亦不依名稱自動批准。
-const tddPath='docs/tdd/SPEC-001-MatchingSessions-TDD.md',bddPath='docs/bdd/SPEC-001-MatchingSessions-BDD.md';
+const tddPath='docs/alldonejobs/tdd/SPEC-001-MatchingSessions-TDD.md',bddPath='docs/alldonejobs/bdd/SPEC-001-MatchingSessions-BDD.md';
 const read=p=>fs.readFileSync(p,'utf8').replaceAll('\r\n','\n');
 let tdd=read(tddPath),bdd=read(bddPath);
 const source={
@@ -115,7 +115,7 @@ const scenarios=[...bdd.matchAll(/^### (MS-BDD-\d+)：([^\n]+)\n([\s\S]*?)(?=\n#
  return{id,title:m[2],source:at(bddPath,`### ${id}：`),acceptance:[...m[3].matchAll(/MS-AC-\d+/g)].map(v=>v[0]),status:'verified',scope:[12,21,71].includes(Number(id.slice(-3)))?'internal-ended-contract':'current',requirement:m[3],cases:related.map(c=>c.id),evidence:proof};
 });assert.equal(scenarios.length,75);assert.equal(new Set(scenarios.map(s=>s.id)).size,75);
 const layers=Object.fromEntries(['UT','IT','API','ET'].map(layer=>{const c=cases.filter(c=>c.id.startsWith(`MS-${layer}-`));return[layer,{total:c.length,verified:c.filter(c=>c.status==='verified').length}];}));
-const acceptance=[...new Set(scenarios.flatMap(s=>s.acceptance))].sort().map(id=>({id,source:at('docs/specs/SPEC-001-MatchingSessions.md',`| \`${id}\` |`),scenarios:scenarios.filter(s=>s.acceptance.includes(id)).map(s=>s.id),scope:id==='MS-AC-010'?'internal-ended-contract; full exit UX remains future MS-ET-017':'current',status:'verified'}));
+const acceptance=[...new Set(scenarios.flatMap(s=>s.acceptance))].sort().map(id=>({id,source:at('docs/alldonejobs/specs/SPEC-001-MatchingSessions.md',`| \`${id}\` |`),scenarios:scenarios.filter(s=>s.acceptance.includes(id)).map(s=>s.id),scope:id==='MS-AC-010'?'internal-ended-contract; full exit UX remains future MS-ET-017':'current',status:'verified'}));
 assert.equal(acceptance.length,14);
 const verified=cases.filter(c=>c.status==='verified').length,current=cases.filter(c=>c.scope==='current');
 const report={updatedAt:'2026-11-06',method:'逐ID／逐BDD完整斷言人工覆核後的明列對照；存在檔案不是執行證據，命令及平台結果另見Verification',scope:{platforms:['Web','Android'],deferred:['iOS-D-052'],excluded:['accessibility-D-051'],future:['MS-ET-017'],deployed:false},total:cases.length,verified,percent:Math.round(verified/cases.length*1000)/10,currentScope:{total:current.length,verified:current.filter(c=>c.status==='verified').length,percent:100},layers,acceptance,bdd:{total:scenarios.length,verified:scenarios.filter(s=>s.status==='verified').length,frontend:{total:18,verified:18},scenarios},cases};
@@ -130,6 +130,6 @@ if(process.argv.includes('--write')){
  for(const c of cases)tdd=tdd.replace(new RegExp(`^- \\[[ x]\\] (?=\\*\\*${c.id}\\*\\*)`,'m'),`- [${c.status==='verified'?'x':' '}] `);
  bdd=bdd.replace(/^- \[ \] (\*\*Scenario:)/gm,'- [x] $1');
  fs.writeFileSync(tddPath,tdd);fs.writeFileSync(bddPath,bdd);
- fs.writeFileSync('docs/verification/matching-sessions-traceability.json',JSON.stringify(report,null,2)+'\n');
+ fs.writeFileSync('docs/alldonejobs/verification/matching-sessions-traceability.json',JSON.stringify(report,null,2)+'\n');
 }
 console.log(JSON.stringify({total:report.total,verified:report.verified,percent:report.percent,currentScope:report.currentScope,layers,bdd:{total:75,verified:75,frontend:{total:18,verified:18}}}));

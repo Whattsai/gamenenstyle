@@ -8,7 +8,7 @@ Story驗收分成Gate A技術證據與Gate B使用者完整試玩，不能由自
 
 配對來源異動必須與 `match_conditions` 同批，並證明新增、更新、刪除各種同步失敗都完整回滾；不使用 `source_profile_revision`。無關個資異動不能更新投影或讓玩家消失。接受舊 pending 不重驗新性向／偏好，但須驗硬性資格、期限、Session 與占用；新邀請仍以最新雙向條件判定。不可移除 SQL 零列 guard 或 game_active_round_claims.account_id UNIQUE；新增入口須用真 Miniflare 故障注入驗證。
 
-匹配成功不授予名片／原照權限，故事終止 UI 由劇情模組處理。變更前核對 [MatchingSessions 驗證紀錄](../../docs/verification/SPEC-001-MatchingSessions-Verification.md) 的逐 ID 覆核與平台範圍。
+匹配成功不授予名片／原照權限，故事終止 UI 由劇情模組處理。變更前核對 [MatchingSessions 驗證紀錄](../../docs/alldonejobs/verification/SPEC-001-MatchingSessions-Verification.md) 的逐 ID 覆核與平台範圍。
 
 ## 分層與實作要求
 
@@ -32,6 +32,8 @@ Worker 的 Zod／strict JSON 拒未知與重複欄位，SQL 自然約束依現�
 ## 測試與文件
 
 AGENTS.md、README.md、overview 等非需求文件禁止記錄需求流水帳。架構、契約、原則與操作方式須整合成現行說明，不得以日期、需求批次、續接或增量段落追加；進度、測試數量、故障經過、人工確認與未完事項只更新對應 docs/verification 權威文件。
+
+SPEC／BDD／TDD／RiskAudit 同樣禁止流水帳。BDD／TDD 必須就地更新原 Scenario／測試的勾選、必要斷言及唯一現行統計／交接；證據與歷史存既有 Verification，不能追加日期式稽核或進度章節。已取代或延期不得勾選通過，須保留來源及明確責任。交付前核對 ID、狀態、數字及連結一致，失敗不得結案。
 
 D1 的條件更新、UNIQUE、FK、rollback 用真 Miniflare D1；HTTP fixture、受控 Google SDK／sender 只證明其受控範圍。Web 不替代 Android／iOS；local log 不替代實際收信。
 

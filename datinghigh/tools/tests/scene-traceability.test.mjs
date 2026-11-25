@@ -1,6 +1,23 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {auditSceneTraceability} from '../audit-story-traceability.mjs';
+import {readFileSync} from 'node:fs';
+import {auditSceneTraceability,auditDevelopmentDocuments} from '../audit-story-traceability.mjs';
+
+test('development documents keep one current progress section and reject old logs or false checks',()=>{
+ const valid={tdd:'## 現行進度\n- [ ] **SEF-UT-001**\n## 規劃交接紀錄',bdd:'## 現行進度',verification:'| SEF-UT-001 | partial | evidence |'};
+ assert.equal(auditDevelopmentDocuments(valid),true);
+ assert.throws(()=>auditDevelopmentDocuments({...valid,tdd:valid.tdd+'\n## 2026-11-25 稽核紀錄'}),/禁止新增歷史流水帳/);
+ assert.throws(()=>auditDevelopmentDocuments({...valid,bdd:valid.bdd+'\n## 現行進度'}),/必須只有一個現行進度/);
+ assert.throws(()=>auditDevelopmentDocuments({...valid,tdd:valid.tdd.replace('[ ]','[x]')}),/勾選與核證不一致/);
+});
+
+test('current SceneEventFramework development documents satisfy the no-log policy',()=>{
+ const read=relative=>readFileSync(new URL('../../docs/alldonejobs/'+relative,import.meta.url),'utf8');
+ const input={tdd:read('tdd/SPEC-001-SceneEventFramework-TDD.md'),bdd:read('bdd/SPEC-001-SceneEventFramework-BDD.md'),spec:read('specs/SPEC-001-SceneEventFramework.md'),verification:read('verification/SPEC-001-SceneEventFramework-Verification.md')};
+ assert.equal(auditDevelopmentDocuments(input),true);
+ const report=auditSceneTraceability({...input,readSource:relative=>readFileSync(new URL('../../'+relative,import.meta.url),'utf8')});
+ assert.equal(report.indexed,749);assert.equal(report.verified,749);assert.equal(report.complete,true);
+});
 
 test('a verified evidence link must resolve to an existing source line when the audit reads repository files',()=>{
  const input={tdd:'- [ ] **SEF-UT-001** `Example`',bdd:'',spec:'',expected:{UT:1},verification:'| SEF-UT-001 | verified | [實作](../../backend/src/Policy.cs:2)；[測試](../../backend/tests/PolicyTests.cs:3) |'};

@@ -2,7 +2,12 @@
 
 本目錄是「心動迴路」正式應用。本文定義 AI 開發時的讀取順序、遵守原則、工作方式與交付檢查；使用繁體中文維護說明。
 
-`AGENTS.md`、`README.md`、`overview/` 等非需求文件絕不可記錄需求流水帳，也不得以日期、需求批次、續接或增量段落追加工作摘要。`AGENTS.md` 維護開發原則；`README.md` 維護專案簡介與啟動入口；`overview/` 依主題整合現行架構、契約、相依與操作方式。修改時直接更新對應說明，不保留互相矛盾的新舊基線。需求進度、測試結果、人工確認、故障經過與未完事項只更新目標需求既有的 `docs/verification/` 文件；非需求文件只連結權威紀錄。
+## 基本規範
+
+- README 只寫專案介紹、環境、啟動及文件入口，不列功能進度。
+- AGENTS／overview 就地維護規範與架構，不記流水帳。
+- 所有流程（含 carefully-done、SD、well-done）就地更新有效規格、checkbox、唯一進度及交接；禁止每日／批次／歷史進度。
+- 驗證證據只放 Verification。
 
 ## 讀取順序
 
@@ -10,7 +15,7 @@
 2. [系統概覽](overview/01-architecture/01-system-overview.md)、[分層邊界](overview/01-architecture/02-layer-boundary.md)、[執行流程](overview/01-architecture/03-runtime-flow.md)。
 3. [模組地圖](overview/01-architecture/04-module-map.md)、[相依地圖](overview/01-architecture/05-dependency-map.md)。
 4. [AI coding rules](overview/02-development-guidelines/01-ai-coding-rules.md)、[檔案放置](overview/02-development-guidelines/02-file-placement.md)、[工作流](overview/02-development-guidelines/03-ai-workflow-stages.md)。
-5. 目標需求的 `docs/specs`、`docs/bdd`、`docs/tdd` 與 `docs/verification`；PlatformFoundation 對應 [SPEC](docs/specs/SPEC-001-PlatformFoundation.md)、[BDD](docs/bdd/SPEC-001-PlatformFoundation-BDD.md)、[TDD](docs/tdd/SPEC-001-PlatformFoundation-TDD.md)、[驗證紀錄](docs/verification/SPEC-001-PlatformFoundation-Verification.md)。
+5. 目標需求的 `docs/specs`、`docs/bdd`、`docs/tdd` 與 `docs/verification`；PlatformFoundation 對應 [SPEC](docs/alldonejobs/specs/SPEC-001-PlatformFoundation.md)、[BDD](docs/alldonejobs/bdd/SPEC-001-PlatformFoundation-BDD.md)、[TDD](docs/alldonejobs/tdd/SPEC-001-PlatformFoundation-TDD.md)、[驗證紀錄](docs/alldonejobs/verification/SPEC-001-PlatformFoundation-Verification.md)。
 
 依任務補讀 [API 契約](overview/03-contracts/01-api-contracts.md)、[資料契約](overview/03-contracts/02-data-contracts.md)、[部署與本地操作](overview/04-deployment/01-deployment-checklist.md)、[環境變數](overview/04-deployment/02-environment-variables-template.md)。規劃基線與執行證據不一致時，先辨明日期與範圍，不把歷史「未實作」或局部通過視為現況結論。
 
@@ -36,7 +41,7 @@
 
 ## 工作流與命令
 
-工作區已有 [perfect-plan](../.agents/skills/perfect-plan/SKILL.md)（需求至 MVP／SPEC／BDD／TDD／風險稽核）及 [well-done](../.agents/skills/well-done/SKILL.md)（依文件開發、UX、深度稽核及缺漏修復）。完整文件鏈採 `perfect-plan -> well-done`；依使用者任務啟用，不因整理文件而自動執行規劃或開發。
+工作區提供 `perfect-plan`、`well-done`、`fantastic-design`、`carefully-done`；依使用者指定流程執行，全部適用上述文件規範。詳細流程見[工作流](overview/02-development-guidelines/03-ai-workflow-stages.md)。
 
 | 任務 | 命令 |
 |---|---|

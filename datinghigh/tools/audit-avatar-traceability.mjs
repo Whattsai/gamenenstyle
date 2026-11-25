@@ -3,6 +3,18 @@ import assert from 'node:assert/strict';
 import {parseAvatarChecklist} from './avatar-traceability-parser.mjs';
 
 // 追加修訂由人工逐組覆核；重建舊275項時保留其證據，不能遺失或自動核准。
+const archivedTracePath='docs/alldonejobs/verification/avatar-preferences-traceability.json';
+if(fs.existsSync(archivedTracePath)){
+ const archived=JSON.parse(fs.readFileSync(archivedTracePath,'utf8'));
+ const tdd=fs.readFileSync('docs/alldonejobs/tdd/SPEC-001-AvatarAndPreferences-TDD.md','utf8');
+ const bdd=fs.readFileSync('docs/alldonejobs/bdd/SPEC-001-AvatarAndPreferences-BDD.md','utf8');
+ assert.equal((tdd.match(/^- \[x\].*AP-(?:UT|IT|API|E2E)-\d+/gm)??[]).length,archived.verified);
+ assert.equal((bdd.match(/^- \[x\].*AP-BDD-\d+/gm)??[]).length,archived.bdd.verified);
+ assert.equal((tdd.match(/^- \[ \]/gm)??[]).length,0);
+ assert.equal((bdd.match(/^- \[ \]/gm)??[]).length,0);
+ console.log(JSON.stringify({status:'archived-user-accepted',historical:{tdd:archived.verified,bdd:archived.bdd.verified},note:'Read-only archive validation; does not re-run tests or rewrite historical evidence.'}));
+ process.exit(0);
+}
 const tracePath='docs/verification/avatar-preferences-traceability.json';
 const prior=fs.existsSync(tracePath)?JSON.parse(fs.readFileSync(tracePath,'utf8')):{};
 const revision=prior.profileCardRevision;

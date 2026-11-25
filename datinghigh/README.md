@@ -89,14 +89,6 @@ Android smoke 的 APK 取檔、受控矩陣與真 Google 測試若引用舊目�
 - [AGENTS.md](AGENTS.md)：AI 讀取順序與變更檢查清單。
 - [系統概覽](overview/01-architecture/01-system-overview.md)、[模組地圖](overview/01-architecture/04-module-map.md)、[相依關係](overview/01-architecture/05-dependency-map.md)。
 - [API 契約](overview/03-contracts/01-api-contracts.md)、[資料契約](overview/03-contracts/02-data-contracts.md)。
-- [MVP](docs/requirements/MVP-001-LoveGameDatingApp.md)、[SPEC](docs/specs/SPEC-001-PlatformFoundation.md)、[BDD](docs/bdd/SPEC-001-PlatformFoundation-BDD.md)、[TDD](docs/tdd/SPEC-001-PlatformFoundation-TDD.md)。
-
-| 功能 | 規格 | 進度與驗證紀錄 |
-|---|---|---|
-| 帳號與平台基礎 | [PlatformFoundation](docs/specs/SPEC-001-PlatformFoundation.md) | [驗證紀錄](docs/verification/SPEC-001-PlatformFoundation-Verification.md) |
-| 化身與個人偏好 | [AvatarAndPreferences](docs/specs/SPEC-001-AvatarAndPreferences.md) | [驗證紀錄](docs/verification/SPEC-001-AvatarAndPreferences-Verification.md) |
-| 配對與邀請 | [MatchingSessions](docs/specs/SPEC-001-MatchingSessions.md) | [驗證紀錄](docs/verification/SPEC-001-MatchingSessions-Verification.md) |
-| 劇情、聊天與退出 | [StoryDialogueAndExit](docs/specs/SPEC-001-StoryDialogueAndExit.md) | [驗證紀錄](docs/verification/SPEC-001-StoryDialogueAndExit-Verification.md) |
-| 場景、事件與下一場 | [SceneEventFramework](docs/specs/SPEC-001-SceneEventFramework.md) | [驗證紀錄](docs/verification/SPEC-001-SceneEventFramework-Verification.md) |
+- 需求文件：`docs/requirements/`、`docs/specs/`、`docs/bdd/`、`docs/tdd/`、`docs/sd/`；驗證證據位於 `docs/verification/`，已結案文件位於 `docs/alldonejobs/`。
 
 開發前先讀相關規格與分層文件；認證／資料變更先補失敗測試，完成後同步受影響的 overview。交付說明請列出行為變更、驗證結果、平台／環境及剩餘缺項。秘密、憑證、本地 state 與備份不得提交。

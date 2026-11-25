@@ -4,14 +4,14 @@
 
 先依 [AGENTS.md](../../AGENTS.md) 讀現況與目標規格，檢查工作樹，保留既有使用者改動。判斷任務為文件同步、既有功能修正，或新需求的規劃／開發。不同需求的確認與完成證據不可相互代簽。
 
-工作區提供 [perfect-plan](../../../.agents/skills/perfect-plan/SKILL.md) 與 [well-done](../../../.agents/skills/well-done/SKILL.md)。完整需求鏈採 `perfect-plan -> well-done`：前者整理已確認 MVP／SPEC／BDD／TDD 與風險稽核交接，後者承接測試先行、UX、深度稽核與缺漏修復。依使用者任務及 skill 規則執行；只做 initial-overview 時不啟動這兩個流程。
+依使用者選用 `perfect-plan -> well-done` 或 `perfect-plan -> fantastic-design -> carefully-done`。後者依核准 SD 版本按步實作，不由 well-done 接管；偏離設計須重新確認。所有流程均適用專案零流水帳規則。
 
 ## 一般開發
 
 1. 明確列出觸發條件、預期行為、規格來源與必要平台／環境；先讀現行 implementation／test，避免以歷史規劃段落代替現況。
 2. 認證／資料變更先以有意義的失敗測試重現，再跨必要層實作與重構；SQL 依真 Miniflare D1 證據判定。
 3. 執行相應回歸；跨層認證改動使用基礎整體檢查及必要 live／UI 測試。原生 plugin 變更需重建／安裝 APK。
-4. 同步受影響的契約與 overview，直接整合成現行說明；AGENTS.md、README.md、overview 等非需求文件禁止按日期／需求追加流水帳。進度、測試結果、人工確認、故障經過與未完事項只更新既有需求驗證文件。
+4. 依 AGENTS.md 就地同步架構、SPEC／BDD／TDD／RiskAudit／SD 的現行有效內容、checkbox、唯一進度與交接；carefully-done 的 SD 分項、總覽、矩陣及步驟也禁止每日紀錄。證據與歷史只放 Verification。README 不列功能進度；結案文件移至 docs/alldonejobs/ 並同步引用。交付前檢查追溯、狀態、統計及連結。
 5. 檢查 diff、敏感資料與下列影響矩陣後交付。若 overview 無影響，必須說明原因。
 
 ## 驗證命令與前提
@@ -46,11 +46,11 @@ readiness／restart／換 key 與其他依賴 8787 的測試不得並跑；其�
 
 ## 驗收與證據
 
-`docs/verification/foundation-evidence.json` 記平台／環境證據；`foundation-case-review.json` 為人工案例覆核，`foundation-traceability.json` 與 DeepAudit 提供完整追溯。不要只因函式名稱含 PF ID 就改成 passed。
+`docs/alldonejobs/verification/foundation-evidence.json` 記平台／環境證據；`foundation-case-review.json` 為人工案例覆核，`foundation-traceability.json` 與 DeepAudit 提供完整追溯。不要只因函式名稱含 PF ID 就改成 passed。
 
 依 D-051，無障礙專項不納入目前 MVP；依 D-052，iOS 暫緩。評估器的 `accepted`／`missing` 代表完整原規劃，`scopedAccepted`／`scopedMissing` 代表明確決策下的驗收範圍。本地或受控證據不替代其他平台、真服務或雲端證據。
 
-目前狀態以 [驗證紀錄](../../docs/verification/SPEC-001-PlatformFoundation-Verification.md)、[本地矩陣](../../docs/verification/PlatformFoundation-LocalMatrix.md) 與 [深度稽核](../../docs/verification/SPEC-001-PlatformFoundation-DeepAudit.md) 為準，overview 只維護現行原則、結構、契約與操作，不記需求進度或工作流水帳。
+目前狀態以 [驗證紀錄](../../docs/alldonejobs/verification/SPEC-001-PlatformFoundation-Verification.md)、[本地矩陣](../../docs/alldonejobs/verification/PlatformFoundation-LocalMatrix.md) 與 [深度稽核](../../docs/alldonejobs/verification/SPEC-001-PlatformFoundation-DeepAudit.md) 為準，overview 只維護現行原則、結構、契約與操作，不記需求進度或工作流水帳。
 
 ## Overview 同步矩陣
 

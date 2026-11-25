@@ -1,10 +1,10 @@
 import fs from 'node:fs';import path from 'node:path';import {root} from './local-policy.mjs';
-const base='SPEC-001-PlatformFoundation',tddPath=`docs/tdd/${base}-TDD.md`,bddPath=`docs/bdd/${base}-BDD.md`;
+const base='SPEC-001-PlatformFoundation',tddPath=`docs/alldonejobs/tdd/${base}-TDD.md`,bddPath=`docs/alldonejobs/bdd/${base}-BDD.md`;
 const tdd=fs.readFileSync(`${root}/${tddPath}`,'utf8'),bdd=fs.readFileSync(`${root}/${bddPath}`,'utf8');
 const cases=[...tdd.matchAll(/^(?:\|\s*)?- \[[ x]\] \*\*(PF-(UT|IT|API|E2E)-\d{3})\*\* `([^`]+)`.*$/gm)].map(m=>({id:m[1],layer:m[2],name:m[3],sourceLine:tdd.slice(0,m.index).split('\n').length,criterion:m[0].replace(/^.*?`[^`]+`\s*(?:\||（[^）]+）)?\s*/, '').replaceAll('|','／')}));
 const scenarios=[...bdd.matchAll(/^- \[[ x]\] \*\*Scenario: (PF-BDD-\d{3}) — (.*?)\*\*/gm)].map(m=>({id:m[1],name:m[2],sourceLine:bdd.slice(0,m.index).split('\n').length}));
 if(cases.length!==227||new Set(cases.map(c=>c.id)).size!==227||scenarios.length!==92)throw new Error('Source document IDs/counts changed; review before regenerating');
-const review=JSON.parse(fs.readFileSync(`${root}/docs/verification/foundation-case-review.json`,'utf8'));
+const review=JSON.parse(fs.readFileSync(`${root}/docs/alldonejobs/verification/foundation-case-review.json`,'utf8'));
 const tests=new Map();function walk(dir){for(const item of fs.readdirSync(`${root}/${dir}`,{withFileTypes:true})){const p=`${dir}/${item.name}`;if(item.isDirectory()){if(!['bin','obj','node_modules'].includes(item.name))walk(p);}else if(/\.(cs|tsx?|mjs)$/.test(p)){const content=fs.readFileSync(`${root}/${p}`,'utf8');content.split('\n').forEach((line,index)=>{for(const id of line.match(/PF-(?:UT|IT|API|E2E)-\d{3}/g)??[]){const list=tests.get(id)??[];list.push(`${p}:${index+1}`);tests.set(id,list);}});}}}
 for(const dir of ['backend/tests','cloudflare/tests','frontend/client/tests','tools/tests','tests/e2e/web','tests/e2e/android','tests/component-layout','tests/integration'])walk(dir);
 for(const [id,refs] of Object.entries(review.additionalEvidence??{}))tests.set(id,[...(tests.get(id)??[]),...refs]);
@@ -14,7 +14,7 @@ const passed=new Set(review.passedCases),passedBdd=new Set(review.passedScenario
 const records=cases.map(c=>({...c,status:passed.has(c.id)?'passed':tests.has(c.id)?'partial':'unverified',implementation:implementation(c),tests:[...new Set(tests.get(c.id)??[])],note:review.notes[c.id]??(passed.has(c.id)?'已依原案例覆核所列實作及執行證據。':c.layer==='E2E'?'必要平台／真服務或完整故障參數尚有未驗收項；local／Web 局部通過不關閉整案。':'實作及局部證據見所列位置；原案例全部參數／故障分支尚未逐項建立完整執行證據。')}));
 const counts=Object.fromEntries(['UT','IT','API','E2E'].map(layer=>{const all=records.filter(c=>c.layer===layer);return [layer,{passed:all.filter(c=>c.status==='passed').length,total:all.length,partial:all.filter(c=>c.status==='partial').length}];}));const total=records.filter(c=>c.status==='passed').length;
 const percent=(total/227*100).toFixed(1),scenarioPercent=(passedBdd.size/92*100).toFixed(1);
-const link=(p,label)=>{const [file,line]=p.split(':');return `[${label??path.basename(file)}:${line}](../../${file}#L${line})`;};
+const link=(p,label)=>{const [file,line]=p.split(':');return `[${label??path.basename(file)}:${line}](../../../${file}#L${line})`;};
 let report=`# ${base} 逐項深度稽核\n\n2026-10-29。來源 37 PF-AC／92 BDD／227 TDD 全數列入；不以 test 名稱帶 ID 或程式存在自動視為完成。狀態由人工覆核清單指定，缺證據保持未完成。\n\nTDD **${total}/227（${percent}%）**；BDD **${passedBdd.size}/92（${scenarioPercent}%）**。尚未達 100%。原生／staging／Google／收信的必要參數及完整負例仍須補齊；詳細環境證據見 [驗證紀錄](${base}-Verification.md)。\n\n| 層級 | 完整覆核通過 | 有局部證據 | 規劃總數 |\n|---|---:|---:|---:|\n`;
 for(const [layer,c] of Object.entries(counts))report+=`| ${layer} | ${c.passed} | ${c.partial} | ${c.total} |\n`;
 report+='\n## TDD 全部案例\n\n| ID／來源行 | 狀態 | 實作 | 測試／驗證 | 結論／未補齊範圍 |\n|---|---|---|---|---|\n';
@@ -24,8 +24,8 @@ for(const s of scenarios){const row=tdd.split('\n').find(l=>l.startsWith(`| **${
 report+='\n## 37 條 SPEC 驗收\n\n| PF-AC | 場景證據 | 結論 |\n|---|---|---|\n';
 for(let n=1;n<=37;n++){const id=`PF-AC-${String(n).padStart(3,'0')}`,row=bdd.split('\n').find(l=>l.startsWith(`| ${id} |`))??'';const ids=[...new Set(row.match(/PF-BDD-\d{3}/g)??[])];report+=`| ${id} | ${ids.join('、')} | ${ids.length&&ids.every(id=>passedBdd.has(id))?'對應場景已覆核':'局部通過，完整驗收未關閉'} |\n`;}
 report=report.replace('2026-10-29。來源',`${review.reviewedAt}。來源`);
-fs.writeFileSync(`${root}/docs/verification/${base}-DeepAudit.md`,report);
-fs.writeFileSync(`${root}/docs/verification/foundation-traceability.json`,JSON.stringify({reviewedAt:review.reviewedAt,counts,passed:total,total:227,scenarios:{passed:passedBdd.size,total:92},cases:records},null,2)+'\n');
+fs.writeFileSync(`${root}/docs/alldonejobs/verification/${base}-DeepAudit.md`,report);
+fs.writeFileSync(`${root}/docs/alldonejobs/verification/foundation-traceability.json`,JSON.stringify({reviewedAt:review.reviewedAt,counts,passed:total,total:227,scenarios:{passed:passedBdd.size,total:92},cases:records},null,2)+'\n');
 if(process.argv.includes('--update')){
  let updated=tdd.replace(/((?:\|\s*)?- )\[[ x]\]( \*\*(PF-(?:UT|IT|API|E2E)-\d{3})\*\*)/g,(_m,a,b,id)=>`${a}[${passed.has(id)?'x':' '}]${b}`);
  updated=updated.replace(/> \*\*範圍\*\*：[^\n]*/,`> **範圍**：僅 SPEC-001-PlatformFoundation。實作已建立；完整覆核 ${total}/227（${percent}%），其餘保持局部／未驗收，詳見 [逐項稽核](../verification/${base}-DeepAudit.md)。`);
