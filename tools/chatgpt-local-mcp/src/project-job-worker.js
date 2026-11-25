@@ -3,7 +3,7 @@ import { appendFileSync, existsSync, readFileSync, renameSync, writeFileSync } f
 import { randomUUID } from 'node:crypto';
 import { StringDecoder } from 'node:string_decoder';
 import { basename, dirname } from 'node:path';
-import { ProjectService, redact } from './core.js';
+import { ProjectService, redact, redactValue } from './core.js';
 import { parseProjectDiagnostics, parseProjectTestSummary } from './project-job-results.js';
 
 // 獨立 supervisor 不依附 MCP 連線；只有它能更新執行中工作，取消透過檔案傳遞。
@@ -32,7 +32,7 @@ const log = (stream, value) => {
 };
 const progress = value => {
   if (typeof value.stage !== 'string' || JSON.stringify(value).length>8192) return;
-  value=JSON.parse(redact(JSON.stringify(value)));
+  value=redactValue(value);
   if (value.stage !== job.stage || value.scenario !== job.progress?.scenario) {
     job.stageHistory.push({ stage: value.stage, scenario: value.scenario, startedAt: now() });
     job.stageHistory = job.stageHistory.slice(-12);

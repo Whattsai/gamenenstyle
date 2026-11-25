@@ -10,6 +10,9 @@ import { UnityRunner } from './unity.js';
 const sha = value => createHash('sha256').update(value).digest('hex');
 const inside = (root, candidate) => { const rel = relative(root, candidate); return rel === '' || (rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)); };
 const fail = (code, message) => { throw new Error(`${code}: ${message}`); };
+// 唯讀 Git 查詢的固定操作與上限；不接受任意 Git 參數。
+const GIT_OPERATIONS=['status','diff','diff-check','diff-cached','diff-check-cached','head','repository-status'];
+const GIT_SCAN_DEPTH=5,GIT_REPOSITORY_LIMIT=20,GIT_STATUS_ENTRY_LIMIT=150,GIT_UNTRACKED_CHECK_LIMIT=100;
 const blockedSegments = new Set(['.git','.vs','.ssh','.gnupg','credentials','secrets','node_modules','bin','obj']);
 const textExt = new Set(['.md','.txt','.json','.jsonc','.yaml','.yml','.js','.mjs','.cjs','.ts','.tsx','.jsx','.css','.html','.xml','.cs','.csproj','.sln','.sql','.py','.ps1','.sh','.feature','.toml','.ini','.config','.gitignore']);
 const sensitive = name => /^\.env(?:\.|$)/i.test(name) || /(?:^|[-_.])(secret|password|credential|private[-_]?key)(?:[-_.]|$)/i.test(name) || /\.(?:pem|pfx|p12|key)$/i.test(name);
@@ -25,6 +28,30 @@ export function redact(value) {
     .replace(/\b((?:verification|email|reset|login|one[-_ ]?time)[-_ ]?code)\s+\d{4,10}\b/gi,'$1 [REDACTED_CODE]')
     .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,'[REDACTED_EMAIL]')
     .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,'[REDACTED_PRIVATE_KEY]');
+}
+// 敏感欄位名稱判斷沿用 redact 規則，讓結構化輸出與舊行為一致（例如 token、email 欄位）。
+const maskedKey = key => { if (/["\\]/.test(key)) return false; const probe = `"${key}": "x"`; return redact(probe) !== probe; };
+// 逐值遮罩：先遮罩各字串內容再序列化；不可對已跳脫的 JSON 全文套正規式，
+// 否則內容中的 key="value" 會吃掉跳脫字元，導致 MCP 回傳無法解析的 JSON。
+// Write Lease 的 session ID 由本 MCP 產生且 begin 本就明文回傳；輸出 schema 也要求 UUID，
+// 因此只對這些固定欄位且值為標準 UUID 時不遮罩（其他欄位、非 UUID 值仍照 redact 規則）。
+const leaseIdKeys = new Set(['sessionId', 'rootSessionId', 'previousSessionId', 'replacementSessionId']);
+const isLeaseId = (key, value) => leaseIdKeys.has(key) && typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
+export function redactValue(value) {
+  if (typeof value === 'string') return redact(value);
+  if (Array.isArray(value)) return value.map(redactValue);
+  if (value && typeof value === 'object') {
+    const output = {};
+    for (const [key, item] of Object.entries(value))
+      output[redact(key)] = isLeaseId(key, item) ? item : item !== null && typeof item !== 'object' && maskedKey(key) ? '[REDACTED]' : redactValue(item);
+    return output;
+  }
+  return value;
+}
+export function stringifyRedacted(value, space) {
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) return serialized;
+  return JSON.stringify(redactValue(JSON.parse(serialized)), null, space);
 }
 export function safeEnvironment(){const names=['PATH','Path','SystemRoot','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','LOCALAPPDATA','APPDATA','ProgramData','ProgramFiles','ProgramFiles(x86)','DOTNET_ROOT','JAVA_HOME','ANDROID_HOME','ANDROID_SDK_ROOT'];const env={};for(const name of names)if(process.env[name])env[name]=process.env[name];env.PYTHONUTF8='1';env.PYTHONIOENCODING='utf-8';return env;}
 function assertText(path) { if (!textExt.has(extname(path).toLowerCase()) && !textExt.has(basename(path).toLowerCase())) fail('TEXT_TYPE_BLOCKED','unsupported text file'); }
@@ -71,7 +98,8 @@ async function atomicJson(path, value) {
   await rename(temporary,path);
 }
 async function json(path) { try { return JSON.parse(await readFile(path,'utf8')); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } }
-async function command(executable,args,cwd,timeout=30_000) {
+// options.raw 供需要精確解析（例如 NUL 分隔）的唯讀 Git 查詢使用；呼叫端必須自行遮罩要輸出的欄位。
+async function command(executable,args,cwd,timeout=30_000,options={}) {
   return new Promise((resolveResult,reject) => {
     const child=spawn(executable,args,{cwd,windowsHide:true,shell:false,env:safeEnvironment()});
     let stdout='',stderr='';
@@ -79,7 +107,7 @@ async function command(executable,args,cwd,timeout=30_000) {
     child.stdout.on('data',chunk=>{ stdout+=chunk; if(stdout.length>4_000_000) child.kill(); });
     child.stderr.on('data',chunk=>{ stderr+=chunk; if(stderr.length>4_000_000) child.kill(); });
     child.on('error',error=>{ clearTimeout(timer); reject(error); });
-    child.on('close',code=>{ clearTimeout(timer); resolveResult({exitCode:code,stdout:redact(stdout),stderr:redact(stderr)}); });
+    child.on('close',code=>{ clearTimeout(timer); resolveResult(options.raw?{exitCode:code,stdout,stderr}:{exitCode:code,stdout:redact(stdout),stderr:redact(stderr)}); });
   });
 }
 
@@ -180,10 +208,87 @@ export class ProjectService {
     const recoveryId=randomUUID();await copyFile(target.absolute,join(this.state,'trash',recoveryId));await rm(target.absolute);return {path:target.relative,recoveryId};
   }
   async git(alias,operation,paths=[]) {
-    const repo=this.repo(alias);if(!['status','diff','diff-check'].includes(operation))fail('INVALID_GIT_OPERATION',operation);
+    const repo=this.repo(alias);if(!GIT_OPERATIONS.includes(operation))fail('INVALID_GIT_OPERATION',operation);
+    if(operation==='head'||operation==='repository-status')return this.gitRepositories(alias,operation,paths);
     const safe=[];for(const path of paths)safe.push((await safePath(repo.root,path,this.config.toolRoot)).relative);
-    if(operation!=='status'&&!safe.length)fail('PATHS_REQUIRED','diff needs explicit paths');
-    const args=['-C',repo.root,...(operation==='status'?['status','--short']:['diff',...(operation==='diff-check'?['--check']:[]),'--',...safe])];return command('git',args,repo.root);
+    const cached=operation.endsWith('-cached'),base=cached?operation.slice(0,-'-cached'.length):operation;
+    if(base!=='status'&&!safe.length)fail('PATHS_REQUIRED','diff needs explicit paths');
+    const args=['-C',repo.root,...(base==='status'?['status','--short']:['diff',...(cached?['--cached']:[]),...(base==='diff-check'?['--check']:[]),'--',...safe])];
+    const result=await command('git',args,repo.root);
+    // 一般 git diff --check 不含尚未追蹤的新檔；僅對尚未追蹤的新檔另以 --no-index 唯讀補查。
+    return operation==='diff-check'?this.checkUntracked(repo,safe,result):result;
+  }
+  async checkUntracked(repo,safe,tracked){
+    const listed=await command('git',['-C',repo.root,'ls-files','--others','--exclude-standard','-z','--',...safe],repo.root,30_000,{raw:true});
+    if(listed.exitCode!==0)fail('GIT_UNTRACKED_LIST_FAILED',redact(listed.stderr));
+    const checked=[];let skipped=0,exitCode=tracked.exitCode,stdout=tracked.stdout;
+    for(const file of listed.stdout.split('\0').filter(Boolean)){
+      let target;try{target=await safePath(repo.root,file,this.config.toolRoot);if((await stat(target.absolute)).size>1024*1024)throw new Error('large');}catch{skipped++;continue;}
+      if(checked.length>=GIT_UNTRACKED_CHECK_LIMIT){skipped++;continue;}
+      const result=await command('git',['-C',repo.root,'diff','--no-index','--check','--','/dev/null',target.relative],repo.root);
+      // --no-index 會把「有差異」(1) 與 --check 的「有問題」(2) 位元合併；只有 0..3 是 Git 正常結果。
+      if(!Number.isInteger(result.exitCode)||result.exitCode<0||result.exitCode>3)fail('GIT_UNTRACKED_CHECK_FAILED',result.stderr||String(result.exitCode));
+      checked.push(target.relative);stdout+=result.stdout;if((result.exitCode&2)===2&&!exitCode)exitCode=2;
+    }
+    return {...tracked,exitCode,stdout,untracked:{checked:checked.length,skipped,files:checked}};
+  }
+  // 唯讀探索受影響 repository：root、路徑所屬的巢狀 repository，或未指定路徑時掃描有限深度的巢狀 repository。
+  async discoverRepositories(alias,paths){
+    const repo=this.repo(alias),root=repo.root,realRoot=await realpath(root),found=new Map(),notes={truncated:false};
+    const rel=dir=>relative(root,dir).replaceAll('\\','/')||'.';
+    const accept=async dir=>{
+      const path=rel(dir);if(found.has(path))return;
+      const parts=path==='.'?[]:path.split('/');
+      if(parts.some(part=>blockedSegments.has(part.toLowerCase())||sensitive(part)))return;
+      if(this.config.toolRoot&&inside(this.config.toolRoot,dir))return;
+      try{if((await lstat(join(dir,'.git'))).isSymbolicLink())return;}catch{return;}
+      try{if(!inside(realRoot,await realpath(dir)))return;}catch{return;}
+      if(found.size>=GIT_REPOSITORY_LIMIT){notes.truncated=true;return;}
+      found.set(path,dir);
+    };
+    await accept(root);
+    if(paths.length){
+      for(const path of paths){
+        const target=await safePath(root,path,this.config.toolRoot);
+        // 路徑本身是目錄時，該目錄也可能就是巢狀 repository 的根。
+        const isDirectory=await stat(target.absolute).then(item=>item.isDirectory(),()=>false);
+        let current=isDirectory?target.absolute:resolve(target.absolute,'..');const chain=[];
+        while(inside(root,current)){chain.push(current);if(current===root)break;current=resolve(current,'..');}
+        for(const dir of chain.reverse())await accept(dir);
+      }
+    }else{
+      const hits=await fg(['**/.git'],{cwd:root,onlyFiles:false,dot:true,followSymbolicLinks:false,deep:GIT_SCAN_DEPTH+1,unique:true,ignore:['**/node_modules/**','**/bin/**','**/obj/**','**/.git/*/**']});
+      for(const hit of hits.sort())await accept(resolve(root,hit,'..'));
+    }
+    return {repositories:[...found.entries()].sort(([a],[b])=>a==='.'?-1:b==='.'?1:a.localeCompare(b)),notes};
+  }
+  async repositoryInfo(path,dir,includeStatus){
+    const head=await command('git',['-C',dir,'rev-parse','--verify','--quiet','HEAD'],dir,30_000,{raw:true});
+    if(head.exitCode!==0&&head.exitCode!==1)fail('GIT_HEAD_FAILED',redact(head.stderr)||String(head.exitCode));
+    const sha=head.exitCode===0?head.stdout.trim():null;if(sha!==null&&!/^[0-9a-f]{40}(?:[0-9a-f]{24})?$/.test(sha))fail('GIT_HEAD_FAILED','unexpected HEAD value');
+    const branch=await command('git',['-C',dir,'symbolic-ref','--short','--quiet','HEAD'],dir,30_000,{raw:true});
+    if(branch.exitCode!==0&&branch.exitCode!==1)fail('GIT_BRANCH_FAILED',redact(branch.stderr)||String(branch.exitCode));
+    const info={path,nested:path!=='.',head:sha,unborn:sha===null,branch:branch.exitCode===0?redact(branch.stdout.trim()):null,detached:sha!==null&&branch.exitCode===1};
+    if(!includeStatus)return info;
+    const status=await command('git',['-C',dir,'status','--porcelain=v1','-z','--untracked-files=all'],dir,30_000,{raw:true});
+    if(status.exitCode!==0)fail('GIT_STATUS_FAILED',redact(status.stderr)||String(status.exitCode));
+    const parts=status.stdout.split('\0'),entries=[],counts={staged:0,unstaged:0,untracked:0,conflicted:0,total:0};
+    for(let index=0;index<parts.length;index++){
+      const item=parts[index];if(item.length<4)continue;
+      const x=item[0],y=item[1],entry={status:`${x}${y}`,path:redact(item.slice(3))};
+      if('RC'.includes(x)||'RC'.includes(y))entry.originalPath=redact(parts[++index]??'');
+      counts.total++;
+      if(x==='?'&&y==='?')counts.untracked++;
+      else if(x==='U'||y==='U'||(x==='A'&&y==='A')||(x==='D'&&y==='D'))counts.conflicted++;
+      else{if(x!==' ')counts.staged++;if(y!==' ')counts.unstaged++;}
+      if(entries.length<GIT_STATUS_ENTRY_LIMIT)entries.push(entry);
+    }
+    return {...info,clean:counts.total===0,counts,entries,truncated:counts.total>entries.length};
+  }
+  async gitRepositories(alias,operation,paths){
+    const {repositories,notes}=await this.discoverRepositories(alias,paths);
+    const reports=[];for(const [path,dir] of repositories)reports.push(await this.repositoryInfo(path,dir,operation==='repository-status'));
+    return {operation,alias,scope:paths.length?'affected-paths':'all',repositories:reports,truncated:notes.truncated};
   }
   listTasks() { return {tasks:this.config.tasks.map(task=>({taskId:task.id,purpose:task.purpose??`Configured ${task.kind} task`,kind:task.kind,alias:task.alias}))}; }
   async startJob(sessionId,taskId) {
