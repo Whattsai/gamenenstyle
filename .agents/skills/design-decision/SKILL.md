@@ -10,7 +10,7 @@ description: 針對同一完整 SPEC 的多份 SD 候選逐細項比較優缺點
 ## 核心規則與前置
 
 1. 讀目標工作區及涉及的其他服務／模組的 agent 指示、README、方法文件與實際程式；讀來源 MVP／SPEC／BDD／TDD、風險決策及 TDD 的 `Ready for well-done` 交接，檢查缺漏回寫、無未解除阻斷。
-2. 必讀 [文件契約](../fantastic-design/references/document-contract.md) 與 [規劃規則](../fantastic-design/references/planning-rules.md)。不因候選來自多 AI 就啟動多代理。
+2. 必讀 [文件契約](.agents/skills/fantastic-design/references/document-contract.md) 與 [規劃規則](.agents/skills/fantastic-design/references/planning-rules.md)。不因候選來自多 AI 就啟動多代理。
 3. 讀同一完整 SPEC 的所有未被明確取代候選、來源／程式基準及現行工作樹；列出被排除批次與取代依據。未知模型保留未提供。不能以同 `SPEC-XXX` 混入其他功能。
 4. 必須使用下列四份 SD 範本及本技能的決策範本，不能自行換成一般工作包格式；不適用章節保留並註明原因。
 
@@ -24,7 +24,7 @@ description: 針對同一完整 SPEC 的多份 SD 候選逐細項比較優缺點
 
 依 [決策範本](assets/03-design-decision.template.md) 拆成可追溯的最小有意義設計決策，逐項比較行為、架構責任、核心邏輯、契約、資料、平台、檔案改動及驗證安排，包含安全／維運、UX、依賴／共享資源與整合。
 
-必讀 [有序實作步驟契約](../fantastic-design/references/step-design.md)，比較各候選步驟的行為切分、前置、案例／斷言、命令／工作目錄及通過／停止條件，不能只比較工作包名稱。舊候選缺少步驟時揭露缺項，產出 final 前須補齊。
+必讀 [有序實作步驟契約](.agents/skills/fantastic-design/references/step-design.md)，比較各候選步驟的行為切分、前置、案例／斷言、命令／工作目錄及通過／停止條件，不能只比較工作包名稱。舊候選缺少步驟時揭露缺項，產出 final 前須補齊。
 
 每個細項對每個候選記來源位置、具體方案、優點、缺點、風險，並記採用／不採用／修改、白話理由及目標 final 位置。不可只有整套方案的總分或「取各家優點」。
 
@@ -34,10 +34,10 @@ description: 針對同一完整 SPEC 的多份 SD 候選逐細項比較優缺點
 
 可採整套候選或整合細項；若已有 final，依文件契約先保存舊版再更新。於該 SPEC 的 `final/` 產出：
 
-- `00-overview.md`：套用 [SD 總覽範本](../fantastic-design/assets/00-overview.template.md)。
-- `01-system-design.md`：套用 [系統設計範本](../fantastic-design/assets/01-system-design.template.md)。
-- `02-traceability.md`：套用 [追溯範本](../fantastic-design/assets/02-traceability.template.md)。
-- `plans/SD-NNN-功能名稱.md`：每份套用 [分項範本](../fantastic-design/assets/SD-plan.template.md)。
+- `00-overview.md`：套用 [SD 總覽範本](.agents/skills/fantastic-design/assets/00-overview.template.md)。
+- `01-system-design.md`：套用 [系統設計範本](.agents/skills/fantastic-design/assets/01-system-design.template.md)。
+- `02-traceability.md`：套用 [追溯範本](.agents/skills/fantastic-design/assets/02-traceability.template.md)。
+- `plans/SD-NNN-功能名稱.md`：每份套用 [分項範本](.agents/skills/fantastic-design/assets/SD-plan.template.md)。
 - `03-design-decision.md`：套用本技能的 [決策範本](assets/03-design-decision.template.md)。
 
 final 要寫足完整設計、所有檔案責任與核心邏輯，可在候選移除／不可取得時獨立交接；候選引用只作來源證據。繼承的產品證據先檢查與整合後設計／程式相容性；分項重新切分時重新對照 Todo，不盲拷百分比或 checkbox。

@@ -11,7 +11,7 @@ description: 依使用者已確認的 SD 設計包與版本，按依賴逐項執
 
 1. 先讀目標及涉及的其他工作區／服務／模組的 agent 指示、README、分析／設計／開發方法、相關文件與實際程式。
 2. 讀使用者指定或 TDD 規劃交接列出的 MVP、完整 SPEC、BDD、TDD、持久化風險、使用者決策、缺漏回寫與注意事項；查核實際程式、測試、build/test/lint 命令、DB、前端、部署及全部相關工作樹改動。
-3. 必讀 [SD 文件契約](../fantastic-design/references/document-contract.md)、[任務規劃規則](../fantastic-design/references/planning-rules.md)、[有序實作步驟契約](../fantastic-design/references/step-design.md) 及 [執行、同步與變更程序](references/execution-protocol.md)。不強制啟動多代理。
+3. 必讀 [SD 文件契約](.agents/skills/fantastic-design/references/document-contract.md)、[任務規劃規則](.agents/skills/fantastic-design/references/planning-rules.md)、[有序實作步驟契約](.agents/skills/fantastic-design/references/step-design.md) 及 [執行、同步與變更程序](references/execution-protocol.md)。不強制啟動多代理。
 4. 設計核准、實際驗證及來源追溯是必要條件；不能因子技能自動補漏、一般重構或環境修復繞過確認關卡。
 5. 每份工作包採用既定分項 SD 的完整結構，不將其改成一般工作包格式；命名、編號、來源 checkbox、進度、驗證紀錄、overview 與歸檔沿用目標專案慣例。
 
@@ -41,8 +41,8 @@ description: 依使用者已確認的 SD 設計包與版本，按依賴逐項執
 ## Phase 2：按工作包逐項實作
 
 1. 從既有依賴圖選取前置已滿足的下一包，再依順序表選取可開始的步驟；核對實際前置證據、共享契約、可寫檔案／符號、使用者改動與環境控制。不能因寫不同檔案就認定可安全並行。
-2. 以目前步驟為執行單位，回讀其來源、I-ID、F-ID／V-ID、案例／斷言與通過／停止條件。執行適用 TDD 前完整讀取 [tdd-development](../tdd-development/SKILL.md)，按本步 Red（實際預期失敗）→ Green → 必要 Refactor → 回歸，以指定工作目錄與命令驗證；不讓子技能跨步驟或跨包接管全部清單。
-3. 目前步驟涉及 UX 時先完整讀取 [bdd-frontend-ux-implementation](../bdd-frontend-ux-implementation/SKILL.md)，依核准的案例與操作驗證功能／畫面及適用平台。準備、整合、稽核或文件步驟執行其適用檢查，不強制製造 Red。既有核准已涵蓋的清單不再重複確認；新增或不同設計走變更關卡。
+2. 以目前步驟為執行單位，回讀其來源、I-ID、F-ID／V-ID、案例／斷言與通過／停止條件。執行適用 TDD 前完整讀取 [tdd-development](.agents/skills/tdd-development/SKILL.md)，按本步 Red（實際預期失敗）→ Green → 必要 Refactor → 回歸，以指定工作目錄與命令驗證；不讓子技能跨步驟或跨包接管全部清單。
+3. 目前步驟涉及 UX 時先完整讀取 [bdd-frontend-ux-implementation](.agents/skills/bdd-frontend-ux-implementation/SKILL.md)，依核准的案例與操作驗證功能／畫面及適用平台。準備、整合、稽核或文件步驟執行其適用檢查，不強制製造 Red。既有核准已涵蓋的清單不再重複確認；新增或不同設計走變更關卡。
 4. 每個子階段記錄實際命令／操作及結果；本步通過條件成立後才進入依賴它的下一步。失敗在本步設計內診斷修正並重驗；缺少必要前置或須改設計時停止，不自行補造案例、改斷言湊通過或跳步。
 5. 每次驗證後依執行程序同步分項 SD、總覽、矩陣與對應 BDD／TDD；步驟只回填狀態及證據。全部必要步驟、I 驗收及指定整合驗證成立後才勾 I；該包必要驗收成立後才進入依賴它的包。保存當前步驟／子階段與副作用現況，恢復先查核再續作。
 
@@ -59,7 +59,7 @@ description: 依使用者已確認的 SD 設計包與版本，按依賴逐項執
 ## Phase 3：整合與完整深度稽核
 
 1. 按既定整合里程碑檢查目前產物的契約、資料流、依賴、共享責任及必要跨元件／回歸驗證；孤立包通過不等於整合通過。
-2. 完整讀取 [spec-bdd-implementation-deep-audit](../spec-bdd-implementation-deep-audit/SKILL.md)，逐項比對全部 SPEC／BDD／TDD／SD／程式／測試／實際證據，不抽樣。檢查測試斷言及實際功能，不只看名稱或檔案存在。
+2. 完整讀取 [spec-bdd-implementation-deep-audit](.agents/skills/spec-bdd-implementation-deep-audit/SKILL.md)，逐項比對全部 SPEC／BDD／TDD／SD／程式／測試／實際證據，不抽樣。檢查測試斷言及實際功能，不只看名稱或檔案存在。
 3. 原設計內的實作／證據缺漏回寫負責包與原來源文件，在同一計畫補齊並重驗受影響項。需要新增／不同設計或改上游行為時先走確認關卡，不以稽核自動補漏直接實作。
 4. 同步計數、checkbox、Sprint、里程碑、每日記錄、驗證與必要 overview。保留有效稽核證據，不因進入最終收尾重做一輪已完成稽核。
 

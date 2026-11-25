@@ -282,6 +282,80 @@
           "cancel_job"
         ],
         "name": "well-done"
+      },
+      {
+        "name": "fantastic-design",
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "list_project_tasks",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ]
+      },
+      {
+        "name": "design-decision",
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "list_project_tasks",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job"
+        ]
+      },
+      {
+        "name": "carefully-done",
+        "requiredTools": [
+          "get_active_workspace_session",
+          "resolve_workspace_session",
+          "begin_workspace_session",
+          "end_workspace_session",
+          "get_workspace_overview",
+          "list_workspace_files",
+          "search_workspace_text",
+          "read_workspace_text",
+          "read_workspace_text_chunk",
+          "apply_workspace_patch",
+          "move_workspace_path",
+          "trash_workspace_path",
+          "inspect_git_changes",
+          "list_project_tasks",
+          "start_project_job",
+          "get_project_job",
+          "cancel_project_job",
+          "start_dotnet_job",
+          "start_dependency_restore",
+          "get_job",
+          "get_job_summary",
+          "search_job_log",
+          "get_job_errors",
+          "get_job_log_tail",
+          "cancel_job"
+        ]
       }
     ],
     "roots": [
@@ -1115,6 +1189,17 @@
         "workingDirectory": "datinghigh",
         "scopeRoot": "datinghigh",
         "relativeProjectPath": "backend/tools/DatingHigh.PlatformProbe/DatingHigh.PlatformProbe.csproj",
+        "allowedActions": [
+          "build",
+          "restore"
+        ]
+      },
+      {
+        "id": "backend-tools-datinghigh-mediaprobe-datinghigh-mediaprobe",
+        "alias": "main",
+        "workingDirectory": "datinghigh",
+        "scopeRoot": "datinghigh",
+        "relativeProjectPath": "backend/tools/DatingHigh.MediaProbe/DatingHigh.MediaProbe.csproj",
         "allowedActions": [
           "build",
           "restore"
