@@ -1,11 +1,11 @@
 # SD-006-跨系統整合雙平台E2E與技術GateA驗收 — 分項實作設計
 
-**功能／工作包 ID**：`SD-006-跨系統整合雙平台E2E與技術GateA驗收`  
-**完整 SPEC 名稱／來源 MVP／SPEC／BDD／TDD**：`SPEC-001-RainBookshopV4`／[MVP-001](../../../../requirements/MVP-001-LoveGameDatingApp.md)、[V4 作者原稿 JSON](../../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4](../../../../specs/SPEC-001-RainBookshopV4.md)、[RiskAudit](../../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[BDD](../../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[TDD](../../../../tdd/SPEC-001-RainBookshopV4-TDD.md)  
-**文件包／AI／模型／批次**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`  
-**設計版本／契約版本／優先級**：`1.0.0`／`SD-contract-v2`／高（P1）  
-**執行狀態／驗收狀態／最後更新**：`Planned`（未開發）／`Incomplete`（待核准後實測驗收）／2026-11-26  
-**執行／整合／驗收責任**：SD-006 跨系統與雙平台驗收執行者／通過 Gate A（前段 321 項 TDD）後移交 SD-007 進入使用者本人實玩 Gate B  
+**功能／工作包 ID**：`SD-006-跨系統整合雙平台E2E與技術GateA驗收`
+**完整 SPEC 名稱／來源 MVP／SPEC／BDD／TDD**：`SPEC-001-RainBookshopV4`／[MVP-001](../../../../requirements/MVP-001-LoveGameDatingApp.md)、[V4 作者原稿 JSON](../../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4](../../../../specs/SPEC-001-RainBookshopV4.md)、[RiskAudit](../../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[BDD](../../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[TDD](../../../../tdd/SPEC-001-RainBookshopV4-TDD.md)
+**文件包／AI／模型／批次**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`
+**設計版本／契約版本／優先級**：`1.0.0`／`SD-contract-v2`／高（P1）
+**執行狀態／驗收狀態／最後更新**：`Planned`（已核准可開工，未開發）／`Incomplete`（待實測驗收）／2026-11-26
+**執行／整合／驗收責任**：SD-006 跨系統與雙平台驗收執行者／通過 Gate A（前段 321 項 TDD）後移交 SD-007 進入使用者本人實玩 Gate B
 **來源與程式碼基準、核准設計快照**：見 [SD 總覽（../00-overview.md）](../00-overview.md#來源程式與設計基準)
 
 ## 開發進度總覽
@@ -16,23 +16,23 @@
 
 | 指標 | 完成／總數 | 進度條與百分比 | 依據 |
 |---|---|---|---|
-| 設計完成度（D） | 4 / 4 | `[████████████████████] 100.0%` | 本包 `SD-006-D01`～`D04` 已完成完整設計與桌面一致性稽核 |
+| 設計完成度（D） | 4 / 4 | `[████████████████████] 100.0%` | 本包 `SD-006-D01`～`D04` 已完成完整設計、通過桌面稽核並獲使用者明確核准 |
 | 本包 BDD 設計涵蓋率 | 41 / 41 | `[████████████████████] 100.0%` | 本包涉及之全部唯一 BDD Scenario 均已完整分解至產品符號與步驟（跨包完整性見 [追溯矩陣](../02-traceability.md)） |
 | 本包 TDD 設計涵蓋率 | 86 / 86 | `[████████████████████] 100.0%` | 本包主責驗證之 86 項唯一 TDD 已 100% 映射至具體步驟、測試檔與命令 |
-| 實作驗證完成度（I） | 0 / 6 | `[░░░░░░░░░░░░░░░░░░░░] 0.0%` | 本包 `SD-006-I01`～`I06` 設計階段未開發，待人工核准 `final` 後實作驗收 |
+| 實作驗證完成度（I） | 0 / 6 | `[░░░░░░░░░░░░░░░░░░░░] 0.0%` | 本包 `SD-006-I01`～`I06` 尚未開發，已處於 `Ready for carefully-done` 待開工實測 |
 
 ### 分層／分組進度追蹤
 
 | 唯一分組／層 | D 完成／總數 | I 完成／總數 | 進行中／待開始 | 執行狀態 | 驗收狀態／證據 |
 |---|---|---|---|---|---|
-| 設計葉節點（D） | 4 / 4 | 0 / 0 | 0 / 0 | `Ready for review` | 桌面設計稽核通過（待使用者核准 `final` `1.0.0`） |
+| 設計葉節點（D） | 4 / 4 | 0 / 0 | 0 / 0 | `Accepted` | 桌面設計稽核通過，使用者已明確核准 `final` `1.0.0`（`Ready for carefully-done`） |
 | 實作與驗證葉節點（I；主責 TDD：Unit 0／Integration 4／API 0／E2E 82） | 0 / 0 | 0 / 6 | 0 / 6 | `Planned` | `Incomplete`；證據待回填至 `Verification.md` |
 
 ### 當前 Sprint 狀態
 
 | 當前階段／Todo ID／步驟 ID | Red–Green–Refactor 子階段 | 負責者 | 開始／預計完成及依據 | 下一步 ID／最後更新 |
 |---|---|---|---|---|
-| 設計決策交付待審／尚未啟動 `SD-006-I01`（`SD-006-S01`） | 不適用（設計階段不啟動產品開發） | SD-006 執行者 | 待使用者明確核准 `final` `1.0.0` 且滿足首步前置後啟動（無硬性預設期限） | 核准且前置滿足後執行 `SD-006-S01`／2026-11-26 |
+| 設計已核准可開工（`Ready for carefully-done`）／尚未啟動 `SD-006-I01`（`SD-006-S01`） | 不適用（尚未啟動產品開發） | SD-006 執行者 | 待啟動 `/carefully-done` 且滿足首步前置後執行（無硬性預設期限） | 啟動 `/carefully-done` 且前置滿足後執行 `SD-006-S01`／2026-11-26 |
 
 ### 里程碑
 
@@ -40,7 +40,7 @@
 
 | 里程碑 | 必要葉節點／前置 SD | 驗收與整合條件 | 狀態／證據 |
 |---|---|---|---|
-| `SD-006-M0`：分項設計與步驟稽核就緒 | `SD-006-D01`～`D04` | 檔案路徑 100% 對齊真實 repo、單一寫入無衝突、每步具案例與命令 | 設計已完成（`Awaiting approval`） |
+| `SD-006-M0`：分項設計與步驟稽核就緒並獲核准 | `SD-006-D01`～`D04` | 檔案路徑 100% 對齊真實 repo、單一寫入無衝突、每步具案例與命令並獲使用者核准 | 已完成並獲核准（`Ready for carefully-done`） |
 | `SD-006-M1`：本包全部實作與驗證葉節點達成 | `SD-006-I01`～`I06`（依賴前置見步驟表） | 本包全部 `SD-006-V01`～`SD-006-V06` 實測通過且既有回歸全綠 | `Incomplete` |
 | `SD-006-M2`：跨包 Gate A／Gate B 與最終深度稽核結案 | 配合 `SD-006` 與 `SD-007-I01`～`I05` | 全案 337/337 TDD 驗證完成、本人 Gate B 通過並同步 `Verification.md` | `Incomplete` |
 
@@ -48,7 +48,7 @@
 
 | 指標 | 已確認目標與來源 | 當前值 | 實際驗證／證據或限制 |
 |---|---|---|---|
-| 本包主責 TDD 設計涵蓋與實測通過數 | 設計涵蓋 86/86；實測通過目標 86/86（`SPEC`／`TDD`） | 設計涵蓋 `100.0%`；實測 `0 / 86` | 設計階段未執行程式修改或測試代簽 |
+| 本包主責 TDD 設計涵蓋與實測通過數 | 設計涵蓋 86/86；實測通過目標 86/86（`SPEC`／`TDD`） | 設計涵蓋 `100.0%`；實測 `0 / 86` | 尚未執行程式修改或測試代簽 |
 | 架構與資料邊界遵守度 | 21 表、0 新欄、0 Trigger、0 新公開 API、原稿逐 scalar 不變、單一檔案寫入責任 | 設計 `100%` 符合 | 見下方「檔案改動設計」與 [02-traceability.md](../02-traceability.md) |
 
 ### 每日進度記錄
@@ -57,7 +57,7 @@
 
 | 日期 | 完成 Todo／有效證據 | 阻斷／剩餘 | 下一步／責任 |
 |---|---|---|---|
-| 2026-11-26 | 完成 `SD-006` 分項設計 `1.0.0`（`D`: 4/4，涵蓋 8 個檔案項目與 6 個有序步驟） | 實作 `I`: 0/6；等待使用者明確核准 `final` `1.0.0` | 取得核准並滿足前置後由 `/carefully-done` 依序執行 `SD-006-S01` |
+| 2026-11-26 | 完成 `SD-006` 分項設計 `1.0.0`（`D`: 4/4，涵蓋 8 個檔案項目與 6 個有序步驟）並獲使用者明確核准轉為 `Ready for carefully-done` | 實作 `I`: 0/6；無設計阻斷（尚未開始開發） | 由 `/carefully-done` 滿足前置後依序執行 `SD-006-S01` |
 
 ## 功能概述
 
@@ -358,12 +358,12 @@
 
 ### SD-006-S01：修復 `tools/test-android.ps1` 路徑引用、擴充 `tools/test-scene-web.mjs` 並執行基礎回歸檢核
 
-**對應成果與責任**：唯一負責 `SD-006-I01`；對應 TDD：跨步驟產品前置（由後續整合測試共同覆核）；涉及檔案：`F-01`、`F-02`；驗證 ID：`SD-006-V01`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-001`～`SD-005` 全部 `I` 葉節點測試通過且無並行寫入程序。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tools/test-android.ps1`、`tools/test-scene-web.mjs`、`overview/02-development-guidelines/03-ai-workflow-stages.md`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：修改 `F-01`、`F-02`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-01`、`F-02` 落實「修復 `tools/test-android.ps1` 路徑引用、擴充 `tools/test-scene-web.mjs` 並執行基礎回歸檢核」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：於 `test-android.ps1` 加入 `scene-event-v4` 並修正搬移前殘留路徑；更新 `test-scene-web.mjs` 支援執行 V4 Web E2E；先跑 `npm run check:foundation` 確認全倉基礎契約健康。  
+**對應成果與責任**：唯一負責 `SD-006-I01`；對應 TDD：跨步驟產品前置（由後續整合測試共同覆核）；涉及檔案：`F-01`、`F-02`；驗證 ID：`SD-006-V01`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-001`～`SD-005` 全部 `I` 葉節點測試通過且無並行寫入程序。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tools/test-android.ps1`、`tools/test-scene-web.mjs`、`overview/02-development-guidelines/03-ai-workflow-stages.md`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：修改 `F-01`、`F-02`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-01`、`F-02` 落實「修復 `tools/test-android.ps1` 路徑引用、擴充 `tools/test-scene-web.mjs` 並執行基礎回歸檢核」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：於 `test-android.ps1` 加入 `scene-event-v4` 並修正搬移前殘留路徑；更新 `test-scene-web.mjs` 支援執行 V4 Web E2E；先跑 `npm run check:foundation` 確認全倉基礎契約健康。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -383,21 +383,21 @@
 | 2／Green | 修改 `F-01`、`F-02` 支援 `scene-event-v4` 並修正路徑 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run check:foundation` | 基礎檢查通過且啟動器準備就緒 | 待回填 |
 | 3／Refactor 與回歸 | 執行 `npm test` 確認工具測試全綠 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm test` | 全部通過 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-01`、`F-02`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-006-S02`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-01`、`F-02`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-006-S02`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-006-S02：實作並通過真本地橋接跨系統整合測試 `rain-bookshop-v4-live.test.mjs`
 
-**對應成果與責任**：唯一負責 `SD-006-I02`；對應 TDD：`RB4-T-275`、`RB4-T-282`、`RB4-T-288`、`RB4-T-294`；涉及檔案：`F-05`；驗證 ID：`SD-006-V02`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-006-S01` 通過，且無其他佔用本地測試埠之程序。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tests/integration/story-dialogue-live.test.mjs`、`tests/integration/foundation-live.test.mjs`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：新增 `F-05`（`tests/integration/rain-bookshop-v4-live.test.mjs`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-05` 落實「實作並通過真本地橋接跨系統整合測試 `rain-bookshop-v4-live.test.mjs`」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：在真實本地 Worker + `.NET` + D1 + R2 + DO 橋接環境發布候選 V4 bundle，建立兩名真實測試玩家完成配對、入店、撕盲書、霧窗見證、提問卡、主動暴雨、DO Alarm 到期結算、書籤小票、80 素材 HTTP 讀取與安全退出，同時跑既有 `npm run test:live` 與 `npm run test:story:live` 回歸。  
+**對應成果與責任**：唯一負責 `SD-006-I02`；對應 TDD：`RB4-T-275`、`RB4-T-282`、`RB4-T-288`、`RB4-T-294`；涉及檔案：`F-05`；驗證 ID：`SD-006-V02`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-006-S01` 通過，且無其他佔用本地測試埠之程序。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tests/integration/story-dialogue-live.test.mjs`、`tests/integration/foundation-live.test.mjs`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：新增 `F-05`（`tests/integration/rain-bookshop-v4-live.test.mjs`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-05` 落實「實作並通過真本地橋接跨系統整合測試 `rain-bookshop-v4-live.test.mjs`」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：在真實本地 Worker + `.NET` + D1 + R2 + DO 橋接環境發布候選 V4 bundle，建立兩名真實測試玩家完成配對、入店、撕盲書、霧窗見證、提問卡、主動暴雨、DO Alarm 到期結算、書籤小票、80 素材 HTTP 讀取與安全退出，同時跑既有 `npm run test:live` 與 `npm run test:story:live` 回歸。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -417,21 +417,21 @@
 | 2／Green | 跑通完整 `rain-bookshop-v4-live.test.mjs` | `C:\GitProjects\gamenenstyle\datinghigh` | `node --test tests/integration/rain-bookshop-v4-live.test.mjs` | V4 Live 整合測試全數通過 | 待回填 |
 | 3／Refactor 與回歸 | 序列執行既有 Live 橋接回歸 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run test:live && npm run test:story:live` | 既有 Live 回歸 100% 全綠 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-05`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-006-S03`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-05`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-006-S03`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-006-S03：切換 `contracts/scene-event-content.json` 首場索引並通過正式 Web 雙真人視角全場景 Playwright E2E
 
-**對應成果與責任**：唯一負責 `SD-006-I03`；對應 TDD：`RB4-T-004`、`RB4-T-009`、`RB4-T-014`、`RB4-T-019`、`RB4-T-024`、`RB4-T-030`、`RB4-T-037`、`RB4-T-042`、`RB4-T-048`、`RB4-T-053`、`RB4-T-058`、`RB4-T-064`、`RB4-T-070`、`RB4-T-076`、`RB4-T-082`、`RB4-T-088`、`RB4-T-094`、`RB4-T-105`、`RB4-T-111`、`RB4-T-122`、`RB4-T-145`、`RB4-T-151`、`RB4-T-157`、`RB4-T-163`、`RB4-T-169`、`RB4-T-175`、`RB4-T-182`、`RB4-T-193`、`RB4-T-199`、`RB4-T-205`、`RB4-T-217`、`RB4-T-228`、`RB4-T-234`、`RB4-T-240`、`RB4-T-251`、`RB4-T-258`、`RB4-T-265`；涉及檔案：`F-03`、`F-06`；驗證 ID：`SD-006-V03`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-006-S02` 通過（同一精確 V4 bundle SHA 已通過隔離與 Live 驗證）。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `contracts/scene-event-content.json`、`tests/e2e/web/scene-event-v3.spec.ts`、`tests/playwright.config.ts`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：修改 `F-03`，新增 `F-06`（`tests/e2e/web/scene-event-v4.spec.ts`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-03`、`F-06` 落實「切換 `contracts/scene-event-content.json` 首場索引並通過正式 Web 雙真人視角全場景 Playwright E2E」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：更新 `contracts/scene-event-content.json` 首場索引指向 `contracts/rain-bookshop-v4.json`（保留 `contracts/rain-bookshop-before-rain-stops.json` 檔案至 Gate B），執行 `content:publish:local`、`export:web`、`build:e2e-host`，啟動本地平台後以 Playwright 雙獨立 BrowserContext 完整驗證全部 42 個 `@frontend` 場景之 Web 端案例。  
+**對應成果與責任**：唯一負責 `SD-006-I03`；對應 TDD：`RB4-T-004`、`RB4-T-009`、`RB4-T-014`、`RB4-T-019`、`RB4-T-024`、`RB4-T-030`、`RB4-T-037`、`RB4-T-042`、`RB4-T-048`、`RB4-T-053`、`RB4-T-058`、`RB4-T-064`、`RB4-T-070`、`RB4-T-076`、`RB4-T-082`、`RB4-T-088`、`RB4-T-094`、`RB4-T-105`、`RB4-T-111`、`RB4-T-122`、`RB4-T-145`、`RB4-T-151`、`RB4-T-157`、`RB4-T-163`、`RB4-T-169`、`RB4-T-175`、`RB4-T-182`、`RB4-T-193`、`RB4-T-199`、`RB4-T-205`、`RB4-T-217`、`RB4-T-228`、`RB4-T-234`、`RB4-T-240`、`RB4-T-251`、`RB4-T-258`、`RB4-T-265`；涉及檔案：`F-03`、`F-06`；驗證 ID：`SD-006-V03`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-006-S02` 通過（同一精確 V4 bundle SHA 已通過隔離與 Live 驗證）。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `contracts/scene-event-content.json`、`tests/e2e/web/scene-event-v3.spec.ts`、`tests/playwright.config.ts`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：修改 `F-03`，新增 `F-06`（`tests/e2e/web/scene-event-v4.spec.ts`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-03`、`F-06` 落實「切換 `contracts/scene-event-content.json` 首場索引並通過正式 Web 雙真人視角全場景 Playwright E2E」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：更新 `contracts/scene-event-content.json` 首場索引指向 `contracts/rain-bookshop-v4.json`（保留 `contracts/rain-bookshop-before-rain-stops.json` 檔案至 Gate B），執行 `content:publish:local`、`export:web`、`build:e2e-host`，啟動本地平台後以 Playwright 雙獨立 BrowserContext 完整驗證全部 42 個 `@frontend` 場景之 Web 端案例。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -451,21 +451,21 @@
 | 2／Green | 發布本地 V4 索引並在平台運行下執行 `scene-event-v4.spec.ts` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run content:publish:local && npx playwright test --config tests/playwright.config.ts scene-event-v4.spec.ts` | 全部 V4 Web E2E 案例 100% 通過 | 待回填 |
 | 3／Refactor 與回歸 | 執行 `npm run test:scene:web` 涵蓋框架回歸 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run test:scene:web` | V4 與通用框架 Web E2E 全綠 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-03`、`F-06`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-006-S04`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-03`、`F-06`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-006-S04`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-006-S04：執行真實 Android 裝置／模擬器雙真人視角全場景原生手勢 E2E 驗收
 
-**對應成果與責任**：唯一負責 `SD-006-I04`；對應 TDD：`RB4-T-005`、`RB4-T-010`、`RB4-T-015`、`RB4-T-020`、`RB4-T-025`、`RB4-T-031`、`RB4-T-038`、`RB4-T-043`、`RB4-T-049`、`RB4-T-054`、`RB4-T-059`、`RB4-T-065`、`RB4-T-071`、`RB4-T-077`、`RB4-T-083`、`RB4-T-089`、`RB4-T-095`、`RB4-T-106`、`RB4-T-112`、`RB4-T-123`、`RB4-T-146`、`RB4-T-152`、`RB4-T-158`、`RB4-T-164`、`RB4-T-170`、`RB4-T-176`、`RB4-T-183`、`RB4-T-194`、`RB4-T-200`、`RB4-T-206`、`RB4-T-218`、`RB4-T-229`、`RB4-T-235`、`RB4-T-241`、`RB4-T-252`、`RB4-T-259`、`RB4-T-266`；涉及檔案：`F-07`；驗證 ID：`SD-006-V04`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-006-S03` 通過，且已備妥可用 Android 測試裝置／模擬器與最新 Dev Client APK（與 Web E2E 序列錯開執行）。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tools/test-android.ps1`、`tools/build-android.ps1`、`AGENTS.md`（原生 UI XML 記憶體處理規則），以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：新增 `F-07`（`tests/e2e/android/scene-event-v4.mjs`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-07` 落實「執行真實 Android 裝置／模擬器雙真人視角全場景原生手勢 E2E 驗收」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：透過 ADB 在真實 Android 畫面執行點門把／傘桶、小地圖收合、長按掃視、橫滑書牆、滑動撕開盲書、擦霧與見證、拖放面紙、提問卡、上滑傳書、裝袋、三態鎖扣、App 退背景音訊停播、四結局、結局 2 翻書、借閱小票與安全退出，全程將 `uiautomator dump` XML 僅於記憶體解析不落地檔案。  
+**對應成果與責任**：唯一負責 `SD-006-I04`；對應 TDD：`RB4-T-005`、`RB4-T-010`、`RB4-T-015`、`RB4-T-020`、`RB4-T-025`、`RB4-T-031`、`RB4-T-038`、`RB4-T-043`、`RB4-T-049`、`RB4-T-054`、`RB4-T-059`、`RB4-T-065`、`RB4-T-071`、`RB4-T-077`、`RB4-T-083`、`RB4-T-089`、`RB4-T-095`、`RB4-T-106`、`RB4-T-112`、`RB4-T-123`、`RB4-T-146`、`RB4-T-152`、`RB4-T-158`、`RB4-T-164`、`RB4-T-170`、`RB4-T-176`、`RB4-T-183`、`RB4-T-194`、`RB4-T-200`、`RB4-T-206`、`RB4-T-218`、`RB4-T-229`、`RB4-T-235`、`RB4-T-241`、`RB4-T-252`、`RB4-T-259`、`RB4-T-266`；涉及檔案：`F-07`；驗證 ID：`SD-006-V04`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-006-S03` 通過，且已備妥可用 Android 測試裝置／模擬器與最新 Dev Client APK（與 Web E2E 序列錯開執行）。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `tools/test-android.ps1`、`tools/build-android.ps1`、`AGENTS.md`（原生 UI XML 記憶體處理規則），以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：新增 `F-07`（`tests/e2e/android/scene-event-v4.mjs`）；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-07` 落實「執行真實 Android 裝置／模擬器雙真人視角全場景原生手勢 E2E 驗收」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：透過 ADB 在真實 Android 畫面執行點門把／傘桶、小地圖收合、長按掃視、橫滑書牆、滑動撕開盲書、擦霧與見證、拖放面紙、提問卡、上滑傳書、裝袋、三態鎖扣、App 退背景音訊停播、四結局、結局 2 翻書、借閱小票與安全退出，全程將 `uiautomator dump` XML 僅於記憶體解析不落地檔案。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -485,21 +485,21 @@
 | 2／Green | 執行 V4 Android 全場景 E2E 套件 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run build:e2e-host && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-v4` | 全部 V4 Android E2E 案例 100% 實測通過 | 待回填 |
 | 3／Refactor 與回歸 | 序列執行 `npm run test:scene:android` 確認框架原生回歸通過 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run test:scene:android` | Android 框架與 V4 套件皆通過 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-07`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-006-S05`（若當前環境無可用 Android 裝置／ADB，依契約立即停止並如實記 `Deferred`，嚴禁以 Web 證據冒充通過！）。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-07`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-006-S05`（若當前環境無可用 Android 裝置／ADB，依契約立即停止並如實記 `Deferred`，嚴禁以 Web 證據冒充通過！）。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-006-S05：完成雙平台重複閒置／斷線自動恢復（`RB4-T-324`）、80 素材解碼與記憶體／延遲基線量測
 
-**對應成果與責任**：唯一負責 `SD-006-I05`；對應 TDD：`RB4-T-277`、`RB4-T-278`、`RB4-T-283`、`RB4-T-284`、`RB4-T-289`、`RB4-T-290`、`RB4-T-324`；涉及檔案：`F-06`、`F-07`；驗證 ID：`SD-006-V05`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-006-S03` 與 `SD-006-S04` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `RiskAudit G03 (RB4-T-324), RA-11`、`SPEC §3.5, §3.9`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：擴充／確認 `F-06`、`F-07` 內之重複閒置與效能基線測試區段；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-06`、`F-07` 落實「完成雙平台重複閒置／斷線自動恢復（`RB4-T-324`）、80 素材解碼與記憶體／延遲基線量測」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：分別在 Web 與 Android 實測單場連續多次（`>= 3` 次）15 秒閒置／斷線暫緩並由前景重入自動恢復至完場（零死鎖、原操作不重複計數），實測全部 80 項素材解碼無誤、切換姿態與重連期間 **0 次呼叫 Gemini API**，並量測首屏載入、區域切換延遲與連續重連記憶體變化對照 V3 基線無退化。  
+**對應成果與責任**：唯一負責 `SD-006-I05`；對應 TDD：`RB4-T-277`、`RB4-T-278`、`RB4-T-283`、`RB4-T-284`、`RB4-T-289`、`RB4-T-290`、`RB4-T-324`；涉及檔案：`F-06`、`F-07`；驗證 ID：`SD-006-V05`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-006-S03` 與 `SD-006-S04` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `RiskAudit G03 (RB4-T-324), RA-11`、`SPEC §3.5, §3.9`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：擴充／確認 `F-06`、`F-07` 內之重複閒置與效能基線測試區段；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-06`、`F-07` 落實「完成雙平台重複閒置／斷線自動恢復（`RB4-T-324`）、80 素材解碼與記憶體／延遲基線量測」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：分別在 Web 與 Android 實測單場連續多次（`>= 3` 次）15 秒閒置／斷線暫緩並由前景重入自動恢復至完場（零死鎖、原操作不重複計數），實測全部 80 項素材解碼無誤、切換姿態與重連期間 **0 次呼叫 Gemini API**，並量測首屏載入、區域切換延遲與連續重連記憶體變化對照 V3 基線無退化。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -519,21 +519,21 @@
 | 2／Green | 分別跑通 Web 與 Android 之 `RB4-T-324` 與素材／效能專項 | `C:\GitProjects\gamenenstyle\datinghigh` | `npx playwright test --config tests/playwright.config.ts scene-event-v4.spec.ts -g "Resume_RepeatedIdle|PerformanceBaseline" && pwsh -NoProfile -File tools/test-android.ps1 -Suite scene-event-v4 -Pattern "Resume_RepeatedIdle|PerformanceBaseline"` | Web 與 Android 雙端獨立證據皆通過 | 待回填 |
 | 3／Refactor 與回歸 | 確認本地測試程序乾淨收尾無殘留鎖定 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm run dev:platform:stop` | 本地平台受控正常停止 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-06`、`F-07`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-006-S06`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-06`、`F-07`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-006-S06`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-006-S06：實作並通過 `rain-bookshop-v4-gate-a-audit.mjs` 前段 321 項唯一 TDD 技術 Gate A 總檢核
 
-**對應成果與責任**：唯一負責 `SD-006-I06`；對應 TDD：`RB4-T-337`；涉及檔案：`F-04`、`F-08`；驗證 ID：`SD-006-V06`；由 `SD-006` 執行者負責。  
-**開始條件與前置證據**：`SD-006-S05` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/tdd/SPEC-001-RainBookshopV4-TDD.md`、`RiskAudit G16 (RB4-T-337)`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：新增 `F-04`、`F-08`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-04`、`F-08` 落實「實作並通過 `rain-bookshop-v4-gate-a-audit.mjs` 前段 321 項唯一 TDD 技術 Gate A 總檢核」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：實作 `auditRainBookshopV4GateA` 逐 ID 核對前段 **321 項唯一 TDD**（`RB4-T-001`～`294` 共 294 項、`RB4-T-310`～`333` 共 24 項、`RB4-T-335`～`337` 共 3 項，其中 `337` 在前 320 項、80 素材、16 經典與音訊權利、修復後 Android runner 證據皆齊備時成立），確認 `gateAReady === true` 並鎖定候選供本人試玩之精確 manifest SHA-256。  
+**對應成果與責任**：唯一負責 `SD-006-I06`；對應 TDD：`RB4-T-337`；涉及檔案：`F-04`、`F-08`；驗證 ID：`SD-006-V06`；由 `SD-006` 執行者負責。
+**開始條件與前置證據**：`SD-006-S05` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/tdd/SPEC-001-RainBookshopV4-TDD.md`、`RiskAudit G16 (RB4-T-337)`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：新增 `F-04`、`F-08`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-04`、`F-08` 落實「實作並通過 `rain-bookshop-v4-gate-a-audit.mjs` 前段 321 項唯一 TDD 技術 Gate A 總檢核」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：實作 `auditRainBookshopV4GateA` 逐 ID 核對前段 **321 項唯一 TDD**（`RB4-T-001`～`294` 共 294 項、`RB4-T-310`～`333` 共 24 項、`RB4-T-335`～`337` 共 3 項，其中 `337` 在前 320 項、80 素材、16 經典與音訊權利、修復後 Android runner 證據皆齊備時成立），確認 `gateAReady === true` 並鎖定候選供本人試玩之精確 manifest SHA-256。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -553,11 +553,11 @@
 | 2／Green | 實作 `F-04` 並跑通測試與實際 Gate A 總檢 | `C:\GitProjects\gamenenstyle\datinghigh` | `node --test tools/tests/rain-bookshop-v4-gate-a.test.mjs && node tools/rain-bookshop-v4-gate-a-audit.mjs` | 輸出 `gateAReady: true`（321/321 前段技術案例齊備） | 待回填 |
 | 3／Refactor 與回歸 | 執行 `npm test` 確認全倉工具測試通過 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm test` | 本包 6 個 `I` 全數完成，正式移交 `SD-007` | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-04`、`F-08`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 技術 Gate A 正式通過，移交精確 V4 SHA 與完整證據予 `SD-007`（準備清理隔離測試並提交使用者本人實玩 Gate B）。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-04`、`F-08`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 技術 Gate A 正式通過，移交精確 V4 SHA 與完整證據予 `SD-007`（準備清理隔離測試並提交使用者本人實玩 Gate B）。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ## 測試計劃與實際驗證方式
@@ -583,7 +583,7 @@
 
 | ID／原設計版本 | 發現證據與為何不能照案實作 | 白話實務情境／功能影響 | 建議／替代與影響 SD／BDD／TDD | 負責者／觸發／成本時程 | 使用者決策／核准範圍／新版本 | 失效證據／重驗與恢復條件 |
 |---|---|---|---|---|---|---|
-| `FINAL-APPROVAL-GATE`／`1.0.0` | 依 `SD-contract-v2` 與 `design-decision` 規範，整合產出之 `final/` 未獲使用者明確確認前不得啟動產品開發 | 確保所有跨候選取捨（真實路徑修正、D1 `CASE ... json()` 回滾、21 表清理拓樸）符合使用者預期 | 審閱核准 `final` `1.0.0` 後轉為 `Ready for carefully-done`（影響 `SD-001`～`SD-007`） | 使用者本人／設計交付時觸發 | **待使用者明確確認（`Awaiting approval`）** | 取得明確核准後解除阻斷；後續若需改動已核准設計須先停工討論並遞增設計版本 |
+| `FINAL-APPROVAL-GATE`／`1.0.0` | 依 `SD-contract-v2` 與 `design-decision` 規範，整合產出之 `final/` 未獲使用者明確確認前不得啟動產品開發 | 確保所有跨候選取捨（真實路徑修正、D1 `CASE ... json()` 回滾、21 表清理拓樸）符合使用者預期 | 審閱核准 `final` `1.0.0` 後轉為 `Ready for carefully-done`（影響 `SD-001`～`SD-007`） | 使用者本人／設計交付時觸發 | **已獲使用者明確核准（`2026-11-26`，基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`；轉為 `Ready for carefully-done`）** | 核准關卡已解除；後續若需改動已核准設計須先停工討論並遞增設計版本 |
 
 已寫明的檔案、邏輯、介面、資料、依賴、契約或驗證方式若在實作期發現需變更，必須先停止本需求後續實作並向使用者報告確認，更新獲准設計後再續作；一般進度與證據回填不變更設計版本。
 
@@ -653,13 +653,13 @@
 
 | 日期／任務／執行者 | 已完成並驗收／證據 | 尚未驗收／停止原因 | 寫入責任與共享資源現況 | 所需決策／恢復條件與查核 | 續作對象、實際啟動結果／下一步 |
 |---|---|---|---|---|---|
-| 2026-11-26／`/design-decision` 建立 `SD-006`／`Antigravity (Gemini 4 Carbon (High))` | 設計葉節點 `D`: 4/4 完成並通過桌面稽核 | 實作葉節點 `I`: 0/6 未開始；依規範停於 `Awaiting approval` 等待人工核准 | 產品程式碼、測試、DB 與設定 **0 修改**；無運行中背景伺服器或鎖定資源 | 使用者明確核准 `SPEC-001-RainBookshopV4/final` 設計版本 `1.0.0` | 核准後交由 `/carefully-done` 核對基準快照並按全案步驟順序執行 |
+| 2026-11-26／`/design-decision` 核准鎖定 `SD-006`／`Antigravity (Gemini 4 Carbon (High))` | 設計葉節點 `D`: 4/4 完成、通過桌面稽核並獲使用者明確核准（`Ready for carefully-done`） | 實作葉節點 `I`: 0/6 未開始；依使用者指示更新至可開工狀態，尚未啟動實作 | 產品程式碼、測試、DB 與設定 **0 修改**；無運行中背景伺服器或鎖定資源 | 設計核准已完成；無設計阻斷 | 待執行 `/carefully-done` 核對基準快照並按全案步驟順序執行 |
 
-**鎖定文件包／版本／核准依據**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/plans/SD-006-跨系統整合雙平台E2E與技術GateA驗收.md`／版本 `1.0.0`／待使用者明確核准（快照見 `../00-overview.md`）。  
-**目前 I-ID／步驟 ID／子階段／已發生副作用**：尚未開始（待進入 `SD-006-I01`／`SD-006-S01`）；已發生產品副作用：**無**。  
-**需重驗成果與不受影響成果**：無失效既有成果；既有 `SceneEventFramework` 基線保持完好。  
-**關鍵依賴鏈／下個里程碑／用時與重試策略**：下個里程碑為取得使用者核准進入實作；實作時單一測試失敗先於本步允許範圍定位修復，涉及設計或環境阻斷立即停止回報，不盲目無限重試。  
-**責任移交前停止寫入的證據**：本設計階段未對任何產品檔案進行寫入（可由 `git status --short` 核實）。
+**鎖定文件包／版本／核准依據**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/plans/SD-006-跨系統整合雙平台E2E與技術GateA驗收.md`／版本 `1.0.0`／使用者已於 `2026-11-26` 明確核准（基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`，最新檔案快照見 `../00-overview.md`）。
+**目前 I-ID／步驟 ID／子階段／已發生副作用**：尚未開始（待進入 `SD-006-I01`／`SD-006-S01`）；已發生產品副作用：**無**。
+**需重驗成果與不受影響成果**：無失效既有成果；既有 `SceneEventFramework` 基線保持完好。
+**關鍵依賴鏈／下個里程碑／用時與重試策略**：下個里程碑為啟動 `/carefully-done` 完成 `SD-006-M1`；實作時單一測試失敗先於本步允許範圍定位修復，涉及設計或環境阻斷立即停止回報，不盲目無限重試。
+**責任移交前停止寫入的證據**：未對任何產品或測試檔案進行寫入（可由 `git status --short` 核實）。
 
 ## 相關文檔
 
@@ -671,6 +671,6 @@
 
 ## 生成者、最後更新與狀態
 
-**生成者／AI／模型／批次**：`Antigravity`／`Gemini 4 Carbon (High)`／批次 `final`  
-**最後更新／設計版本**：2026-11-26／`1.0.0`（契約 `SD-contract-v2`）  
-**執行狀態／驗收狀態／剩餘事項**：`Planned`／`Incomplete`／等待使用者明確核准 `final` `1.0.0` 後由 `/carefully-done` 執行 `SD-006-I01`～`I06`
+**生成者／AI／模型／批次**：`Antigravity`／`Gemini 4 Carbon (High)`／批次 `final`
+**最後更新／設計版本**：2026-11-26／`1.0.0`（契約 `SD-contract-v2`）
+**執行狀態／驗收狀態／剩餘事項**：`Planned`（`Ready for carefully-done`）／`Incomplete`／設計已獲使用者核准，待執行 `/carefully-done` 依序實作 `SD-006-I01`～`I06`

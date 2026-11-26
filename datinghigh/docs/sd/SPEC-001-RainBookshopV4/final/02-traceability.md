@@ -1,8 +1,8 @@
 # SPEC-001-RainBookshopV4 — 需求追溯矩陣
 
-**來源 MVP／SPEC／BDD／TDD**：[MVP-001-LoveGameDatingApp.md](../../../requirements/MVP-001-LoveGameDatingApp.md)、[rain-bookshop-v4-draft.json](../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4.md](../../../specs/SPEC-001-RainBookshopV4.md)、[SPEC-001-RainBookshopV4-RiskAudit.md](../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[SPEC-001-RainBookshopV4-BDD.md](../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[SPEC-001-RainBookshopV4-TDD.md](../../../tdd/SPEC-001-RainBookshopV4-TDD.md)  
-**文件包／AI／模型／批次／設計版本**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`／設計版本：`1.0.0`（`SD-contract-v2`）  
-**狀態／最後更新**：`Awaiting approval`（全量設計涵蓋 100.0%，等待使用者明確核准；實作完成度 0.0%）／2026-11-26  
+**來源 MVP／SPEC／BDD／TDD**：[MVP-001-LoveGameDatingApp.md](../../../requirements/MVP-001-LoveGameDatingApp.md)、[rain-bookshop-v4-draft.json](../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4.md](../../../specs/SPEC-001-RainBookshopV4.md)、[SPEC-001-RainBookshopV4-RiskAudit.md](../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[SPEC-001-RainBookshopV4-BDD.md](../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[SPEC-001-RainBookshopV4-TDD.md](../../../tdd/SPEC-001-RainBookshopV4-TDD.md)
+**文件包／AI／模型／批次／設計版本**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`／設計版本：`1.0.0`（`SD-contract-v2`）
+**狀態／最後更新**：`Ready for carefully-done`（全量設計涵蓋 100.0%，已獲使用者明確核准；實作完成度 0.0%，未開發）／2026-11-26
 **基準與核准快照**：見 [SD 總覽（00-overview.md）](00-overview.md#來源程式與設計基準)
 
 ## 來源清冊與計數
@@ -532,7 +532,7 @@
 
 | 日期／稽核範圍 | 缺漏／衝突與證據 | 決策／回寫位置 | SPEC／BDD／TDD／SD 計數更新 | 狀態／待確認 |
 |---|---|---|---|---|
-| 2026-11-26／全量桌面設計稽核（15 AC、58 BDD、337 TDD、2,245 行原稿 JSON、7 份 SD、33 D、42 I、43 S、72 個檔案責任項） | 已修正候選 A 之 `*Projection.cs`/`StoryPayload.cs`/平面 `frontend/client/src/` 路徑錯置、D1 `CASE ... json()` 回滾寫法、Gate A 321 分母循環與 21 張真實 D1 表名，並補齊候選 C 未完成之具體演算法、測試值與命令 | 詳載於 [03-design-decision.md](03-design-decision.md) `DEC-01`～`DEC-14` 與 218 列步驟對照表；上游需求零語意變動，無須改寫來源規格 | SPEC 設計涵蓋 `15/15 (100.0%)`；BDD 設計涵蓋 `58/58 (100.0%)`；TDD 設計涵蓋 `337/337 (100.0%)`；SD `D: 33/33 (100.0%)`、`I: 0/42 (0.0%)` | 桌面設計稽核 **100% 通過**；交接狀態 `Awaiting approval`（等待使用者明確核准 `final` `1.0.0`） |
+| 2026-11-26／全量桌面設計稽核與使用者核准鎖定（15 AC、58 BDD、337 TDD、2,245 行原稿 JSON、7 份 SD、33 D、42 I、43 S） | 已修正候選 A 之 `*Projection.cs`/`StoryPayload.cs`/平面 `frontend/client/src/` 路徑錯置、D1 `CASE ... json()` 回滾寫法、Gate A 321 分母循環與 21 張真實 D1 表名，並補齊候選 C 未完成之具體演算法、測試值與命令 | 詳載於 [03-design-decision.md](03-design-decision.md) `DEC-01`～`DEC-14` 與 218 列步驟對照表；上游需求零語意變動，無須改寫來源規格 | SPEC 設計涵蓋 `15/15 (100.0%)`；BDD 設計涵蓋 `58/58 (100.0%)`；TDD 設計涵蓋 `337/337 (100.0%)`；SD `D: 33/33 (100.0%)`、`I: 0/42 (0.0%)` | 桌面設計稽核 **100% 通過**且使用者已明確核准 `final` `1.0.0`；交接狀態 `Ready for carefully-done`（未開發） |
 
 - 已逐一確認全包 **0 孤立來源項目、0 無主改動檔案、0 跨包重複寫檔、0 提前勾選產品完成**；桌面設計涵蓋與產品實際執行驗證嚴格分開記錄。
 - 已逐一核對全部 **42 個 `I` 葉節點**與 **43 個 `S` 步驟**：每個 `I` 皆具完整必要步驟（`SD-001-I02` 由 `S02`+`S03` 共同完成，其餘 41 個 `I` 各由唯一 1 個 `S` 完成），每個 `S` 僅唯一隸屬 1 個 `I`，依賴圖為有向無環圖（DAG），步驟不另列完成率或增加來源分母。
@@ -545,4 +545,4 @@
 - 分項實作設計：[SD-001](plans/SD-001-V4內容契約與作者草案編譯器.md)、[SD-002](plans/SD-002-雙軌破冰與限時救書領域規則.md)、[SD-003](plans/SD-003-權威計時交易與房間排程同步.md)、[SD-004](plans/SD-004-去按鈕化探索書牆與雙向破冰前端UX.md)、[SD-005](plans/SD-005-暴雨救書協作與四結局借閱小票前端UX.md)、[SD-006](plans/SD-006-跨系統整合雙平台E2E與技術GateA驗收.md)、[SD-007](plans/SD-007-實玩GateB與Local清理結案交付.md)
 - 上游來源：[MVP-001](../../../requirements/MVP-001-LoveGameDatingApp.md)、[V4 作者原稿 JSON](../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4](../../../specs/SPEC-001-RainBookshopV4.md)、[RiskAudit](../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[BDD](../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[TDD](../../../tdd/SPEC-001-RainBookshopV4-TDD.md)、[Verification](../../../verification/SPEC-001-RainBookshopV4-Verification.md)
 
-**生成者／最後更新／狀態**：`Antigravity`（模型：`Gemini 4 Carbon (High)`）／2026-11-26／`Awaiting approval`（設計版本 `1.0.0`）
+**生成者／最後更新／狀態**：`Antigravity`（模型：`Gemini 4 Carbon (High)`）／2026-11-26／`Ready for carefully-done`（設計版本 `1.0.0`，未開發）

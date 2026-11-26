@@ -1,9 +1,9 @@
 # SPEC-001-RainBookshopV4 — 系統設計
 
-**來源 MVP／SPEC／BDD／TDD**：[MVP-001-LoveGameDatingApp.md](../../../requirements/MVP-001-LoveGameDatingApp.md)、[rain-bookshop-v4-draft.json](../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4.md](../../../specs/SPEC-001-RainBookshopV4.md)、[SPEC-001-RainBookshopV4-RiskAudit.md](../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[SPEC-001-RainBookshopV4-BDD.md](../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[SPEC-001-RainBookshopV4-TDD.md](../../../tdd/SPEC-001-RainBookshopV4-TDD.md)  
-**文件包／AI／模型／批次／設計版本**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`（決策整合日 `2026-11-26`）／設計版本：`1.0.0`（契約：`SD-contract-v2`）  
-**優先級／狀態／最後更新**：高／`Awaiting approval`（完整設計與全量桌面稽核通過，等待使用者明確核准；尚未開發）／2026-11-26  
-**來源與程式基準／核准範圍**：見 [00-overview.md §來源、程式與設計基準](00-overview.md#來源程式與設計基準)（Git `HEAD` `cb679a298b990cb362e0f6ff7bf06f5baa352d6d`，七份來源 SHA-256 與 `final/` 全套檔案快照指紋鎖定）
+**來源 MVP／SPEC／BDD／TDD**：[MVP-001-LoveGameDatingApp.md](../../../requirements/MVP-001-LoveGameDatingApp.md)、[rain-bookshop-v4-draft.json](../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4.md](../../../specs/SPEC-001-RainBookshopV4.md)、[SPEC-001-RainBookshopV4-RiskAudit.md](../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[SPEC-001-RainBookshopV4-BDD.md](../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[SPEC-001-RainBookshopV4-TDD.md](../../../tdd/SPEC-001-RainBookshopV4-TDD.md)
+**文件包／AI／模型／批次／設計版本**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`（決策整合日 `2026-11-26`）／設計版本：`1.0.0`（契約：`SD-contract-v2`）
+**優先級／狀態／最後更新**：高／`Ready for carefully-done`（完整設計與全量桌面稽核通過，已獲使用者明確核准；尚未開發）／2026-11-26
+**來源與程式基準／核准範圍**：見 [00-overview.md §來源、程式與設計基準](00-overview.md#來源程式與設計基準)（核准基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`，七份來源 SHA-256 與 `final/` 全套檔案快照指紋鎖定）
 
 ## 目標、範圍與現況差異
 
@@ -270,7 +270,7 @@ flowchart TB
 | `RA-06` / `RA-07`：霧窗見證防偽與盲書／提問卡／書籤私密隔離 | 背景輪詢不應白拿見證印章；未撕盲書、未揭曉答案或非結局 2 書籤短語不可從 DTO/WS/R2 洩露 | 見證須同伴在 `window` 前景實際渲染當前 `symbolRevision` 後送出；SQL 僅讀本人興趣、DTO 白名單裁切、小票禁含自由輸入（影響 `SD-002`～`SD-006`） | 已確認 `RQ-03=A`、`RA-Q4=A` | 任一 API/E2E 洩密測試失敗即阻斷 Gate A |
 | `RA-08`：混合版本 Round 與共用 R2 素材誤刪風險 | 粗暴刪除或 prefix 刪除可能破壞非測試配對或 V4 沿用之 18 項共用素材 | Gate B 本人核准精確 SHA 後，僅對已知 default local 停寫備份，依真實 21 表 FK 拓樸、混合輪阻斷、9 張保護表指紋與 `RetainedKeys` 差集清理（影響 `SD-007`） | 已確認 `RQ-04=A`、`RA-Q4=A` | 未取得本人 Gate B 核准前，`SD-007-S03` 硬性阻斷不得執行 |
 | `RA-10` / `RA-11` / `RA-12`：50,000 圖上限、Android 腳本路徑、16 經典與素材權利 | 狀態展開超限、搬移前路徑或版權不明將阻斷正式發布與雙端 Gate A | `SD-001-S01` 先逐項核實 16 經典與 62 新素材權利；`SD-001-S05` 驗證有界商狀態圖；`SD-006-S01` 修復 `test-android.ps1`；缺 Android 實機／模擬器時如實記 `Deferred` 不代簽 | 已確認 `RA-Q4=A` | 權利不明或圖超限時立即停止回報使用者，禁私改劇本或拔除 `50,000` guard |
-| **本 `final` 設計包人工核准關卡** | 候選包自評或先前草稿均不構成對整合後 `final` `1.0.0` 的核准 | 請使用者審閱本 `final/`（版本 `1.0.0`）全部 11 份文件與決策取捨，明確核准後才將狀態轉為 `Ready for carefully-done` | **待使用者明確確認（`Awaiting approval`）** | 取得對 `final` `1.0.0` 快照之明確核准後解除阻斷，進入 `/carefully-done` |
+| **本 `final` 設計包人工核准關卡** | 候選包自評或先前草稿均不構成對整合後 `final` `1.0.0` 的核准 | 請使用者審閱本 `final/`（版本 `1.0.0`）全部 11 份文件與決策取捨，明確核准後才將狀態轉為 `Ready for carefully-done` | **已獲使用者明確確認核准（`2026-11-26`，基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`；轉為 `Ready for carefully-done`）** | 核准關卡已解除，可由 `/carefully-done` 開工；後續若需改動已記載設計仍須先停工確認並升版 |
 
 ## 相關文檔與生成資訊
 
@@ -280,4 +280,4 @@ flowchart TB
 - 分項設計：[SD-001](plans/SD-001-V4內容契約與作者草案編譯器.md)、[SD-002](plans/SD-002-雙軌破冰與限時救書領域規則.md)、[SD-003](plans/SD-003-權威計時交易與房間排程同步.md)、[SD-004](plans/SD-004-去按鈕化探索書牆與雙向破冰前端UX.md)、[SD-005](plans/SD-005-暴雨救書協作與四結局借閱小票前端UX.md)、[SD-006](plans/SD-006-跨系統整合雙平台E2E與技術GateA驗收.md)、[SD-007](plans/SD-007-實玩GateB與Local清理結案交付.md)
 - 架構與契約入口：[01-system-overview.md](../../../../overview/01-architecture/01-system-overview.md)、[02-layer-boundary.md](../../../../overview/01-architecture/02-layer-boundary.md)、[04-module-map.md](../../../../overview/01-architecture/04-module-map.md)、[01-api-contracts.md](../../../../overview/03-contracts/01-api-contracts.md)、[02-data-contracts.md](../../../../overview/03-contracts/02-data-contracts.md)
 
-**生成者／最後更新／狀態**：`Antigravity`（模型：`Gemini 4 Carbon (High)`）／2026-11-26／`Awaiting approval`（設計版本 `1.0.0`，未開發）
+**生成者／最後更新／狀態**：`Antigravity`（模型：`Gemini 4 Carbon (High)`）／2026-11-26／`Ready for carefully-done`（設計版本 `1.0.0`，未開發）

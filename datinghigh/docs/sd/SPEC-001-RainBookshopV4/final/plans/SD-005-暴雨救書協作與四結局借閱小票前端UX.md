@@ -1,11 +1,11 @@
 # SD-005-暴雨救書協作與四結局借閱小票前端UX — 分項實作設計
 
-**功能／工作包 ID**：`SD-005-暴雨救書協作與四結局借閱小票前端UX`  
-**完整 SPEC 名稱／來源 MVP／SPEC／BDD／TDD**：`SPEC-001-RainBookshopV4`／[MVP-001](../../../../requirements/MVP-001-LoveGameDatingApp.md)、[V4 作者原稿 JSON](../../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4](../../../../specs/SPEC-001-RainBookshopV4.md)、[RiskAudit](../../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[BDD](../../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[TDD](../../../../tdd/SPEC-001-RainBookshopV4-TDD.md)  
-**文件包／AI／模型／批次**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`  
-**設計版本／契約版本／優先級**：`1.0.0`／`SD-contract-v2`／高（P1）  
-**執行狀態／驗收狀態／最後更新**：`Planned`（未開發）／`Incomplete`（待核准後實測驗收）／2026-11-26  
-**執行／整合／驗收責任**：SD-005 前端後半與頂層組裝執行者／跨系統雙端 E2E 驗收由 SD-006（Gate A）與 SD-007（Gate B / CleanReplay）負責  
+**功能／工作包 ID**：`SD-005-暴雨救書協作與四結局借閱小票前端UX`
+**完整 SPEC 名稱／來源 MVP／SPEC／BDD／TDD**：`SPEC-001-RainBookshopV4`／[MVP-001](../../../../requirements/MVP-001-LoveGameDatingApp.md)、[V4 作者原稿 JSON](../../../../requirements/rain-bookshop-v4-draft.json)、[SPEC-001-RainBookshopV4](../../../../specs/SPEC-001-RainBookshopV4.md)、[RiskAudit](../../../../specs/SPEC-001-RainBookshopV4-RiskAudit.md)、[BDD](../../../../bdd/SPEC-001-RainBookshopV4-BDD.md)、[TDD](../../../../tdd/SPEC-001-RainBookshopV4-TDD.md)
+**文件包／AI／模型／批次**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/`／AI：`Antigravity`／模型：`Gemini 4 Carbon (High)`／批次：`final`
+**設計版本／契約版本／優先級**：`1.0.0`／`SD-contract-v2`／高（P1）
+**執行狀態／驗收狀態／最後更新**：`Planned`（已核准可開工，未開發）／`Incomplete`（待實測驗收）／2026-11-26
+**執行／整合／驗收責任**：SD-005 前端後半與頂層組裝執行者／跨系統雙端 E2E 驗收由 SD-006（Gate A）與 SD-007（Gate B / CleanReplay）負責
 **來源與程式碼基準、核准設計快照**：見 [SD 總覽（../00-overview.md）](../00-overview.md#來源程式與設計基準)
 
 ## 開發進度總覽
@@ -16,23 +16,23 @@
 
 | 指標 | 完成／總數 | 進度條與百分比 | 依據 |
 |---|---|---|---|
-| 設計完成度（D） | 4 / 4 | `[████████████████████] 100.0%` | 本包 `SD-005-D01`～`D04` 已完成完整設計與桌面一致性稽核 |
+| 設計完成度（D） | 4 / 4 | `[████████████████████] 100.0%` | 本包 `SD-005-D01`～`D04` 已完成完整設計、通過桌面稽核並獲使用者明確核准 |
 | 本包 BDD 設計涵蓋率 | 32 / 32 | `[████████████████████] 100.0%` | 本包涉及之全部唯一 BDD Scenario 均已完整分解至產品符號與步驟（跨包完整性見 [追溯矩陣](../02-traceability.md)） |
 | 本包 TDD 設計涵蓋率 | 30 / 30 | `[████████████████████] 100.0%` | 本包主責驗證之 30 項唯一 TDD 已 100% 映射至具體步驟、測試檔與命令 |
-| 實作驗證完成度（I） | 0 / 5 | `[░░░░░░░░░░░░░░░░░░░░] 0.0%` | 本包 `SD-005-I01`～`I05` 設計階段未開發，待人工核准 `final` 後實作驗收 |
+| 實作驗證完成度（I） | 0 / 5 | `[░░░░░░░░░░░░░░░░░░░░] 0.0%` | 本包 `SD-005-I01`～`I05` 尚未開發，已處於 `Ready for carefully-done` 待開工實測 |
 
 ### 分層／分組進度追蹤
 
 | 唯一分組／層 | D 完成／總數 | I 完成／總數 | 進行中／待開始 | 執行狀態 | 驗收狀態／證據 |
 |---|---|---|---|---|---|
-| 設計葉節點（D） | 4 / 4 | 0 / 0 | 0 / 0 | `Ready for review` | 桌面設計稽核通過（待使用者核准 `final` `1.0.0`） |
+| 設計葉節點（D） | 4 / 4 | 0 / 0 | 0 / 0 | `Accepted` | 桌面設計稽核通過，使用者已明確核准 `final` `1.0.0`（`Ready for carefully-done`） |
 | 實作與驗證葉節點（I；主責 TDD：Unit 30／Integration 0／API 0／E2E 0） | 0 / 0 | 0 / 5 | 0 / 5 | `Planned` | `Incomplete`；證據待回填至 `Verification.md` |
 
 ### 當前 Sprint 狀態
 
 | 當前階段／Todo ID／步驟 ID | Red–Green–Refactor 子階段 | 負責者 | 開始／預計完成及依據 | 下一步 ID／最後更新 |
 |---|---|---|---|---|
-| 設計決策交付待審／尚未啟動 `SD-005-I01`（`SD-005-S01`） | 不適用（設計階段不啟動產品開發） | SD-005 執行者 | 待使用者明確核准 `final` `1.0.0` 且滿足首步前置後啟動（無硬性預設期限） | 核准且前置滿足後執行 `SD-005-S01`／2026-11-26 |
+| 設計已核准可開工（`Ready for carefully-done`）／尚未啟動 `SD-005-I01`（`SD-005-S01`） | 不適用（尚未啟動產品開發） | SD-005 執行者 | 待啟動 `/carefully-done` 且滿足首步前置後執行（無硬性預設期限） | 啟動 `/carefully-done` 且前置滿足後執行 `SD-005-S01`／2026-11-26 |
 
 ### 里程碑
 
@@ -40,7 +40,7 @@
 
 | 里程碑 | 必要葉節點／前置 SD | 驗收與整合條件 | 狀態／證據 |
 |---|---|---|---|
-| `SD-005-M0`：分項設計與步驟稽核就緒 | `SD-005-D01`～`D04` | 檔案路徑 100% 對齊真實 repo、單一寫入無衝突、每步具案例與命令 | 設計已完成（`Awaiting approval`） |
+| `SD-005-M0`：分項設計與步驟稽核就緒並獲核准 | `SD-005-D01`～`D04` | 檔案路徑 100% 對齊真實 repo、單一寫入無衝突、每步具案例與命令並獲使用者核准 | 已完成並獲核准（`Ready for carefully-done`） |
 | `SD-005-M1`：本包全部實作與驗證葉節點達成 | `SD-005-I01`～`I05`（依賴前置見步驟表） | 本包全部 `SD-005-V01`～`SD-005-V05` 實測通過且既有回歸全綠 | `Incomplete` |
 | `SD-005-M2`：跨包 Gate A／Gate B 與最終深度稽核結案 | 配合 `SD-006` 與 `SD-007-I01`～`I05` | 全案 337/337 TDD 驗證完成、本人 Gate B 通過並同步 `Verification.md` | `Incomplete` |
 
@@ -48,7 +48,7 @@
 
 | 指標 | 已確認目標與來源 | 當前值 | 實際驗證／證據或限制 |
 |---|---|---|---|
-| 本包主責 TDD 設計涵蓋與實測通過數 | 設計涵蓋 30/30；實測通過目標 30/30（`SPEC`／`TDD`） | 設計涵蓋 `100.0%`；實測 `0 / 30` | 設計階段未執行程式修改或測試代簽 |
+| 本包主責 TDD 設計涵蓋與實測通過數 | 設計涵蓋 30/30；實測通過目標 30/30（`SPEC`／`TDD`） | 設計涵蓋 `100.0%`；實測 `0 / 30` | 尚未執行程式修改或測試代簽 |
 | 架構與資料邊界遵守度 | 21 表、0 新欄、0 Trigger、0 新公開 API、原稿逐 scalar 不變、單一檔案寫入責任 | 設計 `100%` 符合 | 見下方「檔案改動設計」與 [02-traceability.md](../02-traceability.md) |
 
 ### 每日進度記錄
@@ -57,7 +57,7 @@
 
 | 日期 | 完成 Todo／有效證據 | 阻斷／剩餘 | 下一步／責任 |
 |---|---|---|---|
-| 2026-11-26 | 完成 `SD-005` 分項設計 `1.0.0`（`D`: 4/4，涵蓋 10 個檔案項目與 5 個有序步驟） | 實作 `I`: 0/5；等待使用者明確核准 `final` `1.0.0` | 取得核准並滿足前置後由 `/carefully-done` 依序執行 `SD-005-S01` |
+| 2026-11-26 | 完成 `SD-005` 分項設計 `1.0.0`（`D`: 4/4，涵蓋 10 個檔案項目與 5 個有序步驟）並獲使用者明確核准轉為 `Ready for carefully-done` | 實作 `I`: 0/5；無設計阻斷（尚未開始開發） | 由 `/carefully-done` 滿足前置後依序執行 `SD-005-S01` |
 
 ## 功能概述
 
@@ -347,12 +347,12 @@
 
 ### SD-005-S01：擴充 `SceneWeather.tsx`、`SceneStoryMotion.tsx` 與 `StoryAudio.tsx` 支援暴雨斷電、黑膠淡換驟停與背景停播
 
-**對應成果與責任**：唯一負責 `SD-005-I01`；對應 TDD：`RB4-T-115`、`RB4-T-285`、`RB4-T-286`、`RB4-T-287`；涉及檔案：`F-03`、`F-04`、`F-05`、`F-10`；驗證 ID：`SD-005-V01`；由 `SD-005` 執行者負責。  
-**開始條件與前置證據**：`SD-003-S07` 與 `SD-004-S05` 皆已通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/SceneWeather.tsx`、`SceneStoryMotion.tsx`、`StoryAudio.tsx`、`scene-browser-lifecycle.ts`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：修改 `F-03`、`F-04`、`F-05`，新增 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-03`、`F-04`、`F-05`、`F-10` 落實「擴充 `SceneWeather.tsx`、`SceneStoryMotion.tsx` 與 `StoryAudio.tsx` 支援暴雨斷電、黑膠淡換驟停與背景停播」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：擴充暴雨閃電、停電暗罩與四結局雨幕；擴充 7 步導演演出與略過／失焦即停；擴充 `StoryAudio` 黑膠 3 曲平滑淡換、斷電時停止 `music` 保留雨聲、未開啟聲音時同伴切歌不強播，以及 Web blur/hidden 與 Android background 立即暫停且回前景不自播。  
+**對應成果與責任**：唯一負責 `SD-005-I01`；對應 TDD：`RB4-T-115`、`RB4-T-285`、`RB4-T-286`、`RB4-T-287`；涉及檔案：`F-03`、`F-04`、`F-05`、`F-10`；驗證 ID：`SD-005-V01`；由 `SD-005` 執行者負責。
+**開始條件與前置證據**：`SD-003-S07` 與 `SD-004-S05` 皆已通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/SceneWeather.tsx`、`SceneStoryMotion.tsx`、`StoryAudio.tsx`、`scene-browser-lifecycle.ts`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：修改 `F-03`、`F-04`、`F-05`，新增 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-03`、`F-04`、`F-05`、`F-10` 落實「擴充 `SceneWeather.tsx`、`SceneStoryMotion.tsx` 與 `StoryAudio.tsx` 支援暴雨斷電、黑膠淡換驟停與背景停播」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：擴充暴雨閃電、停電暗罩與四結局雨幕；擴充 7 步導演演出與略過／失焦即停；擴充 `StoryAudio` 黑膠 3 曲平滑淡換、斷電時停止 `music` 保留雨聲、未開啟聲音時同伴切歌不強播，以及 Web blur/hidden 與 Android background 立即暫停且回前景不自播。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -372,21 +372,21 @@
 | 2／Green | 修改 `F-03`、`F-04`、`F-05` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- scene-v4-half2` | 天氣、演出與音訊測試通過 | 待回填 |
 | 3／Refactor 與回歸 | 重跑既有 `story-audio.test.tsx`、`scene-story-motion.test.tsx`、`scene-weather.test.tsx` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- story-audio scene-story-motion scene-weather` | 既有測試 100% 全綠 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-03`、`F-04`、`F-05`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-005-S02`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-03`、`F-04`、`F-05`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-005-S02`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-005-S02：實作 `TimedRescueOverlay.tsx` 單調倒數、4 水位、15 秒暫緩橫幅與雙向救書／三態鎖扣／快捷泡泡
 
-**對應成果與責任**：唯一負責 `SD-005-I02`；對應 TDD：`RB4-T-126`、`RB4-T-143`、`RB4-T-149`、`RB4-T-155`、`RB4-T-161`、`RB4-T-167`、`RB4-T-173`、`RB4-T-179`、`RB4-T-191`、`RB4-T-203`；涉及檔案：`F-01`、`F-10`；驗證 ID：`SD-005-V02`；由 `SD-005` 執行者負責。  
-**開始條件與前置證據**：`SD-005-S01` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/requirements/rain-bookshop-v4-draft.json`（`timedCoopRescue`、`uiCopy`）、`SPEC §6.2–6.4`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：新增 `F-01`，修改 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-01`、`F-10` 落實「實作 `TimedRescueOverlay.tsx` 單調倒數、4 水位、15 秒暫緩橫幅與雙向救書／三態鎖扣／快捷泡泡」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：實作手電筒 Ready、基於 `performance.now()` 之單調倒數（支援任意釘選 `durationSeconds` 如 90s/120s）、4 水位線與播報、15 秒暫緩凍結橫幅（無額外恢復按鈕）、濕清單判讀分享、乾燥區抽書、`>=65%` 上滑傳遞、防潮袋裝櫃、第 3 本墊底提示、第 4 本左扣→右扣→封箱三態點擊與雙人各 6 句快捷呼喊泡泡。  
+**對應成果與責任**：唯一負責 `SD-005-I02`；對應 TDD：`RB4-T-126`、`RB4-T-143`、`RB4-T-149`、`RB4-T-155`、`RB4-T-161`、`RB4-T-167`、`RB4-T-173`、`RB4-T-179`、`RB4-T-191`、`RB4-T-203`；涉及檔案：`F-01`、`F-10`；驗證 ID：`SD-005-V02`；由 `SD-005` 執行者負責。
+**開始條件與前置證據**：`SD-005-S01` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/requirements/rain-bookshop-v4-draft.json`（`timedCoopRescue`、`uiCopy`）、`SPEC §6.2–6.4`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：新增 `F-01`，修改 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-01`、`F-10` 落實「實作 `TimedRescueOverlay.tsx` 單調倒數、4 水位、15 秒暫緩橫幅與雙向救書／三態鎖扣／快捷泡泡」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：實作手電筒 Ready、基於 `performance.now()` 之單調倒數（支援任意釘選 `durationSeconds` 如 90s/120s）、4 水位線與播報、15 秒暫緩凍結橫幅（無額外恢復按鈕）、濕清單判讀分享、乾燥區抽書、`>=65%` 上滑傳遞、防潮袋裝櫃、第 3 本墊底提示、第 4 本左扣→右扣→封箱三態點擊與雙人各 6 句快捷呼喊泡泡。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -406,21 +406,21 @@
 | 2／Green | 實作 `TimedRescueOverlay.tsx` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- scene-v4-half2` | 全部救書覆疊測試通過 | 待回填 |
 | 3／Refactor 與回歸 | 執行前端 typecheck 確認 props 型別嚴謹 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client run typecheck` | 0 型別錯誤 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-01`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-005-S03`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-01`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-005-S03`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-005-S03：實作 `BookmarkAndEndingPanel.tsx` 阿澄回應、書籤 0–20 Scalar 儀式、最終意願與零個資借閱小票
 
-**對應成果與責任**：唯一負責 `SD-005-I03`；對應 TDD：`RB4-T-214`、`RB4-T-221`、`RB4-T-232`、`RB4-T-238`；涉及檔案：`F-02`、`F-10`；驗證 ID：`SD-005-V03`；由 `SD-005` 執行者負責。  
-**開始條件與前置證據**：`SD-005-S02` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/requirements/rain-bookshop-v4-draft.json`（`clerkAftermath`、`bookmarkRitual`、`finalWish`、`endings`、`memoryReceipt`），以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：新增 `F-02`，修改 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-02`、`F-10` 落實「實作 `BookmarkAndEndingPanel.tsx` 阿澄回應、書籤 0–20 Scalar 儀式、最終意願與零個資借閱小票」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：實作阿澄 `S/A × 聊開/慢熟` 回應面板、S/A 書籤 3 句自選＋選填 `0..20` Unicode scalar 安全短語輸入框、3 種最終意願按鈕、B 級屋簷專屬面板，以及完成後之《雨聲書店・今日借閱小票》（黑膠、書名、救書統計、4 稱號、`X/4`、4 印章，零個資、零自由輸入）。  
+**對應成果與責任**：唯一負責 `SD-005-I03`；對應 TDD：`RB4-T-214`、`RB4-T-221`、`RB4-T-232`、`RB4-T-238`；涉及檔案：`F-02`、`F-10`；驗證 ID：`SD-005-V03`；由 `SD-005` 執行者負責。
+**開始條件與前置證據**：`SD-005-S02` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `docs/requirements/rain-bookshop-v4-draft.json`（`clerkAftermath`、`bookmarkRitual`、`finalWish`、`endings`、`memoryReceipt`），以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：新增 `F-02`，修改 `F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-02`、`F-10` 落實「實作 `BookmarkAndEndingPanel.tsx` 阿澄回應、書籤 0–20 Scalar 儀式、最終意願與零個資借閱小票」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：實作阿澄 `S/A × 聊開/慢熟` 回應面板、S/A 書籤 3 句自選＋選填 `0..20` Unicode scalar 安全短語輸入框、3 種最終意願按鈕、B 級屋簷專屬面板，以及完成後之《雨聲書店・今日借閱小票》（黑膠、書名、救書統計、4 稱號、`X/4`、4 印章，零個資、零自由輸入）。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -440,21 +440,21 @@
 | 2／Green | 實作 `BookmarkAndEndingPanel.tsx` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- scene-v4-half2` | 書籤、結局與小票測試全數通過 | 待回填 |
 | 3／Refactor 與回歸 | 執行前端 typecheck | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client run typecheck` | 0 型別錯誤 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-02`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-005-S04`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-02`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-005-S04`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-005-S04：擴充 `StoryStage.tsx`、`ADVStage.tsx` 與 `RealtimeRoomClient.ts` 完成舞台覆疊互斥與重連對時
 
-**對應成果與責任**：唯一負責 `SD-005-I04`；對應 TDD：`RB4-T-272`、`RB4-T-273`、`RB4-T-274`、`RB4-T-279`、`RB4-T-280`、`RB4-T-281`；涉及檔案：`F-06`、`F-07`、`F-08`、`F-10`；驗證 ID：`SD-005-V04`；由 `SD-005` 執行者負責。  
-**開始條件與前置證據**：`SD-005-S03` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/StoryStage.tsx`、`ADVStage.tsx`、`RealtimeRoomClient.ts`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：修改 `F-06`、`F-07`、`F-08`、`F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-06`、`F-07`、`F-08`、`F-10` 落實「擴充 `StoryStage.tsx`、`ADVStage.tsx` 與 `RealtimeRoomClient.ts` 完成舞台覆疊互斥與重連對時」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：於 `StoryStage` 掛載小地圖、書牆特寫、環境彩蛋與救書覆疊並於抽屜開啟時鎖定底層鏡頭拖拽；於 `ADVStage` 支援 `店長・阿澄` 膠囊樣式與收尾面板避讓；於 `RealtimeRoomClient` 確保重連同步對齊倒數時鐘且維持有界快取。  
+**對應成果與責任**：唯一負責 `SD-005-I04`；對應 TDD：`RB4-T-272`、`RB4-T-273`、`RB4-T-274`、`RB4-T-279`、`RB4-T-280`、`RB4-T-281`；涉及檔案：`F-06`、`F-07`、`F-08`、`F-10`；驗證 ID：`SD-005-V04`；由 `SD-005` 執行者負責。
+**開始條件與前置證據**：`SD-005-S03` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/StoryStage.tsx`、`ADVStage.tsx`、`RealtimeRoomClient.ts`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：修改 `F-06`、`F-07`、`F-08`、`F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-06`、`F-07`、`F-08`、`F-10` 落實「擴充 `StoryStage.tsx`、`ADVStage.tsx` 與 `RealtimeRoomClient.ts` 完成舞台覆疊互斥與重連對時」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：於 `StoryStage` 掛載小地圖、書牆特寫、環境彩蛋與救書覆疊並於抽屜開啟時鎖定底層鏡頭拖拽；於 `ADVStage` 支援 `店長・阿澄` 膠囊樣式與收尾面板避讓；於 `RealtimeRoomClient` 確保重連同步對齊倒數時鐘且維持有界快取。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -474,21 +474,21 @@
 | 2／Green | 修改 `F-06`、`F-07`、`F-08` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- scene-v4-half2` | 舞台與連線組裝測試通過 | 待回填 |
 | 3／Refactor 與回歸 | 重跑既有 `story-stage.test.tsx` 與 `realtime-room-client.test.ts` | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- story-stage realtime-room-client` | 既有舞台與 WS 客戶端測試全綠 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-06`、`F-07`、`F-08`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 `SD-005-S05`。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-06`、`F-07`、`F-08`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 `SD-005-S05`。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ### SD-005-S05：完成 `StoryExperienceScreen.tsx` 頂層全場組裝、8×3 動態聊天建議、失權清理與 Web 靜態匯出驗證
 
-**對應成果與責任**：唯一負責 `SD-005-I05`；對應 TDD：`RB4-T-103`、`RB4-T-262`、`RB4-T-269`、`RB4-T-291`、`RB4-T-292`、`RB4-T-293`；涉及檔案：`F-09`、`F-10`；驗證 ID：`SD-005-V05`；由 `SD-005` 執行者負責。  
-**開始條件與前置證據**：`SD-005-S04` 通過。  
-**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/StoryExperienceScreen.tsx`、`story.ts`，以及 [01-system-design.md](../01-system-design.md)。  
-**可寫檔案／符號及禁止改動**：修改 `F-09`、`F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。  
-**產品改動與 BDD／畫面關聯**：透過 `F-09`、`F-10` 落實「完成 `StoryExperienceScreen.tsx` 頂層全場組裝、8×3 動態聊天建議、失權清理與 Web 靜態匯出驗證」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。  
-**具體行為與核心邏輯**：在 `StoryExperienceScreen` 完整串接 V4 前後半互動狀態、8×3 動態聊天建議切換、暫緩期間重返前景自動同步恢復，以及收到 `401`/`403`/`ended`/切換下一場時立即呼叫強化版 `clearPrivate()` 徹底清除盲書／提問卡／書籤草稿／小票／解碼圖片快取，並驗證 `export:web` 打包成功。  
+**對應成果與責任**：唯一負責 `SD-005-I05`；對應 TDD：`RB4-T-103`、`RB4-T-262`、`RB4-T-269`、`RB4-T-291`、`RB4-T-292`、`RB4-T-293`；涉及檔案：`F-09`、`F-10`；驗證 ID：`SD-005-V05`；由 `SD-005` 執行者負責。
+**開始條件與前置證據**：`SD-005-S04` 通過。
+**必讀工作範圍**：工作區 `C:\GitProjects\gamenenstyle\datinghigh` 下之 `frontend/client/src/StoryExperienceScreen.tsx`、`story.ts`，以及 [01-system-design.md](../01-system-design.md)。
+**可寫檔案／符號及禁止改動**：修改 `F-09`、`F-10`；嚴禁跨包修改非本包負責之檔案或竄改上游規格。
+**產品改動與 BDD／畫面關聯**：透過 `F-09`、`F-10` 落實「完成 `StoryExperienceScreen.tsx` 頂層全場組裝、8×3 動態聊天建議、失權清理與 Web 靜態匯出驗證」，直接支撐對應 BDD 條件、權威結果與雙平台畫面／安全契約（非僅新增空測試）。
+**具體行為與核心邏輯**：在 `StoryExperienceScreen` 完整串接 V4 前後半互動狀態、8×3 動態聊天建議切換、暫緩期間重返前景自動同步恢復，以及收到 `401`/`403`/`ended`/切換下一場時立即呼叫強化版 `clearPrivate()` 徹底清除盲書／提問卡／書籤草稿／小票／解碼圖片快取，並驗證 `export:web` 打包成功。
 **允許自行決定的局部細節**：私有輔助函式／區域變數命名與不影響公開 JSON 契約及視覺規格之內部排版常數；任何涉及 schema、API、SQL 表欄或原稿文字之變更一律禁止自行決定。
 
 #### 測試資料與預期結果
@@ -508,11 +508,11 @@
 | 2／Green | 修改 `StoryExperienceScreen.tsx` 完成組裝與清理邏輯 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client test -- scene-v4-half2` | 全部頂層組裝測試通過 | 待回填 |
 | 3／Refactor 與回歸 | 執行全套前端單元測試、型別檢查與正式 Web 靜態匯出驗證 | `C:\GitProjects\gamenenstyle\datinghigh` | `npm --prefix frontend/client run typecheck && npm run test:client && npm --prefix frontend/client run export:web` | 本包 5 個 `I`、全量前端測試與 `export:web` 100% 通過 | 待回填 |
 
-**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。  
-**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。  
-**可在本步修正的範圍**：本步可寫檔案（`F-09`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。  
-**下一步與起始條件**：通過後進入 移交完整前後端與雙端共用前端成果予 `SD-006` 啟動跨系統整合與雙平台 E2E。  
-**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。  
+**本步通過條件**：上述 Green 與回歸命令退出碼皆為 `0`，涵蓋之全部正常／錯誤／邊界斷言成立且零秘密日誌外洩。
+**必須停止的情況與回報內容**：若前置檔案缺失、真環境（如真 Miniflare D1 時鐘、權利依據、Android ADB 裝置或本人 Gate B 核准）不滿足，或發現需偏離已核准設計才可通過時，**立即停止後續步驟**，回報原設計位置、實測證據、影響範圍、最小替代建議與恢復條件。
+**可在本步修正的範圍**：本步可寫檔案（`F-09`、`F-10`）內符合既定設計之語法、型別與邊界邏輯修正；嚴禁放寬斷言、調高安全上限或跳過測試。
+**下一步與起始條件**：通過後進入 移交完整前後端與雙端共用前端成果予 `SD-006` 啟動跨系統整合與雙平台 E2E。
+**實際執行狀態／目前子階段／證據**：`Planned`／未開始／待實作回填（設計階段不開發）。
 **中斷與恢復資訊**：恢復時先核對 `git status`、已改檔案 SHA 與本步通過條件，重跑本步驗證命令確認現況後再續作，不盲目覆寫既有進度。
 
 ## 測試計劃與實際驗證方式
@@ -537,7 +537,7 @@
 
 | ID／原設計版本 | 發現證據與為何不能照案實作 | 白話實務情境／功能影響 | 建議／替代與影響 SD／BDD／TDD | 負責者／觸發／成本時程 | 使用者決策／核准範圍／新版本 | 失效證據／重驗與恢復條件 |
 |---|---|---|---|---|---|---|
-| `FINAL-APPROVAL-GATE`／`1.0.0` | 依 `SD-contract-v2` 與 `design-decision` 規範，整合產出之 `final/` 未獲使用者明確確認前不得啟動產品開發 | 確保所有跨候選取捨（真實路徑修正、D1 `CASE ... json()` 回滾、21 表清理拓樸）符合使用者預期 | 審閱核准 `final` `1.0.0` 後轉為 `Ready for carefully-done`（影響 `SD-001`～`SD-007`） | 使用者本人／設計交付時觸發 | **待使用者明確確認（`Awaiting approval`）** | 取得明確核准後解除阻斷；後續若需改動已核准設計須先停工討論並遞增設計版本 |
+| `FINAL-APPROVAL-GATE`／`1.0.0` | 依 `SD-contract-v2` 與 `design-decision` 規範，整合產出之 `final/` 未獲使用者明確確認前不得啟動產品開發 | 確保所有跨候選取捨（真實路徑修正、D1 `CASE ... json()` 回滾、21 表清理拓樸）符合使用者預期 | 審閱核准 `final` `1.0.0` 後轉為 `Ready for carefully-done`（影響 `SD-001`～`SD-007`） | 使用者本人／設計交付時觸發 | **已獲使用者明確核准（`2026-11-26`，基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`；轉為 `Ready for carefully-done`）** | 核准關卡已解除；後續若需改動已核准設計須先停工討論並遞增設計版本 |
 
 已寫明的檔案、邏輯、介面、資料、依賴、契約或驗證方式若在實作期發現需變更，必須先停止本需求後續實作並向使用者報告確認，更新獲准設計後再續作；一般進度與證據回填不變更設計版本。
 
@@ -601,13 +601,13 @@
 
 | 日期／任務／執行者 | 已完成並驗收／證據 | 尚未驗收／停止原因 | 寫入責任與共享資源現況 | 所需決策／恢復條件與查核 | 續作對象、實際啟動結果／下一步 |
 |---|---|---|---|---|---|
-| 2026-11-26／`/design-decision` 建立 `SD-005`／`Antigravity (Gemini 4 Carbon (High))` | 設計葉節點 `D`: 4/4 完成並通過桌面稽核 | 實作葉節點 `I`: 0/5 未開始；依規範停於 `Awaiting approval` 等待人工核准 | 產品程式碼、測試、DB 與設定 **0 修改**；無運行中背景伺服器或鎖定資源 | 使用者明確核准 `SPEC-001-RainBookshopV4/final` 設計版本 `1.0.0` | 核准後交由 `/carefully-done` 核對基準快照並按全案步驟順序執行 |
+| 2026-11-26／`/design-decision` 核准鎖定 `SD-005`／`Antigravity (Gemini 4 Carbon (High))` | 設計葉節點 `D`: 4/4 完成、通過桌面稽核並獲使用者明確核准（`Ready for carefully-done`） | 實作葉節點 `I`: 0/5 未開始；依使用者指示更新至可開工狀態，尚未啟動實作 | 產品程式碼、測試、DB 與設定 **0 修改**；無運行中背景伺服器或鎖定資源 | 設計核准已完成；無設計阻斷 | 待執行 `/carefully-done` 核對基準快照並按全案步驟順序執行 |
 
-**鎖定文件包／版本／核准依據**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/plans/SD-005-暴雨救書協作與四結局借閱小票前端UX.md`／版本 `1.0.0`／待使用者明確核准（快照見 `../00-overview.md`）。  
-**目前 I-ID／步驟 ID／子階段／已發生副作用**：尚未開始（待進入 `SD-005-I01`／`SD-005-S01`）；已發生產品副作用：**無**。  
-**需重驗成果與不受影響成果**：無失效既有成果；既有 `SceneEventFramework` 基線保持完好。  
-**關鍵依賴鏈／下個里程碑／用時與重試策略**：下個里程碑為取得使用者核准進入實作；實作時單一測試失敗先於本步允許範圍定位修復，涉及設計或環境阻斷立即停止回報，不盲目無限重試。  
-**責任移交前停止寫入的證據**：本設計階段未對任何產品檔案進行寫入（可由 `git status --short` 核實）。
+**鎖定文件包／版本／核准依據**：`datinghigh/docs/sd/SPEC-001-RainBookshopV4/final/plans/SD-005-暴雨救書協作與四結局借閱小票前端UX.md`／版本 `1.0.0`／使用者已於 `2026-11-26` 明確核准（基準 commit `22c2da535a8da6e1a916bfa3e3dd6f7f57b87f00`，最新檔案快照見 `../00-overview.md`）。
+**目前 I-ID／步驟 ID／子階段／已發生副作用**：尚未開始（待進入 `SD-005-I01`／`SD-005-S01`）；已發生產品副作用：**無**。
+**需重驗成果與不受影響成果**：無失效既有成果；既有 `SceneEventFramework` 基線保持完好。
+**關鍵依賴鏈／下個里程碑／用時與重試策略**：下個里程碑為啟動 `/carefully-done` 完成 `SD-005-M1`；實作時單一測試失敗先於本步允許範圍定位修復，涉及設計或環境阻斷立即停止回報，不盲目無限重試。
+**責任移交前停止寫入的證據**：未對任何產品或測試檔案進行寫入（可由 `git status --short` 核實）。
 
 ## 相關文檔
 
@@ -619,6 +619,6 @@
 
 ## 生成者、最後更新與狀態
 
-**生成者／AI／模型／批次**：`Antigravity`／`Gemini 4 Carbon (High)`／批次 `final`  
-**最後更新／設計版本**：2026-11-26／`1.0.0`（契約 `SD-contract-v2`）  
-**執行狀態／驗收狀態／剩餘事項**：`Planned`／`Incomplete`／等待使用者明確核准 `final` `1.0.0` 後由 `/carefully-done` 執行 `SD-005-I01`～`I05`
+**生成者／AI／模型／批次**：`Antigravity`／`Gemini 4 Carbon (High)`／批次 `final`
+**最後更新／設計版本**：2026-11-26／`1.0.0`（契約 `SD-contract-v2`）
+**執行狀態／驗收狀態／剩餘事項**：`Planned`（`Ready for carefully-done`）／`Incomplete`／設計已獲使用者核准，待執行 `/carefully-done` 依序實作 `SD-005-I01`～`I05`
